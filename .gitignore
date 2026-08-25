@@ -1,0 +1,16 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# .NET / C#
+bin/
+obj/
+
+# Node.js
+node_modules/
+dist/
+.env
+
+# MacOS
+.DS_Store

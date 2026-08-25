@@ -1,0 +1,90 @@
+import { Model, DataTypes } from 'sequelize';
+import db from '../config/database';
+
+class DDOITACKYGUI extends Model {
+    public id!: any;
+    public name!: any;
+    public note!: any;
+    public status!: any;
+    public usermodifiedid!: any;
+    public timemodified!: any;
+    public timecreated!: any;
+    public sortorder!: any;
+    public usercreatedid!: any;
+    public parentid!: any;
+    public parentdir!: any;
+    public itemtype!: any;
+    public autoid!: any;
+    public simageid!: any;
+    public hoahong!: any;
+}
+
+DDOITACKYGUI.init({
+    ID: {
+        type: DataTypes.INTEGER,
+        primaryKey: true, autoIncrement: true,
+    },
+    NAME: {
+        type: DataTypes.STRING,
+        
+    },
+    NOTE: {
+        type: DataTypes.STRING,
+        
+    },
+    STATUS: {
+        type: DataTypes.BOOLEAN,
+        
+    },
+    USERMODIFIEDID: {
+        type: DataTypes.INTEGER,
+        
+    },
+    TIMEMODIFIED: {
+        type: DataTypes.DATE,
+        
+    },
+    TIMECREATED: {
+        type: DataTypes.DATE,
+        
+    },
+    SORTORDER: {
+        type: DataTypes.INTEGER,
+        
+    },
+    USERCREATEDID: {
+        type: DataTypes.INTEGER,
+        
+    },
+    PARENTID: {
+        type: DataTypes.INTEGER,
+        
+    },
+    PARENTDIR: {
+        type: DataTypes.STRING,
+        
+    },
+    ITEMTYPE: {
+        type: DataTypes.STRING,
+        
+    },
+    AUTOID: {
+        type: DataTypes.INTEGER,
+        
+    },
+    SIMAGEID: {
+        type: DataTypes.INTEGER,
+        
+    },
+    HOAHONG: {
+        type: DataTypes.DECIMAL(18,2),
+        
+    },
+}, {
+    sequelize: db.sequelize,
+    modelName: 'DDOITACKYGUI',
+    tableName: 'DDOITACKYGUI',
+    timestamps: false
+});
+
+export default DDOITACKYGUI;

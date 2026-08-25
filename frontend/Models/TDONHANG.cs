@@ -1,0 +1,97 @@
+using System;
+
+namespace QuanLyBar.Client.Models
+{
+    public class TDONHANG
+    {
+        public int? Id { get; set; }
+        public string Name { get; set; }
+        public string Note { get; set; }
+        public bool? Status { get; set; }
+        public int? UsermodifiedId { get; set; }
+        public DateTime? Timemodified { get; set; }
+        public DateTime? Timecreated { get; set; }
+        public DateTime? Ngay { get; set; }
+        public int? UsercreatedId { get; set; }
+        public decimal? Giamtheotien { get; set; }
+        public string Loai { get; set; }
+        public string Tongcong { get; set; }
+        public string Phivanchuyen { get; set; }
+        public decimal? Tiengiamgia { get; set; }
+        public decimal? Tilegiamgia { get; set; }
+        public decimal? Tienthue { get; set; }
+        public decimal? Tilethue { get; set; }
+        public decimal? Tienhang { get; set; }
+        public int? DnhacungcapId { get; set; }
+        public int? DkhoxuatId { get; set; }
+        public int? DkhonhapId { get; set; }
+        public int? DnhanvienxuatId { get; set; }
+        public int? DnhanviennhapId { get; set; }
+        public decimal? Diengiai { get; set; }
+        public DateTime? Giothanhtoan { get; set; }
+        public string Khachdua { get; set; }
+        public string Tralai { get; set; }
+        public string Nocu { get; set; }
+        public decimal? Loaigia { get; set; }
+        public int? UserthanhtoanId { get; set; }
+        public decimal? Tienthanhtoan { get; set; }
+        public string Loaithanhtoan { get; set; }
+        public int? TdathangId { get; set; }
+        public decimal? Giaohang { get; set; }
+        public string Dathanhtoan { get; set; }
+        public string Doitra { get; set; }
+        public string Conno { get; set; }
+        public decimal? Diem { get; set; }
+        public string Voucher { get; set; }
+        public int? DnhanviengiaoId { get; set; }
+        public string Trichnhanvien { get; set; }
+        public int? DcuahangId { get; set; }
+        public string Conlai { get; set; }
+        public string Thanhtoan { get; set; }
+        public int? DkhachhangId { get; set; }
+        public int? DtaikhoannganhangId { get; set; }
+        public int? DvoucherId { get; set; }
+        public string Thetratruoc { get; set; }
+        public int? DthetratruocId { get; set; }
+        public string Trutichluy { get; set; }
+        public decimal? Diemgiam { get; set; }
+        public decimal? Tienmat { get; set; }
+        public string Chuyenkhoan { get; set; }
+        public string The { get; set; }
+        public int? DbanId { get; set; }
+        public DateTime? Batdau { get; set; }
+        public decimal? Ketthuc { get; set; }
+        public int? NhomguId { get; set; }
+        public decimal? Tiengio { get; set; }
+        public decimal? Tilegiamgiagio { get; set; }
+        public decimal? Tiengiamgiagio { get; set; }
+        public string Sokhach { get; set; }
+        public string Phidichvu { get; set; }
+        public decimal? Tilephidichvu { get; set; }
+        public decimal? Tilegiamgiatong { get; set; }
+        public decimal? Tiengiamgiatong { get; set; }
+        public decimal? Giamgiagiotheotien { get; set; }
+        public decimal? Phidichvutheotien { get; set; }
+        public decimal? Giamtongtheotien { get; set; }
+        public string Soorder { get; set; }
+        public DateTime? Tuthaydoigio { get; set; }
+        public string Sohd { get; set; }
+        public string Sott { get; set; }
+        public string Solanintamtinh { get; set; }
+        public decimal? Dongia { get; set; }
+        public int? DbanggiaId { get; set; }
+        public decimal? Tiengiophongcuoi { get; set; }
+        public string Batdauphongcuoi { get; set; }
+        public decimal? Cachtinhgia { get; set; }
+        public decimal? Tienmoban { get; set; }
+        public string Laninhoadon { get; set; }
+        public string Intamtinhluc { get; set; }
+        public string Dattruoc { get; set; }
+        public string Congno { get; set; }
+        public decimal? Tienhangchuagiam { get; set; }
+        public decimal? Giamgiamathang { get; set; }
+        public string Phutkhuyenmai { get; set; }
+        public decimal? Tilekhuyenmaiphutdau { get; set; }
+        public string Passwifi { get; set; }
+    }
+}

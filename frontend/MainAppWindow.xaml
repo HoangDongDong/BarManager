@@ -1,0 +1,254 @@
+<Window x:Class="QuanLyBar.Client.MainAppWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Phần Mềm Quản Lý Bar, Nhà Hàng" WindowState="Maximized" Background="#d1def0">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Menu Header -->
+        <Menu Grid.Row="0" Background="#d1def0" FontSize="13" Padding="2,4" BorderBrush="#a4bce3" BorderThickness="0,0,0,1">
+            <MenuItem Header="HỆ THỐNG" Foreground="#1e3f66">
+                <MenuItem Header="Cơ sở dữ liệu...">
+                    <MenuItem Header="Tạo mới cơ sở dữ liệu"/>
+                    <MenuItem Header="Sao lưu cơ sở dữ liệu"/>
+                    <MenuItem Header="Phục hồi cơ sở dữ liệu"/>
+                </MenuItem>
+                <MenuItem Header="Đổi mật khẩu đăng nhập"/>
+                <Separator/>
+                <MenuItem Header="Đăng xuất khỏi hệ thống" InputGestureText="Ctrl+Shift+L" Click="MenuLogout_Click"/>
+                <MenuItem Header="Thoát khỏi hệ thống" Foreground="Red" InputGestureText="Ctrl+Q" Click="MenuLogout_Click"/>
+            </MenuItem>
+            
+            <MenuItem Header="HOẠT ĐỘNG" Foreground="#1e3f66">
+                <MenuItem Header="Quản lý bán hàng"/>
+                <MenuItem Header="Danh sách mặt hàng"/>
+                <MenuItem Header="Quản lý bàn"/>
+                <MenuItem Header="Quản lý khu vực"/>
+                <Separator/>
+                <MenuItem Header="Thống kê doanh thu"/>
+                <MenuItem Header="Chi tiết hoạt động"/>
+                <MenuItem Header="Tổng hợp KQKD"/>
+                <Separator/>
+                <MenuItem Header="Ghi chú"/>
+                <MenuItem Header="Báo cáo"/>
+            </MenuItem>
+            
+            <MenuItem Header="KHÁCH HÀNG" Foreground="#1e3f66">
+                <MenuItem Header="Danh sách khách hàng"/>
+                <MenuItem Header="Công nợ khách hàng"/>
+                <MenuItem Header="Khách hàng trả nợ"/>
+                <MenuItem Header="Khách hàng đặt trước"/>
+            </MenuItem>
+            
+            <MenuItem Header="KHO HÀNG" Foreground="#1e3f66">
+                <MenuItem Header="Danh mục kho hàng"/>
+                <MenuItem Header="Danh mục nhà cung cấp"/>
+                <Separator/>
+                <MenuItem Header="Nhập hàng vào kho"/>
+                <MenuItem Header="Xuất khác"/>
+                <MenuItem Header="Chuyển kho"/>
+                <MenuItem Header="Kiểm kê kho"/>
+                <MenuItem Header="Tính lại giá vốn"/>
+                <MenuItem Header="Xuất lại định lượng"/>
+                <Separator/>
+                <MenuItem Header="Tồn kho" InputGestureText="Ctrl+Shift+T"/>
+                <MenuItem Header="Tồn nhiều kho"/>
+            </MenuItem>
+            
+            <MenuItem Header="CÔNG NỢ" Foreground="#1e3f66">
+                <MenuItem Header="Công nợ khách hàng"/>
+                <MenuItem Header="Công nợ nhà cung cấp"/>
+            </MenuItem>
+            
+            <MenuItem Header="QUỸ" Foreground="#1e3f66">
+                <MenuItem Header="Danh mục lý do thu chi"/>
+                <MenuItem Header="Danh mục tài khoản ngân hàng"/>
+                <Separator/>
+                <MenuItem Header="Tạo phiếu thu" InputGestureText="Ctrl+Shift+T"/>
+                <MenuItem Header="Tạo phiếu chi" InputGestureText="Ctrl+Shift+C"/>
+                <MenuItem Header="Danh mục phiếu thu"/>
+                <MenuItem Header="Danh mục phiếu chi"/>
+                <Separator/>
+                <MenuItem Header="Tồn quỹ"/>
+            </MenuItem>
+            
+            <MenuItem Header="NHÂN SỰ" Foreground="#1e3f66">
+                <MenuItem Header="Danh mục nhân viên"/>
+                <MenuItem Header="Danh mục ca làm việc"/>
+                <Separator/>
+                <MenuItem Header="Tạm ứng lương"/>
+                <MenuItem Header="Thưởng phạt"/>
+                <MenuItem Header="Chấm công"/>
+                <MenuItem Header="Tính lương"/>
+            </MenuItem>
+            
+            <MenuItem Header="QUẢN TRỊ" Foreground="#1e3f66">
+                <MenuItem Header="Thư viện ảnh..."/>
+                <Separator/>
+                <MenuItem Header="Dữ liệu ban đầu">
+                    <MenuItem Header="Nhập dữ liệu từ hệ thống cũ"/>
+                    <MenuItem Header="Công nợ khách hàng ban đầu"/>
+                    <MenuItem Header="Công nợ nhà cung cấp ban đầu"/>
+                    <MenuItem Header="Tồn kho ban đầu"/>
+                </MenuItem>
+                <MenuItem Header="Thiết kế giao diện màn cảm ứng"/>
+                <MenuItem Header="Xóa dữ liệu"/>
+                <MenuItem Header="Công cụ nhà phát triển"/>
+                <MenuItem Header="Người dùng và phân quyền"/>
+                <Separator/>
+                <MenuItem Header="Cấu hình toàn hệ thống"/>
+            </MenuItem>
+            <MenuItem Header="BÁO CÁO" Foreground="#1e3f66">
+                <MenuItem Header="BÁO CÁO QUỸ">
+                    <MenuItem Header="DANH SÁCH PHIẾU THU THEO NGÀY"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU CHI THEO NGÀY"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI"/>
+                    <MenuItem Header="TỔNG HỢP THU CHI THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP THU CHI THEO LÝ DO"/>
+                    <MenuItem Header="BÁO CÁO TỒN QUỸ"/>
+                </MenuItem>
+                <MenuItem Header="BÁO CÁO DANH MỤC">
+                    <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÓM"/>
+                    <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN"/>
+                    <MenuItem Header="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM"/>
+                    <MenuItem Header="DANH SÁCH ĐỢT KHUYẾN MẠI"/>
+                    <MenuItem Header="DANH SÁCH MẶT HÀNG THEO NHÓM"/>
+                    <MenuItem Header="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT"/>
+                    <MenuItem Header="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT"/>
+                    <MenuItem Header="BÁO CÁO CẤU HÌNH BÀN KHU VỰC"/>
+                    <MenuItem Header="CÔNG THỨC ĐỊNH LƯỢNG"/>
+                    <MenuItem Header="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG"/>
+                </MenuItem>
+                <MenuItem Header="BÁO CÁO BÁN HÀNG">
+                    <MenuItem Header="TỔNG HỢP BÁN HÀNG THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY"/>
+                    <MenuItem Header="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP DOANH THU CHƯA THANH TOÁN"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO NGÀY"/>
+                    <MenuItem Header="THEO NHÂN VIÊN PHỤC VỤ"/>
+                    <MenuItem Header="THEO KHU VỰC"/>
+                    <MenuItem Header="THEO THU NGÂN"/>
+                    <MenuItem Header="THEO KHÁCH HÀNG"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG KHÁC">
+                        <MenuItem Header="TỔNG HỢP HOA HỒNG THEO NVKD"/>
+                        <MenuItem Header="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN"/>
+                        <MenuItem Header="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI"/>
+                        <MenuItem Header="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG"/>
+                        <MenuItem Header="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG"/>
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="BÁO CÁO ĐẶT HÀNG">
+                    <MenuItem Header="DANH SÁCH ĐẶT HÀNG THEO NGÀY"/>
+                    <MenuItem Header="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG"/>
+                    <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY"/>
+                </MenuItem>
+                <MenuItem Header="BÁO CÁO KHO HÀNG">
+                    <MenuItem Header="..."/>
+                </MenuItem>
+                <MenuItem Header="BÁO CÁO CÔNG NỢ">
+                    <MenuItem Header="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP"/>
+                    <MenuItem Header="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP"/>
+                    <MenuItem Header="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG"/>
+                    <MenuItem Header="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG"/>
+                    <MenuItem Header="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP"/>
+                    <MenuItem Header="BÁO CÁO CÔNG NỢ KHÁCH HÀNG"/>
+                </MenuItem>
+                <MenuItem Header="BÁO CÁO QUẢN TRỊ">
+                    <MenuItem Header="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)"/>
+                    <MenuItem Header="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)"/>
+                    <MenuItem Header="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ NHẬP)"/>
+                    <MenuItem Header="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)"/>
+                    <MenuItem Header="BÁO CÁO KẾT QUẢ KINH DOANH"/>
+                    <MenuItem Header="CHI TIẾT HOẠT ĐỘNG TRONG NGÀY"/>
+                    <MenuItem Header="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT"/>
+                    <MenuItem Header="PHÂN TÍCH TÌNH HÌNH BÁN HÀNG"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO GIỜ"/>
+                    <MenuItem Header="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI"/>
+                </MenuItem>
+                <MenuItem Header="BÁO CÁO BIỂU ĐỒ">
+                    <MenuItem Header="BIỂU ĐỒ DOANH SỐ THEO NHÓM"/>
+                    <MenuItem Header="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG"/>
+                    <MenuItem Header="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM"/>
+                    <MenuItem Header="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH"/>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="TRỢ GIÚP" Foreground="#1e3f66">
+                <MenuItem Header="Đăng ký bản quyền..."/>
+                <MenuItem Header="Thông tin phần mềm"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Toolbar -->
+        <ToolBarTray Grid.Row="1" Background="#e3eaf5">
+            <ToolBar Background="#e3eaf5" Band="1" BandIndex="1" BorderThickness="0,0,0,1" BorderBrush="#a4bce3" Padding="2">
+                <Button Content="Sử dụng dịch vụ" Foreground="#1e3f66" Margin="2,0" FontWeight="SemiBold" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Quản lý bán hàng" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Thống kê doanh thu" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Thống kê mặt hàng bán" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Chi tiết hoạt động" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Tổng hợp KQKD" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Tồn kho" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Ghi chú" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Báo cáo" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>
+                <Separator/>
+                <Button Content="Thoát" Click="MenuLogout_Click" Foreground="Red" Margin="2,0"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- Content Area -->
+        <TabControl Grid.Row="2" Name="MainTabControl" Background="#eef3f9" BorderThickness="0,1,0,0" BorderBrush="#a4bce3" Margin="0,2,0,0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="#a4bce3" CornerRadius="3,3,0,0" Margin="2,0,0,0">
+                                    <StackPanel Orientation="Horizontal" Margin="5,3,2,3">
+                                        <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="5,0,10,0"/>
+                                        <Button Name="CloseButton" Content="X" Width="16" Height="16" FontSize="10" FontWeight="Bold" Padding="0" 
+                                                Background="Transparent" BorderThickness="0" Foreground="#888" VerticalAlignment="Center"
+                                                Click="CloseTab_Click" ToolTip="Đóng tab này"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Border" Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#ffffff" Offset="0"/>
+                                                    <GradientStop Color="#f5f5f5" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter TargetName="Border" Property="Background" Value="#d1def0" />
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="CloseButton" Property="Foreground" Value="Red" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+        </TabControl>
+    </Grid>
+</Window>
