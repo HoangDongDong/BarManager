@@ -1,0 +1,143 @@
+<UserControl x:Class="QuanLyBar.Client.Views.TongHopKqkdControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1000">
+             
+    <Grid Background="#e5ecf3">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar lọc dữ liệu -->
+        <Border Grid.Row="0" Background="#e3eaf5" Padding="5" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Từ ngày:" VerticalAlignment="Center" Margin="5,0"/>
+                <DatePicker x:Name="dpTuNgay" Width="100"/>
+                <TextBlock Text="Đến ngày:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <DatePicker x:Name="dpDenNgay" Width="100"/>
+                
+                <TextBlock Text="Cửa hàng:" VerticalAlignment="Center" Margin="15,0,5,0"/>
+                <ComboBox Width="150" Margin="0,0,10,0" Text="TRỤ SỞ CHÍNH" IsEditable="True"/>
+                
+                <Button Content="Tải dữ liệu (F5)" Margin="10,0,5,0" Padding="10,2" Click="BtnTaiDuLieu_Click"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Toolbar Report Viewer giả lập -->
+        <Border Grid.Row="1" Background="#f0f0f0" Padding="2" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="🖨️ Print" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+                <Button Content="💾 Save ▼" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+                <TextBlock Text="|" VerticalAlignment="Center" Margin="5,0" Foreground="Gray"/>
+                <Button Content="✉" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+                <Button Content="🔍" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+                <TextBlock Text="|" VerticalAlignment="Center" Margin="5,0" Foreground="Gray"/>
+                <Button Content="|◄" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+                <Button Content="◄" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+                <TextBlock Text="1 of 1" VerticalAlignment="Center" Margin="5,0"/>
+                <Button Content="►" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+                <Button Content="►|" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Vùng hiển thị Báo cáo -->
+        <ScrollViewer Grid.Row="2" Background="#7b91a7" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Border Background="White" Width="800" Margin="20" Padding="40" HorizontalAlignment="Center" VerticalAlignment="Top" BorderBrush="Black" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Direction="320" ShadowDepth="5" Opacity="0.5"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Header Báo cáo -->
+                    <Grid Grid.Row="0" Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="80" Height="80" BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left">
+                            <TextBlock Text="Logo" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                            <TextBlock Text="NÀNG HƯƠNG QUÁN" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" Foreground="#ff6600"/>
+                            <TextBlock Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Điện thoại: 0909090880    Email:" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- Tiêu đề Báo cáo -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,20">
+                        <TextBlock Text="BÁO CÁO KẾT QUẢ KINH DOANH" FontWeight="Bold" FontSize="20" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Từ ngày 01/08/2026 Đến ngày 25/08/2026" HorizontalAlignment="Center" FontStyle="Italic"/>
+                    </StackPanel>
+                    
+                    <!-- Bảng số liệu -->
+                    <DataGrid x:Name="DgKqkd" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="All" BorderBrush="Black" BorderThickness="1" HeadersVisibility="Column" Background="White" RowBackground="White" AlternatingRowBackground="White" Foreground="Black">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="BorderBrush" Value="Black"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            </Style>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="BorderBrush" Value="Black"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="Padding" Value="5,2"/>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Stt" Binding="{Binding Stt}" Width="40">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Chỉ tiêu" Binding="{Binding ChiTieu}" Width="250"/>
+                            <DataGridTextColumn Header="Giá trị" Binding="{Binding GiaTri}" Width="100">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="%" Binding="{Binding PhanTram}" Width="50">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Tăng giảm so với&#x0a;tháng trước" Binding="{Binding TangGiam}" Width="120">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="KQKD tháng&#x0a;trước" Binding="{Binding KqThangTruoc}" Width="100">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                        
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

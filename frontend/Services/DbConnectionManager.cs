@@ -63,10 +63,7 @@ namespace QuanLyBar.Client.Services
             if (cfg.ConnectionType == 2 || cfg.ConnectionType == 0) // File (Firebird) hoặc Firebird Server
             {
                 var builder = new FbConnectionStringBuilder();
-                if (cfg.ConnectionType == 0 && !string.IsNullOrEmpty(cfg.Server))
-                {
-                    builder.DataSource = cfg.Server;
-                }
+                builder.DataSource = string.IsNullOrEmpty(cfg.Server) ? "localhost" : cfg.Server;
                 
                 builder.Database = cfg.Path;
                 builder.UserID = string.IsNullOrEmpty(cfg.Username) ? "SYSDBA" : cfg.Username;

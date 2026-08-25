@@ -74,7 +74,7 @@ namespace QuanLyBar.Client.Services
                         int idIndex = reader.GetOrdinal("ID");
                         int isAdminIndex = reader.GetOrdinal("ISADMIN");
 
-                        int userId = reader.GetInt32(idIndex);
+                        string userId = reader.GetValue(idIndex).ToString();
                         bool isAdmin = !reader.IsDBNull(isAdminIndex) && (reader.GetInt16(isAdminIndex) == 1 || reader.GetBoolean(isAdminIndex));
 
                         // Cập nhật TIMEMODIFIED không bắt buộc (chạy nền)
@@ -83,7 +83,7 @@ namespace QuanLyBar.Client.Services
                         // Trả về UserProfile Object
                         return new UserProfile
                         {
-                            Id = userId.ToString(),
+                            Id = userId,
                             TenDangNhap = username,
                             VaiTro = isAdmin ? "1" : "2"
                         };
@@ -92,7 +92,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        private static async Task UpdateTimeModifiedAsync(int userId)
+        private static async Task UpdateTimeModifiedAsync(string userId)
         {
             try
             {

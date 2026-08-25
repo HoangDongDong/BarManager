@@ -24,24 +24,104 @@
             </MenuItem>
             
             <MenuItem Header="HOẠT ĐỘNG" Foreground="#1e3f66">
-                <MenuItem Header="Quản lý bán hàng"/>
-                <MenuItem Header="Danh sách mặt hàng"/>
-                <MenuItem Header="Quản lý bàn"/>
-                <MenuItem Header="Quản lý khu vực"/>
+                <MenuItem Header="Danh mục mặt hàng" InputGestureText="Ctrl+M" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="☕" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục bàn khu vực" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📝" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="Thống kê doanh thu"/>
-                <MenuItem Header="Chi tiết hoạt động"/>
-                <MenuItem Header="Tổng hợp KQKD"/>
+                <MenuItem Header="Khách đặt hàng" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📞" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Green"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Theo dõi đặt phòng" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📋" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="DeepSkyBlue"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="Ghi chú"/>
-                <MenuItem Header="Báo cáo"/>
+                <MenuItem Header="Sử dụng dịch vụ" InputGestureText="Ctrl+H" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="👨‍💼" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Điều chỉnh hóa đơn" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📝" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Quản lý bán hàng" InputGestureText="Ctrl+Q" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🔍" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Lưu vết hoạt động" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🕒" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Green"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Thống kê doanh thu" InputGestureText="Ctrl+T" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📊" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Green"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Thống kê mặt hàng bán" InputGestureText="Ctrl+L" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📉" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Tổng hợp kết quả kinh doanh" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📈" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Teal"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Chi tiết hoạt động ngày" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📄" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Olive"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục hóa đơn hủy" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="❌" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Red"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             
             <MenuItem Header="KHÁCH HÀNG" Foreground="#1e3f66">
-                <MenuItem Header="Danh sách khách hàng"/>
-                <MenuItem Header="Công nợ khách hàng"/>
-                <MenuItem Header="Khách hàng trả nợ"/>
-                <MenuItem Header="Khách hàng đặt trước"/>
+                <MenuItem Header="Danh mục khách hàng" InputGestureText="Ctrl+K" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="👨" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Goldenrod"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Gửi tin nhắn tới khách hàng" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="✉️" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Orange"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục đợt khuyến mại" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🎁" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Orange"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Khách hàng thân thiết" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💳" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="DeepSkyBlue"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục thẻ trả trước" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💳" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="DeepSkyBlue"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             
             <MenuItem Header="KHO HÀNG" Foreground="#1e3f66">

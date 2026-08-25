@@ -19,14 +19,7 @@ namespace QuanLyBar.Client
                 this.Title = $"Phần Mềm Quản Lý Bar, Nhà Hàng - [{userInfoStr}]";
                 
                 // Add initial tab
-                AddTab("Sử dụng dịch vụ", new System.Windows.Controls.TextBlock 
-                { 
-                    Text = "(Phần nội dung chính bên dưới sẽ được thiết kế ở các bước tiếp theo)\n\n" + userInfoStr, 
-                    FontSize = 16, 
-                    Foreground = System.Windows.Media.Brushes.Gray,
-                    HorizontalAlignment = HorizontalAlignment.Center, 
-                    VerticalAlignment = VerticalAlignment.Center 
-                });
+                AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
             }
         }
 
@@ -59,20 +52,86 @@ namespace QuanLyBar.Client
 
         private void MenuBtn_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as System.Windows.Controls.Button;
-            if (button != null)
+            string tabName = string.Empty;
+
+            if (sender is System.Windows.Controls.Button button)
             {
-                string tabName = button.Content.ToString();
-                
-                // Demo tạo nội dung ảo cho các Tab để thấy sự khác biệt
-                var content = new System.Windows.Controls.TextBlock
+                tabName = button.Content?.ToString();
+            }
+            else if (sender is System.Windows.Controls.MenuItem menuItem)
+            {
+                tabName = menuItem.Header?.ToString();
+            }
+
+            if (!string.IsNullOrEmpty(tabName))
+            {
+                // Loại bỏ phần phím tắt nếu bị dính (vd: "Danh mục mặt hàng Ctrl+M" -> "Danh mục mặt hàng")
+                if (tabName.Contains("Ctrl+"))
                 {
-                    Text = $"Nội dung của màn hình: {tabName}\n(Đang tải từ file UserControl...)",
-                    FontSize = 18,
-                    Foreground = System.Windows.Media.Brushes.DarkSlateGray,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
+                    tabName = tabName.Substring(0, tabName.IndexOf("Ctrl+")).Trim();
+                }
+
+                System.Windows.UIElement content;
+
+                if (tabName == "Danh mục mặt hàng")
+                {
+                    content = new QuanLyBar.Client.Views.DanhMucMatHangControl();
+                }
+                else if (tabName == "Danh mục bàn khu vực")
+                {
+                    content = new QuanLyBar.Client.Views.DanhMucBanKhuVucControl();
+                }
+                else if (tabName == "Khách đặt hàng")
+                {
+                    content = new QuanLyBar.Client.Views.KhachDatHangControl();
+                }
+                else if (tabName == "Theo dõi đặt phòng")
+                {
+                    content = new QuanLyBar.Client.Views.TheoDoiDatPhongControl();
+                }
+                else if (tabName == "Sử dụng dịch vụ")
+                {
+                    content = new QuanLyBar.Client.Views.SuDungDichVuControl();
+                }
+                else if (tabName == "Điều chỉnh hóa đơn")
+                {
+                    content = new QuanLyBar.Client.Views.DieuChinhHoaDonControl();
+                }
+                else if (tabName == "Quản lý bán hàng")
+                {
+                    content = new QuanLyBar.Client.Views.QuanLyBanHangControl();
+                }
+                else if (tabName == "Lưu vết hoạt động")
+                {
+                    content = new QuanLyBar.Client.Views.LuuVetHoatDongControl();
+                }
+                else if (tabName == "Thống kê doanh thu")
+                {
+                    content = new QuanLyBar.Client.Views.ThongKeDoanhThuControl();
+                }
+                else if (tabName == "Tổng hợp KQKD" || tabName == "Tổng hợp kết quả kinh doanh")
+                {
+                    content = new QuanLyBar.Client.Views.TongHopKqkdControl();
+                }
+                else if (tabName == "Chi tiết hoạt động ngày" || tabName == "Chi tiết hoạt động")
+                {
+                    content = new QuanLyBar.Client.Views.ChiTietHoatDongControl();
+                }
+                else if (tabName == "Danh mục hóa đơn hủy")
+                {
+                    content = new QuanLyBar.Client.Views.DanhMucHoaDonHuyControl();
+                }
+                else
+                {
+                    content = new System.Windows.Controls.TextBlock
+                    {
+                        Text = $"Nội dung của màn hình: {tabName}\n(Đang tải từ file UserControl...)",
+                        FontSize = 18,
+                        Foreground = System.Windows.Media.Brushes.DarkSlateGray,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                }
 
                 AddTab(tabName, content);
             }

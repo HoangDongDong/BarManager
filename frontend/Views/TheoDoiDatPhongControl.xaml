@@ -1,0 +1,90 @@
+<UserControl x:Class="QuanLyBar.Client.Views.TheoDoiDatPhongControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1000" Loaded="UserControl_Loaded">
+    
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Thanh công cụ (Toolbar) -->
+        <Border Grid.Row="0" Background="#f0f0f0" BorderBrush="#d4d4d4" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
+                <DatePicker x:Name="DpStartDate" Width="120" Margin="5,0" SelectedDateChanged="DpStartDate_SelectedDateChanged"/>
+                <Button Content=" /4 " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
+                <Button Content=" /2 " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
+                <Button Content=" 2x " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
+                <Button Content=" 4x " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
+                <TextBlock x:Name="TxtMonthYear" Text="Tháng 8 - 2026" VerticalAlignment="Center" Margin="10,0" Foreground="Gray"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Lưới dữ liệu DataGrid -->
+        <DataGrid x:Name="DgTheoDoi" Grid.Row="1" AutoGenerateColumns="False" 
+                  CanUserAddRows="False" IsReadOnly="True"
+                  GridLinesVisibility="All" HeadersVisibility="Column"
+                  HorizontalGridLinesBrush="#d4d4d4" VerticalGridLinesBrush="#d4d4d4"
+                  Background="White" RowBackground="#fdfdfd" AlternatingRowBackground="#fdfdfd">
+            
+            <DataGrid.Resources>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#a1b3c6"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Padding" Value="5"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                    <Setter Property="BorderBrush" Value="#869db4"/>
+                </Style>
+                
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Foreground" Value="{Binding MauChu}"/>
+                    <Setter Property="FontWeight" Value="{Binding DoDam}"/>
+                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Padding" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#cbe8f6"/>
+                            <Setter Property="Foreground" Value="{Binding MauChu}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+            
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="" Binding="{Binding TieuDe}" Width="150" >
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#b33939"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn x:Name="ColNgay1" Header="Ngay1" Binding="{Binding Ngay1}" Width="*"/>
+                <DataGridTextColumn x:Name="ColNgay2" Header="Ngay2" Binding="{Binding Ngay2}" Width="*"/>
+                <DataGridTextColumn x:Name="ColNgay3" Header="Ngay3" Binding="{Binding Ngay3}" Width="*"/>
+                <DataGridTextColumn x:Name="ColNgay4" Header="Ngay4" Binding="{Binding Ngay4}" Width="*"/>
+                <DataGridTextColumn x:Name="ColNgay5" Header="Ngay5" Binding="{Binding Ngay5}" Width="*"/>
+                <DataGridTextColumn x:Name="ColNgay6" Header="Ngay6" Binding="{Binding Ngay6}" Width="*"/>
+                <DataGridTextColumn x:Name="ColNgay7" Header="Ngay7" Binding="{Binding Ngay7}" Width="*"/>
+                <DataGridTextColumn Header="Tổng" Binding="{Binding Tong}" Width="60" >
+                    <DataGridTextColumn.HeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#6c7a89"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        </Style>
+                    </DataGridTextColumn.HeaderStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

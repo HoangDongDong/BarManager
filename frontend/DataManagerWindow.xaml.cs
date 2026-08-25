@@ -117,26 +117,19 @@ namespace QuanLyBar.Client
             }
         }
 
-        private async void DgDatabases_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void DgDatabases_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (dgDatabases.SelectedItem is DatabaseInfo selectedDb)
             {
                 try
                 {
-                    // Gửi API thay đổi CSDL trên Backend, truyền nguyên object selectedDb (có chứa ConnectionType, Server...)
-                    var response = await QuanLyBar.Client.Services.ApiClient.PostAsync<QuanLyBar.Client.Models.AuthResponse>("auth/set-db", selectedDb);
+                    // Lưu cấu hình trực tiếp vào DbConnectionManager (không cần gọi Backend API nữa)
+                    QuanLyBar.Client.Services.DbConnectionManager.SaveConfig(selectedDb);
                     
-                    if (response != null && response.Success)
-                    {
-                        Application.Current.Properties["SelectedDbName"] = selectedDb.Name;
-                        
-                        MessageBox.Show($"Đã kết nối tới CSDL: {selectedDb.Name}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-                        this.Close();
-                    }
-                    else
-                    {
-                        MessageBox.Show(response?.Message ?? "Lỗi chuyển CSDL.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    Application.Current.Properties["SelectedDbName"] = selectedDb.Name;
+                    
+                    MessageBox.Show($"Đã kết nối tới CSDL: {selectedDb.Name}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    this.Close();
                 }
                 catch (Exception ex)
                 {
