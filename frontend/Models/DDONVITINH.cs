@@ -6,7 +6,7 @@ namespace QuanLyBar.Client.Models
     {
         public string Note { get; set; }
         public string Name { get; set; }
-        public int? Id { get; set; }
+        public string Id { get; set; }
         public bool? Status { get; set; }
         public int? UsermodifiedId { get; set; }
         public DateTime? Timemodified { get; set; }

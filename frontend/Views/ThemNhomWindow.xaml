@@ -1,0 +1,80 @@
+<Window x:Class="QuanLyBar.Client.Views.ThemNhomWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NHÓM MẶT HÀNG - THÊM MỚI" Height="300" Width="500"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ToolBar -->
+        <ToolBar Grid.Row="0" Background="#f0f0f0">
+            <Menu Background="Transparent" Margin="0,0,10,0">
+                <MenuItem Header="↗ Phím tắt">
+                    <MenuItem Header="Tạo mới" InputGestureText="F2"/>
+                    <MenuItem Header="Lưu" InputGestureText="F8"/>
+                    <MenuItem Header="Lưu &amp; Mới" InputGestureText="F9"/>
+                    <MenuItem Header="Thoát" InputGestureText="F12"/>
+                </MenuItem>
+            </Menu>
+            <Separator/>
+            <Button x:Name="BtnTruoc" Content="⬅ Trước (F10)" Padding="5"/>
+            <Button x:Name="BtnSau" Content="➡ Sau (F11)" Padding="5"/>
+            <Separator/>
+            <Button x:Name="BtnTaoMoi" Content="➕ Tạo mới" Padding="5"/>
+        </ToolBar>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="100"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="35"/>
+            </Grid.RowDefinitions>
+
+            <!-- Tên nhóm -->
+            <TextBlock Text="Tên nhóm mặt hàng" VerticalAlignment="Center"/>
+            <TextBox x:Name="TxtTenNhom" Grid.Column="1" VerticalAlignment="Center" Padding="4"/>
+            
+            <!-- Ảnh -->
+            <TextBlock Text="Ảnh:" Grid.Column="2" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <Grid Grid.Column="3" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TxtAnh" Padding="4" IsReadOnly="True"/>
+                <Button Grid.Column="1" Content="..." Width="25" Margin="2,0,0,0"/>
+            </Grid>
+
+            <!-- Đánh mã sản phẩm -->
+            <TextBlock Text="Đánh mã sản phẩm" Grid.Row="1" VerticalAlignment="Center"/>
+            <TextBox x:Name="TxtMaSanPham" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" VerticalAlignment="Center" Padding="4"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" 
+                       Text="(Ví dụ bạn quy định mã: BIA cho nhóm Bia, hệ thống sẽ tự động sinh các mã trong nhóm này là BIA001, BIA002...)" 
+                       TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,0,0,10"/>
+
+            <!-- Loại đồ -->
+            <TextBlock Text="Loại đồ" Grid.Row="3" VerticalAlignment="Center"/>
+            <ComboBox x:Name="CboLoaiDo" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" VerticalAlignment="Center" Padding="4"/>
+        </Grid>
+
+        <!-- Footer Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10" Background="#f0f0f0" Height="40">
+            <Button Content="💾 Lưu" Width="80" Margin="0,0,10,0" Click="BtnLuu_Click"/>
+            <Button Content="💾 Lưu &amp; Mới" Width="100" Margin="0,0,10,0"/>
+            <Button Content="Lưu &amp; Thoát" Width="100" Margin="0,0,10,0"/>
+            <Button Content="Thoát" Width="80" Click="BtnThoat_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

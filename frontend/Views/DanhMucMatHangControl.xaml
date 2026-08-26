@@ -20,11 +20,11 @@
             <Label Content="Lọc (F3):" VerticalAlignment="Center"/>
             <TextBox Width="150" Margin="0,0,10,0"/>
             <Separator/>
-            <Button Content="➕ Thêm mới (Insert)" Padding="5"/>
-            <Button Content="✏️ Chỉnh sửa (F4)" Padding="5"/>
-            <Button Content="❌ Xóa (Del)" Padding="5"/>
+            <Button Content="➕ Thêm mới (Insert)" Padding="5" Click="BtnThemMoi_Click"/>
+            <Button Content="✏️ Chỉnh sửa (F4)" Padding="5" Click="BtnChinhSua_Click"/>
+            <Button x:Name="BtnXoa" Content="❌ Xóa (Del)" Padding="5" Click="BtnXoa_Click"/>
             <Separator/>
-            <Button Content="Thêm excel" Padding="5"/>
+            <Button x:Name="BtnThemExcel" Content="Thêm excel" Padding="5" Click="BtnThemExcel_Click"/>
             <Button Content="Xuất excel" Padding="5"/>
             <Button Content="Import định lượng" Padding="5"/>
             <Button Content="In" Padding="5"/>
@@ -48,7 +48,30 @@
                     </Grid.RowDefinitions>
                     
                     <Border Background="#dfe7f5" Padding="5">
-                        <TextBlock Text="Nhóm mặt hàng" FontWeight="Bold"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Nhóm mặt hàng" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <ToolBar Grid.Column="1" Background="Transparent" Padding="0" Margin="0,-3,0,-3">
+                                <Button ToolTip="Thêm mới Nhóm mặt hàng" Padding="2" Click="BtnThemNhom_Click">
+                                    <TextBlock Text="➕" Foreground="Green"/>
+                                </Button>
+                                <Button ToolTip="Chỉnh sửa" Padding="2">
+                                    <TextBlock Text="✏️"/>
+                                </Button>
+                                <Button ToolTip="Tạo mới thư mục" Padding="2" Click="BtnThemThuMuc_Click">
+                                    <TextBlock Text="📁"/>
+                                </Button>
+                                <Button ToolTip="Hiển thị tất cả dữ liệu theo thư mục" Padding="2">
+                                    <TextBlock Text="🗂️"/>
+                                </Button>
+                                <Button ToolTip="Tải lại" Padding="2" Click="BtnTaiLaiNhom_Click">
+                                    <TextBlock Text="🔄"/>
+                                </Button>
+                            </ToolBar>
+                        </Grid>
                     </Border>
                     
                     <TreeView Grid.Row="1" x:Name="TvNhomMatHang" SelectedItemChanged="TvNhomMatHang_SelectedItemChanged">
