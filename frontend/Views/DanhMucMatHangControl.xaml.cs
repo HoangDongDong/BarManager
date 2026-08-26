@@ -108,9 +108,16 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private async void ReloadAllData()
+        {
+            var treeData = await _matHangService.GetNhomMatHangTreeAsync();
+            TvNhomMatHang.ItemsSource = treeData;
+            ReloadMatHangGrid();
+        }
+
         private void BtnThemExcel_Click(object sender, RoutedEventArgs e)
         {
-            var win = new ThemNhanhWindow(ReloadMatHangGrid);
+            var win = new ThemNhanhWindow(ReloadAllData);
             win.ShowDialog();
         }
         private async void BtnThemNhom_Click(object sender, RoutedEventArgs e)
