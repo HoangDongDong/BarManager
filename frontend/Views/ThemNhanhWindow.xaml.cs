@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
+using ExcelDataReader;
 
 namespace QuanLyBar.Client.Views
 {
@@ -76,22 +78,66 @@ namespace QuanLyBar.Client.Views
             decimal giaBan = decimal.TryParse(TxtGiaBan.Text, out var gb) ? gb : 0;
             decimal giaNhap = decimal.TryParse(TxtGiaNhap.Text, out var gn) ? gn : 0;
 
+            var dbNhomMatHangs = await _matHangService.GetNhomMatHangListAsync();
+            var dbLoaiMatHangs = await _matHangService.GetLoaiMatHangListAsync();
+            var dbDonViTinhs = await _matHangService.GetDonViTinhListAsync();
+
             foreach (var item in _quickAddList)
             {
                 if (string.IsNullOrWhiteSpace(item.Name)) continue; // Skip empty rows
+
+                string itemNhomId = dnhommathangId;
+                if (!string.IsNullOrWhiteSpace(item.NhomMatHangName))
+                {
+                    var found = dbNhomMatHangs.FirstOrDefault(x => x.Name.Equals(item.NhomMatHangName, StringComparison.OrdinalIgnoreCase));
+                    if (found != null) itemNhomId = found.Id;
+                }
+
+                string itemLoaiId = null;
+                if (!string.IsNullOrWhiteSpace(item.LoaiMatHangName))
+                {
+                    var found = dbLoaiMatHangs.FirstOrDefault(x => x.Name.Equals(item.LoaiMatHangName, StringComparison.OrdinalIgnoreCase));
+                    if (found != null) itemLoaiId = found.Id.ToString();
+                }
+
+                string itemDvtId = ddonvitinhId;
+                if (!string.IsNullOrWhiteSpace(item.DonViTinhName))
+                {
+                    var found = dbDonViTinhs.FirstOrDefault(x => x.Name.Equals(item.DonViTinhName, StringComparison.OrdinalIgnoreCase));
+                    if (found != null) itemDvtId = found.Id;
+                }
+
+                string itemDvtChanId = null;
+                if (!string.IsNullOrWhiteSpace(item.DonViTinhChanName))
+                {
+                    var found = dbDonViTinhs.FirstOrDefault(x => x.Name.Equals(item.DonViTinhChanName, StringComparison.OrdinalIgnoreCase));
+                    if (found != null) itemDvtChanId = found.Id;
+                }
 
                 var matHang = new MatHangViewModel
                 {
                     Id = Guid.NewGuid().ToString(),
                     Code = string.IsNullOrWhiteSpace(item.Code) ? "" : item.Code,
                     Name = item.Name,
-                    Giaban = giaBan,
-                    Gianhap = giaNhap,
-                    Quydoi = "1",
-                    Giatheothoigia = ChkGiaTheoThoiGiaVal.IsChecked == true ? 1 : 0,
-                    DnhommathangId = dnhommathangId,
-                    DdonvitinhId = ddonvitinhId,
-                    Tamkhoa = ChkTamKhoaVal.IsChecked == true ? "1" : "0"
+                    Giaban = item.Giaban ?? giaBan,
+                    Gianhap = item.Gianhap ?? giaNhap,
+                    Quydoi = string.IsNullOrWhiteSpace(item.Quydoi) ? "1" : item.Quydoi,
+                    Giatheothoigia = item.Giatheothoigia ?? (ChkGiaTheoThoiGiaVal.IsChecked == true ? 1 : 0),
+                    DnhommathangId = itemNhomId,
+                    DloaimathangId = itemLoaiId,
+                    DdonvitinhId = itemDvtId,
+                    DdonvitinhchanId = itemDvtChanId,
+                    Tamkhoa = string.IsNullOrWhiteSpace(item.Tamkhoa) ? (ChkTamKhoaVal.IsChecked == true ? "1" : "0") : item.Tamkhoa,
+                    Ghichu = item.Ghichu,
+                    Tontoithieu = item.Tontoithieu,
+                    Tontoida = item.Tontoida,
+                    Anh = item.Anh,
+                    Hoahong = item.Hoahong,
+                    Giavon = item.Giavon,
+                    Doitackygui = item.Doitackygui,
+                    Macdinhgiamgia = item.Macdinhgiamgia,
+                    Macdinhgiamtien = item.Macdinhgiamtien,
+                    Giabanchan = item.Giabanchan
                 };
 
                 bool result = await _matHangService.InsertMatHangAsync(matHang);
@@ -114,13 +160,133 @@ namespace QuanLyBar.Client.Views
             this.Close();
         }
 
-        private void BtnChonFileExcel_Click(object sender, RoutedEventArgs e)
+        private async void BtnChonFileExcel_Click(object sender, RoutedEventArgs e)
         {
             var win = new ChonFileExcelWindow();
-            if (win.ShowDialog() == true && win.SelectedFilePaths != null)
+            if (win.ShowDialog() == true && win.SelectedFilePaths != null && win.SelectedFilePaths.Length > 0)
             {
-                string files = string.Join(", ", win.SelectedFilePaths);
-                MessageBox.Show($"Bạn đã chọn file: {files}\nChức năng import sẽ được thực hiện sau theo hướng dẫn.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                string firstFile = win.SelectedFilePaths[0];
+                var actualColumns = new System.Collections.Generic.List<string>();
+                System.Data.DataTable dataTable = null;
+
+                try
+                {
+                    System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                    using (var stream = System.IO.File.Open(firstFile, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                    {
+                        using (var reader = ExcelDataReader.ExcelReaderFactory.CreateReader(stream))
+                        {
+                            var result = reader.AsDataSet(new ExcelDataReader.ExcelDataSetConfiguration()
+                            {
+                                ConfigureDataTable = (_) => new ExcelDataReader.ExcelDataTableConfiguration()
+                                {
+                                    UseHeaderRow = true
+                                }
+                            });
+                            dataTable = result.Tables[0];
+                            foreach (System.Data.DataColumn col in dataTable.Columns)
+                            {
+                                actualColumns.Add(col.ColumnName);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi đọc file Excel: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var mappingWin = new MappingExcelWindow(actualColumns);
+                if (mappingWin.ShowDialog() == true)
+                {
+                    // Lấy cấu hình mapping
+                    var mappings = mappingWin.MappingList.Where(m => !string.IsNullOrEmpty(m.MappedField)).ToList();
+
+                    // Thêm dữ liệu từ excel vào lưới
+                    foreach (System.Data.DataRow row in dataTable.Rows)
+                    {
+                        var matHang = new MatHangViewModel { Name = "", Code = "" };
+                        
+                        foreach (var map in mappings)
+                        {
+                            string val = row[map.ExcelColumn]?.ToString() ?? "";
+                            if (map.MappedField == "Tên mặt hàng") matHang.Name = val;
+                            if (map.MappedField == "Mã hàng") matHang.Code = val;
+                            if (map.MappedField == "Nhóm mặt hàng") matHang.NhomMatHangName = val;
+                            if (map.MappedField == "Loại mặt hàng") matHang.LoaiMatHangName = val;
+                            if (map.MappedField == "Đơn vị tính") matHang.DonViTinhName = val;
+                            if (map.MappedField == "Giá bán" && decimal.TryParse(val, out decimal gb)) matHang.Giaban = gb;
+                            if (map.MappedField == "Giá nhập" && decimal.TryParse(val, out decimal gn)) matHang.Gianhap = gn;
+                            if (map.MappedField == "Đơn vị tính chẵn") matHang.DonViTinhChanName = val;
+                            if (map.MappedField == "Quy đổi") matHang.Quydoi = val;
+                            if (map.MappedField == "Giá bán chẵn" && decimal.TryParse(val, out decimal gbc)) matHang.Giabanchan = gbc;
+                            if (map.MappedField == "Tạm khóa") matHang.Tamkhoa = val;
+                            if (map.MappedField == "Giá theo thời giá" && decimal.TryParse(val, out decimal gtt)) matHang.Giatheothoigia = gtt;
+                            if (map.MappedField == "Ghi chú") matHang.Ghichu = val;
+                            if (map.MappedField == "Tồn tối thiểu" && decimal.TryParse(val, out decimal ttt)) matHang.Tontoithieu = ttt;
+                            if (map.MappedField == "Tồn tối đa" && decimal.TryParse(val, out decimal ttd)) matHang.Tontoida = ttd;
+                            if (map.MappedField == "Ảnh") matHang.Anh = val;
+                            if (map.MappedField == "Hoa hồng" && decimal.TryParse(val, out decimal hh)) matHang.Hoahong = hh;
+                            if (map.MappedField == "Giá vốn" && decimal.TryParse(val, out decimal gv)) matHang.Giavon = gv;
+                            if (map.MappedField == "Đối tác ký gửi") matHang.Doitackygui = val;
+                            if (map.MappedField == "Mặc định giảm giá" && decimal.TryParse(val, out decimal mdgg)) matHang.Macdinhgiamgia = mdgg;
+                            if (map.MappedField == "Mặc định giảm tiền" && decimal.TryParse(val, out decimal mdgt)) matHang.Macdinhgiamtien = mdgt;
+                        }
+                        
+                        
+                        _quickAddList.Add(matHang);
+                    }
+
+                    // Checking missing categories
+                    var nhomMatHangs = _quickAddList.Select(x => x.NhomMatHangName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+                    var loaiMatHangs = _quickAddList.Select(x => x.LoaiMatHangName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+                    var donViTinhs = _quickAddList.Select(x => x.DonViTinhName).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+
+                    var matHangService = new LocalMatHangService();
+                    var dbNhomMatHangs = await matHangService.GetNhomMatHangListAsync();
+                    var dbLoaiMatHangs = await matHangService.GetLoaiMatHangListAsync();
+                    var dbDonViTinhs = await matHangService.GetDonViTinhListAsync();
+
+                    foreach (var nhom in nhomMatHangs)
+                    {
+                        if (!dbNhomMatHangs.Any(x => x.Name.Equals(nhom, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            var result = MessageBox.Show($"Nhóm mặt hàng '{nhom}' chưa tồn tại. Bạn có muốn thêm mới không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                var addNhomWin = new ThemNhomWindow(false, nhom);
+                                addNhomWin.ShowDialog();
+                            }
+                        }
+                    }
+
+                    foreach (var loai in loaiMatHangs)
+                    {
+                        if (!dbLoaiMatHangs.Any(x => x.Name.Equals(loai, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            var result = MessageBox.Show($"Loại mặt hàng '{loai}' chưa tồn tại. Bạn có muốn thêm mới không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                var addLoaiWin = new ThemLoaiMatHangWindow(null, loai);
+                                addLoaiWin.ShowDialog();
+                            }
+                        }
+                    }
+
+                    foreach (var dvt in donViTinhs)
+                    {
+                        if (!dbDonViTinhs.Any(x => x.Name.Equals(dvt, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            var result = MessageBox.Show($"Đơn vị tính '{dvt}' chưa tồn tại. Bạn có muốn thêm mới không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                var addDvtWin = new ThemDonViTinhWindow(null, dvt);
+                                addDvtWin.ShowDialog();
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -152,7 +318,28 @@ namespace QuanLyBar.Client.Views
                 _ => null
             };
 
-            if (header == null) return;
+            string propertyName = chk.Name switch
+            {
+                "ChkNhomMatHang" => "NhomMatHangName",
+                "ChkLoaiMatHang" => "LoaiMatHangName",
+                "ChkDonViTinh" => "DonViTinhName",
+                "ChkGiaBan" => "Giaban",
+                "ChkGiaNhap" => "Gianhap",
+                "ChkDonViTinhChan" => "DonViTinhChanName",
+                "ChkQuyDoi" => "Quydoi",
+                "ChkGiaBanChan" => "Giabanchan",
+                "ChkTmKhoa" => "Tamkhoa",
+                "ChkGiaTheoThoi" => "Giatheothoigia",
+                "ChkGhiChu" => "Ghichu",
+                "ChkTToiThieu" => "Tontoithieu",
+                "ChkTToiDa" => "Tontoida",
+                "ChkAnh" => "Anh",
+                "ChkHoaHong" => "Hoahong",
+                "ChkGiaVon" => "Giavon",
+                _ => null
+            };
+
+            if (header == null || propertyName == null) return;
 
             // Find existing column
             var existingCol = DgThemNhanh.Columns.FirstOrDefault(c => c.Header?.ToString() == header);
@@ -173,7 +360,7 @@ namespace QuanLyBar.Client.Views
                     DgThemNhanh.Columns.Add(new System.Windows.Controls.DataGridTextColumn 
                     { 
                         Header = header, 
-                        Binding = new System.Windows.Data.Binding(chk.Name.Replace("Chk", "")) // Basic binding attempt, actual model needs these properties
+                        Binding = new System.Windows.Data.Binding(propertyName)
                     });
                 }
             }

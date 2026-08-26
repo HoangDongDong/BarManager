@@ -11,7 +11,7 @@ namespace QuanLyBar.Client.Views
 
         private bool _isThuMuc;
 
-        public ThemNhomWindow(bool isThuMuc = false)
+        public ThemNhomWindow(bool isThuMuc = false, string initialName = "")
         {
             InitializeComponent();
             _isThuMuc = isThuMuc;
@@ -23,6 +23,11 @@ namespace QuanLyBar.Client.Views
             else
             {
                 this.Title = "NHÓM MẶT HÀNG - THÊM MỚI";
+            }
+            
+            if (!string.IsNullOrEmpty(initialName))
+            {
+                TxtTenNhom.Text = initialName;
             }
             TxtTenNhom.Focus();
             
@@ -39,14 +44,28 @@ namespace QuanLyBar.Client.Views
             CboLoaiDo.SelectedValuePath = "Id";
         }
 
-        private void BtnLuu_Click(object sender, RoutedEventArgs e)
+        private async void BtnLuu_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(TenNhom))
             {
                 MessageBox.Show("Vui lòng nhập tên!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            this.DialogResult = true;
+
+            var service = new QuanLyBar.Client.Services.LocalMatHangService();
+            var nhom = new QuanLyBar.Client.Models.DNHOMMATHANG
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = TenNhom,
+                Code = MaSanPham,
+                DloaidoId = LoaiDoId
+            };
+
+            bool success = await service.InsertNhomMatHangAsync(nhom);
+            if (success)
+            {
+                this.DialogResult = true;
+            }
         }
 
         private void BtnThoat_Click(object sender, RoutedEventArgs e)

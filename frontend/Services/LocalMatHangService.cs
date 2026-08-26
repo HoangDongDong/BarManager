@@ -142,10 +142,92 @@ namespace QuanLyBar.Client.Services
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Lỗi tải danh mục đơn vị tính: " + ex.Message);
+                System.Windows.MessageBox.Show("Lỗi tải danh sách đơn vị tính: " + ex.Message);
                 return new List<DDONVITINH>();
             }
         }
+
+        public async Task<List<DLOAIMATHANG>> GetLoaiMatHangListAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT ID as Id, NAME as Name FROM DLOAIMATHANG ORDER BY NAME";
+                    var result = await conn.QueryAsync<DLOAIMATHANG>(sql);
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải danh sách loại mặt hàng: " + ex.Message);
+                return new List<DLOAIMATHANG>();
+            }
+        }
+
+        public async Task<List<DNHOMMATHANG>> GetNhomMatHangListAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT ID as Id, NAME as Name FROM DNHOMMATHANG ORDER BY NAME";
+                    var result = await conn.QueryAsync<DNHOMMATHANG>(sql);
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải danh sách nhóm mặt hàng: " + ex.Message);
+                return new List<DNHOMMATHANG>();
+            }
+        }
+
+
+
+        public async Task<bool> InsertLoaiMatHangAsync(DLOAIMATHANG model)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    // Since DLOAIMATHANG ID is an integer, we might need a generator or let Firebird auto-increment it if there's a trigger/generator
+                    // Let's assume Firebird uses a generator and we don't supply ID, or we get the max ID + 1. 
+                    // To be safe, if model.Id is null, let's query the max ID.
+                    if (model.Id == null || model.Id == 0)
+                    {
+                        var maxId = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(ID) FROM DLOAIMATHANG");
+                        model.Id = (maxId ?? 0) + 1;
+                    }
+
+                    string sql = @"
+                        INSERT INTO DLOAIMATHANG (
+                            ID, NAME, NOTE, STATUS, USERCREATEDID, TIMECREATED
+                        ) VALUES (
+                            @Id, @Name, @Note, 1, 1, CURRENT_TIMESTAMP
+                        )";
+
+                    var parameters = new {
+                        Id = model.Id,
+                        Name = model.Name,
+                        Note = model.Note
+                    };
+
+                    int affectedRows = await Dapper.SqlMapper.ExecuteAsync(conn, sql, parameters);
+                    return affectedRows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi thêm loại mặt hàng: " + ex.Message);
+                return false;
+            }
+        }
+
 
         public async Task<bool> InsertDonViTinhAsync(DDONVITINH model)
         {
@@ -212,13 +294,23 @@ namespace QuanLyBar.Client.Services
                         INSERT INTO DMATHANG (
                             ID, CODE, NAME, GIANHAP, GIABAN, QUYDOI, 
                             GIATHEOTHOIGIA, DNHOMMATHANGID, DDONVITINHID,
-                            STATUS, USERCREATEDID, TIMECREATED
+                            STATUS, USERCREATEDID, TIMECREATED,
+                            DLOAIMATHANGID, DDONVITINHCHANID, GIABANCHAN,
+                            TONTOITHIEU, TONTOIDA, HOAHONG, GIAVON,
+                            MACDINHGIAMGIA, MACDINHGIAMTIEN, TAMKHOA, NOTE
                         ) VALUES (
                             @Id, @Code, @Name, @Gianhap, @Giaban, @Quydoi, 
                             @Giatheothoigia, @DnhommathangId, @DdonvitinhId,
-                            1, 1, CURRENT_TIMESTAMP
+                            1, 1, CURRENT_TIMESTAMP,
+                            @DloaimathangId, @DdonvitinhchanId, @Giabanchan,
+                            @Tontoithieu, @Tontoida, @Hoahong, @Giavon,
+                            @Macdinhgiamgia, @Macdinhgiamtien, @Tamkhoa, @Note
                         )";
 
+                    // Note: 'Doitackygui' in MatHangViewModel is string, but DdoitackyguiId is int in DB.
+                    // We skip DdoitackyguiId since we don't have the ID mapping for now.
+                    // 'Anh' is byte[] in DB but string in ViewModel, skip for now.
+                    
                     var parameters = new {
                         Id = model.Id,
                         Code = model.Code,
@@ -228,10 +320,21 @@ namespace QuanLyBar.Client.Services
                         Quydoi = model.Quydoi,
                         Giatheothoigia = model.Giatheothoigia,
                         DnhommathangId = model.DnhommathangId,
-                        DdonvitinhId = model.DdonvitinhId
+                        DdonvitinhId = model.DdonvitinhId,
+                        DloaimathangId = model.DloaimathangId,
+                        DdonvitinhchanId = model.DdonvitinhchanId,
+                        Giabanchan = model.Giabanchan,
+                        Tontoithieu = model.Tontoithieu,
+                        Tontoida = model.Tontoida,
+                        Hoahong = model.Hoahong,
+                        Giavon = model.Giavon,
+                        Macdinhgiamgia = model.Macdinhgiamgia,
+                        Macdinhgiamtien = model.Macdinhgiamtien,
+                        Tamkhoa = model.Tamkhoa,
+                        Note = model.Ghichu
                     };
 
-                    int affectedRows = await conn.ExecuteAsync(sql, parameters);
+                    int affectedRows = await Dapper.SqlMapper.ExecuteAsync(conn, sql, parameters);
                     return affectedRows > 0;
                 }
             }

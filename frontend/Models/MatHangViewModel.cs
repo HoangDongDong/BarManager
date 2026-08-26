@@ -28,5 +28,16 @@ namespace QuanLyBar.Client.Models
         public string LoaiMatHangName { get; set; } // Tên loại mặt hàng
         public string DonViTinhName { get; set; } // Tên đơn vị tính
         public string DonViTinhChanName { get; set; } // Tên đơn vị tính chẵn
+
+        // Các trường phục vụ Import Excel
+        public string Ghichu { get; set; }
+        public decimal? Tontoithieu { get; set; }
+        public decimal? Tontoida { get; set; }
+        public string Anh { get; set; }
+        public decimal? Hoahong { get; set; }
+        public decimal? Giavon { get; set; }
+        public string Doitackygui { get; set; }
+        public decimal? Macdinhgiamgia { get; set; }
+        public decimal? Macdinhgiamtien { get; set; }
     }
 }

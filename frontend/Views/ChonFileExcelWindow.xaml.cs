@@ -15,14 +15,60 @@ namespace QuanLyBar.Client.Views
 
         private void BtnXuatHienThi_Click(object sender, RoutedEventArgs e)
         {
-            // Placeholder: User said they will guide excel later
-            MessageBox.Show("Sẽ xuất file: cac cot hien thi trong danh sach.xls\n(Chức năng Excel sẽ được hoàn thiện sau theo hướng dẫn)", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog();
+            saveFileDialog.Filter = "Excel Files|*.xls;*.xlsx";
+            saveFileDialog.FileName = "cac cot hien thi trong danh sach.xls";
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "cac cot hien thi trong danh sach.xls");
+                    // Tạm thời lấy đường dẫn tuyệt đối vì app đang chạy trong frontend/bin/Debug/net9.0-windows/
+                    templatePath = @"d:\QuanLyBar\cac cot hien thi trong danh sach.xls";
+                    
+                    if (System.IO.File.Exists(templatePath))
+                    {
+                        System.IO.File.Copy(templatePath, saveFileDialog.FileName, true);
+                        MessageBox.Show("Xuất file thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Không tìm thấy file mẫu gốc tại: " + templatePath, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi khi xuất file: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         private void BtnXuatTatCa_Click(object sender, RoutedEventArgs e)
         {
-            // Placeholder
-            MessageBox.Show("Sẽ xuất file: all cot.xls\n(Chức năng Excel sẽ được hoàn thiện sau theo hướng dẫn)", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog();
+            saveFileDialog.Filter = "Excel Files|*.xls;*.xlsx";
+            saveFileDialog.FileName = "all cot.xls";
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    string templatePath = @"d:\QuanLyBar\all cot.xls";
+                    
+                    if (System.IO.File.Exists(templatePath))
+                    {
+                        System.IO.File.Copy(templatePath, saveFileDialog.FileName, true);
+                        MessageBox.Show("Xuất file thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Không tìm thấy file mẫu gốc tại: " + templatePath, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi khi xuất file: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         private void BtnChonFile_Click(object sender, RoutedEventArgs e)

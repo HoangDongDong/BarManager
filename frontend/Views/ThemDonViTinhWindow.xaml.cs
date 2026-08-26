@@ -10,7 +10,7 @@ namespace QuanLyBar.Client.Views
         private readonly LocalMatHangService _matHangService;
         private DDONVITINH _editingItem;
 
-        public ThemDonViTinhWindow(DDONVITINH itemToEdit = null)
+        public ThemDonViTinhWindow(DDONVITINH itemToEdit = null, string initialName = "")
         {
             InitializeComponent();
             _matHangService = new LocalMatHangService();
@@ -24,6 +24,10 @@ namespace QuanLyBar.Client.Views
             else
             {
                 this.Title = "Thêm đơn vị tính";
+                if (!string.IsNullOrEmpty(initialName))
+                {
+                    TxtTenDonViTinh.Text = initialName;
+                }
             }
         }
 
