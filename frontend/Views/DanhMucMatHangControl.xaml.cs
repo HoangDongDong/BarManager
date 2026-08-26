@@ -115,6 +115,81 @@ namespace QuanLyBar.Client.Views
             ReloadMatHangGrid();
         }
 
+        private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
+        {
+            var items = DgMatHang.ItemsSource as System.Collections.Generic.IEnumerable<MatHangViewModel>;
+            if (items == null || !System.Linq.Enumerable.Any(items))
+            {
+                MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Excel Files|*.xlsx",
+                Title = "Lưu file Excel",
+                FileName = "DanhSachMatHang.xlsx"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var workbook = new ClosedXML.Excel.XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("MatHang");
+                        
+                        // Header
+                        worksheet.Cell(1, 1).Value = "STT";
+                        worksheet.Cell(1, 2).Value = "Tên mặt hàng";
+                        worksheet.Cell(1, 3).Value = "Nhóm mặt hàng";
+                        worksheet.Cell(1, 4).Value = "Loại mặt hàng";
+                        worksheet.Cell(1, 5).Value = "Đơn vị tính";
+                        worksheet.Cell(1, 6).Value = "Giá bán";
+                        worksheet.Cell(1, 7).Value = "Giá nhập";
+                        worksheet.Cell(1, 8).Value = "ĐVT chẵn";
+                        worksheet.Cell(1, 9).Value = "Quy đổi";
+                        worksheet.Cell(1, 10).Value = "Giá bán chẵn";
+                        worksheet.Cell(1, 11).Value = "Mã hàng";
+                        worksheet.Cell(1, 12).Value = "Tạm khóa";
+                        worksheet.Cell(1, 13).Value = "Giá theo thời giá";
+                        
+                        // Format header
+                        var headerRow = worksheet.Row(1);
+                        headerRow.Style.Font.Bold = true;
+                        headerRow.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+
+                        int row = 2;
+                        foreach (var item in items)
+                        {
+                            worksheet.Cell(row, 1).Value = item.Stt;
+                            worksheet.Cell(row, 2).Value = item.Name;
+                            worksheet.Cell(row, 3).Value = item.NhomMatHangName;
+                            worksheet.Cell(row, 4).Value = item.LoaiMatHangName;
+                            worksheet.Cell(row, 5).Value = item.DonViTinhName;
+                            worksheet.Cell(row, 6).Value = item.Giaban;
+                            worksheet.Cell(row, 7).Value = item.Gianhap;
+                            worksheet.Cell(row, 8).Value = item.DonViTinhChanName;
+                            worksheet.Cell(row, 9).Value = item.Quydoi;
+                            worksheet.Cell(row, 10).Value = item.Giabanchan;
+                            worksheet.Cell(row, 11).Value = item.Code;
+                            worksheet.Cell(row, 12).Value = item.Tamkhoa;
+                            worksheet.Cell(row, 13).Value = item.Giatheothoigia;
+                            row++;
+                        }
+                        
+                        worksheet.Columns().AdjustToContents();
+                        workbook.SaveAs(sfd.FileName);
+                    }
+                    MessageBox.Show("Xuất Excel thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show($"Lỗi khi xuất file Excel: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
         private void BtnThemExcel_Click(object sender, RoutedEventArgs e)
         {
             var win = new ThemNhanhWindow(ReloadAllData);

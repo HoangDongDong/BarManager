@@ -25,7 +25,7 @@
             <Button x:Name="BtnXoa" Content="❌ Xóa (Del)" Padding="5" Click="BtnXoa_Click"/>
             <Separator/>
             <Button x:Name="BtnThemExcel" Content="Thêm excel" Padding="5" Click="BtnThemExcel_Click"/>
-            <Button Content="Xuất excel" Padding="5"/>
+            <Button x:Name="BtnXuatExcel" Content="Xuất excel" Padding="5" Click="BtnXuatExcel_Click"/>
             <Button Content="Import định lượng" Padding="5"/>
             <Button Content="In" Padding="5"/>
             <Button Content="In mã vạch" Padding="5"/>
