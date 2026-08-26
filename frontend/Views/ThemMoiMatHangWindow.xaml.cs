@@ -15,6 +15,9 @@ namespace QuanLyBar.Client.Views
         private int _currentIndex = -1;
         private Action _onDataSaved;
 
+        public System.Collections.ObjectModel.ObservableCollection<DinhLuongChiTietViewModel> DinhLuongList { get; set; }
+        public System.Collections.ObjectModel.ObservableCollection<MatHangViewModel> AllMaterials { get; set; }
+
         public ThemMoiMatHangWindow(string selectedNhomId, string matHangIdToEdit = null, System.Collections.Generic.List<MatHangViewModel> matHangList = null, int initialIndex = -1, Action onDataSaved = null)
         {
             InitializeComponent();
@@ -44,6 +47,63 @@ namespace QuanLyBar.Client.Views
             {
                 this.Title = "MẶT HÀNG - THÊM MỚI";
             }
+
+            DinhLuongList = new System.Collections.ObjectModel.ObservableCollection<DinhLuongChiTietViewModel>();
+            DinhLuongList.CollectionChanged += DinhLuongList_CollectionChanged;
+            AllMaterials = new System.Collections.ObjectModel.ObservableCollection<MatHangViewModel>();
+            DgDinhLuong.ItemsSource = DinhLuongList;
+            this.DataContext = this;
+        }
+
+        private void DinhLuongList_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (DinhLuongChiTietViewModel item in e.NewItems)
+                {
+                    item.PropertyChanged += Item_PropertyChanged;
+                }
+            }
+            if (e.OldItems != null)
+            {
+                foreach (DinhLuongChiTietViewModel item in e.OldItems)
+                {
+                    item.PropertyChanged -= Item_PropertyChanged;
+                }
+            }
+            CalculateTotals();
+        }
+
+        private void Item_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(DinhLuongChiTietViewModel.ThanhTienNhap) || 
+                e.PropertyName == nameof(DinhLuongChiTietViewModel.ThanhTienVon) ||
+                e.PropertyName == nameof(DinhLuongChiTietViewModel.SoLuong))
+            {
+                CalculateTotals();
+            }
+        }
+
+        private void CalculateTotals()
+        {
+            if (TxtTongSoLuong == null) return;
+            TxtTongSoLuong.Text = DinhLuongList.Sum(x => x.SoLuong).ToString("N0");
+            TxtTongTienNhap.Text = DinhLuongList.Sum(x => x.ThanhTienNhap).ToString("N0");
+            TxtTongTienVon.Text = DinhLuongList.Sum(x => x.ThanhTienVon).ToString("N0");
+        }
+
+        private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.F4)
+            {
+                BtnThemDong_Click(null, null);
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.F8)
+            {
+                BtnXoaDong_Click(null, null);
+                e.Handled = true;
+            }
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -58,6 +118,13 @@ namespace QuanLyBar.Client.Views
                 var dvtList = await _matHangService.GetDonViTinhListAsync();
                 CboDvtBan.ItemsSource = dvtList;
                 CboDvtNhap.ItemsSource = dvtList;
+
+                var allMats = await _matHangService.GetMatHangListAsync(null);
+                AllMaterials.Clear();
+                foreach (var mat in allMats)
+                {
+                    AllMaterials.Add(mat);
+                }
 
                 if (!string.IsNullOrEmpty(_matHangIdToEdit))
                 {
@@ -94,6 +161,13 @@ namespace QuanLyBar.Client.Views
                 CboNhomMatHang.SelectedValue = matHang.DnhommathangId;
                 CboDvtBan.SelectedValue = matHang.DdonvitinhId;
                 ChkTamKhoa.IsChecked = matHang.Tamkhoa == "1" || matHang.Tamkhoa == "True";
+
+                var dls = await _matHangService.GetDinhLuongByMatHangIdAsync(id, AllMaterials);
+                DinhLuongList.Clear();
+                foreach (var dl in dls)
+                {
+                    DinhLuongList.Add(dl);
+                }
             }
         }
 
@@ -142,6 +216,7 @@ namespace QuanLyBar.Client.Views
             TxtQuyDoi.Text = "1";
             ChkGiaTheoThoiGia.IsChecked = false;
             ChkTamKhoa.IsChecked = false;
+            DinhLuongList.Clear();
             this.Title = "MẶT HÀNG - THÊM MỚI";
             UpdateNavigationButtons();
         }
@@ -195,6 +270,8 @@ namespace QuanLyBar.Client.Views
                 
                 if (result)
                 {
+                    await _matHangService.SaveDinhLuongListAsync(matHang.Id, DinhLuongList.ToList());
+
                     string msg = isEdit ? "Cập nhật thành công!" : "Thêm mới thành công!";
                     MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
                     _onDataSaved?.Invoke();
@@ -208,6 +285,24 @@ namespace QuanLyBar.Client.Views
                 return false;
             }
         }
+
+        private void BtnThemDong_Click(object sender, RoutedEventArgs e)
+        {
+            DinhLuongList.Add(new DinhLuongChiTietViewModel { SoLuong = 1 });
+        }
+
+        private void BtnXoaDong_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgDinhLuong.SelectedItem is DinhLuongChiTietViewModel selected)
+            {
+                DinhLuongList.Remove(selected);
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn dòng cần xóa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
         private void BtnThemDvt_Click(object sender, RoutedEventArgs e)
         {
             var win = new ThemDonViTinhWindow();

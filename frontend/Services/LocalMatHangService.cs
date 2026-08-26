@@ -452,28 +452,164 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
                     
                     string sql = @"
-                        INSERT INTO DNHOMMATHANG (
-                            ID, NAME, PARENTID, ITEMTYPE, STATUS, USERCREATEDID, TIMECREATED, CODE, DLOAIDOID
-                        ) VALUES (
-                            @Id, @Name, @ParentId, @Itemtype, 1, 1, CURRENT_TIMESTAMP, @Code, @DloaidoId
-                        )";
+                        INSERT INTO DNHOMMATHANG (ID, CODE, NAME, DLOAIDO_ID, PARENT_ID)
+                        VALUES (@Id, @Code, @Name, @DloaidoId, @ParentId)";
 
                     var parameters = new {
                         Id = model.Id,
-                        Name = model.Name,
-                        ParentId = model.ParentId,
-                        Itemtype = model.Itemtype,
                         Code = model.Code,
-                        DloaidoId = model.DloaidoId
+                        Name = model.Name,
+                        DloaidoId = model.DloaidoId,
+                        ParentId = model.ParentId
                     };
 
-                    int affectedRows = await Dapper.SqlMapper.ExecuteAsync(conn, sql, parameters);
+                    int affectedRows = await conn.ExecuteAsync(sql, parameters);
                     return affectedRows > 0;
                 }
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show("Lỗi thêm nhóm mặt hàng: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> InsertOrUpdateDinhLuongAsync(DDINHLUONG model)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    // Check if exists
+                    string checkSql = "SELECT ID FROM DDINHLUONG WHERE DMATHANGID = @DmathangId AND DVATTUID = @DvattuId";
+                    var existingId = await conn.QueryFirstOrDefaultAsync<string>(checkSql, new { DmathangId = model.DmathangId, DvattuId = model.DvattuId });
+
+                    if (!string.IsNullOrEmpty(existingId))
+                    {
+                        string updateSql = "UPDATE DDINHLUONG SET SOLUONG = @Soluong, TIMEMODIFIED = @Timemodified WHERE ID = @Id";
+                        await conn.ExecuteAsync(updateSql, new { Soluong = model.Soluong, Timemodified = DateTime.Now, Id = existingId });
+                    }
+                    else
+                    {
+                        string insertSql = "INSERT INTO DDINHLUONG (ID, DMATHANGID, DVATTUID, SOLUONG, STATUS, USERCREATEDID, TIMECREATED) VALUES (@Id, @DmathangId, @DvattuId, @Soluong, @Status, 1, @Timecreated)";
+                        await conn.ExecuteAsync(insertSql, new { Id = Guid.NewGuid().ToString(), DmathangId = model.DmathangId, DvattuId = model.DvattuId, Soluong = model.Soluong, Status = model.Status, Timecreated = model.Timecreated });
+                    }
+
+                    // Update Dmathang to Pha chế
+                    string getLoaiSql = "SELECT ID FROM DLOAIMATHANG WHERE NAME = 'Mặt hàng pha chế'";
+                    var loaiId = await conn.QueryFirstOrDefaultAsync<string>(getLoaiSql);
+                    if (string.IsNullOrEmpty(loaiId))
+                    {
+                        loaiId = Guid.NewGuid().ToString();
+                        string insertLoaiSql = "INSERT INTO DLOAIMATHANG (ID, NAME) VALUES (@Id, @Name)";
+                        await conn.ExecuteAsync(insertLoaiSql, new { Id = loaiId, Name = "Mặt hàng pha chế" });
+                    }
+
+                    string updateMatHangSql = "UPDATE DMATHANG SET DLOAIMATHANGID = @LoaiId WHERE ID = @DmathangId";
+                    await conn.ExecuteAsync(updateMatHangSql, new { LoaiId = loaiId, DmathangId = model.DmathangId });
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi cập nhật định lượng: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<List<DinhLuongChiTietViewModel>> GetDinhLuongByMatHangIdAsync(string matHangId, IEnumerable<MatHangViewModel> allMaterials)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT ID as Id, DMATHANGID as DmathangId, DVATTUID as DvattuId, SOLUONG as Soluong FROM DDINHLUONG WHERE DMATHANGID = @Id";
+                    var dls = await conn.QueryAsync<DDINHLUONG>(sql, new { Id = matHangId });
+                    
+                    var list = new List<DinhLuongChiTietViewModel>();
+                    foreach (var dl in dls)
+                    {
+                        var mat = allMaterials.FirstOrDefault(m => m.Id == dl.DvattuId);
+                        if (mat != null)
+                        {
+                            var vm = new DinhLuongChiTietViewModel
+                            {
+                                OriginalId = dl.Id?.ToString(),
+                                SelectedMatHang = mat,
+                                SoLuong = dl.Soluong ?? 0
+                            };
+                            list.Add(vm);
+                        }
+                    }
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải định lượng: " + ex.Message);
+                return new List<DinhLuongChiTietViewModel>();
+            }
+        }
+
+        public async Task<bool> SaveDinhLuongListAsync(string matHangId, List<DinhLuongChiTietViewModel> list)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        // 1. Delete all existing ingredients for this product
+                        string deleteSql = "DELETE FROM DDINHLUONG WHERE DMATHANGID = @Id";
+                        await conn.ExecuteAsync(deleteSql, new { Id = matHangId }, transaction);
+
+                        // 2. Insert the new ones
+                        foreach (var item in list)
+                        {
+                            if (item.SelectedMatHang != null && item.SoLuong > 0)
+                            {
+                                string insertSql = "INSERT INTO DDINHLUONG (ID, DMATHANGID, DVATTUID, SOLUONG, STATUS, USERCREATEDID, TIMECREATED) VALUES (@Id, @DmathangId, @DvattuId, @Soluong, @Status, 1, @Timecreated)";
+                                await conn.ExecuteAsync(insertSql, new 
+                                { 
+                                    Id = item.OriginalId ?? Guid.NewGuid().ToString(),
+                                    DmathangId = matHangId, 
+                                    DvattuId = item.SelectedMatHang.Id, 
+                                    Soluong = item.SoLuong, 
+                                    Status = 1, 
+                                    Timecreated = DateTime.Now 
+                                }, transaction);
+                            }
+                        }
+
+                        // 3. Update Dmathang to Pha chế if there are ingredients
+                        if (list.Any(x => x.SelectedMatHang != null && x.SoLuong > 0))
+                        {
+                            string getLoaiSql = "SELECT ID FROM DLOAIMATHANG WHERE NAME = 'Mặt hàng pha chế'";
+                            var loaiId = await conn.QueryFirstOrDefaultAsync<string>(getLoaiSql, null, transaction);
+                            if (string.IsNullOrEmpty(loaiId))
+                            {
+                                loaiId = Guid.NewGuid().ToString();
+                                string insertLoaiSql = "INSERT INTO DLOAIMATHANG (ID, NAME) VALUES (@Id, @Name)";
+                                await conn.ExecuteAsync(insertLoaiSql, new { Id = loaiId, Name = "Mặt hàng pha chế" }, transaction);
+                            }
+
+                            string updateMatHangSql = "UPDATE DMATHANG SET DLOAIMATHANGID = @LoaiId WHERE ID = @DmathangId";
+                            await conn.ExecuteAsync(updateMatHangSql, new { LoaiId = loaiId, DmathangId = matHangId }, transaction);
+                        }
+
+                        transaction.Commit();
+                    }
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi lưu định lượng: " + ex.Message);
                 return false;
             }
         }

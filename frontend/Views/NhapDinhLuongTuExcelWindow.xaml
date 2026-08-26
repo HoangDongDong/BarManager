@@ -1,0 +1,94 @@
+<Window x:Class="QuanLyBar.Client.Views.NhapDinhLuongTuExcelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:QuanLyBar.Client.Models"
+        Title="NHẬP ĐỊNH LƯỢNG TỪ EXCEL" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#f0f0f0" Padding="5">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Cập nhật định lượng từ excel" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" Margin="5"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- TreeView: Nhóm mặt hàng -->
+            <Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="1" Margin="2">
+                <TreeView x:Name="TvNhomMatHang" SelectedItemChanged="TvNhomMatHang_SelectedItemChanged">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type models:NhomMatHangViewModel}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                <TextBlock Text="📁 " Foreground="LightBlue" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightGray"/>
+
+            <!-- DataGrid -->
+            <Border Grid.Column="2" BorderBrush="LightGray" BorderThickness="1" Margin="2">
+                <DataGrid x:Name="DgDinhLuong" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" 
+                          AlternatingRowBackground="#f9f9f9" GridLinesVisibility="All">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="STT" Binding="{Binding Stt}" Width="50"/>
+                        <DataGridTextColumn Header="Mặt hàng" Binding="{Binding MatHangName}" Width="150">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DmathangId}" Value="{x:Null}">
+                                            <Setter Property="Foreground" Value="Red"/>
+                                            <Setter Property="ToolTip" Value="Mặt hàng này chưa tồn tại trong hệ thống"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="ĐVT" Binding="{Binding MatHangDVT}" Width="80"/>
+                        <DataGridTextColumn Header="Nguyên liệu" Binding="{Binding NguyenLieuName}" Width="150">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DvattuId}" Value="{x:Null}">
+                                            <Setter Property="Foreground" Value="Red"/>
+                                            <Setter Property="ToolTip" Value="Nguyên liệu này chưa tồn tại trong hệ thống"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="ĐVT" Binding="{Binding NguyenLieuDVT}" Width="80"/>
+                        <DataGridTextColumn Header="Số lượng" Binding="{Binding SoLuong, StringFormat={}{0:N2}}" Width="80"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <!-- Buttons -->
+        <Border Grid.Row="2" Background="#b9d1ea" Padding="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Chấp nhận" Padding="15,5" Background="White" Click="BtnChapNhan_Click"/>
+                <Button Content="Hủy bỏ" Padding="15,5" Background="White" Click="BtnHuyBo_Click" Margin="10,0,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

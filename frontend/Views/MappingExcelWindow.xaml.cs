@@ -31,7 +31,7 @@ namespace QuanLyBar.Client.Views
         public ObservableCollection<ColumnMappingViewModel> MappingList { get; set; }
 
         // Mảng các trường có sẵn trong hệ thống (như trong Cột Dữ liệu)
-        private readonly List<string> _systemFields = new List<string>
+        private List<string> _systemFields = new List<string>
         {
             "", // Cho phép bỏ trống (không map)
             "Ghi chú",
@@ -57,9 +57,19 @@ namespace QuanLyBar.Client.Views
             "Giá theo thời giá"
         };
 
-        public MappingExcelWindow(List<string> excelColumns)
+        public MappingExcelWindow(List<string> excelColumns, List<string> customSystemFields = null)
         {
             InitializeComponent();
+            
+            if (customSystemFields != null)
+            {
+                _systemFields = customSystemFields;
+                // Add empty mapping option if not present
+                if (!_systemFields.Contains(""))
+                {
+                    _systemFields.Insert(0, "");
+                }
+            }
             
             MappingList = new ObservableCollection<ColumnMappingViewModel>();
             

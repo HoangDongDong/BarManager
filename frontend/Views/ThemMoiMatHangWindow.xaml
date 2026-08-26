@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MẶT HÀNG - THÊM MỚI" Height="600" Width="700"
         WindowStartupLocation="CenterScreen"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown">
     
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -159,26 +160,61 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <ToolBar Grid.Row="0" Background="#f0f0f0">
-                        <Button Content="➕ Thêm dòng (F4)" Padding="5"/>
-                        <Button Content="❌ Xóa dòng (F8)" Padding="5"/>
+                        <Button Content="➕ Thêm dòng (F4)" Padding="5" Click="BtnThemDong_Click"/>
+                        <Button Content="❌ Xóa dòng (F8)" Padding="5" Click="BtnXoaDong_Click"/>
                         <Button Content="Xuất excel" Padding="5"/>
                         <Separator/>
                         <Label Content="Lọc" VerticalAlignment="Center"/>
                         <TextBox Width="150" Margin="5,0"/>
                     </ToolBar>
-                    <DataGrid Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" AlternatingRowBackground="#f9f9f9" GridLinesVisibility="All">
+                    <DataGrid x:Name="DgDinhLuong" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" AlternatingRowBackground="#f9f9f9" GridLinesVisibility="All">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Vật tư" Width="*"/>
-                            <DataGridTextColumn Header="Số lượng" Width="80"/>
-                            <DataGridTextColumn Header="ĐVT" Width="60"/>
-                            <DataGridTextColumn Header="Giá nhập" Width="90"/>
-                            <DataGridTextColumn Header="Thành tiền nhập" Width="100"/>
-                            <DataGridTextColumn Header="Giá vốn" Width="90"/>
-                            <DataGridTextColumn Header="Thành tiền vốn" Width="100"/>
+                            <DataGridTemplateColumn Header="Vật tư" Width="200">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding SelectedMatHang.Name}" VerticalAlignment="Center" Margin="2,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.AllMaterials, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                                  SelectedItem="{Binding SelectedMatHang, UpdateSourceTrigger=PropertyChanged}"
+                                                  DisplayMemberPath="Name" 
+                                                  IsEditable="True" 
+                                                  IsTextSearchEnabled="True" 
+                                                  StaysOpenOnEdit="True"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Số lượng" Width="80" Binding="{Binding SoLuong, UpdateSourceTrigger=PropertyChanged}"/>
+                            <DataGridTextColumn Header="ĐVT" Width="60" Binding="{Binding DonViTinh, Mode=OneWay}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Giá nhập" Width="90" Binding="{Binding GiaNhap, StringFormat=N0, Mode=OneWay}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Thành tiền nhập" Width="100" Binding="{Binding ThanhTienNhap, StringFormat=N0, Mode=OneWay}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Giá vốn" Width="90" Binding="{Binding GiaVon, StringFormat=N0, Mode=OneWay}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Thành tiền vốn" Width="100" Binding="{Binding ThanhTienVon, StringFormat=N0, Mode=OneWay}" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                    
+                    <Border Grid.Row="2" Background="#dfe7f5" Padding="5" BorderBrush="LightGray" BorderThickness="1,0,1,1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="TỔNG" FontWeight="Bold" Margin="5,0"/>
+                            <TextBlock Grid.Column="1" x:Name="TxtTongSoLuong" Text="0" FontWeight="Bold" HorizontalAlignment="Right" Margin="5,0"/>
+                            <TextBlock Grid.Column="4" x:Name="TxtTongTienNhap" Text="0" FontWeight="Bold" HorizontalAlignment="Right" Margin="5,0"/>
+                            <TextBlock Grid.Column="6" x:Name="TxtTongTienVon" Text="0" FontWeight="Bold" HorizontalAlignment="Right" Margin="5,0"/>
+                        </Grid>
+                    </Border>
                 </Grid>
             </TabItem>
             <TabItem Header="Khác">

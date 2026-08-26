@@ -204,6 +204,13 @@ namespace QuanLyBar.Client.Views
             var win = new ThemNhanhWindow(ReloadAllData);
             win.ShowDialog();
         }
+
+        private void BtnImportDinhLuong_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ImportDinhLuongWindow();
+            win.ShowDialog();
+        }
+
         private async void BtnThemNhom_Click(object sender, RoutedEventArgs e)
         {
             var selectedNhom = TvNhomMatHang.SelectedItem as NhomMatHangViewModel;

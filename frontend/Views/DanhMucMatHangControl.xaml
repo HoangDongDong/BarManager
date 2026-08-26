@@ -26,7 +26,7 @@
             <Separator/>
             <Button x:Name="BtnThemExcel" Content="Thêm excel" Padding="5" Click="BtnThemExcel_Click"/>
             <Button x:Name="BtnXuatExcel" Content="Xuất excel" Padding="5" Click="BtnXuatExcel_Click"/>
-            <Button Content="Import định lượng" Padding="5"/>
+            <Button Content="Import định lượng" Padding="5" Click="BtnImportDinhLuong_Click"/>
             <Button Content="In" Padding="5"/>
             <Button Content="In mã vạch" Padding="5"/>
         </ToolBar>
