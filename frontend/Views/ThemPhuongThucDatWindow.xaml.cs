@@ -39,9 +39,9 @@ namespace QuanLyBar.Client.Views
             var images = await _service.GetSImagesAsync();
             CmbImage.ItemsSource = images;
 
-            if (_editingItem != null && _editingItem.SimageId.HasValue)
+            if (_editingItem != null && !string.IsNullOrEmpty(_editingItem.SimageId))
             {
-                CmbImage.SelectedItem = images.FirstOrDefault(x => x.Id == _editingItem.SimageId.Value);
+                CmbImage.SelectedItem = images.FirstOrDefault(x => x.Id == _editingItem.SimageId);
             }
         }
 
@@ -55,7 +55,7 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
-            int? selectedImageId = (CmbImage.SelectedItem as SImageViewModel)?.Id;
+            string selectedImageId = (CmbImage.SelectedItem as SImageViewModel)?.Id;
 
             bool success = false;
             if (_editingItem == null)

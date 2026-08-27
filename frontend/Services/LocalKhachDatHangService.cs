@@ -49,7 +49,7 @@ namespace QuanLyBar.Client.Services
                             ParentDir = raw.PARENTDIR,
                             SortOrder = raw.SORTORDER?.ToString(),
                             Note = raw.NOTE,
-                            SimageId = raw.SIMAGEID != null ? Convert.ToInt32(raw.SIMAGEID) : (int?)null
+                            SimageId = raw.SIMAGEID?.ToString()
                         };
 
                         if (raw.ANHBYTES != null)
@@ -239,7 +239,7 @@ namespace QuanLyBar.Client.Services
 
                     foreach (var raw in rawItems)
                     {
-                        var item = new SImageViewModel { Id = (int)raw.ID, ImageBytes = raw.IMAGEBYTES };
+                        var item = new SImageViewModel { Id = raw.ID?.ToString(), ImageBytes = raw.IMAGEBYTES };
                         if (item.ImageBytes != null)
                         {
                             try
@@ -268,7 +268,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> InsertPhuongThucDatAsync(string name, string note, int? simageId, string parentId, bool isMucDichDat)
+        public async Task<bool> InsertPhuongThucDatAsync(string name, string note, string simageId, string parentId, bool isMucDichDat)
         {
             try
             {
@@ -295,7 +295,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> UpdatePhuongThucDatAsync(string id, string name, string note, int? simageId, bool isMucDichDat)
+        public async Task<bool> UpdatePhuongThucDatAsync(string id, string name, string note, string simageId, bool isMucDichDat)
         {
             try
             {

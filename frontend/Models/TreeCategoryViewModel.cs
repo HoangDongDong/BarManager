@@ -11,7 +11,7 @@ namespace QuanLyBar.Client.Models
         public string SortOrder { get; set; }
         
         public string Note { get; set; }
-        public int? SimageId { get; set; }
+        public string SimageId { get; set; }
         public System.Windows.Media.ImageSource ImageSource { get; set; }
         
         public ObservableCollection<TreeCategoryViewModel> Children { get; set; } = new ObservableCollection<TreeCategoryViewModel>();
