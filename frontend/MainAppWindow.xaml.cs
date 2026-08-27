@@ -19,7 +19,7 @@ namespace QuanLyBar.Client
                 this.Title = $"Phần Mềm Quản Lý Bar, Nhà Hàng - [{userInfoStr}]";
                 
                 // Add initial tab
-                AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
+                AddTab("Khách đặt hàng", new QuanLyBar.Client.Views.KhachDatHangControl());
             }
         }
 

@@ -12,6 +12,11 @@ namespace QuanLyBar.Client.Models
         public string SortOrder { get; set; }
         public bool? Status { get; set; }
         
+        public bool IsExpanded { get; set; }
+        public bool IsSelected { get; set; }
+        
+        public System.Windows.Media.Imaging.BitmapImage ImageSource { get; set; }
+        
         // Children for TreeView
         public ObservableCollection<KhuVucViewModel> Children { get; set; } = new ObservableCollection<KhuVucViewModel>();
     }

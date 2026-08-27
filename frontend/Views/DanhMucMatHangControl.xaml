@@ -27,8 +27,8 @@
             <Button x:Name="BtnThemExcel" Content="Thêm excel" Padding="5" Click="BtnThemExcel_Click"/>
             <Button x:Name="BtnXuatExcel" Content="Xuất excel" Padding="5" Click="BtnXuatExcel_Click"/>
             <Button Content="Import định lượng" Padding="5" Click="BtnImportDinhLuong_Click"/>
-            <Button Content="In" Padding="5"/>
-            <Button Content="In mã vạch" Padding="5"/>
+            <Button x:Name="BtnIn" Content="In" Padding="5" Click="BtnIn_Click"/>
+            <Button x:Name="BtnInMaVach" Content="In mã vạch" Padding="5" Click="BtnInMaVach_Click"/>
         </ToolBar>
 
         <!-- Main Content -->
@@ -36,7 +36,9 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="250"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" x:Name="ColMatHang"/>
+                <ColumnDefinition Width="Auto" x:Name="ColSplitterInMaVach"/>
+                <ColumnDefinition Width="0" x:Name="ColInMaVach"/>
             </Grid.ColumnDefinitions>
 
             <!-- TreeView: Nhóm mặt hàng -->
@@ -124,6 +126,53 @@
                             <DataGridTextColumn Header="Mã hàng" Binding="{Binding Code}" Width="100"/>
                             <DataGridTextColumn Header="Tạm khóa" Binding="{Binding Tamkhoa}" Width="80"/>
                             <DataGridTextColumn Header="Giá theo thời giá" Binding="{Binding Giatheothoigia, StringFormat={}{0:N0}}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- GridSplitter cho In mã vạch -->
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightGray" Visibility="Collapsed" x:Name="GsInMaVach"/>
+
+            <!-- Khung In mã vạch -->
+            <Border Grid.Column="4" BorderBrush="LightGray" BorderThickness="1" x:Name="PanelInMaVach" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Background="#dfe7f5" Padding="5">
+                        <TextBlock Text="IN MÃ VẠCH" FontWeight="Bold"/>
+                    </Border>
+
+                    <ToolBar Grid.Row="1" Background="Transparent" Padding="0">
+                        <Button x:Name="BtnThemMaVach" Padding="5" Click="BtnThemMaVach_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="➡️" Foreground="Blue" Margin="0,0,5,0"/>
+                                <TextBlock Text="Thêm"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnXoaMaVach" Padding="5" Click="BtnXoaMaVach_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="❌" Foreground="Red" Margin="0,0,5,0"/>
+                                <TextBlock Text="Xóa"/>
+                            </StackPanel>
+                        </Button>
+                        <Separator/>
+                        <Button x:Name="BtnXuatExcelMaVach" Content="Xuất excel" Padding="5" Click="BtnXuatExcelMaVach_Click"/>
+                        <Button x:Name="BtnInBarcode" Content="In" Padding="5" Click="BtnInBarcode_Click"/>
+                        <Button x:Name="BtnBartender" Content="Bartender" Padding="5" Click="BtnBartender_Click"/>
+                    </ToolBar>
+
+                    <DataGrid Grid.Row="2" x:Name="DgInMaVach" AutoGenerateColumns="False" 
+                              CanUserAddRows="False" IsReadOnly="False" 
+                              AlternatingRowBackground="#f9f9f9" GridLinesVisibility="All">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã" Binding="{Binding Code}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Tên" Binding="{Binding Name}" Width="200" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Số lượng" Binding="{Binding Quantity}" Width="100"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

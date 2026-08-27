@@ -1,0 +1,134 @@
+<Window x:Class="QuanLyBar.Client.Views.ThemKhuVucWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KHU VỰC - THÊM MỚI" Height="400" Width="550"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#f0f0f0" BorderBrush="#d4d4d4" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                <TextBlock Text="📝" FontSize="20" Margin="0,0,10,0"/>
+                <TextBlock Text="Khu vực" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="1" Background="#eef3f9" BorderBrush="#d4d4d4" BorderThickness="0,0,0,1" Padding="5">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="↗ Phím tắt ▾" Margin="0,0,5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="SteelBlue"/>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
+                <Button x:Name="BtnTruoc" Content="⬅ Trước (F10)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="SteelBlue"/>
+                <Button x:Name="BtnSau" Content="➡ Sau (F11)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="SteelBlue"/>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
+                <Button x:Name="BtnTaoMoi" Content="➕ Tạo mới" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Green"/>
+                <Button Content="📄 Sao chép" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Gray"/>
+                <Button Content="❌ Xóa" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Gray"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Tabs & Form Info -->
+        <TabControl Grid.Row="2" Margin="10">
+            <TabItem Header="Khu vực">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="80"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="70"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Tên khu vực" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"/>
+                    <TextBox x:Name="TxtTenKhuVuc" Grid.Row="0" Grid.Column="1" VerticalContentAlignment="Center" Margin="0,2" Background="#e6ffff"/>
+
+                    <TextBlock Text="Ảnh:" VerticalAlignment="Center" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                    <ComboBox Grid.Row="0" Grid.Column="3" Margin="0,2"/>
+
+                    <TextBlock Text="Biểu tượng" VerticalAlignment="Top" Margin="0,5,0,0" Grid.Row="1" Grid.Column="0"/>
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3">
+                        <ComboBox Width="150" Height="25" VerticalAlignment="Top" Margin="0,5,10,0" SelectedIndex="0" Background="#ffffcc">
+                            <ComboBoxItem Content="Menu"/>
+                        </ComboBox>
+                        <!-- Mockup Image Preview -->
+                        <Border BorderBrush="Gray" BorderThickness="1" Width="60" Height="60" Background="White">
+                            <TextBlock Text="📖" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Maroon"/>
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock Text="Tab hiển thị" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0"/>
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" VerticalAlignment="Center">
+                        <RadioButton x:Name="RbTabPhiaTren" Content="Tab phía trên" IsChecked="True" Margin="0,0,150,0"/>
+                        <RadioButton x:Name="RbTabPhiaDuoi" Content="Tab phía dưới"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Giá mặt hàng" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0"/>
+                    <ComboBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,2" SelectedIndex="0">
+                        <ComboBoxItem Content="Hiển thị để lựa chọn"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Kho hàng" VerticalAlignment="Center" Grid.Row="4" Grid.Column="0"/>
+                    <ComboBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,2" Background="#e6ffcc"/>
+
+                    <TextBlock Text="Mẫu hóa đơn" VerticalAlignment="Center" Grid.Row="5" Grid.Column="0"/>
+                    <ComboBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,2"/>
+
+                    <TextBlock Text="Ghi chú" VerticalAlignment="Center" Grid.Row="6" Grid.Column="0"/>
+                    <TextBox x:Name="TxtGhiChu" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3" VerticalContentAlignment="Center" Margin="0,2"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Mặt hàng mặc định">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Border Grid.Row="0" Background="#eef3f9" BorderBrush="#d4d4d4" BorderThickness="0,0,0,1" Padding="5">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="➕ Thêm dòng (F4)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Green"/>
+                            <Button Content="❌ Xóa dòng (F8)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Maroon"/>
+                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
+                            <Button Content="📊 Xuất excel" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Green"/>
+                            <TextBlock Text="Lọc" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                            <TextBox Width="120" VerticalContentAlignment="Center" Margin="0,2"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <DataGrid Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" AlternatingRowBackground="#f9f9f9" GridLinesVisibility="All" HeadersVisibility="All">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="" Width="30" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Mặt hàng" Width="*"/>
+                            <DataGridTextColumn Header="Số lượng" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Footer Buttons -->
+        <Border Grid.Row="3" Background="#e6f2fa" BorderBrush="#d4d4d4" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="💾 Lưu" Width="70" Margin="5" Background="White" Click="BtnLuu_Click"/>
+                <Button Content="Lưu &amp; Mới" Width="80" Margin="5" Background="White"/>
+                <Button Content="Lưu &amp; thoát" Width="90" Margin="5" Background="White"/>
+                <Button Content="Thoát" Width="70" Margin="5" Background="White" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

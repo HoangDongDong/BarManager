@@ -9,5 +9,8 @@ namespace QuanLyBar.Client.Models
         public string KhuVucName { get; set; }
         public string NhomHienThiName { get; set; }
         public string LoaiPhongName { get; set; }
+        public string BanggiaName { get; set; }
+        public decimal? Dongia { get; set; }
+        public decimal? Tienmoban { get; set; }
     }
 }

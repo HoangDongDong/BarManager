@@ -1,5 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections.ObjectModel;
+using System.Linq;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
 
@@ -8,11 +10,14 @@ namespace QuanLyBar.Client.Views
     public partial class DanhMucMatHangControl : UserControl
     {
         private readonly LocalMatHangService _matHangService;
+        private ObservableCollection<MatHangInMaVach> _matHangInMaVachList;
 
         public DanhMucMatHangControl()
         {
             InitializeComponent();
             _matHangService = new LocalMatHangService();
+            _matHangInMaVachList = new ObservableCollection<MatHangInMaVach>();
+            DgInMaVach.ItemsSource = _matHangInMaVachList;
         }
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -211,6 +216,12 @@ namespace QuanLyBar.Client.Views
             win.ShowDialog();
         }
 
+        private void BtnIn_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new InLuoiWindow(DgMatHang);
+            win.ShowDialog();
+        }
+
         private async void BtnThemNhom_Click(object sender, RoutedEventArgs e)
         {
             var selectedNhom = TvNhomMatHang.SelectedItem as NhomMatHangViewModel;
@@ -271,6 +282,147 @@ namespace QuanLyBar.Client.Views
         {
             var treeData = await _matHangService.GetNhomMatHangTreeAsync();
             TvNhomMatHang.ItemsSource = treeData;
+        }
+
+        private void BtnInMaVach_Click(object sender, RoutedEventArgs e)
+        {
+            if (PanelInMaVach.Visibility == Visibility.Visible)
+            {
+                PanelInMaVach.Visibility = Visibility.Collapsed;
+                GsInMaVach.Visibility = Visibility.Collapsed;
+                ColInMaVach.Width = new GridLength(0);
+            }
+            else
+            {
+                PanelInMaVach.Visibility = Visibility.Visible;
+                GsInMaVach.Visibility = Visibility.Visible;
+                ColInMaVach.Width = new GridLength(350); // Mở rộng cột bên phải
+            }
+        }
+
+        private void BtnThemMaVach_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang.SelectedItems.Count > 0)
+            {
+                bool hasExisting = false;
+                foreach (MatHangViewModel item in DgMatHang.SelectedItems)
+                {
+                    // Check if already exists by Id
+                    var existing = _matHangInMaVachList.FirstOrDefault(x => x.Id == item.Id);
+                    if (existing != null)
+                    {
+                        hasExisting = true;
+                    }
+                    else
+                    {
+                        _matHangInMaVachList.Add(new MatHangInMaVach
+                        {
+                            Id = item.Id,
+                            Code = item.Code,
+                            Name = item.Name,
+                            Quantity = 1
+                        });
+                    }
+                }
+                
+                if (hasExisting)
+                {
+                    MessageBox.Show("Các mặt hàng đang chọn đã nằm trong danh sách!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn mặt hàng để thêm!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void BtnXoaMaVach_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgInMaVach.SelectedItems.Count > 0)
+            {
+                var itemsToRemove = DgInMaVach.SelectedItems.Cast<MatHangInMaVach>().ToList();
+                foreach (var item in itemsToRemove)
+                {
+                    _matHangInMaVachList.Remove(item);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn mặt hàng để xóa khỏi danh sách in mã vạch!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void BtnXuatExcelMaVach_Click(object sender, RoutedEventArgs e)
+        {
+            if (_matHangInMaVachList == null || _matHangInMaVachList.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Excel Files|*.xlsx",
+                Title = "Lưu file Excel",
+                FileName = "DanhSachInMaVach.xlsx"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var workbook = new ClosedXML.Excel.XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("InMaVach");
+                        
+                        // Header
+                        worksheet.Cell(1, 1).Value = "Mã";
+                        worksheet.Cell(1, 2).Value = "Tên";
+                        worksheet.Cell(1, 3).Value = "Số lượng";
+                        
+                        // Format header
+                        var headerRow = worksheet.Row(1);
+                        headerRow.Style.Font.Bold = true;
+                        headerRow.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+
+                        int row = 2;
+                        foreach (var item in _matHangInMaVachList)
+                        {
+                            worksheet.Cell(row, 1).Value = item.Code;
+                            worksheet.Cell(row, 2).Value = item.Name;
+                            worksheet.Cell(row, 3).Value = item.Quantity;
+                            row++;
+                        }
+                        
+                        worksheet.Columns().AdjustToContents();
+                        workbook.SaveAs(sfd.FileName);
+                    }
+                    var result = MessageBox.Show("Xuất Excel thành công! Bạn có muốn mở file vừa xuất không?", "Thông báo", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var psi = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = sfd.FileName,
+                            UseShellExecute = true
+                        };
+                        System.Diagnostics.Process.Start(psi);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show($"Lỗi khi xuất file Excel: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void BtnInBarcode_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Chức năng in mã vạch đang được phát triển.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnBartender_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Chức năng in Bartender đang được phát triển.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

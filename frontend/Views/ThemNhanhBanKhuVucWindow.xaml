@@ -1,0 +1,98 @@
+<Window x:Class="QuanLyBar.Client.Views.ThemNhanhBanKhuVucWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="THÊM NHANH BÀN VÀ KHU VỰC" Height="450" Width="650"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
+    
+    <Grid Background="#f0f4f9">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Hướng dẫn -->
+        <Border Grid.Row="0" Background="#dfe7f5" Margin="10,10,10,5" Padding="10">
+            <TextBlock TextWrapping="Wrap" LineHeight="20">
+                <Run Text="Chức năng này cho phép bạn thêm nhiều bàn vào hệ thống một lúc" Foreground="Navy"/><LineBreak/>
+                <Run Text="Để sử dụng, bạn thêm mới khu vực trước, sau đó truy cập vào chức năng này:"/><LineBreak/>
+                <Run Text="+ Nhập từ số, đến số và tiền tố bắt đầu bằng."/><LineBreak/>
+                <Run Text="Ví dụ"/><LineBreak/>
+                <Run Text="    Tầng 1: Từ 1 đến 9, bắt đầu bằng B"/><LineBreak/>
+                <Run Text="    Tầng 2: Từ 10 đến 29, bắt đầu bằng B"/><LineBreak/>
+                <Run Text="    Tầng 3: Từ 29 đến 99 bắt đầu bằng B"/><LineBreak/>
+                <Run Text="Chiều dài vùng số = 2"/><LineBreak/>
+                <Run Text="Hệ thống sẽ sinh các bàn: B01-B09 cho tầng 1, B10 đến B29 cho tầng 2, B29-B99 cho tầng 3"/>
+            </TextBlock>
+        </Border>
+
+        <!-- DataGrid -->
+        <DataGrid x:Name="DgThemNhanh" Grid.Row="1" Margin="10,5,10,10" AutoGenerateColumns="False" 
+                  CanUserAddRows="False" CanUserDeleteRows="False" SelectionUnit="Cell"
+                  Background="White" RowHeaderWidth="0" GridLinesVisibility="All" AlternatingRowBackground="#f9f9f9">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Khu vực" Binding="{Binding KhuVucName}" Width="150" IsReadOnly="True">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#f0f0f0"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+                
+                <DataGridTextColumn Header="Bàn từ số" Binding="{Binding TuSo, UpdateSourceTrigger=PropertyChanged}" Width="100">
+                    <DataGridTextColumn.EditingElementStyle>
+                        <Style TargetType="TextBox">
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.EditingElementStyle>
+                </DataGridTextColumn>
+                
+                <DataGridTextColumn Header="Bàn đến số" Binding="{Binding DenSo, UpdateSourceTrigger=PropertyChanged}" Width="100">
+                    <DataGridTextColumn.EditingElementStyle>
+                        <Style TargetType="TextBox">
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.EditingElementStyle>
+                </DataGridTextColumn>
+                
+                <DataGridTextColumn Header="Bắt đầu bằng" Binding="{Binding BatDauBang, UpdateSourceTrigger=PropertyChanged}" Width="100">
+                    <DataGridTextColumn.EditingElementStyle>
+                        <Style TargetType="TextBox">
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.EditingElementStyle>
+                </DataGridTextColumn>
+                
+                <DataGridTextColumn Header="Dữ liệu mẫu" Binding="{Binding DuLieuMau}" Width="*" IsReadOnly="True">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#e6ffff"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#f0f0f0" Padding="10" BorderBrush="LightGray" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Chiều dài vùng số: " VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtChieuDai" Text="0" Width="50" TextAlignment="Center" VerticalContentAlignment="Center" TextChanged="TxtChieuDai_TextChanged"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="Thực hiện" Padding="15,5" Margin="0,0,10,0" FontWeight="Bold" Background="White" Click="BtnThucHien_Click"/>
+                    <Button Content="Thoát" Padding="15,5" Background="White" Click="BtnThoat_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

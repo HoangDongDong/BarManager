@@ -26,18 +26,53 @@ namespace QuanLyBar.Client.Services
                                PARENTID as ParentId, 
                                PARENTDIR as ParentDir, 
                                SORTORDER as SortOrder, 
-                               STATUS as Status
+                               STATUS as Status,
+                               ANH as Anh
                         FROM DKHUVUC
                         ORDER BY SORTORDER, NAME";
 
-                    var allItems = (await conn.QueryAsync<KhuVucViewModel>(sql)).ToList();
+                    var allItemsQuery = await conn.QueryAsync<dynamic>(sql);
+                    var allItems = new List<KhuVucViewModel>();
+                    foreach (var d in allItemsQuery)
+                    {
+                        var vm = new KhuVucViewModel
+                        {
+                            Id = d.ID?.ToString(),
+                            Name = d.NAME,
+                            ParentId = d.PARENTID?.ToString(),
+                            ParentDir = d.PARENTDIR,
+                            SortOrder = d.SORTORDER?.ToString(),
+                            Status = (d.STATUS != null) ? Convert.ToBoolean(d.STATUS) : (bool?)null
+                        };
+                        
+                        byte[] anh = d.ANH as byte[];
+                        if (anh != null && anh.Length > 0)
+                        {
+                            try
+                            {
+                                using (var ms = new System.IO.MemoryStream(anh))
+                                {
+                                    var image = new System.Windows.Media.Imaging.BitmapImage();
+                                    image.BeginInit();
+                                    image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                                    image.StreamSource = ms;
+                                    image.EndInit();
+                                    image.Freeze();
+                                    vm.ImageSource = image;
+                                }
+                            }
+                            catch { }
+                        }
+                        
+                        allItems.Add(vm);
+                    }
 
                     // Xây dựng cây
                     var tree = new ObservableCollection<KhuVucViewModel>();
                     var lookup = new Dictionary<string, KhuVucViewModel>();
 
                     // Fake root note "Tất cả"
-                    var rootNode = new KhuVucViewModel { Id = null, Name = "Tất cả" };
+                    var rootNode = new KhuVucViewModel { Id = null, Name = "Tất cả", IsExpanded = true, IsSelected = true };
                     tree.Add(rootNode);
 
                     foreach (var item in allItems)
@@ -63,6 +98,10 @@ namespace QuanLyBar.Client.Services
                             }
                         }
                     }
+
+                    // Thêm "Thùng rác"
+                    var trashNode = new KhuVucViewModel { Id = "-1", Name = "Thùng rác" };
+                    rootNode.Children.Add(trashNode);
 
                     return tree;
                 }
@@ -95,9 +134,17 @@ namespace QuanLyBar.Client.Services
                         LEFT JOIN DLOAIPHONG p ON b.DLOAIPHONGID = p.ID
                         WHERE 1=1 ";
 
-                    if (!string.IsNullOrEmpty(khuvucId))
+                    if (khuvucId == "-1")
                     {
-                        sql += " AND (b.DKHUVUCID = @KhuVucId OR k.PARENTID = @KhuVucId OR k.PARENTDIR LIKE '%' || @KhuVucId || ',%')";
+                        sql += " AND (b.STATUS = 0) ";
+                    }
+                    else
+                    {
+                        sql += " AND (b.STATUS = 1 OR b.STATUS IS NULL) ";
+                        if (!string.IsNullOrEmpty(khuvucId))
+                        {
+                            sql += " AND (b.DKHUVUCID = @KhuVucId OR k.PARENTID = @KhuVucId OR k.PARENTDIR LIKE '%' || @KhuVucId || ',%')";
+                        }
                     }
 
                     sql += " ORDER BY b.NAME";
@@ -118,6 +165,387 @@ namespace QuanLyBar.Client.Services
             {
                 MessageBox.Show("Lỗi tải danh sách bàn: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
                 return new List<BanViewModel>();
+            }
+        }
+        public async Task<bool> InsertKhuVucAsync(DKHUVUC khuvuc)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    if (khuvuc.Id == null || khuvuc.Id == 0)
+                    {
+                        var maxId = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(ID) FROM DKHUVUC");
+                        khuvuc.Id = (maxId ?? 0) + 1;
+                    }
+
+                    string sql = @"
+                        INSERT INTO DKHUVUC (ID, NAME, PARENTID, STATUS, USERCREATEDID, TIMECREATED) 
+                        VALUES (@Id, @Name, @ParentId, 1, 1, CURRENT_TIMESTAMP)";
+                    
+                    var rows = await conn.ExecuteAsync(sql, new { khuvuc.Id, khuvuc.Name, khuvuc.ParentId });
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi thêm khu vực: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateKhuVucAsync(DKHUVUC khuvuc)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        UPDATE DKHUVUC 
+                        SET NAME = @Name 
+                        WHERE ID = @Id";
+                    
+                    var rows = await conn.ExecuteAsync(sql, new { khuvuc.Name, khuvuc.Id });
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật khu vực: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+        public async Task<List<LookupItem>> GetLookupAsync(string tableName)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = $"SELECT ID as Id, NAME as Name FROM {tableName} WHERE STATUS = 1 ORDER BY NAME";
+                    return (await conn.QueryAsync<LookupItem>(sql)).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải {tableName}: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return new List<LookupItem>();
+            }
+        }
+
+        public async Task<bool> InsertBanAsync(DBAN ban)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    if (ban.Id == null || ban.Id == 0)
+                    {
+                        var maxId = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(ID) FROM DBAN");
+                        ban.Id = (maxId ?? 0) + 1;
+                    }
+
+                    string sql = @"
+                        INSERT INTO DBAN (ID, NAME, NOTE, DKHUVUCID, DNHOMHIENTHIID, DLOAIPHONGID, STATUS, USERCREATEDID, TIMECREATED) 
+                        VALUES (@Id, @Name, @Note, @DkhuvucId, @DnhomhienthiId, @DloaiphongId, 1, 1, CURRENT_TIMESTAMP)";
+                    
+                    var rows = await conn.ExecuteAsync(sql, ban);
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi thêm bàn: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateBanAsync(DBAN ban)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        UPDATE DBAN 
+                        SET NAME = @Name,
+                            NOTE = @Note,
+                            DKHUVUCID = @DkhuvucId,
+                            DNHOMHIENTHIID = @DnhomhienthiId,
+                            DLOAIPHONGID = @DloaiphongId,
+                            USERMODIFIEDID = 1,
+                            TIMEMODIFIED = CURRENT_TIMESTAMP
+                        WHERE ID = @Id";
+                    
+                    var rows = await conn.ExecuteAsync(sql, ban);
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật bàn: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteBanAsync(int id, bool isPermanent = false)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql;
+                    if (isPermanent)
+                    {
+                        sql = "DELETE FROM DBAN WHERE ID = @Id";
+                    }
+                    else
+                    {
+                        sql = "UPDATE DBAN SET STATUS = 0 WHERE ID = @Id";
+                    }
+                    var rows = await conn.ExecuteAsync(sql, new { Id = id });
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xóa bàn: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> RestoreBanAsync(int id)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "UPDATE DBAN SET STATUS = 1 WHERE ID = @Id";
+                    var rows = await conn.ExecuteAsync(sql, new { Id = id });
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khôi phục bàn: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<DBAN> GetBanByIdAsync(int id)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT ID as Id, 
+                               NAME as Name, 
+                               NOTE as Note, 
+                               DKHUVUCID as DkhuvucId,
+                               DNHOMHIENTHIID as DnhomhienthiId,
+                               DLOAIPHONGID as DloaiphongId
+                        FROM DBAN 
+                        WHERE ID = @Id";
+                    return await conn.QueryFirstOrDefaultAsync<DBAN>(sql, new { Id = id });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi GetBanByIdAsync: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }
+        }
+        public async Task<ObservableCollection<BieuTuongViewModel>> GetBieuTuongTreeAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string sql = @"
+                        SELECT ID as Id, 
+                               NAME as Name, 
+                               PARENTID as ParentId,
+                               ANH as Anh
+                        FROM DBIEUTUONG
+                        ORDER BY ID";
+
+                    var allItemsQuery = await conn.QueryAsync<dynamic>(sql);
+                    var allItems = new List<BieuTuongViewModel>();
+                    foreach (var d in allItemsQuery)
+                    {
+                        var vm = new BieuTuongViewModel
+                        {
+                            Id = d.ID != null ? Convert.ToInt32(d.ID) : 0,
+                            Name = d.NAME,
+                            ParentId = d.PARENTID != null ? Convert.ToInt32(d.PARENTID) : (int?)null,
+                            Anh = d.ANH as byte[]
+                        };
+                        
+                        if (vm.Anh != null && vm.Anh.Length > 0)
+                        {
+                            try
+                            {
+                                using (var ms = new System.IO.MemoryStream(vm.Anh))
+                                {
+                                    var image = new System.Windows.Media.Imaging.BitmapImage();
+                                    image.BeginInit();
+                                    image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                                    image.StreamSource = ms;
+                                    image.EndInit();
+                                    image.Freeze();
+                                    vm.ImageSource = image;
+                                }
+                            }
+                            catch { }
+                        }
+                        
+                        allItems.Add(vm);
+                    }
+
+                    var tree = new ObservableCollection<BieuTuongViewModel>();
+                    var lookup = new Dictionary<int, BieuTuongViewModel>();
+
+                    foreach (var item in allItems)
+                    {
+                        lookup[item.Id] = item;
+                    }
+
+                    foreach (var item in allItems)
+                    {
+                        if (item.ParentId == null)
+                        {
+                            tree.Add(item);
+                        }
+                        else
+                        {
+                            if (lookup.TryGetValue(item.ParentId.Value, out var parent))
+                            {
+                                parent.Children.Add(item);
+                            }
+                            else
+                            {
+                                tree.Add(item);
+                            }
+                        }
+                    }
+
+                    return tree;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi tải danh sách biểu tượng: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return new ObservableCollection<BieuTuongViewModel>();
+            }
+        }
+
+        public async Task<bool> InsertBieuTuongAsync(DBIEUTUONG item)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string sql = @"
+                        INSERT INTO DBIEUTUONG (NAME, PARENTID, ANH)
+                        VALUES (@Name, @ParentId, @Anh)
+                        RETURNING ID";
+
+                    var result = await conn.QueryFirstOrDefaultAsync<int>(sql, new { item.Name, item.ParentId, item.Anh });
+                    return result > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi thêm biểu tượng: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteBieuTuongAsync(int id)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string sql = "DELETE FROM DBIEUTUONG WHERE ID = @Id";
+                    int affected = await conn.ExecuteAsync(sql, new { Id = id });
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi xóa biểu tượng: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateKhuVucIconAsync(int khuVucId, int? bieuTuongId, byte[] anh)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string sql = @"
+                        UPDATE DKHUVUC 
+                        SET DBIEUTUONG_ID = @BieuTuongId,
+                            ANH = @Anh
+                        WHERE ID = @Id";
+
+                    int affected = await conn.ExecuteAsync(sql, new { 
+                        Id = khuVucId,
+                        BieuTuongId = bieuTuongId,
+                        Anh = anh
+                    });
+
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi cập nhật biểu tượng khu vực: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> RenameKhuVucAsync(int id, string newName)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string sql = @"
+                        UPDATE DKHUVUC 
+                        SET NAME = @NewName
+                        WHERE ID = @Id";
+
+                    int affected = await conn.ExecuteAsync(sql, new { Id = id, NewName = newName });
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi đổi tên khu vực: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
         }
     }

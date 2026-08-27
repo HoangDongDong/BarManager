@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Imaging;
 using Dapper;
 using QuanLyBar.Client.Models;
-using System.Windows;
 
 namespace QuanLyBar.Client.Services
 {
     public class LocalKhachDatHangService
     {
-        public async Task<ObservableCollection<PhuongThucDatViewModel>> GetPhuongThucDatTreeAsync()
+        public async Task<ObservableCollection<TreeCategoryViewModel>> GetTreeAsync(bool isMucDichDat)
         {
             try
             {
@@ -19,21 +21,62 @@ namespace QuanLyBar.Client.Services
                 {
                     await conn.OpenAsync();
                     
-                    string sql = @"
-                        SELECT ID as Id, 
-                               NAME as Name, 
-                               PARENTID as ParentId, 
-                               PARENTDIR as ParentDir, 
-                               SORTORDER as SortOrder
-                        FROM DPHUONGTHUCDAT
-                        ORDER BY SORTORDER, NAME";
+                    string tableName = isMucDichDat ? "DMUCDICHDAT" : "DPHUONGTHUCDAT";
+                    
+                    string sql = $@"
+                        SELECT a.ID as Id, 
+                               a.NAME as Name, 
+                               a.PARENTID as ParentId, 
+                               a.PARENTDIR as ParentDir, 
+                               a.SORTORDER as SortOrder,
+                               a.NOTE as Note,
+                               a.SIMAGEID as SimageId,
+                               b.IMAGE as AnhBytes
+                        FROM {tableName} a
+                        LEFT JOIN SIMAGE b ON a.SIMAGEID = b.ID
+                        ORDER BY a.SORTORDER, a.NAME";
 
-                    var allItems = (await conn.QueryAsync<PhuongThucDatViewModel>(sql)).ToList();
+                    var rawItems = await conn.QueryAsync<dynamic>(sql);
+                    var allItems = new List<TreeCategoryViewModel>();
 
-                    var tree = new ObservableCollection<PhuongThucDatViewModel>();
-                    var lookup = new Dictionary<string, PhuongThucDatViewModel>();
+                    foreach (var raw in rawItems)
+                    {
+                        var item = new TreeCategoryViewModel
+                        {
+                            Id = raw.ID?.ToString(),
+                            Name = raw.NAME,
+                            ParentId = raw.PARENTID?.ToString(),
+                            ParentDir = raw.PARENTDIR,
+                            SortOrder = raw.SORTORDER?.ToString(),
+                            Note = raw.NOTE,
+                            SimageId = raw.SIMAGEID != null ? Convert.ToInt32(raw.SIMAGEID) : (int?)null
+                        };
 
-                    var rootNode = new PhuongThucDatViewModel { Id = null, Name = "Tất cả" };
+                        if (raw.ANHBYTES != null)
+                        {
+                            try
+                            {
+                                byte[] bytes = (byte[])raw.ANHBYTES;
+                                using (var ms = new MemoryStream(bytes))
+                                {
+                                    var img = new BitmapImage();
+                                    img.BeginInit();
+                                    img.CacheOption = BitmapCacheOption.OnLoad;
+                                    img.StreamSource = ms;
+                                    img.EndInit();
+                                    img.Freeze();
+                                    item.ImageSource = img;
+                                }
+                            }
+                            catch { }
+                        }
+                        allItems.Add(item);
+                    }
+
+                    var tree = new ObservableCollection<TreeCategoryViewModel>();
+                    var lookup = new Dictionary<string, TreeCategoryViewModel>();
+
+                    var rootNode = new TreeCategoryViewModel { Id = null, Name = "Tất cả" };
                     tree.Add(rootNode);
 
                     foreach (var item in allItems)
@@ -65,12 +108,12 @@ namespace QuanLyBar.Client.Services
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải cây Phương thức đặt: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
-                return new ObservableCollection<PhuongThucDatViewModel>();
+                MessageBox.Show("Lỗi tải cây danh mục: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return new ObservableCollection<TreeCategoryViewModel>();
             }
         }
 
-        public async Task<List<DatHangViewModel>> GetDatHangListAsync(string phuongThucId, DateTime? tuNgay = null, DateTime? denNgay = null)
+        public async Task<List<DatHangViewModel>> GetDatHangListAsync(string categoryId, bool isMucDichDat, DateTime? tuNgay = null, DateTime? denNgay = null)
         {
             try
             {
@@ -98,24 +141,34 @@ namespace QuanLyBar.Client.Services
                         LEFT JOIN DMUCDICHDAT m ON d.DMUCDICHDATID = m.ID
                         WHERE 1=1 ";
 
-                    if (!string.IsNullOrEmpty(phuongThucId))
+                    var parameters = new DynamicParameters();
+
+                    if (!string.IsNullOrEmpty(categoryId))
                     {
-                        sql += " AND (d.DPHUONGTHUCDATID = @PhuongThucId OR p.PARENTID = @PhuongThucId OR p.PARENTDIR LIKE '%' || @PhuongThucId || ',%')";
+                        if (isMucDichDat)
+                        {
+                            sql += " AND d.DMUCDICHDATID = @CategoryId";
+                        }
+                        else
+                        {
+                            sql += " AND d.DPHUONGTHUCDATID = @CategoryId";
+                        }
+                        parameters.Add("CategoryId", categoryId);
                     }
-                    
                     if (tuNgay.HasValue)
                     {
                         sql += " AND d.NGAY >= @TuNgay";
+                        parameters.Add("TuNgay", tuNgay.Value.Date);
                     }
-                    
                     if (denNgay.HasValue)
                     {
                         sql += " AND d.NGAY <= @DenNgay";
+                        parameters.Add("DenNgay", denNgay.Value.Date.AddDays(1).AddSeconds(-1));
                     }
 
-                    sql += " ORDER BY d.NGAY DESC, d.NAME DESC";
+                    sql += " ORDER BY d.NGAY DESC";
 
-                    var result = await conn.QueryAsync<DatHangViewModel>(sql, new { PhuongThucId = phuongThucId, TuNgay = tuNgay, DenNgay = denNgay });
+                    var result = await conn.QueryAsync<DatHangViewModel>(sql, parameters);
                     var list = result.ToList();
                     
                     for (int i = 0; i < list.Count; i++)
@@ -128,7 +181,7 @@ namespace QuanLyBar.Client.Services
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải danh sách khách đặt hàng: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Lỗi tải danh sách đặt hàng: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
                 return new List<DatHangViewModel>();
             }
         }
@@ -142,36 +195,173 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
 
                     string sql = @"
-                        SELECT 
-                            m.NAME as MatHangName,
-                            m.CODE as MaHang,
-                            dvt.NAME as DonViTinhName,
-                            c.SOLUONG as SoLuong,
-                            c.DONGIA as DonGia,
-                            c.TILEGIAMGIA as GiamGiaPhanTram,
-                            c.THANHTIEN as ThanhTien,
-                            c.NOTE as GhiChu
-                        FROM TDATHANGCHITIET c
-                        LEFT JOIN DMATHANG m ON c.DMATHANGID = m.ID
-                        LEFT JOIN DDONVITINH dvt ON c.DDONVITINHID = dvt.ID
-                        WHERE c.TDATHANGID = @DatHangId
-                    ";
+                        SELECT dc.ID as Id, 
+                               m.NAME as TenMatHang,
+                               dvt.NAME as DonViTinh,
+                               dc.SOLUONG as SoLuong,
+                               dc.DONGIA as DonGia,
+                               dc.THANHTIEN as ThanhTien,
+                               CAST(dc.NOTE AS VARCHAR(255)) as GhiChu
+                        FROM TDATHANGCHITIET dc
+                        LEFT JOIN SMATHANG m ON dc.SMATHANGID = m.ID
+                        LEFT JOIN DDONVITINH dvt ON m.DDONVITINHID = dvt.ID
+                        WHERE dc.TDATHANGID = @DatHangId";
 
                     var result = await conn.QueryAsync<DatHangChiTietViewModel>(sql, new { DatHangId = datHangId });
-                    var list = result.ToList();
                     
-                    for (int i = 0; i < list.Count; i++)
+                    var chiTiet = result.ToList();
+                    
+                    for (int i = 0; i < chiTiet.Count; i++)
                     {
-                        list[i].Stt = i + 1;
+                        chiTiet[i].Stt = i + 1;
                     }
 
-                    return list;
+                    return chiTiet;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi tải chi tiết đơn hàng: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
                 return new List<DatHangChiTietViewModel>();
+            }
+        }
+
+        public async Task<List<SImageViewModel>> GetSImagesAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT ID as Id, IMAGE as ImageBytes FROM SIMAGE";
+                    var rawItems = await conn.QueryAsync<dynamic>(sql);
+                    var list = new List<SImageViewModel>();
+
+                    foreach (var raw in rawItems)
+                    {
+                        var item = new SImageViewModel { Id = (int)raw.ID, ImageBytes = raw.IMAGEBYTES };
+                        if (item.ImageBytes != null)
+                        {
+                            try
+                            {
+                                using (var ms = new MemoryStream(item.ImageBytes))
+                                {
+                                    var img = new BitmapImage();
+                                    img.BeginInit();
+                                    img.CacheOption = BitmapCacheOption.OnLoad;
+                                    img.StreamSource = ms;
+                                    img.EndInit();
+                                    img.Freeze();
+                                    item.ImageSource = img;
+                                }
+                            }
+                            catch { }
+                        }
+                        list.Add(item);
+                    }
+                    return list;
+                }
+            }
+            catch
+            {
+                return new List<SImageViewModel>();
+            }
+        }
+
+        public async Task<bool> InsertPhuongThucDatAsync(string name, string note, int? simageId, string parentId, bool isMucDichDat)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string tableName = isMucDichDat ? "DMUCDICHDAT" : "DPHUONGTHUCDAT";
+                    
+                    int maxSortOrder = await conn.QueryFirstOrDefaultAsync<int>($"SELECT COALESCE(MAX(SORTORDER), 0) FROM {tableName} WHERE PARENTID IS NOT DISTINCT FROM @ParentId", new { ParentId = parentId });
+                    
+                    string sql = $@"
+                        INSERT INTO {tableName} (NAME, NOTE, SIMAGEID, PARENTID, SORTORDER)
+                        VALUES (@Name, @Note, @SimageId, @ParentId, @SortOrder)";
+                        
+                    int affected = await conn.ExecuteAsync(sql, new { Name = name, Note = note, SimageId = simageId, ParentId = string.IsNullOrEmpty(parentId) ? null : parentId, SortOrder = maxSortOrder + 1 });
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi thêm danh mục: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdatePhuongThucDatAsync(string id, string name, string note, int? simageId, bool isMucDichDat)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string tableName = isMucDichDat ? "DMUCDICHDAT" : "DPHUONGTHUCDAT";
+                    string sql = $@"
+                        UPDATE {tableName} 
+                        SET NAME = @Name, NOTE = @Note, SIMAGEID = @SimageId
+                        WHERE ID = @Id";
+                    int affected = await conn.ExecuteAsync(sql, new { Id = id, Name = name, Note = note, SimageId = simageId });
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật danh mục: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeletePhuongThucDatAsync(string id, bool isMucDichDat)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string tableName = isMucDichDat ? "DMUCDICHDAT" : "DPHUONGTHUCDAT";
+                    string sql = $"DELETE FROM {tableName} WHERE ID = @Id";
+                    int affected = await conn.ExecuteAsync(sql, new { Id = id });
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xóa danh mục: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdatePhuongThucDatParentAsync(string id, string newParentId, bool isMucDichDat)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string tableName = isMucDichDat ? "DMUCDICHDAT" : "DPHUONGTHUCDAT";
+                    
+                    int maxSortOrder = await conn.QueryFirstOrDefaultAsync<int>($"SELECT COALESCE(MAX(SORTORDER), 0) FROM {tableName} WHERE PARENTID IS NOT DISTINCT FROM @ParentId", new { ParentId = newParentId });
+                    
+                    string sql = $@"
+                        UPDATE {tableName} 
+                        SET PARENTID = @ParentId, SORTORDER = @SortOrder
+                        WHERE ID = @Id";
+                    int affected = await conn.ExecuteAsync(sql, new { Id = id, ParentId = string.IsNullOrEmpty(newParentId) ? null : newParentId, SortOrder = maxSortOrder + 1 });
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi chuyển danh mục: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
         }
     }

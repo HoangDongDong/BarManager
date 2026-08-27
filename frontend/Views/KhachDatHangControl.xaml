@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QuanLyBar.Client.Models"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200" Loaded="UserControl_Loaded">
     
@@ -50,7 +51,7 @@
                     </Grid.RowDefinitions>
                     
                     <Border Background="#e6f2fa" BorderBrush="#d4d4d4" BorderThickness="0,0,0,1" Padding="5">
-                        <TextBlock Text="Phương thức đặt" FontWeight="Bold"/>
+                        <TextBlock x:Name="TxtTreeHeader" Text="Phương thức đặt" FontWeight="Bold"/>
                     </Border>
                     
                     <StackPanel Grid.Row="1" Margin="5">
@@ -93,17 +94,89 @@
                             <TextBlock Text="Khách hàng" VerticalAlignment="Center"/>
                             <ComboBox Grid.Column="1" Height="22"/>
                         </Grid>
+                        
+                        <!-- Toolbar nhỏ cho Cây danh mục -->
+                        <Border BorderBrush="#d4d4d4" BorderThickness="1" Background="#f0f0f0" Padding="2" Margin="0,0,0,5">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Width="24" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" Click="BtnThemPhuongThuc_Click" ToolTip="Thêm mới">
+                                    <TextBlock Text="➕" Foreground="Green" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Button>
+                                <Button Width="24" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" Click="BtnSuaPhuongThuc_Click" ToolTip="Chỉnh sửa">
+                                    <TextBlock Text="✏️" Foreground="Goldenrod" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Button>
+                                <Button Width="24" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" Click="BtnXoaPhuongThuc_Click" ToolTip="Xóa">
+                                    <TextBlock Text="❌" Foreground="Red" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Button>
+                                <ToggleButton x:Name="BtnModeSwitch" Width="36" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" ToolTip="Chọn chế độ" Click="BtnModeSwitch_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🗂️" Foreground="DarkGoldenrod" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="▼" FontSize="8" Margin="2,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    <ToggleButton.ContextMenu>
+                                        <ContextMenu x:Name="ModeContextMenu" Placement="Bottom">
+                                            <MenuItem Header="Phương thức đặt" Click="MenuItemModePhuongThuc_Click"/>
+                                            <MenuItem Header="Mục đích đặt" Click="MenuItemModeMucDich_Click"/>
+                                        </ContextMenu>
+                                    </ToggleButton.ContextMenu>
+                                </ToggleButton>
+                                <Button Width="24" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" Click="BtnRefreshPhuongThuc_Click" ToolTip="Làm mới">
+                                    <TextBlock Text="🔄" Foreground="Blue" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Button>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     
-                    <TreeView x:Name="TvPhuongThucDat" Grid.Row="2" BorderThickness="0" Margin="5" SelectedItemChanged="TvPhuongThucDat_SelectedItemChanged">
+                    <TreeView x:Name="TvCategoryTree" Grid.Row="2" BorderThickness="0" Margin="5" SelectedItemChanged="TvPhuongThucDat_SelectedItemChanged">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="True"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
                         <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                            <HierarchicalDataTemplate DataType="{x:Type local:TreeCategoryViewModel}" ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="0,2">
-                                    <TextBlock Text="🏷️" Margin="0,0,5,0" Foreground="#0078D7"/>
-                                    <TextBlock Text="{Binding Name}" />
+                                    <Image Source="{Binding ImageSource}" Width="16" Height="16" Margin="0,0,5,0">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ImageSource}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock Text="🏷️ " Foreground="#0078D7" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ImageSource}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
+                        <TreeView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Thêm mới" Click="BtnThemPhuongThuc_Click" />
+                                <MenuItem Header="Chỉnh sửa" Click="BtnSuaPhuongThuc_Click" />
+                                <MenuItem Header="Xóa" Click="BtnXoaPhuongThuc_Click" />
+                                <MenuItem Header="Đổi tên" Click="BtnDoiTenPhuongThuc_Click" />
+                                <Separator />
+                                <MenuItem Header="Di chuyển lên trên" Click="BtnLenTren_Click" />
+                                <MenuItem Header="Di chuyển xuống dưới" Click="BtnXuongDuoi_Click" />
+                                <MenuItem Header="Di chuyển làm con" Click="BtnLamCon_Click" />
+                                <Separator />
+                                <MenuItem Header="Làm mới" Click="BtnRefreshPhuongThuc_Click" />
+                            </ContextMenu>
+                        </TreeView.ContextMenu>
                     </TreeView>
                 </Grid>
             </Border>

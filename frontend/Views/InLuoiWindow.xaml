@@ -1,0 +1,59 @@
+<Window x:Class="QuanLyBar.Client.Views.InLuoiWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="In lưới" Height="450" Width="400"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Thiết lập" Grid.Row="0" Margin="0,0,0,10" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Tiêu đề:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtTieuDe" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5"/>
+
+                <TextBlock Text="Ghi chú:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtGhiChu" Grid.Row="1" Grid.Column="1" Margin="0,0,0,5"/>
+
+                <TextBlock Text="Mẫu in:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                <ListBox x:Name="LstMauIn" Grid.Row="2" Grid.Column="1" Height="80" SelectionMode="Single">
+                    <ListBoxItem Content="Mẫu 80"/>
+                    <ListBoxItem Content="Mẫu A4 nằm ngang" IsSelected="True"/>
+                    <ListBoxItem Content="Mẫu A4 thẳng đứng"/>
+                </ListBox>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Cột hiển thị" Grid.Row="2" Margin="0,0,0,10" Padding="5">
+            <ListBox x:Name="LstCotHienThi" SelectionMode="Multiple">
+                <!-- Data binding cho các cột -->
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Content="{Binding Header}" IsChecked="{Binding IsChecked}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+        
+        <CheckBox x:Name="ChkInSTT" Grid.Row="3" Content="In cột số thứ tự" IsChecked="True" HorizontalAlignment="Left" Margin="10,0,0,10"/>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button x:Name="BtnHienThi" Content="Hiển thị" Width="80" Margin="0,0,10,0" Click="BtnHienThi_Click"/>
+            <Button x:Name="BtnThoat" Content="Thoát" Width="80" Click="BtnThoat_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
