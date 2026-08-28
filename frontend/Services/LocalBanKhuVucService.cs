@@ -125,13 +125,25 @@ namespace QuanLyBar.Client.Services
                         SELECT CAST(b.ID AS VARCHAR(50)) as Id, 
                                b.NAME as Name, 
                                b.NOTE as Note,
+                               b.TIMECREATED as Timecreated,
+                               CAST(b.USERCREATEDID AS VARCHAR(50)) as UsercreatedId,
+                               b.TIMEMODIFIED as Timemodified,
+                               CAST(b.USERMODIFIEDID AS VARCHAR(50)) as UsermodifiedId,
+                               b.DONGIA as Dongia,
+                               b.TIENMOBAN as Tienmoban,
                                k.NAME as KhuVucName,
                                h.NAME as NhomHienThiName,
-                               p.NAME as LoaiPhongName
+                               p.NAME as LoaiPhongName,
+                               bg.NAME as BanggiaName,
+                               COALESCE(uc.NAME, uc.USERNAME, 'Administrator') as UsercreatedName,
+                               COALESCE(um.NAME, um.USERNAME, 'Administrator') as UsermodifiedName
                         FROM DBAN b
                         LEFT JOIN DKHUVUC k ON b.DKHUVUCID = k.ID
                         LEFT JOIN DNHOMHIENTHI h ON b.DNHOMHIENTHIID = h.ID
                         LEFT JOIN DLOAIPHONG p ON b.DLOAIPHONGID = p.ID
+                        LEFT JOIN DBANGGIA bg ON b.DBANGGIAID = bg.ID
+                        LEFT JOIN SUSER uc ON CAST(b.USERCREATEDID AS VARCHAR(50)) = CAST(uc.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER um ON CAST(b.USERMODIFIEDID AS VARCHAR(50)) = CAST(um.ID AS VARCHAR(50))
                         WHERE 1=1 ";
 
                     if (khuvucId == "-1")
@@ -449,14 +461,21 @@ namespace QuanLyBar.Client.Services
                 {
                     await conn.OpenAsync();
                     string sql = @"
-                        SELECT ID as Id, 
-                               NAME as Name, 
-                               NOTE as Note, 
-                               DKHUVUCID as DkhuvucId,
-                               DNHOMHIENTHIID as DnhomhienthiId,
-                               DLOAIPHONGID as DloaiphongId
-                        FROM DBAN 
-                        WHERE ID = @Id";
+                        SELECT b.ID as Id, 
+                               b.NAME as Name, 
+                               b.NOTE as Note, 
+                               b.DKHUVUCID as DkhuvucId,
+                               b.DNHOMHIENTHIID as DnhomhienthiId,
+                               b.DLOAIPHONGID as DloaiphongId,
+                               b.DBANGGIAID as DbanggiaId,
+                               b.DONGIA as Dongia,
+                               b.TIENMOBAN as Tienmoban,
+                               b.TIMECREATED as Timecreated,
+                               CAST(b.USERCREATEDID AS VARCHAR(50)) as UsercreatedId,
+                               b.TIMEMODIFIED as Timemodified,
+                               CAST(b.USERMODIFIEDID AS VARCHAR(50)) as UsermodifiedId
+                        FROM DBAN b
+                        WHERE b.ID = @Id";
                     return await conn.QueryFirstOrDefaultAsync<DBAN>(sql, new { Id = id });
                 }
             }
@@ -464,6 +483,26 @@ namespace QuanLyBar.Client.Services
             {
                 MessageBox.Show("Lỗi GetBanByIdAsync: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
+            }
+        }
+
+        public async Task<string> GetUserNameAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId)) return "Administrator";
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    var name = await conn.QueryFirstOrDefaultAsync<string>(
+                        "SELECT COALESCE(NAME, USERNAME) FROM SUSER WHERE CAST(ID AS VARCHAR(50)) = @UserId", 
+                        new { UserId = userId });
+                    return !string.IsNullOrEmpty(name) ? name : "Administrator";
+                }
+            }
+            catch
+            {
+                return "Administrator";
             }
         }
         public async Task<ObservableCollection<BieuTuongViewModel>> GetBieuTuongTreeAsync()

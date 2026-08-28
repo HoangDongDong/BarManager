@@ -26,14 +26,24 @@ namespace QuanLyBar.Client.Views
 
             TxtTitle.Text = $"Thông tin Bàn: {_ban.Name}";
             
-            // Format ngày tạo / người tạo
-            string timeCreated = _ban.Timecreated?.ToString("dd/MM/yyyy hh:mm tt") ?? "19/10/2013 00:25 AM";
-            string timeModified = _ban.Timemodified?.ToString("dd/MM/yyyy hh:mm tt") ?? "12/03/2014 08:07 AM";
-            
-            TxtTimeCreated.Text = timeCreated;
-            TxtTimeModified.Text = timeModified;
-            TxtUserCreated.Text = !string.IsNullOrEmpty(_ban.UsercreatedId) ? "Administrator" : "Administrator";
-            TxtUserModified.Text = !string.IsNullOrEmpty(_ban.UsermodifiedId) ? "Administrator" : "Administrator";
+            // Format ngày tạo / sửa đổi từ Database
+            string timeCreated = _ban.Timecreated?.ToString("dd/MM/yyyy hh:mm tt") ?? "";
+            string timeModified = _ban.Timemodified?.ToString("dd/MM/yyyy hh:mm tt") ?? "";
+
+            if (string.IsNullOrEmpty(timeCreated) && _ban.Timemodified.HasValue)
+            {
+                timeCreated = _ban.Timemodified.Value.ToString("dd/MM/yyyy hh:mm tt");
+            }
+
+            TxtTimeCreated.Text = !string.IsNullOrEmpty(timeCreated) ? timeCreated : "--/--/---- --:-- --";
+            TxtTimeModified.Text = !string.IsNullOrEmpty(timeModified) ? timeModified : "--/--/---- --:-- --";
+
+            var service = new LocalBanKhuVucService();
+            string userCreated = await service.GetUserNameAsync(_ban.UsercreatedId);
+            string userModified = await service.GetUserNameAsync(_ban.UsermodifiedId);
+
+            TxtUserCreated.Text = userCreated;
+            TxtUserModified.Text = userModified;
 
             await LoadReferenceCountsAsync();
         }

@@ -137,13 +137,25 @@ namespace QuanLyBar.Client.Views
         {
             if (DgBan.SelectedItem is BanViewModel selected)
             {
-                TxtInfoKhoiTao.Text = DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt");
-                TxtInfoSuaDoi.Text = DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt");
+                string timeCreated = selected.Timecreated?.ToString("dd/MM/yyyy hh:mm:ss tt") ?? "";
+                string timeModified = selected.Timemodified?.ToString("dd/MM/yyyy hh:mm:ss tt") ?? "";
+
+                if (string.IsNullOrEmpty(timeCreated) && selected.Timemodified.HasValue)
+                {
+                    timeCreated = selected.Timemodified.Value.ToString("dd/MM/yyyy hh:mm:ss tt");
+                }
+
+                TxtInfoKhoiTao.Text = !string.IsNullOrEmpty(timeCreated) ? timeCreated : "--/--/---- --:--:--";
+                TxtInfoSuaDoi.Text = !string.IsNullOrEmpty(timeModified) ? timeModified : "--/--/---- --:--:--";
+                TxtInfoNguoiTao.Text = !string.IsNullOrEmpty(selected.UsercreatedName) ? selected.UsercreatedName : "Administrator";
+                TxtInfoNguoiSua.Text = !string.IsNullOrEmpty(selected.UsermodifiedName) ? selected.UsermodifiedName : "Administrator";
             }
             else
             {
                 TxtInfoKhoiTao.Text = "--/--/---- --:--:--";
                 TxtInfoSuaDoi.Text = "--/--/---- --:--:--";
+                TxtInfoNguoiTao.Text = "Administrator";
+                TxtInfoNguoiSua.Text = "Administrator";
             }
         }
 
