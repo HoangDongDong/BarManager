@@ -207,7 +207,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="130"/>
+                    <RowDefinition Height="200" MinHeight="100"/>
                 </Grid.RowDefinitions>
 
                 <DataGrid x:Name="DgBan" Grid.Row="0" AutoGenerateColumns="False" 
@@ -291,10 +291,62 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#d4d4d4"/>
+                <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#b0c4de" ShowsPreview="True"/>
 
                 <!-- Tab chi tiết dưới -->
-                <TabControl Grid.Row="2" Background="#f8f9fa" BorderBrush="#d4d4d4">
+                <TabControl Grid.Row="2" Background="#ffffff" BorderBrush="#7f9db9" BorderThickness="1">
+                    <TabControl.Resources>
+                        <Style TargetType="{x:Type TabControl}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type TabControl}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Grid.Row="0" Background="#cce0f5" BorderBrush="#7f9db9" BorderThickness="0,0,0,1">
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" 
+                                                              Focusable="False" PanningMode="HorizontalOnly">
+                                                    <StackPanel IsItemsHost="True" Orientation="Horizontal"/>
+                                                </ScrollViewer>
+                                            </Border>
+                                            <Border Grid.Row="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                <ContentPresenter ContentSource="SelectedContent"/>
+                                            </Border>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                        <Style TargetType="{x:Type TabItem}">
+                            <Setter Property="Background" Value="#dbe8f5"/>
+                            <Setter Property="BorderBrush" Value="#8ea9db"/>
+                            <Setter Property="Padding" Value="9,3"/>
+                            <Setter Property="Margin" Value="0,0,1,0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type TabItem}">
+                                        <Border x:Name="TabBorder" Background="#dbe8f5" BorderBrush="#8ea9db" BorderThickness="1,1,1,0" CornerRadius="2,2,0,0" Padding="{TemplateBinding Padding}" Margin="0,1,1,0">
+                                            <ContentPresenter x:Name="ContentSite" ContentSource="Header" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="TabBorder" Property="Background" Value="#ffffff"/>
+                                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#3a6ea5"/>
+                                                <Setter TargetName="TabBorder" Property="Margin" Value="0,0,1,-1"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="TabBorder" Property="Background" Value="#edf4fb"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TabControl.Resources>
+
                     <TabItem Header="Thông tin">
                         <StackPanel Margin="12,10" Orientation="Vertical">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
@@ -315,13 +367,14 @@
                     <TabItem Header="Bảng giá theo bàn">
                         <DataGrid x:Name="DgBangGiaTheoBan" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Bảng giá" Binding="{Binding BangGia}" Width="150"/>
                                 <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0}}" Width="120"/>
                                 <DataGridTextColumn Header="Giờ bắt đầu" Binding="{Binding GioBatDau}" Width="100"/>
                                 <DataGridTextColumn Header="Giờ kết thúc" Binding="{Binding GioKetThuc}" Width="100"/>
-                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="*"/>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="250"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </TabItem>
@@ -329,17 +382,23 @@
                     <TabItem Header="Đặt hàng">
                         <DataGrid x:Name="DgTabDatHang" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
-                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="130"/>
-                                <DataGridTextColumn Header="Khách hàng" Binding="{Binding TenKhach}" Width="150"/>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="120"/>
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="110"/>
+                                <DataGridTextColumn Header="Tên khách" Binding="{Binding TenKhach}" Width="150"/>
+                                <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi}" Width="160"/>
                                 <DataGridTextColumn Header="Điện thoại" Binding="{Binding DienThoai}" Width="110"/>
-                                <DataGridTextColumn Header="Giờ đến" Binding="{Binding GioDen}" Width="100"/>
-                                <DataGridTextColumn Header="Số khách" Binding="{Binding SoKhach}" Width="80"/>
-                                <DataGridTextColumn Header="Tiền đặt cọc" Binding="{Binding DatTruoc, StringFormat={}{0:N0}}" Width="110"/>
-                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="*"/>
-                                <DataGridTextColumn Header="Trạng thái" Binding="{Binding TrangThai}" Width="100"/>
+                                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="150"/>
+                                <DataGridTextColumn Header="Tổng cộng" Binding="{Binding TongCong, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Phương thức đặt" Binding="{Binding PhuongThucDat}" Width="130"/>
+                                <DataGridTextColumn Header="Mục đích đặt" Binding="{Binding MucDichDat}" Width="130"/>
+                                <DataGridTextColumn Header="Từ giờ" Binding="{Binding TuGio, StringFormat={}{0:HH:mm}}" Width="90"/>
+                                <DataGridTextColumn Header="Đến giờ" Binding="{Binding DenGio, StringFormat={}{0:HH:mm}}" Width="90"/>
+                                <DataGridTextColumn Header="Từ ngày" Binding="{Binding TuNgay, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
+                                <DataGridTextColumn Header="Đến ngày" Binding="{Binding DenNgay, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="180"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </TabItem>
@@ -347,6 +406,7 @@
                     <TabItem Header="Hóa đơn nhà hàng">
                         <DataGrid x:Name="DgTabHoaDon" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
@@ -365,6 +425,7 @@
                     <TabItem Header="Phiếu nhập kho">
                         <DataGrid x:Name="DgTabNhapKho" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
@@ -383,6 +444,7 @@
                     <TabItem Header="Phiếu xuất kho">
                         <DataGrid x:Name="DgTabXuatKho" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
@@ -401,6 +463,7 @@
                     <TabItem Header="Phiếu chuyển kho">
                         <DataGrid x:Name="DgTabChuyenKho" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
@@ -417,6 +480,7 @@
                     <TabItem Header="Phiếu kiểm kê">
                         <DataGrid x:Name="DgTabKiemKe" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
@@ -441,6 +505,7 @@
                     <TabItem Header="Hóa đơn nhà hàng">
                         <DataGrid x:Name="DgTabHoaDon2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
@@ -459,6 +524,7 @@
                     <TabItem Header="Phiếu nhập kho">
                         <DataGrid x:Name="DgTabNhapKho2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
@@ -477,6 +543,7 @@
                     <TabItem Header="Phiếu xuất kho">
                         <DataGrid x:Name="DgTabXuatKho2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
@@ -495,6 +562,7 @@
                     <TabItem Header="Phiếu chuyển kho">
                         <DataGrid x:Name="DgTabChuyenKho2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
@@ -511,6 +579,7 @@
                     <TabItem Header="Phiếu kiểm kê">
                         <DataGrid x:Name="DgTabKiemKe2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
@@ -535,6 +604,7 @@
                     <TabItem Header="Sửa chữa">
                         <DataGrid x:Name="DgTabSuaChua" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="100"/>

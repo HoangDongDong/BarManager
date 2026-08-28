@@ -541,18 +541,25 @@ namespace QuanLyBar.Client.Services
                 {
                     await conn.OpenAsync();
                     string sql = @"
-                        SELECT CAST(ID AS VARCHAR(50)) as SoPhieu, 
-                               NGAY as Ngay, 
-                               COALESCE(TENKHACH, 'Khách lẻ') as TenKhach, 
-                               DIENTHOAI as DienThoai, 
-                               '18:00' as GioDen, 
-                               COALESCE(SOKHACH, '4') as SoKhach, 
-                               CAST(TIENHANG AS DECIMAL(18,2)) as DatTruoc, 
-                               NOTE as GhiChu,
-                               CASE WHEN STATUS = 1 THEN 'Đang đặt' ELSE 'Đã xong' END as TrangThai
-                        FROM TDATHANG 
-                        WHERE CAST(DBANID AS VARCHAR(50)) = @BanId
-                        ORDER BY NGAY DESC";
+                        SELECT d.NGAY as Ngay,
+                               COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                               COALESCE(d.TENKHACH, 'Khách lẻ') as TenKhach, 
+                               d.DIACHI as DiaChi,
+                               d.DIENTHOAI as DienThoai, 
+                               d.EMAIL as Email,
+                               CAST(COALESCE(d.TONGCONG, d.TIENHANG, 0) AS DECIMAL(18,2)) as TongCong,
+                               COALESCE(pt.NAME, '') as PhuongThucDat,
+                               COALESCE(md.NAME, '') as MucDichDat,
+                               d.TUGIO as TuGio,
+                               d.DENGIO as DenGio,
+                               d.TUNGAY as TuNgay,
+                               d.DENNGAY as DenNgay,
+                               d.NOTE as GhiChu
+                        FROM TDATHANG d
+                        LEFT JOIN DPHUONGTHUCDAT pt ON CAST(d.DPHUONGTHUCDATID AS VARCHAR(50)) = CAST(pt.ID AS VARCHAR(50))
+                        LEFT JOIN DMUCDICHDAT md ON CAST(d.DMUCDICHDATID AS VARCHAR(50)) = CAST(md.ID AS VARCHAR(50))
+                        WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY d.NGAY DESC";
                     return await conn.QueryAsync(sql, new { BanId = banId });
                 }
             }
