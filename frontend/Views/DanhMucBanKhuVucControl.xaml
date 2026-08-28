@@ -15,9 +15,8 @@
         <!-- Thanh công cụ (Toolbar) -->
         <Border Grid.Row="0" Background="#f0f0f0" BorderBrush="#d4d4d4" BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
-                <TextBlock Text="Bàn" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center"/>
                 <TextBlock Text="Lọc (F3): " VerticalAlignment="Center"/>
-                <TextBox Width="150" Height="22" Margin="0,0,10,0"/>
+                <TextBox x:Name="TxtLocBan" Width="150" Height="22" Margin="0,0,10,0" TextChanged="TxtLocBan_TextChanged"/>
                 
                 <Button Content="➕ Thêm mới (Insert)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemMoiBan_Click"/>
                 <Button Content="📝 Chỉnh sửa (F4)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnSuaBan_Click"/>
@@ -27,7 +26,7 @@
                 <Button Content="📄 Thêm excel" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemBanExcel_Click"/>
                 <Button Content="📥 Xuất excel" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnXuatExcel_Click"/>
                 <Button Content="🖨 In" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnIn_Click"/>
-                <Button Content="∑ Tổng" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Button Content="∑ Tổng" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnTong_Click"/>
             </StackPanel>
         </Border>
 
@@ -77,8 +76,16 @@
                     <TreeView x:Name="TvKhuVuc" Grid.Row="1" BorderThickness="0" Margin="5" SelectedItemChanged="TvKhuVuc_SelectedItemChanged">
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-
                                 <StackPanel Orientation="Horizontal" Margin="0,2">
+                                    <StackPanel.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Thêm mới" Click="MenuItem_ThemMoiKhuVuc_Click" />
+                                            <MenuItem Header="Thêm mới con" Click="MenuItem_ThemMoiConKhuVuc_Click" />
+                                            <Separator />
+                                            <MenuItem Header="Sửa đổi" Click="MenuItem_SuaDoiKhuVuc_Click" />
+                                            <MenuItem Header="Xóa" Click="MenuItem_XoaKhuVuc_Click" />
+                                        </ContextMenu>
+                                    </StackPanel.ContextMenu>
                                     <Image Source="{Binding ImageSource}" Width="16" Height="16" Margin="0,0,5,0">
                                         <Image.Style>
                                             <Style TargetType="Image">
@@ -103,7 +110,37 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                             VerticalAlignment="Center" 
+                                             Loaded="InlineEditTextBox_Loaded"
+                                             IsVisibleChanged="InlineEditTextBox_IsVisibleChanged" 
+                                             LostFocus="InlineEditTextBox_LostFocus" 
+                                             KeyDown="InlineEditTextBox_KeyDown"
+                                             Tag="{Binding Id}">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
@@ -115,7 +152,6 @@
                         </TreeView.ItemContainerStyle>
                         <TreeView.ContextMenu>
                             <ContextMenu>
-
                                 <MenuItem Header="Thêm mới">
                                     <MenuItem Header="Thêm khu vực" Click="BtnThemKhuVuc_Click">
                                         <MenuItem.Icon>
@@ -166,20 +202,134 @@
             <!-- Splitter để kéo thả thay đổi kích thước cột -->
             <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#e0e0e0"/>
 
-            <!-- Cột phải: Lưới danh sách Bàn -->
+            <!-- Cột phải: Lưới danh sách Bàn & Chi tiết bên dưới -->
             <Grid Grid.Column="2">
-                <DataGrid x:Name="DgBan" AutoGenerateColumns="False" 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="130"/>
+                </Grid.RowDefinitions>
+
+                <DataGrid x:Name="DgBan" Grid.Row="0" AutoGenerateColumns="False" 
                           CanUserAddRows="False" IsReadOnly="True" 
-                          AlternatingRowBackground="#f9f9f9" GridLinesVisibility="All">
+                          SelectionMode="Extended"
+                          KeyDown="DgBan_KeyDown"
+                          SelectionChanged="DgBan_SelectionChanged"
+                          AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                          HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu x:Name="GridContextMenu" Opened="GridContextMenu_Opened">
+                            <MenuItem Header="Thêm Bàn" Click="BtnThemMoiBan_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="➕" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Thêm nhanh (excel)" Click="BtnThemBanExcel_Click"/>
+                            <MenuItem Header="Cập nhật nhanh (excel)" Click="BtnThemBanExcel_Click"/>
+                            <MenuItem Header="Chỉnh sửa" Click="BtnSuaBan_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="✏️" Foreground="#c07000"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem x:Name="MenuDatCot" Header="Đặt Tên bàn"/>
+                            <MenuItem x:Name="MenuLocCot" Header="Lọc Tên bàn"/>
+                            <Separator/>
+                            <MenuItem Header="Sắp xếp theo">
+                                <MenuItem Header="Sắp xếp tăng dần" Click="MenuItem_SortAsc_Click"/>
+                                <MenuItem Header="Sắp xếp giảm dần" Click="MenuItem_SortDesc_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Tên bàn" Click="MenuItem_SortByName_Click"/>
+                                <MenuItem Header="Khu vực" Click="MenuItem_SortByKhuVuc_Click"/>
+                                <MenuItem Header="Nhóm hiển thị" Click="MenuItem_SortByNhomHienThi_Click"/>
+                                <MenuItem Header="Loại phòng" Click="MenuItem_SortByLoaiPhong_Click"/>
+                                <MenuItem Header="Ghi chú" Click="MenuItem_SortByNote_Click"/>
+                            </MenuItem>
+                            <MenuItem Header="Refresh" Click="BtnTaiLaiKhuVuc_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="🔄" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="In danh sách" Click="BtnIn_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Sao chép ô" Click="MenuItem_SaoChepOClick">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📄" Foreground="Navy"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Sao chép vùng chọn" Click="MenuItem_SaoChepVungChon_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📑" Foreground="Navy"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Xóa" Click="BtnXoaBan_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="❌" Foreground="Red"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="Tự động giãn cột" Click="MenuItem_TuDongGianCot_Click"/>
+                            <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" SubmenuOpened="MenuCotHienThi_SubmenuOpened"/>
+                            <MenuItem Header="Thuộc tính" Click="BtnSuaBan_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="STT" Binding="{Binding Stt}" Width="50"/>
-                        <DataGridTextColumn Header="Tên bàn" Binding="{Binding Name}" Width="150" FontWeight="Bold"/>
-                        <DataGridTextColumn Header="Khu vực" Binding="{Binding KhuVucName}" Width="150"/>
-                        <DataGridTextColumn Header="Nhóm hiển thị" Binding="{Binding NhomHienThiName}" Width="150"/>
-                        <DataGridTextColumn Header="Loại phòng" Binding="{Binding LoaiPhongName}" Width="150"/>
-                        <DataGridTextColumn Header="Ghi chú" Binding="{Binding Note}" Width="*"/>
+                        <DataGridTextColumn x:Name="ColStt" Header="STT" Binding="{Binding Stt, StringFormat={}{0:D2}}" Width="50"/>
+                        <DataGridTextColumn x:Name="ColTenBan" Header="Tên bàn" Binding="{Binding Name}" Width="150" FontWeight="Bold"/>
+                        <DataGridTextColumn x:Name="ColKhuVuc" Header="Khu vực" Binding="{Binding KhuVucName}" Width="150"/>
+                        <DataGridTextColumn x:Name="ColNhomHienThi" Header="Nhóm hiển thị" Binding="{Binding NhomHienThiName}" Width="150"/>
+                        <DataGridTextColumn x:Name="ColLoaiPhong" Header="Loại phòng" Binding="{Binding LoaiPhongName}" Width="150"/>
+                        <DataGridTextColumn x:Name="ColGhiChu" Header="Ghi chú" Binding="{Binding Note}" Width="*"/>
                     </DataGrid.Columns>
                 </DataGrid>
+
+                <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#d4d4d4"/>
+
+                <!-- Tab chi tiết dưới -->
+                <TabControl Grid.Row="2" Background="#f8f9fa">
+                    <TabItem Header="Thông tin">
+                        <StackPanel Margin="10,8" Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Khởi tạo: " Foreground="Gray"/>
+                                <TextBlock x:Name="TxtInfoKhoiTao" Text="--/--/---- --:--:--" Margin="0,0,30,0" FontWeight="SemiBold"/>
+                                <TextBlock Text="Khởi tạo bởi: " Foreground="Gray"/>
+                                <TextBlock x:Name="TxtInfoNguoiTao" Text="Administrator" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Sửa đổi: " Foreground="Gray"/>
+                                <TextBlock x:Name="TxtInfoSuaDoi" Text="--/--/---- --:--:--" Margin="0,0,30,0" FontWeight="SemiBold"/>
+                                <TextBlock Text="Sửa bởi: " Foreground="Gray"/>
+                                <TextBlock x:Name="TxtInfoNguoiSua" Text="Administrator" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Bảng giá theo bàn">
+                        <TextBlock Text="Chưa có thiết lập bảng giá riêng" Margin="10" Foreground="Gray"/>
+                    </TabItem>
+                    <TabItem Header="Đặt hàng">
+                        <TextBlock Text="Không có lịch đặt bàn" Margin="10" Foreground="Gray"/>
+                    </TabItem>
+                    <TabItem Header="Hóa đơn nhà hàng">
+                        <TextBlock Text="Lịch sử hóa đơn trống" Margin="10" Foreground="Gray"/>
+                    </TabItem>
+                    <TabItem Header="Phiếu nhập kho">
+                        <TextBlock Text="Trống" Margin="10" Foreground="Gray"/>
+                    </TabItem>
+                    <TabItem Header="Phiếu xuất kho">
+                        <TextBlock Text="Trống" Margin="10" Foreground="Gray"/>
+                    </TabItem>
+                    <TabItem Header="Phiếu chuyển kho">
+                        <TextBlock Text="Trống" Margin="10" Foreground="Gray"/>
+                    </TabItem>
+                    <TabItem Header="Phiếu kiểm kê">
+                        <TextBlock Text="Trống" Margin="10" Foreground="Gray"/>
+                    </TabItem>
+                </TabControl>
             </Grid>
         </Grid>
     </Grid>

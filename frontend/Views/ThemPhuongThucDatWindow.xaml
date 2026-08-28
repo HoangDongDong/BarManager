@@ -34,7 +34,7 @@
             <TextBox x:Name="TxtName" Grid.Column="1" Height="24" VerticalContentAlignment="Center" BorderBrush="#0078D7" BorderThickness="1,1,1,2"/>
 
             <TextBlock Text="Ảnh:" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0"/>
-            <ComboBox x:Name="CmbImage" Grid.Column="3" Height="24" VerticalContentAlignment="Center" DisplayMemberPath="Id">
+            <ComboBox x:Name="CmbImage" Grid.Column="3" Height="24" VerticalContentAlignment="Center">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <Image Source="{Binding ImageSource}" Width="16" Height="16"/>

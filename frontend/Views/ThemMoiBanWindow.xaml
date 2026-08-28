@@ -135,8 +135,8 @@
         <Border Grid.Row="3" Background="#e6f2fa" BorderBrush="#d4d4d4" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,0">
                 <Button Content="💾 Lưu" Width="70" Margin="5" Background="White" Click="BtnLuu_Click"/>
-                <Button Content="Lưu &amp; Mới" Width="80" Margin="5" Background="White"/>
-                <Button Content="Lưu &amp; thoát" Width="90" Margin="5" Background="White"/>
+                <Button Content="Lưu &amp; Mới" Width="80" Margin="5" Background="White" Click="BtnLuuVaMoi_Click"/>
+                <Button Content="Lưu &amp; thoát" Width="90" Margin="5" Background="White" Click="BtnLuuVaThoat_Click"/>
                 <Button Content="Thoát" Width="70" Margin="5" Background="White" Click="BtnThoat_Click"/>
             </StackPanel>
         </Border>

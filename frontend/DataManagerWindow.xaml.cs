@@ -41,11 +41,7 @@ namespace QuanLyBar.Client
                 else
                 {
                     // Fallback mặc định nếu chưa có file
-                    Databases = new ObservableCollection<DatabaseInfo>
-                    {
-                        new DatabaseInfo { Name = "DEMO", Path = @"D:\Database\DEMO.FDB" },
-                        new DatabaseInfo { Name = "DEMO 2", Path = @"D:\Database\DEMO2.FDB" }
-                    };
+                    Databases = new ObservableCollection<DatabaseInfo>();
                 }
             }
             catch

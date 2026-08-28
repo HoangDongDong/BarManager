@@ -72,6 +72,15 @@ namespace QuanLyBar.Client.Views
                 await LoadData();
             }
         }
+
+        private void BtnThemMoi_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ThemMoiDatHangWindow();
+            if (win.ShowDialog() == true)
+            {
+                LoadData();
+            }
+        }
         
         private async void BtnLocDuLieu_Click(object sender, RoutedEventArgs e)
         {
@@ -118,6 +127,163 @@ namespace QuanLyBar.Client.Views
             win.IsMucDichDat = _isMucDichDatMode;
             win.OnSaveSuccess = () => BtnRefreshPhuongThuc_Click(null, null);
             win.ShowDialog();
+        }
+
+        private async void BtnThemThuMucPhuongThuc_Click(object sender, RoutedEventArgs e)
+        {
+            // Determine max Thư mục number
+            int nextIndex = 1;
+            if (TvCategoryTree.ItemsSource is System.Collections.ObjectModel.ObservableCollection<TreeCategoryViewModel> items && items.Count > 0)
+            {
+                var rootNode = items[0]; // "Tất cả"
+                var folderNodes = rootNode.Children.Where(x => x.Name != null && x.Name.StartsWith("Thư mục ")).ToList();
+                foreach (var node in folderNodes)
+                {
+                    if (int.TryParse(node.Name.Replace("Thư mục ", ""), out int num))
+                    {
+                        if (num >= nextIndex) nextIndex = num + 1;
+                    }
+                }
+            }
+
+            string defaultName = $"Thư mục {nextIndex}";
+            
+            // Generate a random GUID for temporary tracking so we can find it
+            // Wait, we need to find it after reloading. We can just find the one that has Name == defaultName, since it's freshly created.
+            if (await _service.InsertPhuongThucDatAsync(defaultName, "", null, null, _isMucDichDatMode))
+            {
+                await ReloadTreeAsync();
+                
+                // Find the newly added item and set IsEditing = true
+                if (TvCategoryTree.ItemsSource is System.Collections.ObjectModel.ObservableCollection<TreeCategoryViewModel> currentItems && currentItems.Count > 0)
+                {
+                    var rootNode = currentItems[0];
+                    var newItem = rootNode.Children.FirstOrDefault(x => x.Name == defaultName);
+                    if (newItem != null)
+                    {
+                        // Expand the root node so the new item is visible
+                        if (TvCategoryTree.ItemContainerGenerator.ContainerFromItem(rootNode) is TreeViewItem tvi)
+                        {
+                            tvi.IsExpanded = true;
+                            tvi.UpdateLayout();
+                        }
+                        
+                        await Application.Current.Dispatcher.InvokeAsync(() => 
+                        {
+                            newItem.IsEditing = true;
+                        }, System.Windows.Threading.DispatcherPriority.Background);
+                    }
+                }
+            }
+        }
+
+        private void InlineEditTextBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt && txt.Visibility == Visibility.Visible)
+            {
+                txt.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    txt.Focus();
+                    System.Windows.Input.Keyboard.Focus(txt);
+                    txt.SelectAll();
+                }), System.Windows.Threading.DispatcherPriority.Input);
+            }
+        }
+
+        private void InlineEditTextBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt && (bool)e.NewValue == true)
+            {
+                txt.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    txt.Focus();
+                    System.Windows.Input.Keyboard.Focus(txt);
+                    txt.SelectAll();
+                }), System.Windows.Threading.DispatcherPriority.Input);
+            }
+        }
+
+        private bool IsDuplicateName(System.Collections.ObjectModel.ObservableCollection<TreeCategoryViewModel> tree, string name, string excludeId)
+        {
+            if (tree == null) return false;
+            foreach (var node in tree)
+            {
+                if (node.Name != null && node.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && node.Id != excludeId)
+                    return true;
+                if (node.Children != null && IsDuplicateName(node.Children, name, excludeId))
+                    return true;
+            }
+            return false;
+        }
+
+        private async void InlineEditTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt)
+            {
+                string id = txt.Tag as string;
+                if (!string.IsNullOrEmpty(id) && txt.DataContext is TreeCategoryViewModel model && model.IsEditing)
+                {
+                    if (string.IsNullOrWhiteSpace(model.Name))
+                    {
+                        model.IsEditing = false;
+                        await ReloadTreeAsync();
+                        return;
+                    }
+
+                    if (IsDuplicateName(TvCategoryTree.ItemsSource as System.Collections.ObjectModel.ObservableCollection<TreeCategoryViewModel>, model.Name, id))
+                    {
+                        MessageBox.Show($"Tên '{model.Name}' đã tồn tại. Hệ thống sẽ khôi phục tên cũ.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        model.IsEditing = false;
+                        await ReloadTreeAsync();
+                        return;
+                    }
+
+                    model.IsEditing = false;
+                    await _service.UpdatePhuongThucDatAsync(id, model.Name, model.Note, model.SimageId, _isMucDichDatMode);
+                }
+            }
+        }
+
+        private async void InlineEditTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt)
+            {
+                if (e.Key == System.Windows.Input.Key.Enter)
+                {
+                    string id = txt.Tag as string;
+                    if (!string.IsNullOrEmpty(id) && txt.DataContext is TreeCategoryViewModel model && model.IsEditing)
+                    {
+                        if (string.IsNullOrWhiteSpace(model.Name))
+                        {
+                            model.IsEditing = false;
+                            await ReloadTreeAsync();
+                            e.Handled = true;
+                            return;
+                        }
+
+                        if (IsDuplicateName(TvCategoryTree.ItemsSource as System.Collections.ObjectModel.ObservableCollection<TreeCategoryViewModel>, model.Name, id))
+                        {
+                            MessageBox.Show($"Tên '{model.Name}' đã tồn tại. Vui lòng nhập tên khác.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            e.Handled = true;
+                            return;
+                        }
+
+                        model.IsEditing = false;
+                        await _service.UpdatePhuongThucDatAsync(id, model.Name, model.Note, model.SimageId, _isMucDichDatMode);
+                    }
+                    e.Handled = true;
+                }
+                else if (e.Key == System.Windows.Input.Key.Escape)
+                {
+                    if (txt.DataContext is TreeCategoryViewModel model && model.IsEditing)
+                    {
+                        model.IsEditing = false;
+                        // Reload tree to revert changes
+                        await ReloadTreeAsync();
+                    }
+                    e.Handled = true;
+                }
+            }
         }
 
         private void BtnSuaPhuongThuc_Click(object sender, RoutedEventArgs e)
@@ -183,31 +349,94 @@ namespace QuanLyBar.Client.Views
             }
         }
 
-        private async void BtnLenTren_Click(object sender, RoutedEventArgs e)
+        private void MenuItem_ThemPhuongThuc_Click(object sender, RoutedEventArgs e)
         {
-            if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected && selected.Id != null)
+            string parentId = null;
+            if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected)
             {
-                // Logic đổi SortOrder với phần tử trên
-                MessageBox.Show("Chức năng đang được cập nhật", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                parentId = selected.ParentId; // Add sibling
+            }
+            var win = new ThemPhuongThucDatWindow();
+            win.ParentId = parentId;
+            win.IsMucDichDat = _isMucDichDatMode;
+            win.OnSaveSuccess = () => BtnRefreshPhuongThuc_Click(null, null);
+            win.ShowDialog();
+        }
+
+        private void MenuItem_ThemNhanh_Click(object sender, RoutedEventArgs e)
+        {
+            string parentId = null;
+            if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected)
+            {
+                parentId = selected.ParentId; // Add sibling
+            }
+            var win = new ThemNhanhPhuongThucDatWindow(parentId, _isMucDichDatMode);
+            if (win.ShowDialog() == true)
+            {
+                BtnRefreshPhuongThuc_Click(null, null);
             }
         }
 
-        private async void BtnXuongDuoi_Click(object sender, RoutedEventArgs e)
+        private async void MenuItem_ThemPhanCach_Click(object sender, RoutedEventArgs e)
         {
-            if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected && selected.Id != null)
+            string parentId = null;
+            if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected)
             {
-                // Logic đổi SortOrder với phần tử dưới
-                MessageBox.Show("Chức năng đang được cập nhật", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                parentId = selected.ParentId; // Add sibling
+            }
+            if (await _service.InsertPhuongThucDatAsync("----------------", "Phân cách", null, parentId, _isMucDichDatMode))
+            {
+                BtnRefreshPhuongThuc_Click(null, null);
             }
         }
 
-        private async void BtnLamCon_Click(object sender, RoutedEventArgs e)
+        private void MenuItem_ThemThuMuc_Click(object sender, RoutedEventArgs e)
         {
+            BtnThemThuMucPhuongThuc_Click(sender, e);
+        }
+
+        private void MenuItem_ThemCon_Click(object sender, RoutedEventArgs e)
+        {
+            BtnThemPhuongThuc_Click(sender, e); // Already adds child based on selection
+        }
+
+        private void MenuItem_ThemPhuongThucCon_Click(object sender, RoutedEventArgs e)
+        {
+            BtnThemPhuongThuc_Click(sender, e);
+        }
+
+        private void MenuItem_ThemNhanhCon_Click(object sender, RoutedEventArgs e)
+        {
+            string parentId = null;
             if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected && selected.Id != null)
             {
-                // Logic chuyển parentId sang node trên liền kề
-                MessageBox.Show("Chức năng đang được cập nhật", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                parentId = selected.Id;
             }
+            
+            var win = new ThemNhanhPhuongThucDatWindow(parentId, _isMucDichDatMode);
+            if (win.ShowDialog() == true)
+            {
+                BtnRefreshPhuongThuc_Click(null, null);
+            }
+        }
+
+        private async void MenuItem_ThemPhanCachCon_Click(object sender, RoutedEventArgs e)
+        {
+            string parentId = null;
+            if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected && selected.Id != null)
+            {
+                parentId = selected.Id;
+            }
+
+            if (await _service.InsertPhuongThucDatAsync("----------------", "Phân cách", null, parentId, _isMucDichDatMode))
+            {
+                BtnRefreshPhuongThuc_Click(null, null);
+            }
+        }
+
+        private void MenuItem_ThemThuMucCon_Click(object sender, RoutedEventArgs e)
+        {
+            BtnThemPhuongThuc_Click(sender, e);
         }
     }
 }

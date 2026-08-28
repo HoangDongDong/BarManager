@@ -281,10 +281,11 @@ namespace QuanLyBar.Client.Services
                     int maxSortOrder = await conn.QueryFirstOrDefaultAsync<int>($"SELECT COALESCE(MAX(SORTORDER), 0) FROM {tableName} WHERE PARENTID IS NOT DISTINCT FROM @ParentId", new { ParentId = parentId });
                     
                     string sql = $@"
-                        INSERT INTO {tableName} (NAME, NOTE, SIMAGEID, PARENTID, SORTORDER)
-                        VALUES (@Name, @Note, @SimageId, @ParentId, @SortOrder)";
+                        INSERT INTO {tableName} (ID, NAME, NOTE, SIMAGEID, PARENTID, SORTORDER, STATUS, USERCREATEDID, TIMECREATED)
+                        VALUES (@Id, @Name, @Note, @SimageId, @ParentId, @SortOrder, 1, 1, CURRENT_TIMESTAMP)";
                         
-                    int affected = await conn.ExecuteAsync(sql, new { Name = name, Note = note, SimageId = simageId, ParentId = string.IsNullOrEmpty(parentId) ? null : parentId, SortOrder = maxSortOrder + 1 });
+                    string newId = Guid.NewGuid().ToString();
+                    int affected = await conn.ExecuteAsync(sql, new { Id = newId, Name = name, Note = note, SimageId = simageId, ParentId = string.IsNullOrEmpty(parentId) ? null : parentId, SortOrder = maxSortOrder + 1 });
                     return affected > 0;
                 }
             }

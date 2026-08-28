@@ -4,7 +4,7 @@ namespace QuanLyBar.Client.Models
 {
     public class DKHUVUC
     {
-        public int? Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Note { get; set; }
         public bool? Status { get; set; }
@@ -13,7 +13,7 @@ namespace QuanLyBar.Client.Models
         public DateTime? Timecreated { get; set; }
         public int? Sortorder { get; set; }
         public int? UsercreatedId { get; set; }
-        public int? ParentId { get; set; }
+        public string ParentId { get; set; }
         public string Parentdir { get; set; }
         public string Itemtype { get; set; }
         public int? AutoId { get; set; }
@@ -39,3 +39,4 @@ namespace QuanLyBar.Client.Models
         public byte[] Anh { get; set; }
     }
 }
+

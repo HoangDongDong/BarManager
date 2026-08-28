@@ -21,7 +21,7 @@
                 <TextBlock Text="Lọc (F3): " VerticalAlignment="Center"/>
                 <TextBox Width="120" Height="22" Margin="0,0,10,0"/>
                 
-                <Button Content="➕ Thêm mới (Insert)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Button Content="➕ Thêm mới (Insert)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemMoi_Click"/>
                 <Button Content="📝 Chỉnh sửa (F4)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
                 <Button Content="❌ Xóa (Del)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
@@ -104,8 +104,8 @@
                                 <Button Width="24" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" Click="BtnSuaPhuongThuc_Click" ToolTip="Chỉnh sửa">
                                     <TextBlock Text="✏️" Foreground="Goldenrod" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 </Button>
-                                <Button Width="24" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" Click="BtnXoaPhuongThuc_Click" ToolTip="Xóa">
-                                    <TextBlock Text="❌" Foreground="Red" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                <Button Width="24" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" Click="BtnThemThuMucPhuongThuc_Click" ToolTip="Thêm thư mục">
+                                    <TextBlock Text="📁" Foreground="Goldenrod" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 </Button>
                                 <ToggleButton x:Name="BtnModeSwitch" Width="36" Height="24" Margin="2,0" Background="Transparent" BorderThickness="0" ToolTip="Chọn chế độ" Click="BtnModeSwitch_Click">
                                     <StackPanel Orientation="Horizontal">
@@ -159,22 +159,101 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                             VerticalAlignment="Center" 
+                                             Loaded="InlineEditTextBox_Loaded"
+                                             IsVisibleChanged="InlineEditTextBox_IsVisibleChanged" 
+                                             LostFocus="InlineEditTextBox_LostFocus" 
+                                             KeyDown="InlineEditTextBox_KeyDown"
+                                             Tag="{Binding Id}">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
                         <TreeView.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Thêm mới" Click="BtnThemPhuongThuc_Click" />
-                                <MenuItem Header="Chỉnh sửa" Click="BtnSuaPhuongThuc_Click" />
+                                <MenuItem Header="Thêm mới">
+                                    <MenuItem Header="Thêm danh mục" Click="MenuItem_ThemPhuongThuc_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="➕" Foreground="Green"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Thêm nhanh" Click="MenuItem_ThemNhanh_Click" />
+                                    <Separator />
+                                    <MenuItem Header="Thêm phân cách" Click="MenuItem_ThemPhanCach_Click" />
+                                    <MenuItem Header="Thêm thư mục" Click="MenuItem_ThemThuMuc_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📁" Foreground="Goldenrod"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Thêm con" Click="MenuItem_ThemCon_Click" />
+                                </MenuItem>
+                                
+                                <MenuItem Header="Thêm con">
+                                    <MenuItem Header="Thêm danh mục" Click="MenuItem_ThemPhuongThucCon_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="➕" Foreground="Green"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Thêm nhanh" Click="MenuItem_ThemNhanhCon_Click" />
+                                    <Separator />
+                                    <MenuItem Header="Thêm phân cách" Click="MenuItem_ThemPhanCachCon_Click" />
+                                    <MenuItem Header="Thêm thư mục" Click="MenuItem_ThemThuMucCon_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📁" Foreground="Goldenrod"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </MenuItem>
+
+                                <MenuItem Header="Chỉnh sửa" Click="BtnSuaPhuongThuc_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="✏️" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Sắp xếp theo">
+                                    <MenuItem Header="Tên" />
+                                    <MenuItem Header="Thứ tự tùy chọn" IsChecked="True" />
+                                </MenuItem>
+                                <MenuItem Header="Refresh" Click="BtnRefreshPhuongThuc_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="🔄" Foreground="Green" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator />
+                                <MenuItem Header="Sao chép" />
+                                <MenuItem Header="Mở rộng" />
+                                <MenuItem Header="Thu gọn" />
+                                <Separator />
                                 <MenuItem Header="Xóa" Click="BtnXoaPhuongThuc_Click" />
                                 <MenuItem Header="Đổi tên" Click="BtnDoiTenPhuongThuc_Click" />
+                                <MenuItem Header="Thùng rác" />
                                 <Separator />
-                                <MenuItem Header="Di chuyển lên trên" Click="BtnLenTren_Click" />
-                                <MenuItem Header="Di chuyển xuống dưới" Click="BtnXuongDuoi_Click" />
-                                <MenuItem Header="Di chuyển làm con" Click="BtnLamCon_Click" />
-                                <Separator />
-                                <MenuItem Header="Làm mới" Click="BtnRefreshPhuongThuc_Click" />
+                                <MenuItem Header="Biểu tượng" />
+                                <MenuItem Header="Thuộc tính" />
                             </ContextMenu>
                         </TreeView.ContextMenu>
                     </TreeView>

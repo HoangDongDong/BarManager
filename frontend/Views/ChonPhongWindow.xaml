@@ -1,0 +1,38 @@
+<Window x:Class="QuanLyBar.Client.Views.ChonPhongWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CHỌN PHÒNG" Height="450" Width="600"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Lọc: " VerticalAlignment="Center"/>
+            <TextBox x:Name="TxtLoc" Width="200" Margin="5,0" TextChanged="TxtLoc_TextChanged"/>
+        </StackPanel>
+        
+        <DataGrid Grid.Row="1" x:Name="DgBan" AutoGenerateColumns="False" IsReadOnly="True" 
+                  SelectionMode="Single" HeadersVisibility="Column" 
+                  GridLinesVisibility="All" AlternatingRowBackground="#f9f9f9"
+                  MouseDoubleClick="DgBan_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="" Binding="{Binding Stt}" Width="30"/>
+                <DataGridCheckBoxColumn Header="Chọn" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="50" IsReadOnly="False"/>
+                <DataGridTextColumn Header="Phòng" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Khu vực" Binding="{Binding KhuVucName}" Width="150"/>
+                <DataGridTextColumn Header="Loại phòng" Binding="{Binding LoaiPhongName}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="OK" Width="80" Margin="0,0,10,0" Padding="5" Click="BtnOK_Click"/>
+            <Button Content="Hủy bỏ" Width="80" Padding="5" Click="BtnHuyBo_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

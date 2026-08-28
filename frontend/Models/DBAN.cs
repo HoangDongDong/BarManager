@@ -4,22 +4,22 @@ namespace QuanLyBar.Client.Models
 {
     public class DBAN
     {
-        public int? Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Note { get; set; }
-        public int? DkhuvucId { get; set; }
+        public string DkhuvucId { get; set; }
         public bool? Status { get; set; }
-        public int? UsermodifiedId { get; set; }
+        public string UsermodifiedId { get; set; }
         public DateTime? Timemodified { get; set; }
         public DateTime? Timecreated { get; set; }
-        public int? UsercreatedId { get; set; }
-        public int? DbanggiaId { get; set; }
+        public string UsercreatedId { get; set; }
+        public string DbanggiaId { get; set; }
         public decimal? Dongia { get; set; }
         public DateTime? Cachtinhgio { get; set; }
-        public int? DnhomhienthiId { get; set; }
+        public string DnhomhienthiId { get; set; }
         public decimal? Tienmoban { get; set; }
-        public int? DloaiphongId { get; set; }
-        public int? TdonhangId { get; set; }
+        public string DloaiphongId { get; set; }
+        public string TdonhangId { get; set; }
         public string Trangthai { get; set; }
         public string Taikhoangiu { get; set; }
         public string Giuluc { get; set; }
@@ -40,8 +40,8 @@ namespace QuanLyBar.Client.Models
         public string Width { get; set; }
         public string Zindex { get; set; }
         public bool? Flat { get; set; }
-        public int? Ref1Id { get; set; }
-        public int? Ref2Id { get; set; }
+        public string Ref1Id { get; set; }
+        public string Ref2Id { get; set; }
         public string Fontname { get; set; }
         public string Imagezoom { get; set; }
         public string Borderwidth { get; set; }

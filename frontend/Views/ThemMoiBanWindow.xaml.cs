@@ -21,7 +21,7 @@ namespace QuanLyBar.Client.Views
             _service = new LocalBanKhuVucService();
             _banList = banList;
 
-            if (_banList != null && _currentBan.Id.HasValue)
+            if (_banList != null && !string.IsNullOrEmpty(_currentBan.Id))
             {
                 _currentIndex = _banList.FindIndex(b => b.Id == _currentBan.Id.ToString());
             }
@@ -45,7 +45,7 @@ namespace QuanLyBar.Client.Views
 
         private void LoadDataToForm()
         {
-            if (_currentBan.Id != null && _currentBan.Id > 0)
+            if (_currentBan.Id != null && !string.IsNullOrEmpty(_currentBan.Id))
             {
                 this.Title = "BÀN - CHỈNH SỬA";
             }
@@ -77,22 +77,46 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnLuu_Click(object sender, RoutedEventArgs e)
         {
+            await SaveCurrentDataAsync(false);
+        }
+
+        private async void BtnLuuVaMoi_Click(object sender, RoutedEventArgs e)
+        {
+            bool success = await SaveCurrentDataAsync(true);
+            if (success)
+            {
+                BtnTaoMoi_Click(sender, e);
+            }
+        }
+
+        private async void BtnLuuVaThoat_Click(object sender, RoutedEventArgs e)
+        {
+            bool success = await SaveCurrentDataAsync(true);
+            if (success)
+            {
+                DialogResult = true;
+                Close();
+            }
+        }
+
+        private async Task<bool> SaveCurrentDataAsync(bool suppressSuccessMessage)
+        {
             if (string.IsNullOrWhiteSpace(TxtTenBan.Text))
             {
                 MessageBox.Show("Vui lòng nhập tên bàn!", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                 TxtTenBan.Focus();
-                return;
+                return false;
             }
 
             _currentBan.Name = TxtTenBan.Text.Trim();
             _currentBan.Note = TxtGhiChu.Text.Trim();
             
-            _currentBan.DkhuvucId = CmbKhuVuc.SelectedValue != null ? (int?)CmbKhuVuc.SelectedValue : null;
-            _currentBan.DnhomhienthiId = CmbNhomHienThi.SelectedValue != null ? (int?)CmbNhomHienThi.SelectedValue : null;
-            _currentBan.DloaiphongId = CmbLoaiPhong.SelectedValue != null ? (int?)CmbLoaiPhong.SelectedValue : null;
+            _currentBan.DkhuvucId = CmbKhuVuc.SelectedValue != null ? CmbKhuVuc.SelectedValue?.ToString() : null;
+            _currentBan.DnhomhienthiId = CmbNhomHienThi.SelectedValue != null ? CmbNhomHienThi.SelectedValue?.ToString() : null;
+            _currentBan.DloaiphongId = CmbLoaiPhong.SelectedValue != null ? CmbLoaiPhong.SelectedValue?.ToString() : null;
 
             bool success = false;
-            if (_currentBan.Id == null || _currentBan.Id == 0)
+            if (_currentBan.Id == null || string.IsNullOrEmpty(_currentBan.Id))
             {
                 success = await _service.InsertBanAsync(_currentBan);
             }
@@ -104,21 +128,22 @@ namespace QuanLyBar.Client.Views
             if (success)
             {
                 _isDataChanged = true;
-                MessageBox.Show("Lưu thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                // Nếu muốn đóng form sau khi lưu thì mở dòng dưới, 
-                // nhưng thường thì nút "Lưu" (không phải "Lưu & thoát") sẽ giữ form ở lại để tiếp tục sửa
-                // DialogResult = true;
-                // Close();
+                if (!suppressSuccessMessage)
+                {
+                    MessageBox.Show("Lưu thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 
                 // Cập nhật lại ID nếu là thêm mới
                 if (_currentBan.Id != null) 
                 {
                     this.Title = "BÀN - CHỈNH SỬA";
                 }
+                return true;
             }
             else
             {
                 MessageBox.Show("Có lỗi xảy ra khi lưu dữ liệu!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
         }
 
@@ -127,7 +152,7 @@ namespace QuanLyBar.Client.Views
             if (_banList != null && _currentIndex > 0)
             {
                 _currentIndex--;
-                var prevId = int.Parse(_banList[_currentIndex].Id);
+                var prevId = _banList[_currentIndex].Id;
                 var ban = await _service.GetBanByIdAsync(prevId);
                 if (ban != null)
                 {
@@ -143,7 +168,7 @@ namespace QuanLyBar.Client.Views
             if (_banList != null && _currentIndex < _banList.Count - 1)
             {
                 _currentIndex++;
-                var nextId = int.Parse(_banList[_currentIndex].Id);
+                var nextId = _banList[_currentIndex].Id;
                 var ban = await _service.GetBanByIdAsync(nextId);
                 if (ban != null)
                 {
@@ -156,10 +181,20 @@ namespace QuanLyBar.Client.Views
 
         private void BtnTaoMoi_Click(object sender, RoutedEventArgs e)
         {
+            var previousKhuVucId = _currentBan?.DkhuvucId ?? (CmbKhuVuc.SelectedValue != null ? CmbKhuVuc.SelectedValue?.ToString() : null);
+            var previousNhomHienThiId = _currentBan?.DnhomhienthiId ?? (CmbNhomHienThi.SelectedValue != null ? CmbNhomHienThi.SelectedValue?.ToString() : null);
+            var previousLoaiPhongId = _currentBan?.DloaiphongId ?? (CmbLoaiPhong.SelectedValue != null ? CmbLoaiPhong.SelectedValue?.ToString() : null);
+
             _currentBan = new DBAN();
+            _currentBan.DkhuvucId = previousKhuVucId;
+            _currentBan.DnhomhienthiId = previousNhomHienThiId;
+            _currentBan.DloaiphongId = previousLoaiPhongId;
+
             _currentIndex = -1; // Not pointing to any existing item
             LoadDataToForm();
             UpdateNavigationButtons();
+            
+            this.Title = "BÀN - THÊM MỚI";
             TxtTenBan.Focus();
         }
 
@@ -170,3 +205,4 @@ namespace QuanLyBar.Client.Views
         }
     }
 }
+

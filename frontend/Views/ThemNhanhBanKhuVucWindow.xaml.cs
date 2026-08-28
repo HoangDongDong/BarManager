@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Dapper;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
 
@@ -18,7 +21,7 @@ namespace QuanLyBar.Client.Views
             set { _khuVucName = value; OnPropertyChanged(nameof(KhuVucName)); }
         }
 
-        public int KhuVucId { get; set; }
+        public string KhuVucId { get; set; }
 
         private string _tuSo;
         public string TuSo
@@ -52,14 +55,14 @@ namespace QuanLyBar.Client.Views
 
         public void UpdateDuLieuMau()
         {
-            if (int.TryParse(TuSo, out int t) && int.TryParse(DenSo, out int d))
+            if (int.TryParse(TuSo?.Trim(), out int t) && int.TryParse(DenSo?.Trim(), out int d))
             {
                 if (t <= d)
                 {
                     int len = GetChieuDaiCallback?.Invoke() ?? 0;
                     string prefix = BatDauBang ?? "";
-                    string mauTu = prefix + t.ToString().PadLeft(len, '0');
-                    string mauDen = prefix + d.ToString().PadLeft(len, '0');
+                    string mauTu = prefix + (len > 0 ? t.ToString().PadLeft(len, '0') : t.ToString());
+                    string mauDen = prefix + (len > 0 ? d.ToString().PadLeft(len, '0') : d.ToString());
                     if (t == d)
                     {
                         DuLieuMau = mauTu;
@@ -94,38 +97,60 @@ namespace QuanLyBar.Client.Views
             InitializeComponent();
             _service = new LocalBanKhuVucService();
             _rows = new ObservableCollection<ThemNhanhBanKhuVucRowViewModel>();
+            DgThemNhanh.ItemsSource = _rows;
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            await LoadKhuVucDataAsync();
+        }
+
+        private async Task LoadKhuVucDataAsync()
+        {
             try
             {
-                var khuVucs = await _service.GetLookupAsync("DKHUVUC"); 
+                _rows.Clear();
+                var khuVucs = await _service.GetLookupAsync("DKHUVUC");
+
+                if (khuVucs == null || khuVucs.Count == 0)
+                {
+                    // Fallback to direct query if lookup was empty
+                    using (var conn = DbConnectionManager.GetConnection())
+                    {
+                        await conn.OpenAsync();
+                        var items = await conn.QueryAsync<dynamic>("SELECT ID, NAME FROM DKHUVUC WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY SORTORDER, NAME");
+                        khuVucs = items.Select(x => new LookupItem
+                        {
+                            Id = ((object)x.ID)?.ToString()?.Trim(),
+                            Name = ((object)x.NAME)?.ToString()?.Trim()
+                        }).Where(x => !string.IsNullOrEmpty(x.Name)).ToList();
+                    }
+                }
+
                 foreach (var kv in khuVucs)
                 {
                     // Lọc những cái không phải thùng rác hoặc nhóm gốc ảo
-                    if (kv.Id != null && int.TryParse(kv.Id.ToString(), out int id) && id > 0)
+                    if (!string.IsNullOrEmpty(kv.Id) && kv.Id != "-1" && kv.Name != "Thùng rác" && kv.Name != "Tất cả")
                     {
                         var row = new ThemNhanhBanKhuVucRowViewModel
                         {
-                            KhuVucId = id,
+                            KhuVucId = kv.Id,
                             KhuVucName = kv.Name,
                             GetChieuDaiCallback = GetChieuDaiVungSo
                         };
                         _rows.Add(row);
                     }
                 }
-                DgThemNhanh.ItemsSource = _rows;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải khu vực: " + ex.Message);
+                MessageBox.Show("Lỗi tải khu vực: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private int GetChieuDaiVungSo()
         {
-            if (int.TryParse(TxtChieuDai.Text, out int len))
+            if (int.TryParse(TxtChieuDai.Text?.Trim(), out int len) && len >= 0)
             {
                 return len;
             }
@@ -148,18 +173,19 @@ namespace QuanLyBar.Client.Views
             try
             {
                 int len = GetChieuDaiVungSo();
-                List<DBAN> listToInsert = new List<DBAN>();
+                var listToInsert = new List<DBAN>();
 
                 foreach (var row in _rows)
                 {
-                    if (int.TryParse(row.TuSo, out int tu) && int.TryParse(row.DenSo, out int den))
+                    if (int.TryParse(row.TuSo?.Trim(), out int tu) && int.TryParse(row.DenSo?.Trim(), out int den))
                     {
                         if (tu <= den)
                         {
                             string prefix = row.BatDauBang ?? "";
                             for (int i = tu; i <= den; i++)
                             {
-                                string name = prefix + i.ToString().PadLeft(len, '0');
+                                string numPart = len > 0 ? i.ToString().PadLeft(len, '0') : i.ToString();
+                                string name = prefix + numPart;
                                 var ban = new DBAN
                                 {
                                     Name = name,
@@ -174,25 +200,62 @@ namespace QuanLyBar.Client.Views
 
                 if (listToInsert.Count == 0)
                 {
-                    MessageBox.Show("Vui lòng nhập dải số hợp lệ cho ít nhất 1 khu vực!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Vui lòng nhập 'Bàn từ số' và 'Bàn đến số' hợp lệ cho ít nhất 1 khu vực!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                var result = MessageBox.Show($"Hệ thống sẽ thêm {listToInsert.Count} bàn vào hệ thống. Bạn có chắc chắn không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
+                var result = MessageBox.Show($"Hệ thống sẽ thêm {listToInsert.Count} bàn vào hệ thống.\nBạn có chắc chắn muốn thực hiện không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result != MessageBoxResult.Yes)
                 {
-                    foreach (var b in listToInsert)
-                    {
-                        await _service.InsertBanAsync(b);
-                    }
-                    MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                    this.DialogResult = true;
-                    this.Close();
+                    return;
                 }
+
+                // Batch insert with transaction
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    int currentMaxId = 0;
+                    try
+                    {
+                        var maxVal = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(CAST(ID AS INTEGER)) FROM DBAN WHERE ID SIMILAR TO '[0-9]+'");
+                        currentMaxId = maxVal ?? 0;
+                    }
+                    catch
+                    {
+                        // Fallback in case SIMILAR TO is not supported in some DB dialect
+                        try
+                        {
+                            var allIds = await conn.QueryAsync<string>("SELECT ID FROM DBAN");
+                            currentMaxId = allIds.Select(id => int.TryParse(id, out int parsed) ? parsed : 0).DefaultIfEmpty(0).Max();
+                        }
+                        catch { }
+                    }
+
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        string sql = @"
+                            INSERT INTO DBAN (ID, NAME, NOTE, DKHUVUCID, DNHOMHIENTHIID, DLOAIPHONGID, STATUS, USERCREATEDID, TIMECREATED) 
+                            VALUES (@Id, @Name, @Note, @DkhuvucId, @DnhomhienthiId, @DloaiphongId, 1, 1, CURRENT_TIMESTAMP)";
+
+                        foreach (var ban in listToInsert)
+                        {
+                            currentMaxId++;
+                            ban.Id = currentMaxId.ToString();
+                            await conn.ExecuteAsync(sql, ban, transaction: trans);
+                        }
+
+                        trans.Commit();
+                    }
+                }
+
+                MessageBox.Show($"Thêm thành công {listToInsert.Count} bàn!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                this.DialogResult = true;
+                this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                MessageBox.Show("Lỗi thực hiện: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -203,3 +266,4 @@ namespace QuanLyBar.Client.Views
         }
     }
 }
+

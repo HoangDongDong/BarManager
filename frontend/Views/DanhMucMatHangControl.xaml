@@ -80,8 +80,47 @@
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate DataType="{x:Type models:NhomMatHangViewModel}" ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="0,2">
+                                    <StackPanel.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Thêm mới" Click="MenuItem_ThemMoi_Click" />
+                                            <MenuItem Header="Thêm mới con" Click="MenuItem_ThemMoiCon_Click" />
+                                            <Separator />
+                                            <MenuItem Header="Sửa đổi" Click="MenuItem_SuaDoi_Click" />
+                                            <MenuItem Header="Xóa" Click="MenuItem_Xoa_Click" />
+                                        </ContextMenu>
+                                    </StackPanel.ContextMenu>
                                     <TextBlock Text="📁 " Foreground="Goldenrod" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                             VerticalAlignment="Center" 
+                                             Loaded="InlineEditTextBox_Loaded"
+                                             IsVisibleChanged="InlineEditTextBox_IsVisibleChanged" 
+                                             LostFocus="InlineEditTextBox_LostFocus" 
+                                             KeyDown="InlineEditTextBox_KeyDown"
+                                             Tag="{Binding Id}">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>

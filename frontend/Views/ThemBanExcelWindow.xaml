@@ -46,7 +46,7 @@
                         </StackPanel>
                     </Button>
                     <Separator/>
-                    <Button x:Name="BtnDanDuLieu" Padding="5,2">
+                    <Button x:Name="BtnDanDuLieu" Padding="5,2" Click="BtnDanDuLieu_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📋" Margin="0,0,5,0"/>
                             <TextBlock Text="Dán dữ liệu"/>
@@ -142,7 +142,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="Xóa bàn lỗi" Padding="10,5" Background="White"/>
+                <Button x:Name="BtnXoaBanLoi" Content="Xóa bàn lỗi" Padding="10,5" Background="White" Click="BtnXoaBanLoi_Click"/>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Content="Chấp nhận" Padding="15,5" Margin="0,0,10,0" FontWeight="Bold" Click="BtnChapNhan_Click"/>
                     <Button Content="Hủy bỏ" Padding="15,5" Click="BtnHuyBo_Click"/>

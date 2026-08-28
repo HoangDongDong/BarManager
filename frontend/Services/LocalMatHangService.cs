@@ -474,6 +474,60 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        public async Task<List<DNHOMMATHANG>> GetAllNhomMatHangAsync()
+        {
+            return await GetNhomMatHangListAsync();
+        }
+
+        public async Task<bool> UpdateNhomMatHangAsync(DNHOMMATHANG model)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string sql = @"
+                        UPDATE DNHOMMATHANG 
+                        SET NAME = @Name
+                        WHERE ID = @Id";
+
+                    var parameters = new {
+                        Id = model.Id,
+                        Name = model.Name
+                    };
+
+                    int affectedRows = await conn.ExecuteAsync(sql, parameters);
+                    return affectedRows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi cập nhật nhóm mặt hàng: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteNhomMatHangAsync(string id)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    
+                    string sql = "DELETE FROM DNHOMMATHANG WHERE ID = @Id";
+                    int affectedRows = await conn.ExecuteAsync(sql, new { Id = id });
+                    return affectedRows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi xóa nhóm mặt hàng: " + ex.Message);
+                return false;
+            }
+        }
+
         public async Task<bool> InsertOrUpdateDinhLuongAsync(DDINHLUONG model)
         {
             try

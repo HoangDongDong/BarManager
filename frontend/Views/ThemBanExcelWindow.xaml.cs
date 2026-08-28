@@ -78,10 +78,10 @@ namespace QuanLyBar.Client.Views
             }
 
             int successCount = 0;
-            int? dkhuvucId = (ChkKhuVuc.IsChecked == true && CboKhuVuc.SelectedValue != null && int.TryParse(CboKhuVuc.SelectedValue.ToString(), out int kv)) ? kv : (int?)null;
-            int? dnhomhienthiId = (ChkNhomHienThi.IsChecked == true && CboNhomHienThi.SelectedValue != null && int.TryParse(CboNhomHienThi.SelectedValue.ToString(), out int nh)) ? nh : (int?)null;
-            int? dloaiphongId = (ChkLoaiPhong.IsChecked == true && CboLoaiPhong.SelectedValue != null && int.TryParse(CboLoaiPhong.SelectedValue.ToString(), out int lp)) ? lp : (int?)null;
-            int? dbanggiaId = (ChkBangGia.IsChecked == true && CboBangGia.SelectedValue != null && int.TryParse(CboBangGia.SelectedValue.ToString(), out int bg)) ? bg : (int?)null;
+            string dkhuvucId = (ChkKhuVuc.IsChecked == true && CboKhuVuc.SelectedValue != null) ? CboKhuVuc.SelectedValue.ToString() : null;
+            string dnhomhienthiId = (ChkNhomHienThi.IsChecked == true && CboNhomHienThi.SelectedValue != null) ? CboNhomHienThi.SelectedValue.ToString() : null;
+            string dloaiphongId = (ChkLoaiPhong.IsChecked == true && CboLoaiPhong.SelectedValue != null) ? CboLoaiPhong.SelectedValue.ToString() : null;
+            string dbanggiaId = (ChkBangGia.IsChecked == true && CboBangGia.SelectedValue != null) ? CboBangGia.SelectedValue.ToString() : null;
             
             decimal donGia = (ChkDonGia.IsChecked == true && decimal.TryParse(TxtDonGia.Text, out var dg)) ? dg : 0;
             decimal tienMoBan = (ChkTienMoBan.IsChecked == true && decimal.TryParse(TxtTienMoBan.Text, out var tm)) ? tm : 0;
@@ -96,32 +96,45 @@ namespace QuanLyBar.Client.Views
             {
                 if (string.IsNullOrWhiteSpace(item.Name)) continue; // Skip empty rows
 
-                int? itemKvId = dkhuvucId;
+                string itemKvId = dkhuvucId;
                 if (!string.IsNullOrWhiteSpace(item.KhuVucName))
                 {
-                    var found = dbKhuVucs.FirstOrDefault(x => x.Name.Equals(item.KhuVucName, StringComparison.OrdinalIgnoreCase));
-                    if (found != null && int.TryParse(found.Id.ToString(), out int parsed)) itemKvId = parsed;
+                    var found = dbKhuVucs.FirstOrDefault(x => x.Name != null && x.Name.Trim().Equals(item.KhuVucName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (found != null) 
+                    {
+                        itemKvId = found.Id.ToString();
+                    }
+                    else
+                    {
+                        // Khu vực không tồn tại trong CSDL -> Bỏ qua không thêm
+                        continue;
+                    }
+                }
+                else if (string.IsNullOrEmpty(itemKvId))
+                {
+                    // Không có khu vực hợp lệ -> Bỏ qua
+                    continue;
                 }
 
-                int? itemNhId = dnhomhienthiId;
+                string itemNhId = dnhomhienthiId;
                 if (!string.IsNullOrWhiteSpace(item.NhomHienThiName))
                 {
-                    var found = dbNhomHienThi.FirstOrDefault(x => x.Name.Equals(item.NhomHienThiName, StringComparison.OrdinalIgnoreCase));
-                    if (found != null && int.TryParse(found.Id.ToString(), out int parsed)) itemNhId = parsed;
+                    var found = dbNhomHienThi.FirstOrDefault(x => x.Name != null && x.Name.Trim().Equals(item.NhomHienThiName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (found != null) itemNhId = found.Id.ToString();
                 }
 
-                int? itemLpId = dloaiphongId;
+                string itemLpId = dloaiphongId;
                 if (!string.IsNullOrWhiteSpace(item.LoaiPhongName))
                 {
-                    var found = dbLoaiPhong.FirstOrDefault(x => x.Name.Equals(item.LoaiPhongName, StringComparison.OrdinalIgnoreCase));
-                    if (found != null && int.TryParse(found.Id.ToString(), out int parsed)) itemLpId = parsed;
+                    var found = dbLoaiPhong.FirstOrDefault(x => x.Name != null && x.Name.Trim().Equals(item.LoaiPhongName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (found != null) itemLpId = found.Id.ToString();
                 }
 
-                int? itemBgId = dbanggiaId;
+                string itemBgId = dbanggiaId;
                 if (!string.IsNullOrWhiteSpace(item.BanggiaName))
                 {
-                    var found = dbBangGia.FirstOrDefault(x => x.Name.Equals(item.BanggiaName, StringComparison.OrdinalIgnoreCase));
-                    if (found != null && int.TryParse(found.Id.ToString(), out int parsed)) itemBgId = parsed;
+                    var found = dbBangGia.FirstOrDefault(x => x.Name != null && x.Name.Trim().Equals(item.BanggiaName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (found != null) itemBgId = found.Id.ToString();
                 }
 
                 var ban = new DBAN
@@ -157,7 +170,119 @@ namespace QuanLyBar.Client.Views
             this.Close();
         }
 
-        private void BtnChonFileExcel_Click(object sender, RoutedEventArgs e)
+        private async void BtnDanDuLieu_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!Clipboard.ContainsText())
+                {
+                    MessageBox.Show("Không có dữ liệu văn bản trong clipboard để dán!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                string clipText = Clipboard.GetText();
+                if (string.IsNullOrWhiteSpace(clipText)) return;
+
+                var dbKhuVucs = await _service.GetLookupAsync("DKHUVUC");
+                var lines = clipText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                
+                int addedCount = 0;
+                int skippedCount = 0;
+
+                // Lấy danh sách headers hiện có trên lưới
+                var columns = DgThemNhanh.Columns.Select(c => c.Header?.ToString()).ToList();
+
+                foreach (var line in lines)
+                {
+                    var cols = line.Split('\t');
+                    if (cols.Length == 0) continue;
+
+                    var ban = new BanViewModel { Name = "" };
+
+                    for (int i = 0; i < cols.Length && i < columns.Count; i++)
+                    {
+                        string header = columns[i];
+                        string val = cols[i]?.Trim() ?? "";
+
+                        if (header == "Tên bàn") ban.Name = val;
+                        else if (header == "Khu vực") ban.KhuVucName = val;
+                        else if (header == "Nhóm hiển thị") ban.NhomHienThiName = val;
+                        else if (header == "Loại phòng") ban.LoaiPhongName = val;
+                        else if (header == "Ghi chú") ban.Note = val;
+                        else if (header == "Bảng giá") ban.BanggiaName = val;
+                        else if (header == "Đơn giá" && decimal.TryParse(val, out decimal dg)) ban.Dongia = dg;
+                        else if (header == "Tiền mở bàn" && decimal.TryParse(val, out decimal tm)) ban.Tienmoban = tm;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(ban.Name)) continue;
+
+                    // Kiểm tra khu vực nếu có cột Khu vực
+                    if (!string.IsNullOrWhiteSpace(ban.KhuVucName))
+                    {
+                        bool exists = dbKhuVucs.Any(k => k.Name != null && k.Name.Trim().Equals(ban.KhuVucName.Trim(), StringComparison.OrdinalIgnoreCase));
+                        if (!exists)
+                        {
+                            // Khu vực không tồn tại trong CSDL -> Bỏ qua không thêm
+                            skippedCount++;
+                            continue;
+                        }
+                    }
+
+                    _quickAddList.Add(ban);
+                    addedCount++;
+                }
+
+                if (skippedCount > 0)
+                {
+                    MessageBox.Show($"Đã dán {addedCount} bàn. Bỏ qua {skippedCount} bàn do khu vực không tồn tại trong CSDL.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi dán dữ liệu: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void BtnXoaBanLoi_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dbKhuVucs = await _service.GetLookupAsync("DKHUVUC");
+                var invalidList = new List<BanViewModel>();
+
+                foreach (var item in _quickAddList)
+                {
+                    if (string.IsNullOrWhiteSpace(item.Name))
+                    {
+                        invalidList.Add(item);
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(item.KhuVucName))
+                    {
+                        bool exists = dbKhuVucs.Any(k => k.Name != null && k.Name.Trim().Equals(item.KhuVucName.Trim(), StringComparison.OrdinalIgnoreCase));
+                        if (!exists)
+                        {
+                            invalidList.Add(item);
+                            continue;
+                        }
+                    }
+                }
+
+                foreach (var item in invalidList)
+                {
+                    _quickAddList.Remove(item);
+                }
+
+                MessageBox.Show($"Đã xóa {invalidList.Count} dòng bàn lỗi (thiếu tên hoặc khu vực không tồn tại trong CSDL).", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xóa bàn lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void BtnChonFileExcel_Click(object sender, RoutedEventArgs e)
         {
             var win = new ChonFileExcelWindow();
             if (win.ShowDialog() == true && win.SelectedFilePaths != null && win.SelectedFilePaths.Length > 0)
@@ -211,6 +336,10 @@ namespace QuanLyBar.Client.Views
                 if (mappingWin.ShowDialog() == true)
                 {
                     var mappings = mappingWin.MappingList.Where(m => !string.IsNullOrEmpty(m.MappedField)).ToList();
+                    var dbKhuVucs = await _service.GetLookupAsync("DKHUVUC");
+
+                    int addedCount = 0;
+                    int skippedCount = 0;
 
                     foreach (System.Data.DataRow row in dataTable.Rows)
                     {
@@ -218,7 +347,7 @@ namespace QuanLyBar.Client.Views
                         
                         foreach (var map in mappings)
                         {
-                            string val = row[map.ExcelColumn]?.ToString() ?? "";
+                            string val = row[map.ExcelColumn]?.ToString()?.Trim() ?? "";
                             if (map.MappedField == "Tên bàn") ban.Name = val;
                             if (map.MappedField == "Khu vực") ban.KhuVucName = val;
                             if (map.MappedField == "Nhóm hiển thị") ban.NhomHienThiName = val;
@@ -229,7 +358,26 @@ namespace QuanLyBar.Client.Views
                             if (map.MappedField == "Tiền mở bàn" && decimal.TryParse(val, out decimal tmb)) ban.Tienmoban = tmb;
                         }
                         
+                        if (string.IsNullOrWhiteSpace(ban.Name)) continue;
+
+                        // Kiểm tra nếu khu vực không có trong CSDL thì không thêm hàng đó
+                        if (!string.IsNullOrWhiteSpace(ban.KhuVucName))
+                        {
+                            bool exists = dbKhuVucs.Any(k => k.Name != null && k.Name.Trim().Equals(ban.KhuVucName.Trim(), StringComparison.OrdinalIgnoreCase));
+                            if (!exists)
+                            {
+                                skippedCount++;
+                                continue; // Bỏ qua không thêm hàng này vào bảng
+                            }
+                        }
+
                         _quickAddList.Add(ban);
+                        addedCount++;
+                    }
+
+                    if (skippedCount > 0)
+                    {
+                        MessageBox.Show($"Đã nhập {addedCount} bàn từ Excel. Bỏ qua {skippedCount} hàng do Khu vực không tồn tại trong CSDL.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
             }
@@ -293,3 +441,7 @@ namespace QuanLyBar.Client.Views
         }
     }
 }
+
+
+
+

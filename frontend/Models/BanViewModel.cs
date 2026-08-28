@@ -2,6 +2,7 @@ namespace QuanLyBar.Client.Models
 {
     public class BanViewModel
     {
+        public bool IsSelected { get; set; }
         public int Stt { get; set; } // Số thứ tự
         public string Id { get; set; }
         public string Name { get; set; }

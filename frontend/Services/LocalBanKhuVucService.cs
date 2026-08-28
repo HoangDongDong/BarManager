@@ -122,7 +122,7 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
 
                     string sql = @"
-                        SELECT b.ID as Id, 
+                        SELECT CAST(b.ID AS VARCHAR(50)) as Id, 
                                b.NAME as Name, 
                                b.NOTE as Note,
                                k.NAME as KhuVucName,
@@ -140,7 +140,7 @@ namespace QuanLyBar.Client.Services
                     }
                     else
                     {
-                        sql += " AND (b.STATUS = 1 OR b.STATUS IS NULL) ";
+                        sql += " AND (b.STATUS <> 0 OR b.STATUS IS NULL) ";
                         if (!string.IsNullOrEmpty(khuvucId))
                         {
                             sql += " AND (b.DKHUVUCID = @KhuVucId OR k.PARENTID = @KhuVucId OR k.PARENTDIR LIKE '%' || @KhuVucId || ',%')";
@@ -167,7 +167,7 @@ namespace QuanLyBar.Client.Services
                 return new List<BanViewModel>();
             }
         }
-        public async Task<bool> InsertKhuVucAsync(DKHUVUC khuvuc)
+        public async Task<bool> InsertKhuVucAsync(string name, string parentId)
         {
             try
             {
@@ -175,17 +175,23 @@ namespace QuanLyBar.Client.Services
                 {
                     await conn.OpenAsync();
                     
-                    if (khuvuc.Id == null || khuvuc.Id == 0)
+                    // Generate an integer ID (stored as string in DB but parses as int)
+                    var allIds = await conn.QueryAsync<string>("SELECT ID FROM DKHUVUC");
+                    int maxId = 0;
+                    foreach (var idStr in allIds)
                     {
-                        var maxId = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(ID) FROM DKHUVUC");
-                        khuvuc.Id = (maxId ?? 0) + 1;
+                        if (int.TryParse(idStr, out int idInt))
+                        {
+                            if (idInt > maxId) maxId = idInt;
+                        }
                     }
+                    var newId = (maxId + 1).ToString();
 
                     string sql = @"
                         INSERT INTO DKHUVUC (ID, NAME, PARENTID, STATUS, USERCREATEDID, TIMECREATED) 
                         VALUES (@Id, @Name, @ParentId, 1, 1, CURRENT_TIMESTAMP)";
                     
-                    var rows = await conn.ExecuteAsync(sql, new { khuvuc.Id, khuvuc.Name, khuvuc.ParentId });
+                    var rows = await conn.ExecuteAsync(sql, new { Id = newId, Name = name, ParentId = parentId });
                     return rows > 0;
                 }
             }
@@ -196,7 +202,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> UpdateKhuVucAsync(DKHUVUC khuvuc)
+        public async Task<bool> UpdateKhuVucAsync(string id, string name)
         {
             try
             {
@@ -208,7 +214,7 @@ namespace QuanLyBar.Client.Services
                         SET NAME = @Name 
                         WHERE ID = @Id";
                     
-                    var rows = await conn.ExecuteAsync(sql, new { khuvuc.Name, khuvuc.Id });
+                    var rows = await conn.ExecuteAsync(sql, new { Name = name, Id = id });
                     return rows > 0;
                 }
             }
@@ -218,6 +224,28 @@ namespace QuanLyBar.Client.Services
                 return false;
             }
         }
+
+        public async Task<bool> DeleteKhuVucAsync(string id, bool isPermanent = false)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = isPermanent
+                        ? "DELETE FROM DKHUVUC WHERE ID = @Id"
+                        : "UPDATE DKHUVUC SET STATUS = 0 WHERE ID = @Id";
+                    var rows = await conn.ExecuteAsync(sql, new { Id = id });
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xóa khu vực: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
         public async Task<List<LookupItem>> GetLookupAsync(string tableName)
         {
             try
@@ -225,8 +253,25 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
-                    string sql = $"SELECT ID as Id, NAME as Name FROM {tableName} WHERE STATUS = 1 ORDER BY NAME";
-                    return (await conn.QueryAsync<LookupItem>(sql)).ToList();
+                    string sql = $"SELECT CAST(ID AS VARCHAR(50)) as Id, CAST(NAME AS VARCHAR(255)) as Name FROM {tableName} WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY NAME";
+                    var result = new List<LookupItem>();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = sql;
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var idStr = reader[0]?.ToString()?.Trim() ?? "";
+                                var nameStr = reader[1]?.ToString()?.Trim() ?? "";
+                                if (!string.IsNullOrEmpty(idStr) && !string.IsNullOrEmpty(nameStr))
+                                {
+                                    result.Add(new LookupItem { Id = idStr, Name = nameStr });
+                                }
+                            }
+                        }
+                    }
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -244,10 +289,10 @@ namespace QuanLyBar.Client.Services
                 {
                     await conn.OpenAsync();
                     
-                    if (ban.Id == null || ban.Id == 0)
+                    if (string.IsNullOrEmpty(ban.Id))
                     {
-                        var maxId = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(ID) FROM DBAN");
-                        ban.Id = (maxId ?? 0) + 1;
+                        var maxId = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(CAST(ID AS INTEGER)) FROM DBAN WHERE ID SIMILAR TO '[0-9]+'");
+                        ban.Id = ((maxId ?? 0) + 1).ToString();
                     }
 
                     string sql = @"
@@ -294,7 +339,34 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> DeleteBanAsync(int id, bool isPermanent = false)
+        public async Task<bool> UpdateBansColumnAsync(List<string> ids, string columnName, object value)
+        {
+            if (ids == null || ids.Count == 0) return true;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        string sql = $@"UPDATE DBAN SET {columnName} = @Value, USERMODIFIEDID = 1, TIMEMODIFIED = CURRENT_TIMESTAMP WHERE ID = @Id";
+                        foreach (var id in ids)
+                        {
+                            await conn.ExecuteAsync(sql, new { Value = value, Id = id }, transaction: trans);
+                        }
+                        trans.Commit();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật thuộc tính bàn: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteBanAsync(string id, bool isPermanent = false)
         {
             try
             {
@@ -321,7 +393,36 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> RestoreBanAsync(int id)
+        public async Task<bool> DeleteBansAsync(List<string> ids, bool isPermanent = false)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        string sql = isPermanent
+                            ? "DELETE FROM DBAN WHERE ID = @Id"
+                            : "UPDATE DBAN SET STATUS = 0 WHERE ID = @Id";
+                        
+                        foreach (var id in ids)
+                        {
+                            await conn.ExecuteAsync(sql, new { Id = id }, transaction: trans);
+                        }
+                        trans.Commit();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xóa danh sách bàn: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> RestoreBanAsync(string id)
         {
             try
             {
@@ -340,7 +441,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<DBAN> GetBanByIdAsync(int id)
+        public async Task<DBAN> GetBanByIdAsync(string id)
         {
             try
             {
@@ -550,3 +651,5 @@ namespace QuanLyBar.Client.Services
         }
     }
 }
+
+

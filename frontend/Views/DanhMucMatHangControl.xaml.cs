@@ -231,43 +231,275 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
-            var win = new ThemNhomWindow(isThuMuc: false);
-            if (win.ShowDialog() == true)
+            if (string.IsNullOrEmpty(selectedNhom.Id))
             {
-                var newGroup = new DNHOMMATHANG
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = win.TenNhom,
-                    Code = win.MaSanPham,
-                    DloaidoId = win.LoaiDoId,
-                    ParentId = string.IsNullOrEmpty(selectedNhom.Id) ? null : selectedNhom.Id
-                };
+                MessageBox.Show("Không thể thêm con vào nút gốc này.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-                bool success = await _matHangService.InsertNhomMatHangAsync(newGroup);
-                if (success)
+            int index = 1;
+            string defaultName = $"Thư mục {index}";
+            while (selectedNhom.Children != null && selectedNhom.Children.Any(x => x.Name == defaultName))
+            {
+                index++;
+                defaultName = $"Thư mục {index}";
+            }
+
+            var newNhom = new DNHOMMATHANG
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = defaultName,
+                Code = "TMP",
+                ParentId = selectedNhom.Id,
+                Timecreated = DateTime.Now
+            };
+
+            bool success = await _matHangService.InsertNhomMatHangAsync(newNhom);
+            if (success)
+            {
+                await ReloadTreeViewAsync();
+                var items = TvNhomMatHang.ItemsSource as System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel>;
+                var node = FindNode(items, selectedNhom.Id);
+                if (node != null)
                 {
-                    await ReloadTreeViewAsync();
+                    var newItem = node.Children.FirstOrDefault(x => x.Name == defaultName);
+                    if (newItem != null)
+                    {
+                        if (TvNhomMatHang.ItemContainerGenerator.ContainerFromItem(node) is TreeViewItem tvi)
+                        {
+                            tvi.IsExpanded = true;
+                            tvi.UpdateLayout();
+                        }
+                        
+                        await Application.Current.Dispatcher.InvokeAsync(() => 
+                        {
+                            newItem.IsEditing = true;
+                        }, System.Windows.Threading.DispatcherPriority.Background);
+                    }
                 }
             }
         }
 
         private async void BtnThemThuMuc_Click(object sender, RoutedEventArgs e)
         {
-            var win = new ThemNhomWindow(isThuMuc: true);
-            if (win.ShowDialog() == true)
-            {
-                var newGroup = new DNHOMMATHANG
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = win.TenNhom,
-                    Code = win.MaSanPham,
-                    DloaidoId = win.LoaiDoId,
-                    ParentId = null // Thư mục nằm ở gốc
-                };
+            var items = TvNhomMatHang.ItemsSource as System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel>;
+            if (items == null) return;
+            
+            // Lấy danh mục gốc "Tất cả" (parent = null)
+            var rootNode = items.FirstOrDefault();
+            if (rootNode == null) return;
 
-                bool success = await _matHangService.InsertNhomMatHangAsync(newGroup);
-                if (success)
+            int index = 1;
+            string defaultName = $"Thư mục {index}";
+            while (rootNode.Children.Any(x => x.Name == defaultName))
+            {
+                index++;
+                defaultName = $"Thư mục {index}";
+            }
+
+            var newNhom = new DNHOMMATHANG
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = defaultName,
+                Code = "TMP",
+                ParentId = null,
+                Timecreated = DateTime.Now
+            };
+
+            bool success = await _matHangService.InsertNhomMatHangAsync(newNhom);
+            if (success)
+            {
+                await ReloadTreeViewAsync();
+                items = TvNhomMatHang.ItemsSource as System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel>;
+                rootNode = items.FirstOrDefault();
+                if (rootNode != null)
                 {
+                    var newItem = rootNode.Children.FirstOrDefault(x => x.Name == defaultName);
+                    if (newItem != null)
+                    {
+                        if (TvNhomMatHang.ItemContainerGenerator.ContainerFromItem(rootNode) is TreeViewItem tvi)
+                        {
+                            tvi.IsExpanded = true;
+                            tvi.UpdateLayout();
+                        }
+                        
+                        await Application.Current.Dispatcher.InvokeAsync(() => 
+                        {
+                            newItem.IsEditing = true;
+                        }, System.Windows.Threading.DispatcherPriority.Background);
+                    }
+                }
+            }
+        }
+
+        private NhomMatHangViewModel FindNode(System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel> nodes, string id)
+        {
+            if (nodes == null) return null;
+            foreach (var node in nodes)
+            {
+                if (node.Id == id) return node;
+                var child = FindNode(node.Children, id);
+                if (child != null) return child;
+            }
+            return null;
+        }
+
+        private bool IsDuplicateName(System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel> tree, string name, string excludeId)
+        {
+            if (tree == null) return false;
+            foreach (var node in tree)
+            {
+                if (node.Name != null && node.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && node.Id != excludeId)
+                    return true;
+                if (node.Children != null && IsDuplicateName(node.Children, name, excludeId))
+                    return true;
+            }
+            return false;
+        }
+
+        private void InlineEditTextBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt && txt.Visibility == Visibility.Visible)
+            {
+                txt.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    txt.Focus();
+                    System.Windows.Input.Keyboard.Focus(txt);
+                    txt.SelectAll();
+                }), System.Windows.Threading.DispatcherPriority.Input);
+            }
+        }
+
+        private void InlineEditTextBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt && (bool)e.NewValue == true)
+            {
+                txt.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    txt.Focus();
+                    System.Windows.Input.Keyboard.Focus(txt);
+                    txt.SelectAll();
+                }), System.Windows.Threading.DispatcherPriority.Input);
+            }
+        }
+
+        private async void InlineEditTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt)
+            {
+                string id = txt.Tag as string;
+                if (!string.IsNullOrEmpty(id) && txt.DataContext is NhomMatHangViewModel model && model.IsEditing)
+                {
+                    if (string.IsNullOrWhiteSpace(model.Name))
+                    {
+                        model.IsEditing = false;
+                        await ReloadTreeViewAsync();
+                        return;
+                    }
+
+                    if (IsDuplicateName(TvNhomMatHang.ItemsSource as System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel>, model.Name, id))
+                    {
+                        MessageBox.Show($"Tên '{model.Name}' đã tồn tại. Hệ thống sẽ khôi phục tên cũ.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        model.IsEditing = false;
+                        await ReloadTreeViewAsync();
+                        return;
+                    }
+
+                    model.IsEditing = false;
+                    await UpdateGroupName(id, model.Name);
+                }
+            }
+        }
+
+        private async void InlineEditTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (sender is System.Windows.Controls.TextBox txt)
+            {
+                if (e.Key == System.Windows.Input.Key.Enter)
+                {
+                    string id = txt.Tag as string;
+                    if (!string.IsNullOrEmpty(id) && txt.DataContext is NhomMatHangViewModel model && model.IsEditing)
+                    {
+                        if (string.IsNullOrWhiteSpace(model.Name))
+                        {
+                            model.IsEditing = false;
+                            await ReloadTreeViewAsync();
+                            e.Handled = true;
+                            return;
+                        }
+
+                        if (IsDuplicateName(TvNhomMatHang.ItemsSource as System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel>, model.Name, id))
+                        {
+                            MessageBox.Show($"Tên '{model.Name}' đã tồn tại. Vui lòng nhập tên khác.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            e.Handled = true;
+                            return;
+                        }
+
+                        model.IsEditing = false;
+                        await UpdateGroupName(id, model.Name);
+                    }
+                    e.Handled = true;
+                }
+                else if (e.Key == System.Windows.Input.Key.Escape)
+                {
+                    if (txt.DataContext is NhomMatHangViewModel model && model.IsEditing)
+                    {
+                        model.IsEditing = false;
+                        await ReloadTreeViewAsync();
+                    }
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private async System.Threading.Tasks.Task UpdateGroupName(string id, string newName)
+        {
+            // Cần truy vấn group từ DB và update
+            var groups = await _matHangService.GetAllNhomMatHangAsync();
+            var group = groups.FirstOrDefault(g => g.Id == id);
+            if (group != null)
+            {
+                group.Name = newName;
+                await _matHangService.UpdateNhomMatHangAsync(group);
+            }
+        }
+
+        private void MenuItem_ThemMoi_Click(object sender, RoutedEventArgs e)
+        {
+            BtnThemThuMuc_Click(null, null);
+        }
+
+        private void MenuItem_ThemMoiCon_Click(object sender, RoutedEventArgs e)
+        {
+            BtnThemNhom_Click(null, null);
+        }
+
+        private void MenuItem_SuaDoi_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvNhomMatHang.SelectedItem is NhomMatHangViewModel selected)
+            {
+                if (string.IsNullOrEmpty(selected.Id))
+                {
+                    MessageBox.Show("Không thể sửa thư mục gốc.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                selected.IsEditing = true;
+            }
+        }
+
+        private async void MenuItem_Xoa_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvNhomMatHang.SelectedItem is NhomMatHangViewModel selected)
+            {
+                if (string.IsNullOrEmpty(selected.Id))
+                {
+                    MessageBox.Show("Không thể xóa thư mục gốc.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa '{selected.Name}' không?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    await _matHangService.DeleteNhomMatHangAsync(selected.Id);
                     await ReloadTreeViewAsync();
                 }
             }
