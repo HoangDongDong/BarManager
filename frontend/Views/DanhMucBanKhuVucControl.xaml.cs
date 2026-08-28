@@ -710,9 +710,27 @@ namespace QuanLyBar.Client.Views
 
         private void MenuCotHienThi_Click(object sender, RoutedEventArgs e)
         {
-            var win = new ChonCotHienThiWindow(DgBan, new List<string> { "Tên bàn", "Khu vực", "Nhóm hiển thị", "Loại phòng", "Ghi chú" });
+            var win = new ChonCotHienThiWindow(DgBan, new List<string> { "Tên bàn", "Ghi chú", "Khu vực", "Nhóm hiển thị", "Loại phòng", "Đơn giá" });
             win.Owner = Window.GetWindow(this);
             win.ShowDialog();
+        }
+
+        private async void MenuItem_ThuocTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgBan.SelectedItem is BanViewModel selected)
+            {
+                var ban = await _service.GetBanByIdAsync(selected.Id);
+                if (ban != null)
+                {
+                    var win = new ThuocTinhWindow(ban);
+                    win.Owner = Window.GetWindow(this);
+                    win.ShowDialog();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một Bàn để xem thuộc tính!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         #endregion

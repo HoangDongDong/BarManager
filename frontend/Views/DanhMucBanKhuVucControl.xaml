@@ -275,7 +275,7 @@
                             <Separator/>
                             <MenuItem Header="Tự động giãn cột" Click="MenuItem_TuDongGianCot_Click"/>
                             <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" Click="MenuCotHienThi_Click"/>
-                            <MenuItem Header="Thuộc tính" Click="BtnSuaBan_Click"/>
+                            <MenuItem Header="Thuộc tính" Click="MenuItem_ThuocTinh_Click"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                     <DataGrid.Columns>

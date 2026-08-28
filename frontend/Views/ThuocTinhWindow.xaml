@@ -1,0 +1,93 @@
+<Window x:Class="QuanLyBar.Client.Views.ThuocTinhWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thuộc tính" Width="560" Height="210"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#c5d8eb" FontFamily="Segoe UI" FontSize="13">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header Info -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title with Info Icon -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <Border Width="26" Height="26" CornerRadius="13" Background="#1c75bc" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <TextBlock Text="i" Foreground="White" FontWeight="Bold" FontFamily="Georgia" FontSize="16" FontStyle="Italic" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock x:Name="TxtTitle" Text="Thông tin Bàn: Bàn 29" FontWeight="Bold" FontSize="13.5" VerticalAlignment="Center" Foreground="#112233"/>
+            </StackPanel>
+
+            <!-- 2-column info -->
+            <Grid Grid.Row="1" Margin="5,0,5,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,5">
+                    <TextBlock Text="Khởi tạo: " Foreground="#334455"/>
+                    <TextBlock x:Name="TxtTimeCreated" Text="19/10/2013 00:25 AM" FontWeight="SemiBold" Foreground="#112233"/>
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5">
+                    <TextBlock Text="Khởi tạo bởi: " Foreground="#334455"/>
+                    <TextBlock x:Name="TxtUserCreated" Text="Administrator" FontWeight="SemiBold" Foreground="#112233"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="Sửa đổi gần nhất: " Foreground="#334455"/>
+                    <TextBlock x:Name="TxtTimeModified" Text="12/03/2014 08:07 AM" FontWeight="SemiBold" Foreground="#112233"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Text="Sửa đổi bởi: " Foreground="#334455"/>
+                    <TextBlock x:Name="TxtUserModified" Text="Administrator" FontWeight="SemiBold" Foreground="#112233"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,5,0">
+                <ToggleButton x:Name="BtnDoiTuongThamChieu" Content="Đối tượng tham chiếu" Padding="14,3" Height="26" Margin="0,0,10,0" Background="#f0f0f0" BorderBrush="#7f9db9" Click="BtnDoiTuongThamChieu_Click"/>
+                <Button x:Name="BtnThoat" Content="Thoát" Width="75" Height="26" Background="#f0f0f0" BorderBrush="#7f9db9" IsCancel="True" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Collapsible Reference Section -->
+        <Grid x:Name="SecThamChieu" Grid.Row="1" Height="240" Margin="0,10,0,0" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="1.3*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left TreeView -->
+            <Border Grid.Column="0" BorderBrush="#7f9db9" BorderThickness="1" Background="White">
+                <TreeView x:Name="TvThamChieu" BorderThickness="0" SelectedItemChanged="TvThamChieu_SelectedItemChanged">
+                    <TreeViewItem x:Name="RootItem" Header="Danh mục loại đối tượng" IsExpanded="True">
+                        <TreeViewItem x:Name="ItemDatHang" Header="Đặt hàng(0)"/>
+                        <TreeViewItem x:Name="ItemDonHang" Header="Đơn hàng(0)"/>
+                        <TreeViewItem x:Name="ItemHoaDon" Header="Hóa đơn(0)"/>
+                        <TreeViewItem x:Name="ItemSuaChua" Header="Sửa chữa(0)"/>
+                    </TreeViewItem>
+                </TreeView>
+            </Border>
+
+            <!-- Right Detail List / Placeholder -->
+            <Border Grid.Column="2" BorderBrush="#7f9db9" BorderThickness="1" Background="White">
+                <DataGrid x:Name="DgChiTietThamChieu" AutoGenerateColumns="True" IsReadOnly="True" BorderThickness="0" Background="White" GridLinesVisibility="All"/>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
