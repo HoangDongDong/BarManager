@@ -274,7 +274,7 @@
                             </MenuItem>
                             <Separator/>
                             <MenuItem Header="Tự động giãn cột" Click="MenuItem_TuDongGianCot_Click"/>
-                            <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" SubmenuOpened="MenuCotHienThi_SubmenuOpened"/>
+                            <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" Click="MenuCotHienThi_Click"/>
                             <MenuItem Header="Thuộc tính" Click="BtnSuaBan_Click"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
@@ -285,6 +285,9 @@
                         <DataGridTextColumn x:Name="ColNhomHienThi" Header="Nhóm hiển thị" Binding="{Binding NhomHienThiName}" Width="150"/>
                         <DataGridTextColumn x:Name="ColLoaiPhong" Header="Loại phòng" Binding="{Binding LoaiPhongName}" Width="150"/>
                         <DataGridTextColumn x:Name="ColGhiChu" Header="Ghi chú" Binding="{Binding Note}" Width="*"/>
+                        <DataGridTextColumn x:Name="ColBangGia" Header="Bảng giá" Binding="{Binding BanggiaName}" Width="120" Visibility="Collapsed"/>
+                        <DataGridTextColumn x:Name="ColDonGia" Header="Đơn giá" Binding="{Binding Dongia, StringFormat={}{0:N0}}" Width="100" Visibility="Collapsed"/>
+                        <DataGridTextColumn x:Name="ColTienMoBan" Header="Tiền mở bàn" Binding="{Binding Tienmoban, StringFormat={}{0:N0}}" Width="120" Visibility="Collapsed"/>
                     </DataGrid.Columns>
                 </DataGrid>
 

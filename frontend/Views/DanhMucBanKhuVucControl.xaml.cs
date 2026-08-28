@@ -708,26 +708,11 @@ namespace QuanLyBar.Client.Views
             }
         }
 
-        private void MenuCotHienThi_SubmenuOpened(object sender, RoutedEventArgs e)
+        private void MenuCotHienThi_Click(object sender, RoutedEventArgs e)
         {
-            if (MenuCotHienThi == null) return;
-            MenuCotHienThi.Items.Clear();
-            foreach (var col in DgBan.Columns)
-            {
-                var header = col.Header?.ToString();
-                if (string.IsNullOrEmpty(header)) continue;
-                var mi = new MenuItem
-                {
-                    Header = header,
-                    IsCheckable = true,
-                    IsChecked = col.Visibility == Visibility.Visible
-                };
-                mi.Click += (s, args) =>
-                {
-                    col.Visibility = mi.IsChecked ? Visibility.Visible : Visibility.Collapsed;
-                };
-                MenuCotHienThi.Items.Add(mi);
-            }
+            var win = new ChonCotHienThiWindow(DgBan, new List<string> { "Tên bàn", "Khu vực", "Nhóm hiển thị", "Loại phòng", "Ghi chú" });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
         }
 
         #endregion

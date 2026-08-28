@@ -1,0 +1,94 @@
+<Window x:Class="QuanLyBar.Client.Views.ChonCotHienThiWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chọn cột hiển thị" Height="480" Width="600"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#c5d8eb" FontFamily="Segoe UI" FontSize="13">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header Info -->
+        <Grid Grid.Row="0" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Width="36" Height="36" Background="Transparent" VerticalAlignment="Center" Margin="0,0,12,0">
+                <TextBlock Text="📄➕" FontSize="26" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Mời bạn chọn các cột muốn hiển thị trên lưới" FontWeight="Bold" FontSize="13" Foreground="#112233"/>
+                <TextBlock Text="Chú ý: Bạn có thể nháy đúp vào danh sách cột để thêm hoặc xóa cột" FontStyle="Italic" FontSize="12" Foreground="#334455" Margin="0,3,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Selection Area -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Cột ẩn -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Danh sách các cột ẩn" Margin="0,0,0,6" Foreground="#223344"/>
+                <Border Grid.Row="1" BorderBrush="#7f9db9" BorderThickness="1" Background="White">
+                    <ListBox x:Name="LstCotAn" BorderThickness="0" MouseDoubleClick="LstCotAn_MouseDoubleClick" SelectionMode="Extended">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Header}" Padding="4,2"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+            </Grid>
+
+            <!-- Buttons thêm / xóa giữa 2 danh sách -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="10,60,10,0" Width="85">
+                <Button x:Name="BtnThem" Content="Thêm &gt;&gt;" Height="26" Margin="0,0,0,12" Background="#f0f0f0" BorderBrush="#7f9db9" Click="BtnThem_Click"/>
+                <Button x:Name="BtnXoa" Content="&lt;&lt; Xóa" Height="26" Background="#f0f0f0" BorderBrush="#7f9db9" Click="BtnXoa_Click"/>
+            </StackPanel>
+
+            <!-- Cột hiển thị -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Danh sách các cột hiển thị trên lưới" Margin="0,0,0,6" Foreground="#223344"/>
+                <Border Grid.Row="1" BorderBrush="#7f9db9" BorderThickness="1" Background="White">
+                    <ListBox x:Name="LstCotHienThi" BorderThickness="0" MouseDoubleClick="LstCotHienThi_MouseDoubleClick" SelectionMode="Single">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Header}" Padding="4,2"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+            </Grid>
+
+            <!-- Buttons chuyển lên / xuống -->
+            <StackPanel Grid.Column="3" VerticalAlignment="Top" Margin="10,60,0,0" Width="95">
+                <Button x:Name="BtnChuyenLen" Content="Chuyển lên" Height="26" Margin="0,0,0,12" Background="#f0f0f0" BorderBrush="#7f9db9" Click="BtnChuyenLen_Click"/>
+                <Button x:Name="BtnChuyenXuong" Content="Chuyển xuống" Height="26" Background="#f0f0f0" BorderBrush="#7f9db9" Click="BtnChuyenXuong_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Bottom Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="BtnKhoiPhuc" Content="Khôi phục" Width="95" Height="26" Margin="0,0,10,0" Background="#f0f0f0" BorderBrush="#7f9db9" Click="BtnKhoiPhuc_Click"/>
+            <Button x:Name="BtnChapNhan" Content="Chấp nhận" Width="95" Height="26" Margin="0,0,10,0" Background="#f0f0f0" BorderBrush="#7f9db9" IsDefault="True" Click="BtnChapNhan_Click"/>
+            <Button x:Name="BtnHuyBo" Content="Hủy bỏ" Width="95" Height="26" Background="#f0f0f0" BorderBrush="#7f9db9" IsCancel="True" Click="BtnHuyBo_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
