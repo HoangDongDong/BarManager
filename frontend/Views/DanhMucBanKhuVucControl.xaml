@@ -438,17 +438,114 @@
                         </DataGrid>
                     </TabItem>
 
+                    <TabItem Header="Hóa đơn nhà hàng">
+                        <DataGrid x:Name="DgTabHoaDon2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                                  AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="130"/>
+                                <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien}" Width="120"/>
+                                <DataGridTextColumn Header="Khách hàng" Binding="{Binding KhachHang}" Width="150"/>
+                                <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TongTien, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Giảm giá" Binding="{Binding GiamGia, StringFormat={}{0:N0}}" Width="100"/>
+                                <DataGridTextColumn Header="Thanh toán" Binding="{Binding ThanhToan, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Hình thức" Binding="{Binding HinhThuc}" Width="110"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
+                    <TabItem Header="Phiếu nhập kho">
+                        <DataGrid x:Name="DgTabNhapKho2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                                  AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
+                                <DataGridTextColumn Header="Kho hàng" Binding="{Binding KhoHang}" Width="130"/>
+                                <DataGridTextColumn Header="Nhà cung cấp" Binding="{Binding NhaCungCap}" Width="150"/>
+                                <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien}" Width="120"/>
+                                <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TongTien, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Đã thanh toán" Binding="{Binding DaThanhToan, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Còn nợ" Binding="{Binding ConNo, StringFormat={}{0:N0}}" Width="110"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
+                    <TabItem Header="Phiếu xuất kho">
+                        <DataGrid x:Name="DgTabXuatKho2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                                  AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
+                                <DataGridTextColumn Header="Kho hàng" Binding="{Binding KhoHang}" Width="130"/>
+                                <DataGridTextColumn Header="Khách hàng" Binding="{Binding KhachHang}" Width="150"/>
+                                <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien}" Width="120"/>
+                                <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TongTien, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Đã thanh toán" Binding="{Binding DaThanhToan, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Còn nợ" Binding="{Binding ConNo, StringFormat={}{0:N0}}" Width="110"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
+                    <TabItem Header="Phiếu chuyển kho">
+                        <DataGrid x:Name="DgTabChuyenKho2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                                  AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
+                                <DataGridTextColumn Header="Từ kho" Binding="{Binding TuKho}" Width="130"/>
+                                <DataGridTextColumn Header="Đến kho" Binding="{Binding DenKho}" Width="130"/>
+                                <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien}" Width="120"/>
+                                <DataGridTextColumn Header="Diễn giải" Binding="{Binding DienGiai}" Width="180"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
+                    <TabItem Header="Phiếu kiểm kê">
+                        <DataGrid x:Name="DgTabKiemKe2" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                                  AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120"/>
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="110"/>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
+                                <DataGridTextColumn Header="Kho hàng" Binding="{Binding KhoHang}" Width="120"/>
+                                <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien}" Width="120"/>
+                                <DataGridTextColumn Header="Diễn giải" Binding="{Binding DienGiai}" Width="150"/>
+                                <DataGridTextColumn Header="Voucher" Binding="{Binding Voucher}" Width="100"/>
+                                <DataGridTextColumn Header="Nhân viên giao hàng" Binding="{Binding NhanVienGiaoHang}" Width="150"/>
+                                <DataGridTextColumn Header="Trích nhân viên" Binding="{Binding TrichNhanVien, StringFormat={}{0:N0}}" Width="120"/>
+                                <DataGridTextColumn Header="Cửa hàng" Binding="{Binding CuaHang}" Width="120"/>
+                                <DataGridTextColumn Header="Còn lại" Binding="{Binding ConLai, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Thanh toán" Binding="{Binding ThanhToan, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Tài khoản ngân hàng" Binding="{Binding TaiKhoanNganHang}" Width="150"/>
+                                <DataGridTextColumn Header="Mã voucher" Binding="{Binding MaVoucher}" Width="110"/>
+                                <DataGridTextColumn Header="Thẻ tt" Binding="{Binding TheTt}" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+
                     <TabItem Header="Sửa chữa">
                         <DataGrid x:Name="DgTabSuaChua" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                                   AlternatingRowBackground="#f2f7fc" GridLinesVisibility="All"
                                   HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0" BorderThickness="0">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120"/>
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="100"/>
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="100"/>
                                 <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
-                                <DataGridTextColumn Header="Nội dung" Binding="{Binding NoiDung}" Width="200"/>
-                                <DataGridTextColumn Header="Người sửa" Binding="{Binding NguoiSua}" Width="130"/>
-                                <DataGridTextColumn Header="Chi phí" Binding="{Binding ChiPhi, StringFormat={}{0:N0}}" Width="110"/>
-                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="*"/>
+                                <DataGridTextColumn Header="Phòng" Binding="{Binding Phong}" Width="100"/>
+                                <DataGridCheckBoxColumn Header="Đã sửa xong" Binding="{Binding DaSuaXong}" Width="100"/>
+                                <DataGridTextColumn Header="Nội dung" Binding="{Binding NoiDung}" Width="180"/>
+                                <DataGridTextColumn Header="Loại phòng" Binding="{Binding LoaiPhong}" Width="120"/>
+                                <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien}" Width="120"/>
+                                <DataGridCheckBoxColumn Header="Còn sử dụng được" Binding="{Binding ConSuDungDuoc}" Width="130"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </TabItem>
