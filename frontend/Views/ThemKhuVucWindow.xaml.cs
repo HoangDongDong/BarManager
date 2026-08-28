@@ -6,10 +6,15 @@ namespace QuanLyBar.Client.Views
     {
         public string TenKhuVuc { get; private set; }
 
-        public ThemKhuVucWindow(string title = "THÊM MỚI KHU VỰC")
+        public ThemKhuVucWindow(string title = "THÊM MỚI KHU VỰC", string initialName = "")
         {
             InitializeComponent();
             this.Title = title;
+            if (!string.IsNullOrEmpty(initialName))
+            {
+                TxtTenKhuVuc.Text = initialName;
+                TxtTenKhuVuc.SelectAll();
+            }
             TxtTenKhuVuc.Focus();
         }
 

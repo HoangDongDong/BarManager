@@ -34,16 +34,26 @@ namespace QuanLyBar.Client.Views
             await LoadBanData(null);
         }
 
+        private string _currentKhuVucId = null;
+
         private async void TvKhuVuc_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is KhuVucViewModel selectedKhuVuc)
             {
+                bool isTrash = selectedKhuVuc.Id == "-1";
+                if (BtnToolbarThemMoi != null) BtnToolbarThemMoi.IsEnabled = !isTrash;
+                if (BtnToolbarChinhSua != null) BtnToolbarChinhSua.IsEnabled = !isTrash;
+                if (BtnToolbarThemNhanh != null) BtnToolbarThemNhanh.IsEnabled = !isTrash;
+                if (BtnToolbarThemExcel != null) BtnToolbarThemExcel.IsEnabled = !isTrash;
+                if (BtnToolbarXoa != null) BtnToolbarXoa.Content = isTrash ? "❌ Xóa vĩnh viễn" : "❌ Xóa (Del)";
+
                 await LoadBanData(selectedKhuVuc.Id);
             }
         }
 
         private async Task LoadBanData(string khuVucId)
         {
+            _currentKhuVucId = khuVucId;
             _allBans = await _service.GetBanListAsync(khuVucId);
             ApplyFilterAndSort();
         }
@@ -78,6 +88,7 @@ namespace QuanLyBar.Client.Views
                 "NhomHienThi" => _isSortAscending ? query.OrderBy(b => b.NhomHienThiName) : query.OrderByDescending(b => b.NhomHienThiName),
                 "LoaiPhong" => _isSortAscending ? query.OrderBy(b => b.LoaiPhongName) : query.OrderByDescending(b => b.LoaiPhongName),
                 "Note" => _isSortAscending ? query.OrderBy(b => b.Note) : query.OrderByDescending(b => b.Note),
+                "Dongia" => _isSortAscending ? query.OrderBy(b => b.Dongia) : query.OrderByDescending(b => b.Dongia),
                 _ => _isSortAscending ? query.OrderBy(b => b.Name) : query.OrderByDescending(b => b.Name)
             };
 
@@ -153,14 +164,28 @@ namespace QuanLyBar.Client.Views
                 // Nạp dữ liệu các tab thống kê theo bàn được chọn
                 try
                 {
-                    DgBangGiaTheoBan.ItemsSource = await _service.GetBangGiaTheoBanAsync(selected.Id);
-                    DgTabDatHang.ItemsSource = await _service.GetDatHangTheoBanAsync(selected.Id);
-                    DgTabHoaDon.ItemsSource = await _service.GetHoaDonTheoBanAsync(selected.Id);
-                    DgTabXuatKho.ItemsSource = await _service.GetXuatKhoTheoBanAsync(selected.Id);
-                    DgTabNhapKho.ItemsSource = null;
-                    DgTabChuyenKho.ItemsSource = null;
-                    DgTabKiemKe.ItemsSource = null;
-                    DgTabSuaChua.ItemsSource = null;
+                    var bangGia = await _service.GetBangGiaTheoBanAsync(selected.Id);
+                    var datHang = await _service.GetDatHangTheoBanAsync(selected.Id);
+                    var hoaDon = await _service.GetHoaDonTheoBanAsync(selected.Id);
+                    var xuatKho = await _service.GetXuatKhoTheoBanAsync(selected.Id);
+                    var nhapKho = await _service.GetNhapKhoTheoBanAsync(selected.Id);
+                    var chuyenKho = await _service.GetChuyenKhoTheoBanAsync(selected.Id);
+                    var kiemKe = await _service.GetKiemKeTheoBanAsync(selected.Id);
+                    var suaChua = await _service.GetSuaChuaTheoBanAsync(selected.Id);
+
+                    DgBangGiaTheoBan.ItemsSource = bangGia;
+                    DgTabDatHang.ItemsSource = datHang;
+                    DgTabHoaDon.ItemsSource = hoaDon;
+                    DgTabHoaDon2.ItemsSource = hoaDon;
+                    DgTabNhapKho.ItemsSource = nhapKho;
+                    DgTabNhapKho2.ItemsSource = nhapKho;
+                    DgTabXuatKho.ItemsSource = xuatKho;
+                    DgTabXuatKho2.ItemsSource = xuatKho;
+                    DgTabChuyenKho.ItemsSource = chuyenKho;
+                    DgTabChuyenKho2.ItemsSource = chuyenKho;
+                    DgTabKiemKe.ItemsSource = kiemKe;
+                    DgTabKiemKe2.ItemsSource = kiemKe;
+                    DgTabSuaChua.ItemsSource = suaChua;
                 }
                 catch { }
             }
@@ -174,10 +199,15 @@ namespace QuanLyBar.Client.Views
                 DgBangGiaTheoBan.ItemsSource = null;
                 DgTabDatHang.ItemsSource = null;
                 DgTabHoaDon.ItemsSource = null;
-                DgTabXuatKho.ItemsSource = null;
+                DgTabHoaDon2.ItemsSource = null;
                 DgTabNhapKho.ItemsSource = null;
+                DgTabNhapKho2.ItemsSource = null;
+                DgTabXuatKho.ItemsSource = null;
+                DgTabXuatKho2.ItemsSource = null;
                 DgTabChuyenKho.ItemsSource = null;
+                DgTabChuyenKho2.ItemsSource = null;
                 DgTabKiemKe.ItemsSource = null;
+                DgTabKiemKe2.ItemsSource = null;
                 DgTabSuaChua.ItemsSource = null;
             }
         }
@@ -214,7 +244,13 @@ namespace QuanLyBar.Client.Views
             var selectedKhuVuc = TvKhuVuc.SelectedItem as KhuVucViewModel;
             if (selectedKhuVuc != null && !string.IsNullOrEmpty(selectedKhuVuc.Id))
             {
-                var win = new ThemKhuVucWindow("SỬA KHU VỰC");
+                if (selectedKhuVuc.Id == "-1")
+                {
+                    MessageBox.Show("Không thể sửa Thùng rác!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var win = new ThemKhuVucWindow("SỬA KHU VỰC", selectedKhuVuc.Name);
                 if (win.ShowDialog() == true)
                 {
                     var updatedKhuVuc = new DKHUVUC
@@ -233,6 +269,40 @@ namespace QuanLyBar.Client.Views
             else
             {
                 MessageBox.Show("Vui lòng chọn khu vực cụ thể cần sửa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void BtnXoaKhuVuc_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = TvKhuVuc.SelectedItem as KhuVucViewModel;
+            if (selected == null || selected.Id == null)
+            {
+                MessageBox.Show("Vui lòng chọn khu vực cần xóa trên cây thư mục!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (selected.Id == "-1")
+            {
+                var confirmTrash = MessageBox.Show("Bạn có chắc chắn muốn DỌN SẠCH THÙNG RÁC (Xóa vĩnh viễn toàn bộ bàn trong thùng rác)?", "Dọn sạch thùng rác", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (confirmTrash == MessageBoxResult.Yes)
+                {
+                    await _service.EmptyTrashAsync();
+                    await LoadBanData("-1");
+                }
+                return;
+            }
+
+            string msg = $"Bạn có chắc chắn muốn XÓA khu vực '{selected.Name}' không?";
+
+            var result = MessageBox.Show(msg, "Xác nhận xóa khu vực", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                bool success = await _service.DeleteKhuVucAsync(selected.Id, true);
+                if (success)
+                {
+                    await ReloadTreeViewAsync();
+                    await LoadBanData(null);
+                }
             }
         }
 
@@ -450,7 +520,14 @@ namespace QuanLyBar.Client.Views
 
             if (selectedList.Count == 0)
             {
-                MessageBox.Show("Vui lòng chọn ít nhất một Bàn để xóa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                var selectedKhuVuc = TvKhuVuc.SelectedItem as KhuVucViewModel;
+                if (selectedKhuVuc != null && !string.IsNullOrEmpty(selectedKhuVuc.Id) && selectedKhuVuc.Id != "-1")
+                {
+                    BtnXoaKhuVuc_Click(sender, e);
+                    return;
+                }
+
+                MessageBox.Show("Vui lòng chọn ít nhất một Bàn hoặc Khu vực để xóa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -478,6 +555,50 @@ namespace QuanLyBar.Client.Views
         private async void GridContextMenu_Opened(object sender, RoutedEventArgs e)
         {
             if (MenuDatCot == null || MenuLocCot == null) return;
+
+            bool isTrash = _currentKhuVucId == "-1" || (TvKhuVuc.SelectedItem as KhuVucViewModel)?.Id == "-1";
+
+            if (isTrash)
+            {
+                if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Visible;
+                if (MenuThemBan != null) MenuThemBan.Visibility = Visibility.Collapsed;
+                if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Collapsed;
+                if (SepDatLoc != null) SepDatLoc.Visibility = Visibility.Collapsed;
+                if (MenuDatCot != null) MenuDatCot.Visibility = Visibility.Collapsed;
+                if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Collapsed;
+                if (SepSapXep != null) SepSapXep.Visibility = Visibility.Collapsed;
+                if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Collapsed;
+                if (SepSaoChep != null) SepSaoChep.Visibility = Visibility.Collapsed;
+                if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Collapsed;
+                if (SepXoa != null) SepXoa.Visibility = Visibility.Visible;
+                if (SepKhac != null) SepKhac.Visibility = Visibility.Collapsed;
+                if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Collapsed;
+                if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Collapsed;
+                if (MenuXoa != null) MenuXoa.Header = "Xóa vĩnh viễn";
+                if (MenuSapXep != null) MenuSapXep.Header = "Sắp xếp";
+                return;
+            }
+
+            if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Collapsed;
+            if (MenuThemBan != null) MenuThemBan.Visibility = Visibility.Visible;
+            if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Visible;
+            if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Visible;
+            if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Visible;
+            if (SepDatLoc != null) SepDatLoc.Visibility = Visibility.Visible;
+            if (MenuDatCot != null) MenuDatCot.Visibility = Visibility.Visible;
+            if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Visible;
+            if (SepSapXep != null) SepSapXep.Visibility = Visibility.Visible;
+            if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Visible;
+            if (SepSaoChep != null) SepSaoChep.Visibility = Visibility.Visible;
+            if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Visible;
+            if (SepXoa != null) SepXoa.Visibility = Visibility.Visible;
+            if (SepKhac != null) SepKhac.Visibility = Visibility.Visible;
+            if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Visible;
+            if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Visible;
+            if (MenuXoa != null) MenuXoa.Header = "Xóa";
+            if (MenuSapXep != null) MenuSapXep.Header = "Sắp xếp theo";
 
             string colHeader = _clickedColumn?.Header?.ToString() ?? "Tên bàn";
             var selectedList = DgBan.SelectedItems.Cast<BanViewModel>().ToList();
@@ -701,6 +822,35 @@ namespace QuanLyBar.Client.Views
             ApplyFilterAndSort();
         }
 
+        private void MenuItem_SortByDonGia_Click(object sender, RoutedEventArgs e)
+        {
+            _currentSortColumn = "Dongia";
+            ApplyFilterAndSort();
+        }
+
+        private async void MenuItem_KhoiPhuc_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedList = DgBan.SelectedItems.Cast<BanViewModel>().ToList();
+            if (selectedList.Count == 0 && DgBan.SelectedItem is BanViewModel single) selectedList.Add(single);
+
+            if (selectedList.Count == 0)
+            {
+                MessageBox.Show("Vui lòng chọn ít nhất một bàn để khôi phục!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = MessageBox.Show($"Bạn có chắc chắn muốn khôi phục {selectedList.Count} bàn đã chọn không?", "Xác nhận khôi phục", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                foreach (var b in selectedList)
+                {
+                    await _service.RestoreBanAsync(b.Id);
+                }
+                await ReloadTreeViewAsync();
+                await LoadBanData("-1");
+            }
+        }
+
         private void MenuItem_SaoChepOClick(object sender, RoutedEventArgs e)
         {
             if (DgBan.SelectedItem is BanViewModel selected)
@@ -828,33 +978,7 @@ namespace QuanLyBar.Client.Views
         private void MenuItem_ThemMoiKhuVuc_Click(object sender, RoutedEventArgs e) { BtnThemThuMucKhuVuc_Click(sender, e); }
         private void MenuItem_ThemMoiConKhuVuc_Click(object sender, RoutedEventArgs e) { BtnThemKhuVuc_Click(sender, e); }
         private void MenuItem_SuaDoiKhuVuc_Click(object sender, RoutedEventArgs e) { BtnSuaKhuVuc_Click(sender, e); }
-        private async void MenuItem_XoaKhuVuc_Click(object sender, RoutedEventArgs e)
-        {
-            if (TvKhuVuc.SelectedItem is KhuVucViewModel selected)
-            {
-                if (selected.Id == null)
-                {
-                    MessageBox.Show("Không thể xóa thư mục gốc.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                bool isTrash = selected.Id == "-1";
-                string msg = isTrash
-                    ? $"Bạn có chắc chắn muốn XÓA VĨNH VIỄN khu vực '{selected.Name}' không?"
-                    : $"Bạn có chắc muốn đưa khu vực '{selected.Name}' vào Thùng rác không?";
-
-                var result = MessageBox.Show(msg, "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
-                {
-                    bool success = await _service.DeleteKhuVucAsync(selected.Id, isTrash);
-                    if (success)
-                    {
-                        await ReloadTreeViewAsync();
-                        await LoadBanData(null);
-                    }
-                }
-            }
-        }
+        private void MenuItem_XoaKhuVuc_Click(object sender, RoutedEventArgs e) { BtnXoaKhuVuc_Click(sender, e); }
         private void InlineEditTextBox_Loaded(object sender, RoutedEventArgs e) { }
         private void InlineEditTextBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) { }
         private void InlineEditTextBox_LostFocus(object sender, RoutedEventArgs e) { }

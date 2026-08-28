@@ -33,8 +33,13 @@ namespace QuanLyBar.Client.Services
 
                     var allItemsQuery = await conn.QueryAsync<dynamic>(sql);
                     var allItems = new List<KhuVucViewModel>();
+
                     foreach (var d in allItemsQuery)
                     {
+                        var statusVal = d.STATUS?.ToString();
+                        bool isDeleted = statusVal == "0" || statusVal == "False";
+                        if (isDeleted) continue; // Khu vực đã xóa không đưa vào thùng rác
+
                         var vm = new KhuVucViewModel
                         {
                             Id = d.ID?.ToString(),
@@ -42,7 +47,7 @@ namespace QuanLyBar.Client.Services
                             ParentId = d.PARENTID?.ToString(),
                             ParentDir = d.PARENTDIR,
                             SortOrder = d.SORTORDER?.ToString(),
-                            Status = (d.STATUS != null) ? Convert.ToBoolean(d.STATUS) : (bool?)null
+                            Status = true
                         };
                         
                         byte[] anh = d.ANH as byte[];
@@ -71,36 +76,32 @@ namespace QuanLyBar.Client.Services
                     var tree = new ObservableCollection<KhuVucViewModel>();
                     var lookup = new Dictionary<string, KhuVucViewModel>();
 
-                    // Fake root note "Tất cả"
+                    // Fake root node "Tất cả"
                     var rootNode = new KhuVucViewModel { Id = null, Name = "Tất cả", IsExpanded = true, IsSelected = true };
                     tree.Add(rootNode);
 
                     foreach (var item in allItems)
                     {
-                        lookup[item.Id] = item;
+                        if (!string.IsNullOrEmpty(item.Id))
+                        {
+                            lookup[item.Id] = item;
+                        }
                     }
 
                     foreach (var item in allItems)
                     {
-                        if (string.IsNullOrEmpty(item.ParentId))
+                        if (string.IsNullOrEmpty(item.ParentId) || !lookup.ContainsKey(item.ParentId))
                         {
                             rootNode.Children.Add(item);
                         }
                         else
                         {
-                            if (lookup.TryGetValue(item.ParentId, out var parent))
-                            {
-                                parent.Children.Add(item);
-                            }
-                            else
-                            {
-                                rootNode.Children.Add(item);
-                            }
+                            lookup[item.ParentId].Children.Add(item);
                         }
                     }
 
-                    // Thêm "Thùng rác"
-                    var trashNode = new KhuVucViewModel { Id = "-1", Name = "Thùng rác" };
+                    // Thêm "Thùng rác" (Nơi chứa các Bàn bị xóa)
+                    var trashNode = new KhuVucViewModel { Id = "-1", Name = "Thùng rác", IsExpanded = false };
                     rootNode.Children.Add(trashNode);
 
                     return tree;
@@ -181,11 +182,23 @@ namespace QuanLyBar.Client.Services
         }
         public async Task<bool> InsertKhuVucAsync(string name, string parentId)
         {
+            if (string.IsNullOrWhiteSpace(name)) return false;
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
+
+                    // Kiểm tra trùng tên khu vực
+                    var exists = await conn.ExecuteScalarAsync<int>(
+                        "SELECT COUNT(1) FROM DKHUVUC WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Name)) AND (STATUS <> 0 OR STATUS IS NULL)",
+                        new { Name = name.Trim() });
+
+                    if (exists > 0)
+                    {
+                        MessageBox.Show($"Khu vực \"{name.Trim()}\" đã tồn tại trong hệ thống! Vui lòng chọn tên khác.", "Thông báo trùng tên", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return false;
+                    }
                     
                     // Generate an integer ID (stored as string in DB but parses as int)
                     var allIds = await conn.QueryAsync<string>("SELECT ID FROM DKHUVUC");
@@ -203,7 +216,7 @@ namespace QuanLyBar.Client.Services
                         INSERT INTO DKHUVUC (ID, NAME, PARENTID, STATUS, USERCREATEDID, TIMECREATED) 
                         VALUES (@Id, @Name, @ParentId, 1, 1, CURRENT_TIMESTAMP)";
                     
-                    var rows = await conn.ExecuteAsync(sql, new { Id = newId, Name = name, ParentId = parentId });
+                    var rows = await conn.ExecuteAsync(sql, new { Id = newId, Name = name.Trim(), ParentId = parentId });
                     return rows > 0;
                 }
             }
@@ -216,17 +229,30 @@ namespace QuanLyBar.Client.Services
 
         public async Task<bool> UpdateKhuVucAsync(string id, string name)
         {
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrEmpty(id)) return false;
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
+
+                    // Kiểm tra trùng tên khu vực với các khu vực khác
+                    var exists = await conn.ExecuteScalarAsync<int>(
+                        "SELECT COUNT(1) FROM DKHUVUC WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Name)) AND CAST(ID AS VARCHAR(50)) <> CAST(@Id AS VARCHAR(50)) AND (STATUS <> 0 OR STATUS IS NULL)",
+                        new { Name = name.Trim(), Id = id });
+
+                    if (exists > 0)
+                    {
+                        MessageBox.Show($"Tên khu vực \"{name.Trim()}\" đã tồn tại trong hệ thống! Vui lòng chọn tên khác.", "Thông báo trùng tên", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return false;
+                    }
+
                     string sql = @"
                         UPDATE DKHUVUC 
                         SET NAME = @Name 
                         WHERE ID = @Id";
                     
-                    var rows = await conn.ExecuteAsync(sql, new { Name = name, Id = id });
+                    var rows = await conn.ExecuteAsync(sql, new { Name = name.Trim(), Id = id });
                     return rows > 0;
                 }
             }
@@ -237,23 +263,45 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> DeleteKhuVucAsync(string id, bool isPermanent = false)
+        public async Task<bool> DeleteKhuVucAsync(string id, bool isPermanent = true)
         {
+            if (string.IsNullOrEmpty(id)) return false;
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
-                    string sql = isPermanent
-                        ? "DELETE FROM DKHUVUC WHERE ID = @Id"
-                        : "UPDATE DKHUVUC SET STATUS = 0 WHERE ID = @Id";
-                    var rows = await conn.ExecuteAsync(sql, new { Id = id });
+                    // Đưa các bàn trong khu vực này về trạng thái Chưa thiết lập (DKHUVUCID = NULL)
+                    await conn.ExecuteAsync("UPDATE DBAN SET DKHUVUCID = NULL WHERE CAST(DKHUVUCID AS VARCHAR(50)) = @Id", new { Id = id });
+                    // Xóa khu vực con nếu có
+                    await conn.ExecuteAsync("DELETE FROM DKHUVUC WHERE CAST(PARENTID AS VARCHAR(50)) = @Id", new { Id = id });
+                    // Xóa chính khu vực
+                    var rows = await conn.ExecuteAsync("DELETE FROM DKHUVUC WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = id });
                     return rows > 0;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi xóa khu vực: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        public async Task<bool> EmptyTrashAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    await conn.ExecuteAsync("DELETE FROM DBAN WHERE STATUS = 0");
+                    await conn.ExecuteAsync("DELETE FROM DKHUVUC WHERE STATUS = 0");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi dọn sạch thùng rác: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
@@ -407,6 +455,7 @@ namespace QuanLyBar.Client.Services
 
         public async Task<bool> DeleteBansAsync(List<string> ids, bool isPermanent = false)
         {
+            if (ids == null || ids.Count == 0) return false;
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
@@ -415,8 +464,8 @@ namespace QuanLyBar.Client.Services
                     using (var trans = conn.BeginTransaction())
                     {
                         string sql = isPermanent
-                            ? "DELETE FROM DBAN WHERE ID = @Id"
-                            : "UPDATE DBAN SET STATUS = 0 WHERE ID = @Id";
+                            ? "DELETE FROM DBAN WHERE CAST(ID AS VARCHAR(50)) = @Id"
+                            : "UPDATE DBAN SET STATUS = 0 WHERE CAST(ID AS VARCHAR(50)) = @Id";
                         
                         foreach (var id in ids)
                         {
@@ -506,9 +555,9 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<IEnumerable<dynamic>> GetBangGiaTheoBanAsync(string banId)
+        public async Task<List<BangGiaTabViewModel>> GetBangGiaTheoBanAsync(string banId)
         {
-            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            if (string.IsNullOrEmpty(banId)) return new List<BangGiaTabViewModel>();
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
@@ -523,18 +572,19 @@ namespace QuanLyBar.Client.Services
                         FROM DBAN b
                         LEFT JOIN DBANGGIA bg ON CAST(b.DBANGGIAID AS VARCHAR(50)) = CAST(bg.ID AS VARCHAR(50))
                         WHERE CAST(b.ID AS VARCHAR(50)) = @BanId";
-                    return await conn.QueryAsync(sql, new { BanId = banId });
+                    var res = await conn.QueryAsync<BangGiaTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
                 }
             }
             catch
             {
-                return new List<dynamic>();
+                return new List<BangGiaTabViewModel>();
             }
         }
 
-        public async Task<IEnumerable<dynamic>> GetDatHangTheoBanAsync(string banId)
+        public async Task<List<DatHangTabViewModel>> GetDatHangTheoBanAsync(string banId)
         {
-            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            if (string.IsNullOrEmpty(banId)) return new List<DatHangTabViewModel>();
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
@@ -544,7 +594,7 @@ namespace QuanLyBar.Client.Services
                         SELECT d.NGAY as Ngay,
                                COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
                                COALESCE(d.TENKHACH, 'Khách lẻ') as TenKhach, 
-                               d.DIACHI as DiaChi,
+                               CAST(d.DIACHI AS VARCHAR(255)) as DiaChi,
                                d.DIENTHOAI as DienThoai, 
                                d.EMAIL as Email,
                                CAST(COALESCE(d.TONGCONG, d.TIENHANG, 0) AS DECIMAL(18,2)) as TongCong,
@@ -560,77 +610,222 @@ namespace QuanLyBar.Client.Services
                         LEFT JOIN DMUCDICHDAT md ON CAST(d.DMUCDICHDATID AS VARCHAR(50)) = CAST(md.ID AS VARCHAR(50))
                         WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
                         ORDER BY d.NGAY DESC";
-                    return await conn.QueryAsync(sql, new { BanId = banId });
+                    var res = await conn.QueryAsync<DatHangTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
                 }
             }
             catch
             {
-                return new List<dynamic>();
+                return new List<DatHangTabViewModel>();
             }
         }
 
-        public async Task<IEnumerable<dynamic>> GetHoaDonTheoBanAsync(string banId)
+        public async Task<List<HoaDonTabViewModel>> GetHoaDonTheoBanAsync(string banId)
         {
-            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            if (string.IsNullOrEmpty(banId)) return new List<HoaDonTabViewModel>();
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
                     string sql = @"
-                        SELECT COALESCE(d.SOHD, d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                        SELECT d.NOTE as GhiChu,
+                               COALESCE(d.SOHD, d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
                                d.NGAY as Ngay, 
                                COALESCE(u.NAME, u.USERNAME, 'Thu ngân') as NhanVien, 
                                COALESCE(kh.NAME, 'Khách lẻ') as KhachHang, 
-                               CAST(d.TIENHANG AS DECIMAL(18,2)) as TongTien, 
-                               CAST(d.TIENGIAMGIA AS DECIMAL(18,2)) as GiamGia, 
-                               CAST(d.TIENTHANHTOAN AS DECIMAL(18,2)) as ThanhToan, 
-                               COALESCE(d.LOAITHANHTOAN, 'Tiền mặt') as HinhThuc, 
-                               d.NOTE as GhiChu
+                               CAST(COALESCE(d.TIENHANG, 0) AS DECIMAL(18,2)) as TongTien, 
+                               CAST(COALESCE(d.TIENGIAMGIA, 0) AS DECIMAL(18,2)) as GiamGia, 
+                               CAST(COALESCE(d.TIENTHANHTOAN, 0) AS DECIMAL(18,2)) as ThanhToan, 
+                               COALESCE(d.LOAITHANHTOAN, 'Tiền mặt') as HinhThuc
                         FROM TDONHANG d
                         LEFT JOIN SUSER u ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
                         LEFT JOIN DKHACHHANG kh ON CAST(d.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
                         WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
                         ORDER BY d.NGAY DESC";
-                    return await conn.QueryAsync(sql, new { BanId = banId });
+                    var res = await conn.QueryAsync<HoaDonTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
                 }
             }
             catch
             {
-                return new List<dynamic>();
+                return new List<HoaDonTabViewModel>();
             }
         }
 
-        public async Task<IEnumerable<dynamic>> GetXuatKhoTheoBanAsync(string banId)
+        public async Task<List<KhoTabViewModel>> GetNhapKhoTheoBanAsync(string banId)
         {
-            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            if (string.IsNullOrEmpty(banId)) return new List<KhoTabViewModel>();
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
                     string sql = @"
-                        SELECT COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                        SELECT d.NOTE as GhiChu,
+                               COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                               d.NGAY as Ngay, 
+                               COALESCE(k.NAME, 'Kho chính') as KhoHang,
+                               COALESCE(ncc.NAME, 'Nhà cung cấp') as NhaCungCap,
+                               COALESCE(u.NAME, u.USERNAME, 'Nhân viên') as NhanVien,
+                               CAST(COALESCE(d.TIENHANG, 0) AS DECIMAL(18,2)) as TongTien, 
+                               CAST(COALESCE(d.DATHANHTOAN, d.TIENTHANHTOAN, 0) AS DECIMAL(18,2)) as DaThanhToan, 
+                               CAST(COALESCE(d.CONNO, 0) AS DECIMAL(18,2)) as ConNo
+                        FROM TDONHANG d
+                        LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
+                        LEFT JOIN DNHACUNGCAP ncc ON CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(ncc.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER u ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY d.NGAY DESC";
+                    var res = await conn.QueryAsync<KhoTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
+                }
+            }
+            catch
+            {
+                return new List<KhoTabViewModel>();
+            }
+        }
+
+        public async Task<List<KhoTabViewModel>> GetXuatKhoTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<KhoTabViewModel>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT d.NOTE as GhiChu,
+                               COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
                                d.NGAY as Ngay, 
                                COALESCE(k.NAME, 'Kho chính') as KhoHang, 
                                COALESCE(kh.NAME, 'Khách lẻ') as KhachHang, 
                                COALESCE(u.NAME, u.USERNAME, 'Nhân viên') as NhanVien, 
-                               CAST(d.TIENHANG AS DECIMAL(18,2)) as TongTien, 
-                               CAST(d.TIENTHANHTOAN AS DECIMAL(18,2)) as DaThanhToan, 
-                               CAST(d.CONNO AS DECIMAL(18,2)) as ConNo, 
-                               d.NOTE as GhiChu
+                               CAST(COALESCE(d.TIENHANG, 0) AS DECIMAL(18,2)) as TongTien, 
+                               CAST(COALESCE(d.DATHANHTOAN, d.TIENTHANHTOAN, 0) AS DECIMAL(18,2)) as DaThanhToan, 
+                               CAST(COALESCE(d.CONNO, 0) AS DECIMAL(18,2)) as ConNo
                         FROM TDONHANG d
                         LEFT JOIN DKHOHANG k ON CAST(d.DKHOXUATID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
                         LEFT JOIN DKHACHHANG kh ON CAST(d.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
                         LEFT JOIN SUSER u ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
                         WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
                         ORDER BY d.NGAY DESC";
-                    return await conn.QueryAsync(sql, new { BanId = banId });
+                    var res = await conn.QueryAsync<KhoTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
                 }
             }
             catch
             {
-                return new List<dynamic>();
+                return new List<KhoTabViewModel>();
+            }
+        }
+
+        public async Task<List<KhoTabViewModel>> GetChuyenKhoTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<KhoTabViewModel>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT d.NOTE as GhiChu,
+                               COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                               d.NGAY as Ngay, 
+                               COALESCE(kx.NAME, 'Kho xuất') as TuKho, 
+                               COALESCE(kn.NAME, 'Kho nhập') as DenKho, 
+                               COALESCE(u.NAME, u.USERNAME, 'Nhân viên') as NhanVien, 
+                               COALESCE(d.NOTE, '') as DienGiai
+                        FROM TDONHANG d
+                        LEFT JOIN DKHOHANG kx ON CAST(d.DKHOXUATID AS VARCHAR(50)) = CAST(kx.ID AS VARCHAR(50))
+                        LEFT JOIN DKHOHANG kn ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(kn.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER u ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY d.NGAY DESC";
+                    var res = await conn.QueryAsync<KhoTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
+                }
+            }
+            catch
+            {
+                return new List<KhoTabViewModel>();
+            }
+        }
+
+        public async Task<List<KiemKeTabViewModel>> GetKiemKeTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<KiemKeTabViewModel>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT d.NOTE as GhiChu,
+                               COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                               d.NGAY as Ngay, 
+                               COALESCE(k.NAME, 'Kho chính') as KhoHang, 
+                               COALESCE(u.NAME, u.USERNAME, 'Nhân viên') as NhanVien, 
+                               COALESCE(d.NOTE, '') as DienGiai,
+                               COALESCE(d.VOUCHER, '') as Voucher,
+                               COALESCE(nvg.NAME, '') as NhanVienGiaoHang,
+                               CAST(COALESCE(d.TRICHNHANVIEN, '0') AS DECIMAL(18,2)) as TrichNhanVien,
+                               COALESCE(ch.NAME, '') as CuaHang,
+                               CAST(COALESCE(d.CONLAI, '0') AS DECIMAL(18,2)) as ConLai,
+                               CAST(COALESCE(d.THANHTOAN, d.TIENTHANHTOAN, 0) AS DECIMAL(18,2)) as ThanhToan,
+                               COALESCE(tk.NAME, '') as TaiKhoanNganHang,
+                               COALESCE(d.VOUCHER, '') as MaVoucher,
+                               COALESCE(d.THE, '') as TheTt
+                        FROM TDONHANG d
+                        LEFT JOIN DKHOHANG k ON CAST(d.DKHOXUATID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER u ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN nvg ON CAST(d.DNHANVIENGIAOID AS VARCHAR(50)) = CAST(nvg.ID AS VARCHAR(50))
+                        LEFT JOIN DCUAHANG ch ON CAST(d.DCUAHANGID AS VARCHAR(50)) = CAST(ch.ID AS VARCHAR(50))
+                        LEFT JOIN DTAIKHOANNGANHANG tk ON CAST(d.DTAIKHOANNGANHANGID AS VARCHAR(50)) = CAST(tk.ID AS VARCHAR(50))
+                        WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY d.NGAY DESC";
+                    var res = await conn.QueryAsync<KiemKeTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
+                }
+            }
+            catch
+            {
+                return new List<KiemKeTabViewModel>();
+            }
+        }
+
+        public async Task<List<SuaChuaTabViewModel>> GetSuaChuaTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<SuaChuaTabViewModel>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT sc.NOTE as GhiChu,
+                               COALESCE(sc.NAME, CAST(sc.ID AS VARCHAR(50))) as SoPhieu, 
+                               sc.NGAY as Ngay, 
+                               COALESCE(b.NAME, 'Bàn') as Phong,
+                               CASE WHEN sc.DASUAXONG = '1' OR sc.DASUAXONG = 'true' THEN 1 ELSE 0 END as DaSuaXong,
+                               COALESCE(sc.NOIDUNG, '') as NoiDung,
+                               COALESCE(lp.NAME, '') as LoaiPhong,
+                               COALESCE(nv.NAME, 'Nhân viên') as NhanVien,
+                               CASE WHEN sc.CONSUDUNGDUOC = '1' OR sc.CONSUDUNGDUOC = 'true' THEN 1 ELSE 0 END as ConSuDungDuoc
+                        FROM TSUACHUA sc
+                        LEFT JOIN DBAN b ON CAST(sc.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DLOAIPHONG lp ON CAST(sc.DLOAIPHONGID AS VARCHAR(50)) = CAST(lp.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN nv ON CAST(sc.DNHANVIENID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        WHERE CAST(sc.DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY sc.NGAY DESC";
+                    var res = await conn.QueryAsync<SuaChuaTabViewModel>(sql, new { BanId = banId });
+                    return res.ToList();
+                }
+            }
+            catch
+            {
+                return new List<SuaChuaTabViewModel>();
             }
         }
         public async Task<ObservableCollection<BieuTuongViewModel>> GetBieuTuongTreeAsync()
@@ -795,18 +990,30 @@ namespace QuanLyBar.Client.Services
 
         public async Task<bool> RenameKhuVucAsync(int id, string newName)
         {
+            if (string.IsNullOrWhiteSpace(newName)) return false;
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
+
+                    // Kiểm tra trùng tên khu vực
+                    var exists = await conn.ExecuteScalarAsync<int>(
+                        "SELECT COUNT(1) FROM DKHUVUC WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@NewName)) AND ID <> @Id AND (STATUS <> 0 OR STATUS IS NULL)",
+                        new { NewName = newName.Trim(), Id = id });
+
+                    if (exists > 0)
+                    {
+                        MessageBox.Show($"Tên khu vực \"{newName.Trim()}\" đã tồn tại trong hệ thống! Vui lòng chọn tên khác.", "Thông báo trùng tên", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return false;
+                    }
                     
                     string sql = @"
                         UPDATE DKHUVUC 
                         SET NAME = @NewName
                         WHERE ID = @Id";
 
-                    int affected = await conn.ExecuteAsync(sql, new { Id = id, NewName = newName });
+                    int affected = await conn.ExecuteAsync(sql, new { Id = id, NewName = newName.Trim() });
                     return affected > 0;
                 }
             }
