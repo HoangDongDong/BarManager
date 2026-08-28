@@ -505,6 +505,127 @@ namespace QuanLyBar.Client.Services
                 return "Administrator";
             }
         }
+
+        public async Task<IEnumerable<dynamic>> GetBangGiaTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT COALESCE(bg.NAME, 'Bảng giá chuẩn') as BangGia,
+                               b.DONGIA as DonGia,
+                               '00:00' as GioBatDau,
+                               '23:59' as GioKetThuc,
+                               b.NOTE as GhiChu
+                        FROM DBAN b
+                        LEFT JOIN DBANGGIA bg ON CAST(b.DBANGGIAID AS VARCHAR(50)) = CAST(bg.ID AS VARCHAR(50))
+                        WHERE CAST(b.ID AS VARCHAR(50)) = @BanId";
+                    return await conn.QueryAsync(sql, new { BanId = banId });
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
+
+        public async Task<IEnumerable<dynamic>> GetDatHangTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT CAST(ID AS VARCHAR(50)) as SoPhieu, 
+                               NGAY as Ngay, 
+                               COALESCE(TENKHACH, 'Khách lẻ') as TenKhach, 
+                               DIENTHOAI as DienThoai, 
+                               '18:00' as GioDen, 
+                               COALESCE(SOKHACH, '4') as SoKhach, 
+                               CAST(TIENHANG AS DECIMAL(18,2)) as DatTruoc, 
+                               NOTE as GhiChu,
+                               CASE WHEN STATUS = 1 THEN 'Đang đặt' ELSE 'Đã xong' END as TrangThai
+                        FROM TDATHANG 
+                        WHERE CAST(DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY NGAY DESC";
+                    return await conn.QueryAsync(sql, new { BanId = banId });
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
+
+        public async Task<IEnumerable<dynamic>> GetHoaDonTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT COALESCE(d.SOHD, d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                               d.NGAY as Ngay, 
+                               COALESCE(u.NAME, u.USERNAME, 'Thu ngân') as NhanVien, 
+                               COALESCE(kh.NAME, 'Khách lẻ') as KhachHang, 
+                               CAST(d.TIENHANG AS DECIMAL(18,2)) as TongTien, 
+                               CAST(d.TIENGIAMGIA AS DECIMAL(18,2)) as GiamGia, 
+                               CAST(d.TIENTHANHTOAN AS DECIMAL(18,2)) as ThanhToan, 
+                               COALESCE(d.LOAITHANHTOAN, 'Tiền mặt') as HinhThuc, 
+                               d.NOTE as GhiChu
+                        FROM TDONHANG d
+                        LEFT JOIN SUSER u ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(d.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY d.NGAY DESC";
+                    return await conn.QueryAsync(sql, new { BanId = banId });
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
+
+        public async Task<IEnumerable<dynamic>> GetXuatKhoTheoBanAsync(string banId)
+        {
+            if (string.IsNullOrEmpty(banId)) return new List<dynamic>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT COALESCE(d.NAME, CAST(d.ID AS VARCHAR(50))) as SoPhieu, 
+                               d.NGAY as Ngay, 
+                               COALESCE(k.NAME, 'Kho chính') as KhoHang, 
+                               COALESCE(kh.NAME, 'Khách lẻ') as KhachHang, 
+                               COALESCE(u.NAME, u.USERNAME, 'Nhân viên') as NhanVien, 
+                               CAST(d.TIENHANG AS DECIMAL(18,2)) as TongTien, 
+                               CAST(d.TIENTHANHTOAN AS DECIMAL(18,2)) as DaThanhToan, 
+                               CAST(d.CONNO AS DECIMAL(18,2)) as ConNo, 
+                               d.NOTE as GhiChu
+                        FROM TDONHANG d
+                        LEFT JOIN DKHOHANG k ON CAST(d.DKHOXUATID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(d.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER u ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        WHERE CAST(d.DBANID AS VARCHAR(50)) = @BanId
+                        ORDER BY d.NGAY DESC";
+                    return await conn.QueryAsync(sql, new { BanId = banId });
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
         public async Task<ObservableCollection<BieuTuongViewModel>> GetBieuTuongTreeAsync()
         {
             try

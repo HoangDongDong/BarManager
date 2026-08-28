@@ -133,7 +133,7 @@ namespace QuanLyBar.Client.Views
             }
         }
 
-        private void DgBan_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void DgBan_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DgBan.SelectedItem is BanViewModel selected)
             {
@@ -149,6 +149,20 @@ namespace QuanLyBar.Client.Views
                 TxtInfoSuaDoi.Text = !string.IsNullOrEmpty(timeModified) ? timeModified : "--/--/---- --:--:--";
                 TxtInfoNguoiTao.Text = !string.IsNullOrEmpty(selected.UsercreatedName) ? selected.UsercreatedName : "Administrator";
                 TxtInfoNguoiSua.Text = !string.IsNullOrEmpty(selected.UsermodifiedName) ? selected.UsermodifiedName : "Administrator";
+
+                // Nạp dữ liệu các tab thống kê theo bàn được chọn
+                try
+                {
+                    DgBangGiaTheoBan.ItemsSource = await _service.GetBangGiaTheoBanAsync(selected.Id);
+                    DgTabDatHang.ItemsSource = await _service.GetDatHangTheoBanAsync(selected.Id);
+                    DgTabHoaDon.ItemsSource = await _service.GetHoaDonTheoBanAsync(selected.Id);
+                    DgTabXuatKho.ItemsSource = await _service.GetXuatKhoTheoBanAsync(selected.Id);
+                    DgTabNhapKho.ItemsSource = null;
+                    DgTabChuyenKho.ItemsSource = null;
+                    DgTabKiemKe.ItemsSource = null;
+                    DgTabSuaChua.ItemsSource = null;
+                }
+                catch { }
             }
             else
             {
@@ -156,6 +170,15 @@ namespace QuanLyBar.Client.Views
                 TxtInfoSuaDoi.Text = "--/--/---- --:--:--";
                 TxtInfoNguoiTao.Text = "Administrator";
                 TxtInfoNguoiSua.Text = "Administrator";
+
+                DgBangGiaTheoBan.ItemsSource = null;
+                DgTabDatHang.ItemsSource = null;
+                DgTabHoaDon.ItemsSource = null;
+                DgTabXuatKho.ItemsSource = null;
+                DgTabNhapKho.ItemsSource = null;
+                DgTabChuyenKho.ItemsSource = null;
+                DgTabKiemKe.ItemsSource = null;
+                DgTabSuaChua.ItemsSource = null;
             }
         }
 
