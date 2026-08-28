@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,11 +13,20 @@ namespace QuanLyBar.Client.Views
         public DataGridColumn Column { get; set; }
         public string Header => Column?.Header?.ToString() ?? "";
         public bool DefaultVisible { get; set; }
-        public int DefaultDisplayIndex { get; set; }
     }
 
     public partial class ChonCotHienThiWindow : Window
     {
+        public static readonly List<string> DefaultColumns = new List<string>
+        {
+            "Tên bàn",
+            "Ghi chú",
+            "Khu vực",
+            "Nhóm hiển thị",
+            "Loại phòng",
+            "Đơn giá"
+        };
+
         private DataGrid _grid;
         private List<ColumnDisplayItem> _allItems = new List<ColumnDisplayItem>();
         private ObservableCollection<ColumnDisplayItem> _hiddenColumns = new ObservableCollection<ColumnDisplayItem>();
@@ -27,36 +37,33 @@ namespace QuanLyBar.Client.Views
             InitializeComponent();
             _grid = grid;
 
-            int index = 0;
+            var defaults = defaultVisibleHeaders ?? DefaultColumns;
+
             foreach (var col in _grid.Columns)
             {
                 string header = col.Header?.ToString();
-                if (string.IsNullOrEmpty(header)) continue;
-
-                // STT có thể giữ nguyên cố định nếu muốn, hoặc cho chọn
-                if (header == "STT") continue;
-
-                bool isDefaultVisible = defaultVisibleHeaders != null 
-                    ? defaultVisibleHeaders.Contains(header) 
-                    : (col.Visibility == Visibility.Visible);
+                if (string.IsNullOrEmpty(header) || header == "STT") continue;
 
                 var item = new ColumnDisplayItem
                 {
                     Column = col,
-                    DefaultVisible = isDefaultVisible,
-                    DefaultDisplayIndex = index++
+                    DefaultVisible = defaults.Any(d => string.Equals(d, header, StringComparison.OrdinalIgnoreCase))
                 };
                 _allItems.Add(item);
-
-                if (col.Visibility == Visibility.Visible)
-                {
-                    _visibleColumns.Add(item);
-                }
-                else
-                {
-                    _hiddenColumns.Add(item);
-                }
             }
+
+            // Danh sách hiển thị theo thứ tự DisplayIndex hiện tại trên lưới
+            var currentVisible = _allItems
+                .Where(i => i.Column.Visibility == Visibility.Visible)
+                .OrderBy(i => i.Column.DisplayIndex)
+                .ToList();
+
+            var currentHidden = _allItems
+                .Where(i => i.Column.Visibility != Visibility.Visible)
+                .ToList();
+
+            foreach (var item in currentVisible) _visibleColumns.Add(item);
+            foreach (var item in currentHidden) _hiddenColumns.Add(item);
 
             LstCotAn.ItemsSource = _hiddenColumns;
             LstCotHienThi.ItemsSource = _visibleColumns;
@@ -129,14 +136,21 @@ namespace QuanLyBar.Client.Views
             _hiddenColumns.Clear();
             _visibleColumns.Clear();
 
-            var sortedDefaults = _allItems.OrderBy(i => i.DefaultDisplayIndex).ToList();
-            foreach (var item in sortedDefaults)
+            // 1. Thêm các cột mặc định theo đúng thứ tự yêu cầu:
+            // Tên bàn, Ghi chú, Khu vực, Nhóm hiển thị, Loại phòng, Đơn giá
+            foreach (var defaultName in DefaultColumns)
             {
-                if (item.DefaultVisible)
+                var match = _allItems.FirstOrDefault(i => string.Equals(i.Header, defaultName, StringComparison.OrdinalIgnoreCase));
+                if (match != null && !_visibleColumns.Contains(match))
                 {
-                    _visibleColumns.Add(item);
+                    _visibleColumns.Add(match);
                 }
-                else
+            }
+
+            // 2. Tất cả các cột còn lại đưa vào danh sách ẩn
+            foreach (var item in _allItems)
+            {
+                if (!_visibleColumns.Contains(item))
                 {
                     _hiddenColumns.Add(item);
                 }
@@ -145,7 +159,7 @@ namespace QuanLyBar.Client.Views
 
         private void BtnChapNhan_Click(object sender, RoutedEventArgs e)
         {
-            // Ẩn tất cả cột ẩn
+            // 1. Ẩn tất cả cột trong danh sách cột ẩn
             foreach (var item in _hiddenColumns)
             {
                 if (item.Column != null)
@@ -154,19 +168,43 @@ namespace QuanLyBar.Client.Views
                 }
             }
 
-            // Hiện các cột được chọn và cập nhật thứ tự hiển thị DisplayIndex
-            int displayIndex = 1; // 0 dành cho STT nếu có
+            // 2. Chuẩn bị danh sách toàn bộ cột theo thứ tự hiển thị mong muốn
+            var orderedCols = new List<DataGridColumn>();
+
+            // Giữ STT ở đầu nếu có
+            var sttCol = _grid.Columns.FirstOrDefault(c => c.Header?.ToString() == "STT");
+            if (sttCol != null)
+            {
+                sttCol.Visibility = Visibility.Visible;
+                orderedCols.Add(sttCol);
+            }
+
+            // Thêm các cột hiển thị theo đúng thứ tự người dùng đã chọn
             foreach (var item in _visibleColumns)
             {
                 if (item.Column != null)
                 {
                     item.Column.Visibility = Visibility.Visible;
-                    if (item.Column.DisplayIndex != displayIndex && displayIndex < _grid.Columns.Count)
+                    if (!orderedCols.Contains(item.Column))
                     {
-                        item.Column.DisplayIndex = displayIndex;
+                        orderedCols.Add(item.Column);
                     }
-                    displayIndex++;
                 }
+            }
+
+            // Thêm các cột ẩn còn lại vào cuối
+            foreach (var item in _hiddenColumns)
+            {
+                if (item.Column != null && !orderedCols.Contains(item.Column))
+                {
+                    orderedCols.Add(item.Column);
+                }
+            }
+
+            // Gán DisplayIndex tuần tự để WPF cập nhật vị trí chính xác 100%
+            for (int i = 0; i < orderedCols.Count; i++)
+            {
+                orderedCols[i].DisplayIndex = i;
             }
 
             DialogResult = true;
