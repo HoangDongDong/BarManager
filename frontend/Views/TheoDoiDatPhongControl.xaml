@@ -4,87 +4,140 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="1000" Loaded="UserControl_Loaded">
+             d:DesignHeight="650" d:DesignWidth="1100" Loaded="UserControl_Loaded">
     
+    <UserControl.Resources>
+        <Style x:Key="ZoomButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#f4f4f4"/>
+            <Setter Property="BorderBrush" Value="#cccccc"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e6f2fa"/>
+                    <Setter Property="BorderBrush" Value="#0078d7"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActiveZoomButtonStyle" TargetType="Button" BasedOn="{StaticResource ZoomButtonStyle}">
+            <Setter Property="Background" Value="#dbe7f7"/>
+            <Setter Property="BorderBrush" Value="#2b579a"/>
+            <Setter Property="Foreground" Value="#003399"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="White">
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="38"/>
+            <RowDefinition Height="28"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Thanh công cụ (Toolbar) -->
         <Border Grid.Row="0" Background="#f0f0f0" BorderBrush="#d4d4d4" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
-                <DatePicker x:Name="DpStartDate" Width="120" Margin="5,0" SelectedDateChanged="DpStartDate_SelectedDateChanged"/>
-                <Button Content=" /4 " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
-                <Button Content=" /2 " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
-                <Button Content=" 2x " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
-                <Button Content=" 4x " Margin="2,0" Padding="5,2" Background="White" BorderBrush="#ccc"/>
-                <TextBlock x:Name="TxtMonthYear" Text="Tháng 8 - 2026" VerticalAlignment="Center" Margin="10,0" Foreground="Gray"/>
-            </StackPanel>
+            <Grid Margin="6,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="📅 " VerticalAlignment="Center" FontSize="14"/>
+                    <DatePicker x:Name="DpStartDate" Width="115" Height="24" Margin="0,0,5,0" SelectedDateChanged="DpStartDate_SelectedDateChanged"/>
+                    
+                    <Button x:Name="BtnPrevPeriod" Content="◀" ToolTip="Kỳ trước" Style="{StaticResource ZoomButtonStyle}" Click="BtnPrevPeriod_Click"/>
+                    <Button x:Name="BtnToday" Content="Hôm nay" ToolTip="Về hôm nay" Style="{StaticResource ZoomButtonStyle}" Click="BtnToday_Click"/>
+                    <Button x:Name="BtnNextPeriod" Content="▶" ToolTip="Kỳ sau" Style="{StaticResource ZoomButtonStyle}" Click="BtnNextPeriod_Click"/>
+
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,4"/>
+
+                    <!-- Zoom / Period Scale Buttons -->
+                    <Button x:Name="BtnZoomDiv4" Content=" /4 " ToolTip="Hiển thị 28 ngày (4 tuần)" Style="{StaticResource ZoomButtonStyle}" Click="BtnZoom_Click" Tag="28"/>
+                    <Button x:Name="BtnZoomDiv2" Content=" /2 " ToolTip="Hiển thị 14 ngày (2 tuần)" Style="{StaticResource ActiveZoomButtonStyle}" Click="BtnZoom_Click" Tag="14"/>
+                    <Button x:Name="BtnZoom2x" Content=" 2x " ToolTip="Hiển thị 7 ngày (1 tuần)" Style="{StaticResource ZoomButtonStyle}" Click="BtnZoom_Click" Tag="7"/>
+                    <Button x:Name="BtnZoom4x" Content=" 4x " ToolTip="Hiển thị 4 ngày" Style="{StaticResource ZoomButtonStyle}" Click="BtnZoom_Click" Tag="4"/>
+
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,4"/>
+
+                    <TextBlock Text="Khu vực: " VerticalAlignment="Center" Margin="5,0,2,0"/>
+                    <ComboBox x:Name="CmbKhuVuc" Width="130" Height="24" DisplayMemberPath="Name" SelectedValuePath="Id" SelectionChanged="CmbKhuVuc_SelectionChanged"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnThemDatPhong" Content="➕ Đặt phòng" Margin="4,0" Padding="8,2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemDatPhong_Click"/>
+                    <Button x:Name="BtnIn" Content="🖨 In" Margin="4,0" Padding="8,2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnIn_Click"/>
+                    <Button x:Name="BtnRefresh" Content="🔄 Refresh" Margin="4,0" Padding="8,2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnRefresh_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Hàng tiêu đề Tháng / Năm (Month Header Bar) -->
+        <Border Grid.Row="1" Background="#485f75" BorderBrush="#3d566e" BorderThickness="0,0,0,1">
+            <Grid x:Name="GridMonthHeaders">
+                <!-- Sẽ được sinh động bằng code-behind để khớp độ rộng các cột ngày -->
+            </Grid>
         </Border>
 
         <!-- Lưới dữ liệu DataGrid -->
-        <DataGrid x:Name="DgTheoDoi" Grid.Row="1" AutoGenerateColumns="False" 
-                  CanUserAddRows="False" IsReadOnly="True"
+        <DataGrid x:Name="DgTheoDoi" Grid.Row="2" AutoGenerateColumns="False" 
+                  CanUserAddRows="False" CanUserResizeRows="False" IsReadOnly="True"
                   GridLinesVisibility="All" HeadersVisibility="Column"
                   HorizontalGridLinesBrush="#d4d4d4" VerticalGridLinesBrush="#d4d4d4"
-                  Background="White" RowBackground="#fdfdfd" AlternatingRowBackground="#fdfdfd">
+                  Background="White" RowBackground="#ffffff" AlternatingRowBackground="#fcfcfc"
+                  SelectionMode="Single" SelectionUnit="CellOrRowHeader"
+                  MouseDoubleClick="DgTheoDoi_MouseDoubleClick">
             
-            <DataGrid.Resources>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#a1b3c6"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="Padding" Value="5"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                    <Setter Property="BorderBrush" Value="#869db4"/>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Height" Value="24"/>
+                    <Setter Property="Background" Value="{Binding RowBackground}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsSummary}" Value="True">
+                            <Setter Property="Background" Value="#fffae6"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </DataTrigger>
+                    </Style.Triggers>
                 </Style>
-                
+            </DataGrid.RowStyle>
+
+            <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
-                    <Setter Property="Foreground" Value="{Binding MauChu}"/>
-                    <Setter Property="FontWeight" Value="{Binding DoDam}"/>
-                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Padding" Value="5"/>
+                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                    <Setter Property="BorderBrush" Value="#d4d4d4"/>
+                    <Setter Property="Padding" Value="2,0"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
                     <Style.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#cbe8f6"/>
-                            <Setter Property="Foreground" Value="{Binding MauChu}"/>
+                            <Setter Property="Background" Value="#bde0fe"/>
+                            <Setter Property="Foreground" Value="Black"/>
                         </Trigger>
                     </Style.Triggers>
                 </Style>
-            </DataGrid.Resources>
-            
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="" Binding="{Binding TieuDe}" Width="150" >
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="#b33939"/>
-                            <Setter Property="FontWeight" Value="Bold"/>
-                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn x:Name="ColNgay1" Header="Ngay1" Binding="{Binding Ngay1}" Width="*"/>
-                <DataGridTextColumn x:Name="ColNgay2" Header="Ngay2" Binding="{Binding Ngay2}" Width="*"/>
-                <DataGridTextColumn x:Name="ColNgay3" Header="Ngay3" Binding="{Binding Ngay3}" Width="*"/>
-                <DataGridTextColumn x:Name="ColNgay4" Header="Ngay4" Binding="{Binding Ngay4}" Width="*"/>
-                <DataGridTextColumn x:Name="ColNgay5" Header="Ngay5" Binding="{Binding Ngay5}" Width="*"/>
-                <DataGridTextColumn x:Name="ColNgay6" Header="Ngay6" Binding="{Binding Ngay6}" Width="*"/>
-                <DataGridTextColumn x:Name="ColNgay7" Header="Ngay7" Binding="{Binding Ngay7}" Width="*"/>
-                <DataGridTextColumn Header="Tổng" Binding="{Binding Tong}" Width="60" >
-                    <DataGridTextColumn.HeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background" Value="#6c7a89"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="5"/>
-                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        </Style>
-                    </DataGridTextColumn.HeaderStyle>
-                </DataGridTextColumn>
-            </DataGrid.Columns>
+            </DataGrid.CellStyle>
+
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="➕ Đặt phòng mới" Click="BtnThemDatPhong_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="➕" Foreground="Green"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="✏️ Xem / Chỉnh sửa đơn đặt phòng" Click="MenuItem_SuaDatPhong_Click"/>
+                    <Separator/>
+                    <MenuItem Header="🔄 Refresh" Click="BtnRefresh_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="🔄" Foreground="Blue"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="🖨 In danh sách" Click="BtnIn_Click"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
         </DataGrid>
     </Grid>
 </UserControl>

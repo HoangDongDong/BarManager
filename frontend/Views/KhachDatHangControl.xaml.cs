@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
 
@@ -13,6 +16,10 @@ namespace QuanLyBar.Client.Views
         private string _currentCategoryId = null;
         private bool _isMucDichDatMode = false;
         private System.Collections.Generic.List<DatHangViewModel> _allDatHangList;
+        private DataGridColumn _clickedColumn = null;
+        private DataGridCell _clickedCell = null;
+        private string _currentSortColumn = null;
+        private bool _isSortAscending = true;
 
         public KhachDatHangControl()
         {
@@ -85,13 +92,196 @@ namespace QuanLyBar.Client.Views
             if (BtnToolbarXoa != null) BtnToolbarXoa.Content = isTrash ? "❌ Xóa vĩnh viễn" : "❌ Xóa (Del)";
         }
 
+        private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row)
+            {
+                if (!row.IsSelected)
+                {
+                    DgDatHang.SelectedItems.Clear();
+                    row.IsSelected = true;
+                }
+                row.Focus();
+
+                var hit = System.Windows.Media.VisualTreeHelper.HitTest(row, e.GetPosition(row));
+                if (hit != null)
+                {
+                    DependencyObject dep = hit.VisualHit;
+                    while (dep != null && !(dep is DataGridCell))
+                    {
+                        dep = System.Windows.Media.VisualTreeHelper.GetParent(dep);
+                    }
+                    if (dep is DataGridCell cell)
+                    {
+                        _clickedCell = cell;
+                        _clickedColumn = cell.Column;
+                    }
+                }
+            }
+        }
+
         private void GridContextMenu_Opened(object sender, RoutedEventArgs e)
         {
             bool isTrash = _currentCategoryId == "-1";
-            if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = isTrash ? Visibility.Visible : Visibility.Collapsed;
-            if (MenuThemMoi != null) MenuThemMoi.Visibility = !isTrash ? Visibility.Visible : Visibility.Collapsed;
-            if (MenuChinhSua != null) MenuChinhSua.Visibility = !isTrash ? Visibility.Visible : Visibility.Collapsed;
-            if (MenuXoa != null) MenuXoa.Header = isTrash ? "Xóa vĩnh viễn" : "Xóa (Del)";
+            if (isTrash)
+            {
+                if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Visible;
+                if (MenuThemMoi != null) MenuThemMoi.Visibility = Visibility.Collapsed;
+                if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Collapsed;
+                if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Collapsed;
+                if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Collapsed;
+                if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Collapsed;
+                if (SepSaoChep != null) SepSaoChep.Visibility = Visibility.Collapsed;
+                if (SepTienIch != null) SepTienIch.Visibility = Visibility.Collapsed;
+                if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Collapsed;
+                if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Collapsed;
+                if (MenuThuocTinh != null) MenuThuocTinh.Visibility = Visibility.Collapsed;
+                if (MenuXoa != null) MenuXoa.Header = "Xóa vĩnh viễn";
+                if (MenuSapXep != null) MenuSapXep.Header = "Sắp xếp";
+            }
+            else
+            {
+                if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Collapsed;
+                if (MenuThemMoi != null) MenuThemMoi.Visibility = Visibility.Visible;
+                if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Visible;
+                if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Visible;
+                if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Visible;
+                if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Visible;
+                if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Visible;
+                if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Visible;
+                if (SepSaoChep != null) SepSaoChep.Visibility = Visibility.Visible;
+                if (SepTienIch != null) SepTienIch.Visibility = Visibility.Visible;
+                if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Visible;
+                if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Visible;
+                if (MenuThuocTinh != null) MenuThuocTinh.Visibility = Visibility.Visible;
+                if (MenuXoa != null) MenuXoa.Header = "Xóa";
+                if (MenuSapXep != null) MenuSapXep.Header = "Sắp xếp theo";
+
+                string colHeader = _clickedColumn?.Header?.ToString() ?? "Số phiếu";
+                if (colHeader == "STT") colHeader = "Số phiếu";
+                if (MenuLocCot != null) MenuLocCot.Header = $"Lọc {colHeader}";
+            }
+        }
+
+        private void MenuLocCot_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = DgDatHang.SelectedItem as DatHangViewModel;
+            if (selected == null) return;
+
+            string colHeader = _clickedColumn?.Header?.ToString() ?? "Số phiếu";
+            string filterVal = colHeader switch
+            {
+                "Ngày" => selected.Ngay.HasValue ? selected.Ngay.Value.ToString("dd/MM/yyyy") : "",
+                "Số phiếu" => selected.SoPhieu ?? "",
+                "Tên khách" => selected.TenKhach ?? "",
+                "Địa chỉ" => selected.DiaChi ?? "",
+                "Điện thoại" => selected.DienThoai ?? "",
+                "Email" => selected.Email ?? "",
+                "Tổng cộng" => selected.TongCong ?? "",
+                "Phương thức đặt" => selected.PhuongThucDatName ?? "",
+                "Mục đích đặt" => selected.MucDichDatName ?? "",
+                "Từ giờ" => selected.TuGio.HasValue ? selected.TuGio.Value.ToString("HH:mm") : "",
+                "Đến giờ" => selected.DenGio.HasValue ? selected.DenGio.Value.ToString("HH:mm") : "",
+                "Từ ngày" => selected.TuNgay.HasValue ? selected.TuNgay.Value.ToString("dd/MM/yyyy") : "",
+                "Đến ngày" => selected.DenNgay.HasValue ? selected.DenNgay.Value.ToString("dd/MM/yyyy") : "",
+                _ => selected.SoPhieu ?? ""
+            };
+
+            if (!string.IsNullOrEmpty(filterVal))
+            {
+                TxtLocNhanh.Text = filterVal;
+            }
+        }
+
+        private void MenuItem_SortAsc_Click(object sender, RoutedEventArgs e) { _isSortAscending = true; ApplyQuickFilter(); }
+        private void MenuItem_SortDesc_Click(object sender, RoutedEventArgs e) { _isSortAscending = false; ApplyQuickFilter(); }
+        private void MenuItem_SortByNgay_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "Ngay"; ApplyQuickFilter(); }
+        private void MenuItem_SortBySoPhieu_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "SoPhieu"; ApplyQuickFilter(); }
+        private void MenuItem_SortByTenKhach_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "TenKhach"; ApplyQuickFilter(); }
+        private void MenuItem_SortByDiaChi_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "DiaChi"; ApplyQuickFilter(); }
+        private void MenuItem_SortByDienThoai_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "DienThoai"; ApplyQuickFilter(); }
+        private void MenuItem_SortByEmail_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "Email"; ApplyQuickFilter(); }
+        private void MenuItem_SortByTongCong_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "TongCong"; ApplyQuickFilter(); }
+        private void MenuItem_SortByPhuongThuc_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "PhuongThuc"; ApplyQuickFilter(); }
+        private void MenuItem_SortByMucDich_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "MucDich"; ApplyQuickFilter(); }
+        private void MenuItem_SortByTuGio_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "TuGio"; ApplyQuickFilter(); }
+        private void MenuItem_SortByDenGio_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "DenGio"; ApplyQuickFilter(); }
+        private void MenuItem_SortByTuNgay_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "TuNgay"; ApplyQuickFilter(); }
+        private void MenuItem_SortByDenNgay_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "DenNgay"; ApplyQuickFilter(); }
+
+        private void MenuItem_SaoChepO_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgDatHang.SelectedItem is DatHangViewModel selected)
+            {
+                string colHeader = _clickedColumn?.Header?.ToString() ?? "Số phiếu";
+                string textToCopy = colHeader switch
+                {
+                    "STT" => selected.Stt.ToString(),
+                    "Ngày" => selected.Ngay.HasValue ? selected.Ngay.Value.ToString("dd/MM/yyyy") : "",
+                    "Số phiếu" => selected.SoPhieu ?? "",
+                    "Tên khách" => selected.TenKhach ?? "",
+                    "Địa chỉ" => selected.DiaChi ?? "",
+                    "Điện thoại" => selected.DienThoai ?? "",
+                    "Email" => selected.Email ?? "",
+                    "Tổng cộng" => selected.TongCong ?? "",
+                    "Phương thức đặt" => selected.PhuongThucDatName ?? "",
+                    "Mục đích đặt" => selected.MucDichDatName ?? "",
+                    "Từ giờ" => selected.TuGio.HasValue ? selected.TuGio.Value.ToString("HH:mm") : "",
+                    "Đến giờ" => selected.DenGio.HasValue ? selected.DenGio.Value.ToString("HH:mm") : "",
+                    "Từ ngày" => selected.TuNgay.HasValue ? selected.TuNgay.Value.ToString("dd/MM/yyyy") : "",
+                    "Đến ngày" => selected.DenNgay.HasValue ? selected.DenNgay.Value.ToString("dd/MM/yyyy") : "",
+                    _ => selected.SoPhieu ?? ""
+                };
+                Clipboard.SetText(textToCopy);
+            }
+        }
+
+        private void MenuItem_SaoChepVungChon_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedList = DgDatHang.SelectedItems.Cast<DatHangViewModel>().ToList();
+            if (selectedList.Count == 0 && DgDatHang.SelectedItem is DatHangViewModel single) selectedList.Add(single);
+            if (selectedList.Count > 0)
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("STT\tNgày\tSố phiếu\tTên khách\tĐịa chỉ\tĐiện thoại\tEmail\tTổng cộng\tPhương thức đặt\tMục đích đặt\tTừ giờ\tĐến giờ\tTừ ngày\tĐến ngày");
+                foreach (var item in selectedList)
+                {
+                    sb.AppendLine($"{item.Stt}\t{(item.Ngay.HasValue ? item.Ngay.Value.ToString("dd/MM/yyyy") : "")}\t{item.SoPhieu}\t{item.TenKhach}\t{item.DiaChi}\t{item.DienThoai}\t{item.Email}\t{item.TongCong}\t{item.PhuongThucDatName}\t{item.MucDichDatName}\t{(item.TuGio.HasValue ? item.TuGio.Value.ToString("HH:mm") : "")}\t{(item.DenGio.HasValue ? item.DenGio.Value.ToString("HH:mm") : "")}\t{(item.TuNgay.HasValue ? item.TuNgay.Value.ToString("dd/MM/yyyy") : "")}\t{(item.DenNgay.HasValue ? item.DenNgay.Value.ToString("dd/MM/yyyy") : "")}");
+                }
+                Clipboard.SetText(sb.ToString());
+                MessageBox.Show($"Đã sao chép {selectedList.Count} dòng vào Clipboard.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MenuItem_TuDongGianCot_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var col in DgDatHang.Columns)
+            {
+                col.Width = DataGridLength.Auto;
+            }
+        }
+
+        private void MenuCotHienThi_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ChonCotHienThiWindow(DgDatHang, new System.Collections.Generic.List<string> { "STT", "Ngày", "Số phiếu", "Tên khách", "Địa chỉ", "Điện thoại", "Email", "Tổng cộng", "Phương thức đặt", "Mục đích đặt", "Từ giờ", "Đến giờ", "Từ ngày", "Đến ngày" });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void MenuItem_ThuocTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgDatHang.SelectedItem is DatHangViewModel selected)
+            {
+                var win = new ThuocTinhWindow(selected.Id, "TDATHANG", selected.SoPhieu, selected.Timecreated, selected.Timemodified, selected.UsercreatedName, selected.UsermodifiedName);
+                win.Owner = Window.GetWindow(this);
+                win.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một phiếu đặt hàng để xem thuộc tính!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void MenuItem_ThungRac_Click(object sender, RoutedEventArgs e)
@@ -436,31 +626,52 @@ namespace QuanLyBar.Client.Views
             }
 
             string filter = TxtLocNhanh?.Text?.Trim();
-            if (string.IsNullOrEmpty(filter))
+            IEnumerable<DatHangViewModel> filtered = _allDatHangList;
+
+            if (!string.IsNullOrEmpty(filter))
             {
-                for (int i = 0; i < _allDatHangList.Count; i++) _allDatHangList[i].Stt = i + 1;
-                DgDatHang.ItemsSource = _allDatHangList;
-                if (_allDatHangList.Count > 0 && DgDatHang.SelectedIndex < 0)
-                {
-                    DgDatHang.SelectedIndex = 0;
-                }
-                UpdateSummaryFooter();
-                return;
+                filtered = filtered.Where(d =>
+                    (!string.IsNullOrEmpty(d.SoPhieu) && d.SoPhieu.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(d.TenKhach) && d.TenKhach.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(d.DiaChi) && d.DiaChi.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(d.DienThoai) && d.DienThoai.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(d.Email) && d.Email.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(d.PhuongThucDatName) && d.PhuongThucDatName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(d.MucDichDatName) && d.MucDichDatName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (d.Ngay.HasValue && d.Ngay.Value.ToString("dd/MM/yyyy").IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(d.TongCong) && d.TongCong.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (d.TuNgay.HasValue && d.TuNgay.Value.ToString("dd/MM/yyyy").IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (d.DenNgay.HasValue && d.DenNgay.Value.ToString("dd/MM/yyyy").IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
+                );
             }
 
-            var filtered = _allDatHangList.Where(d =>
-                (!string.IsNullOrEmpty(d.SoPhieu) && d.SoPhieu.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(d.TenKhach) && d.TenKhach.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(d.DiaChi) && d.DiaChi.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(d.DienThoai) && d.DienThoai.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(d.Email) && d.Email.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(d.PhuongThucDatName) && d.PhuongThucDatName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(d.MucDichDatName) && d.MucDichDatName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
-            ).ToList();
+            if (!string.IsNullOrEmpty(_currentSortColumn))
+            {
+                filtered = _currentSortColumn switch
+                {
+                    "Ngay" => _isSortAscending ? filtered.OrderBy(x => x.Ngay) : filtered.OrderByDescending(x => x.Ngay),
+                    "SoPhieu" => _isSortAscending ? filtered.OrderBy(x => x.SoPhieu) : filtered.OrderByDescending(x => x.SoPhieu),
+                    "TenKhach" => _isSortAscending ? filtered.OrderBy(x => x.TenKhach) : filtered.OrderByDescending(x => x.TenKhach),
+                    "DiaChi" => _isSortAscending ? filtered.OrderBy(x => x.DiaChi) : filtered.OrderByDescending(x => x.DiaChi),
+                    "DienThoai" => _isSortAscending ? filtered.OrderBy(x => x.DienThoai) : filtered.OrderByDescending(x => x.DienThoai),
+                    "Email" => _isSortAscending ? filtered.OrderBy(x => x.Email) : filtered.OrderByDescending(x => x.Email),
+                    "TongCong" => _isSortAscending
+                        ? filtered.OrderBy(x => decimal.TryParse(x.TongCong?.Replace(",", "")?.Replace(".", ""), out decimal v) ? v : 0)
+                        : filtered.OrderByDescending(x => decimal.TryParse(x.TongCong?.Replace(",", "")?.Replace(".", ""), out decimal v) ? v : 0),
+                    "PhuongThuc" => _isSortAscending ? filtered.OrderBy(x => x.PhuongThucDatName) : filtered.OrderByDescending(x => x.PhuongThucDatName),
+                    "MucDich" => _isSortAscending ? filtered.OrderBy(x => x.MucDichDatName) : filtered.OrderByDescending(x => x.MucDichDatName),
+                    "TuGio" => _isSortAscending ? filtered.OrderBy(x => x.TuGio) : filtered.OrderByDescending(x => x.TuGio),
+                    "DenGio" => _isSortAscending ? filtered.OrderBy(x => x.DenGio) : filtered.OrderByDescending(x => x.DenGio),
+                    "TuNgay" => _isSortAscending ? filtered.OrderBy(x => x.TuNgay) : filtered.OrderByDescending(x => x.TuNgay),
+                    "DenNgay" => _isSortAscending ? filtered.OrderBy(x => x.DenNgay) : filtered.OrderByDescending(x => x.DenNgay),
+                    _ => filtered
+                };
+            }
 
-            for (int i = 0; i < filtered.Count; i++) filtered[i].Stt = i + 1;
-            DgDatHang.ItemsSource = filtered;
-            if (filtered.Count > 0 && DgDatHang.SelectedIndex < 0)
+            var resultList = filtered.ToList();
+            for (int i = 0; i < resultList.Count; i++) resultList[i].Stt = i + 1;
+            DgDatHang.ItemsSource = resultList;
+            if (resultList.Count > 0 && DgDatHang.SelectedIndex < 0)
             {
                 DgDatHang.SelectedIndex = 0;
             }
