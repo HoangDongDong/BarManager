@@ -1,0 +1,267 @@
+<Window x:Class="QuanLyBar.Client.Views.ThongKeNhanhWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="THỐNG KÊ NHANH" Height="500" Width="850"
+        WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded"
+        Background="#e4edf8">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#b6cde8" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Width="32" Height="32" Background="#f0f6ff" BorderBrush="#9ac2f0" BorderThickness="1" CornerRadius="3" Margin="0,0,10,0">
+                    <TextBlock Text="📈" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Thống kê tổng hợp dữ liệu theo tiêu chí" FontWeight="Bold" FontSize="14" Foreground="#1c3b70" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content (2 Columns) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Cột trái: Cây tiêu chí -->
+            <Border Grid.Column="0" Background="White" BorderBrush="#b6cde8" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#dbe8f8" BorderBrush="#b6cde8" BorderThickness="0,0,0,1" Padding="6,4">
+                        <TextBlock Text="Lựa chọn tiêu chí (nháy đúp vào tiêu chí để tổng hợp)" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="#1b365d"/>
+                    </Border>
+
+                    <TreeView x:Name="TvTieuChi" Grid.Row="1" BorderThickness="0" SelectedItemChanged="TvTieuChi_SelectedItemChanged" MouseDoubleClick="TvTieuChi_MouseDoubleClick">
+                        <!-- Thời gian -->
+                        <TreeViewItem Tag="Ngay" Header="Thời gian" IsExpanded="True">
+                            <TreeViewItem.HeaderTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📅 " Foreground="DarkOrange"/>
+                                        <TextBlock Text="{Binding}" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </TreeViewItem.HeaderTemplate>
+                            <TreeViewItem Tag="Ngay">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🗓 " Foreground="Green"/>
+                                        <TextBlock Text="Theo ngày"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="Thang">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🗓 " Foreground="Green"/>
+                                        <TextBlock Text="Theo tháng"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="Nam">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🗓 " Foreground="Green"/>
+                                        <TextBlock Text="Theo năm"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                        </TreeViewItem>
+
+                        <!-- Khách hàng -->
+                        <TreeViewItem Tag="KhachHang" Header="Khách hàng" IsExpanded="True">
+                            <TreeViewItem.HeaderTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="👥 " Foreground="DodgerBlue"/>
+                                        <TextBlock Text="{Binding}" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </TreeViewItem.HeaderTemplate>
+                            <TreeViewItem Tag="NhomKhachHang">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Nhóm khách hàng"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="NhanVien">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Nhân viên"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="TinhThanh">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Tỉnh thành"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="TheTraTruoc">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Thẻ trả trước"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                        </TreeViewItem>
+
+                        <!-- Phương thức đặt -->
+                        <TreeViewItem Tag="PhuongThucDat">
+                            <TreeViewItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔍 " Foreground="Purple"/>
+                                    <TextBlock Text="Phương thức đặt"/>
+                                </StackPanel>
+                            </TreeViewItem.Header>
+                        </TreeViewItem>
+
+                        <!-- Mục đích đặt -->
+                        <TreeViewItem Tag="MucDichDat">
+                            <TreeViewItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🎯 " Foreground="Crimson"/>
+                                    <TextBlock Text="Mục đích đặt"/>
+                                </StackPanel>
+                            </TreeViewItem.Header>
+                        </TreeViewItem>
+
+                        <!-- Bàn -->
+                        <TreeViewItem Tag="Ban" Header="Bàn" IsExpanded="True">
+                            <TreeViewItem.HeaderTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🪑 " Foreground="Goldenrod"/>
+                                        <TextBlock Text="{Binding}" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </TreeViewItem.HeaderTemplate>
+                            <TreeViewItem Tag="KhuVuc">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Khu vực"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="BangGia">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Bảng giá"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="NhomHienThi">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Nhóm hiển thị"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                            <TreeViewItem Tag="LoaiPhong">
+                                <TreeViewItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔘 " Foreground="Gray"/>
+                                        <TextBlock Text="Loại phòng"/>
+                                    </StackPanel>
+                                </TreeViewItem.Header>
+                            </TreeViewItem>
+                        </TreeViewItem>
+                    </TreeView>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="Transparent"/>
+
+            <!-- Cột phải: Bảng thống kê tổng hợp -->
+            <Border Grid.Column="2" Background="White" BorderBrush="#b6cde8" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DataGrid x:Name="DgThongKe" Grid.Row="0" AutoGenerateColumns="False" 
+                              CanUserAddRows="False" IsReadOnly="True" 
+                              AlternatingRowBackground="#f6f9fe" GridLinesVisibility="All"
+                              HeadersVisibility="Column" SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="STT" Binding="{Binding Stt}" Width="40">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn x:Name="ColTieuChi" Header="Ngày" Binding="{Binding TenTieuChi}" Width="*"/>
+                            <DataGridTextColumn Header="Đếm" Binding="{Binding Dem, StringFormat={}{0:N0}}" Width="80">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Tổng cộng" Binding="{Binding TongCong, StringFormat={}{0:N0}}" Width="140">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="%" Binding="{Binding PhanTram, StringFormat={}{0:N0}}" Width="60">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Footer TỔNG -->
+                    <Border Grid.Row="1" Background="#dbe8f8" BorderBrush="#b6cde8" BorderThickness="0,1,0,0" Padding="10,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="60"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="TỔNG" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBox x:Name="TxtTongDem" Grid.Column="2" Text="0" IsReadOnly="True" FontWeight="Bold" FontSize="11"
+                                     TextAlignment="Right" Background="White" BorderBrush="#b6cde8" Height="20" VerticalContentAlignment="Center" Padding="4,0" Margin="2,0"/>
+                            <TextBox x:Name="TxtTongTien" Grid.Column="3" Text="0" IsReadOnly="True" FontWeight="Bold" FontSize="11"
+                                     TextAlignment="Right" Background="White" BorderBrush="#b6cde8" Height="20" VerticalContentAlignment="Center" Padding="4,0" Margin="2,0"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Bottom Actions -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button x:Name="BtnThoat" Content="Thoát" Width="85" Height="26" Background="White" BorderBrush="#999" IsCancel="True" Click="BtnThoat_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

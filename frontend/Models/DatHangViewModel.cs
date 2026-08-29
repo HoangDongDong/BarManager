@@ -21,5 +21,10 @@ namespace QuanLyBar.Client.Models
         public DateTime? DenGio { get; set; }
         public DateTime? TuNgay { get; set; }
         public DateTime? DenNgay { get; set; }
+
+        public DateTime? Timecreated { get; set; }
+        public DateTime? Timemodified { get; set; }
+        public string UsercreatedName { get; set; }
+        public string UsermodifiedName { get; set; }
     }
 }

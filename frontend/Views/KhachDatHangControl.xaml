@@ -19,17 +19,37 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
                 <TextBlock Text="Khách đặt hàng" FontWeight="Bold" Margin="0,0,20,0" VerticalAlignment="Center"/>
                 <TextBlock Text="Lọc (F3): " VerticalAlignment="Center"/>
-                <TextBox Width="120" Height="22" Margin="0,0,10,0"/>
+                <TextBox x:Name="TxtLocNhanh" Width="120" Height="22" Margin="0,0,10,0" TextChanged="TxtLocNhanh_TextChanged"/>
                 
-                <Button Content="➕ Thêm mới (Insert)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemMoi_Click"/>
-                <Button Content="📝 Chỉnh sửa (F4)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
-                <Button Content="❌ Xóa (Del)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Button x:Name="BtnToolbarThemMoi" Content="➕ Thêm mới (Insert)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemMoi_Click"/>
+                <Button x:Name="BtnToolbarChinhSua" Content="📝 Chỉnh sửa (F4)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnToolbarChinhSua_Click"/>
+                <Button x:Name="BtnToolbarXoa" Content="❌ Xóa (Del)" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnToolbarXoa_Click"/>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
-                <Button Content="📄 Thêm excel" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
-                <Button Content="📥 Xuất excel" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
-                <Button Content="🖨 In" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
-                <Button Content="∑ Tổng" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
-                <Button Content="📊 P.tích" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Button x:Name="BtnToolbarThemExcel" Content="📄 Thêm excel" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnToolbarThemExcel_Click"/>
+                <Button x:Name="BtnToolbarXuatExcel" Content="📥 Xuất excel" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnToolbarXuatExcel_Click"/>
+                <Button x:Name="BtnToolbarIn" Content="🖨 In" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnToolbarIn_Click"/>
+                <ToggleButton x:Name="BtnToolbarTong" Margin="5,0" Cursor="Hand" Click="BtnToolbarTong_Click">
+                    <ToggleButton.Style>
+                        <Style TargetType="ToggleButton">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="4,2"/>
+                            <Setter Property="Content">
+                                <Setter.Value>
+                                    <TextBlock Text="∑ Tổng"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter Property="Background" Value="#ffe58f"/>
+                                    <Setter Property="BorderBrush" Value="#d48806"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ToggleButton.Style>
+                </ToggleButton>
+                <Button x:Name="BtnToolbarPhanTich" Content="📊 P.tích" Margin="5,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnToolbarPhanTich_Click"/>
             </StackPanel>
         </Border>
 
@@ -61,7 +81,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Số phiếu" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Height="22"/>
+                            <TextBox x:Name="TxtSoPhieuLoc" Grid.Column="1" Height="22" KeyDown="TxtSoPhieuLoc_KeyDown" TextChanged="TxtSoPhieuLoc_TextChanged"/>
                         </Grid>
                         
                         <GroupBox Header="Ngày" Margin="0,0,0,5">
@@ -92,7 +112,43 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Khách hàng" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Column="1" Height="22"/>
+                            <ComboBox x:Name="CmbKhachHang" Grid.Column="1" Height="22"
+                                      SelectedValuePath="Id"
+                                      SelectionChanged="CmbKhachHang_SelectionChanged"
+                                      IsEditable="True" IsTextSearchEnabled="True" TextSearch.TextPath="Name">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                        <Setter Property="BorderBrush" Value="#eeeeee"/>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Height="22" VerticalAlignment="Center">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="220"/>
+                                                <ColumnDefinition Width="100"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" BorderBrush="#d4d4d4" BorderThickness="0,0,1,0" Padding="4,2">
+                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                            </Border>
+                                            <Border Grid.Column="1" BorderBrush="#d4d4d4" BorderThickness="0,0,1,0" Padding="4,2">
+                                                <TextBlock Text="{Binding Makhach}" TextTrimming="CharacterEllipsis"/>
+                                            </Border>
+                                            <Border Grid.Column="2" BorderBrush="#d4d4d4" BorderThickness="0,0,1,0" Padding="4,2">
+                                                <TextBlock Text="{Binding Diachi}" TextTrimming="CharacterEllipsis"/>
+                                            </Border>
+                                            <Border Grid.Column="3" Padding="4,2">
+                                                <TextBlock Text="{Binding Dienthoai}" TextTrimming="CharacterEllipsis"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </Grid>
                         
                         <!-- Toolbar nhỏ cho Cây danh mục -->
@@ -147,13 +203,22 @@
                                             </Style>
                                         </Image.Style>
                                     </Image>
-                                    <TextBlock Text="🏷️ " Foreground="#0078D7" VerticalAlignment="Center">
+                                    <TextBlock VerticalAlignment="Center">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="🏷️ "/>
+                                                <Setter Property="Foreground" Value="#0078D7"/>
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ImageSource}" Value="{x:Null}">
                                                         <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Id}" Value="-1">
+                                                        <Setter Property="Text" Value="🗑️ "/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Id}" Value="{x:Null}">
+                                                        <Setter Property="Text" Value="📁 "/>
+                                                        <Setter Property="Foreground" Value="Goldenrod"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -250,7 +315,7 @@
                                 <Separator />
                                 <MenuItem Header="Xóa" Click="BtnXoaPhuongThuc_Click" />
                                 <MenuItem Header="Đổi tên" Click="BtnDoiTenPhuongThuc_Click" />
-                                <MenuItem Header="Thùng rác" />
+                                <MenuItem Header="Thùng rác" Click="MenuItem_ThungRac_Click" />
                                 <Separator />
                                 <MenuItem Header="Biểu tượng" />
                                 <MenuItem Header="Thuộc tính" />
@@ -264,10 +329,46 @@
 
             <!-- Cột phải: Lưới danh sách Phiếu đặt hàng -->
             <Grid Grid.Column="2">
-                <DataGrid x:Name="DgDatHang" AutoGenerateColumns="False" 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DataGrid x:Name="DgDatHang" Grid.Row="0" AutoGenerateColumns="False" 
                           CanUserAddRows="False" IsReadOnly="True" 
                           AlternatingRowBackground="#f9f9f9" GridLinesVisibility="All"
-                          SelectionChanged="DgDatHang_SelectionChanged">
+                          SelectionChanged="DgDatHang_SelectionChanged"
+                          MouseDoubleClick="DgDatHang_MouseDoubleClick">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu x:Name="GridContextMenu" Opened="GridContextMenu_Opened">
+                            <MenuItem x:Name="MenuKhoiPhuc" Header="Khôi phục" Click="MenuItem_KhoiPhuc_Click" Visibility="Collapsed">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="↩️" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuThemMoi" Header="Thêm mới (Insert)" Click="BtnThemMoi_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="➕" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuChinhSua" Header="Chỉnh sửa (F4)" Click="BtnToolbarChinhSua_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="✏️" Foreground="Goldenrod" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuXoa" Header="Xóa (Del)" Click="BtnToolbarXoa_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="❌" Foreground="Red" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="Refresh" Click="BtnRefreshPhuongThuc_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="🔄" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="STT" Binding="{Binding Stt}" Width="40"/>
                         <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat=dd/MM/yyyy}" Width="80"/>
@@ -285,6 +386,20 @@
                         <DataGridTextColumn Header="Đến ngày" Binding="{Binding DenNgay, StringFormat=dd/MM/yyyy}" Width="80"/>
                     </DataGrid.Columns>
                 </DataGrid>
+
+                <!-- Footer TỔNG -->
+                <Border x:Name="BorderTongFooter" Grid.Row="1" Background="#dbe7f7" BorderBrush="#a4b9d6" BorderThickness="0,1,0,0" Padding="15,4" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="220"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="TỔNG" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtTongCongFooter" Grid.Column="2" Text="0" IsReadOnly="True" FontWeight="Bold" FontSize="12" 
+                                 TextAlignment="Right" Background="White" BorderBrush="#a4b9d6" Height="22" VerticalContentAlignment="Center" Padding="8,0"/>
+                    </Grid>
+                </Border>
             </Grid>
         </Grid>
         
@@ -292,7 +407,7 @@
         <GridSplitter Grid.Row="2" Height="3" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#e0e0e0" Margin="0,-1.5,0,0" Panel.ZIndex="1"/>
         
         <!-- Khung dưới: Chi tiết đơn hàng -->
-        <TabControl Grid.Row="2" Margin="0,3,0,0">
+        <TabControl x:Name="TcBottomTabs" SelectedIndex="1" Grid.Row="2" Margin="0,3,0,0">
             <TabItem Header="Thông tin">
                 <Grid Background="#f5f8fd" Margin="10">
                     <Grid.RowDefinitions>
@@ -300,14 +415,14 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="220"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <TextBlock Text="Khởi tạo: 24/08/2026 14:12 PM" Grid.Row="0" Grid.Column="0" Margin="0,5"/>
-                    <TextBlock Text="Khởi tạo bởi: Administrator" Grid.Row="0" Grid.Column="1" Margin="0,5"/>
-                    <TextBlock Text="Sửa đổi gần nhất:" Grid.Row="1" Grid.Column="0" Margin="0,5"/>
-                    <TextBlock Text="Sửa đổi bởi:" Grid.Row="1" Grid.Column="1" Margin="0,5"/>
+                    <TextBlock x:Name="TxtInfoKhoiTao" Text="Khởi tạo:" Grid.Row="0" Grid.Column="0" Margin="0,5"/>
+                    <TextBlock x:Name="TxtInfoNguoiTao" Text="Khởi tạo bởi:" Grid.Row="0" Grid.Column="1" Margin="0,5"/>
+                    <TextBlock x:Name="TxtInfoSuaDoi" Text="Sửa đổi gần nhất:" Grid.Row="1" Grid.Column="0" Margin="0,5"/>
+                    <TextBlock x:Name="TxtInfoNguoiSua" Text="Sửa đổi bởi:" Grid.Row="1" Grid.Column="1" Margin="0,5"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Đặt hàng chi tiết">

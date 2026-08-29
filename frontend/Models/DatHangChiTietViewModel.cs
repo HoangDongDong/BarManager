@@ -3,6 +3,7 @@ namespace QuanLyBar.Client.Models
     public class DatHangChiTietViewModel
     {
         public int Stt { get; set; }
+        public string MatHangId { get; set; }
         public string MatHangName { get; set; }
         public string DonViTinhName { get; set; }
         public decimal? SoLuong { get; set; }

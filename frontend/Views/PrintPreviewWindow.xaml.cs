@@ -245,6 +245,20 @@ namespace QuanLyBar.Client.Views
                 case "Nhóm hiển thị": propName = "NhomHienThiName"; break;
                 case "Loại phòng": propName = "LoaiPhongName"; break;
                 case "Ghi chú": propName = "Note"; break;
+                // Khách đặt hàng
+                case "Ngày": propName = "Ngay"; break;
+                case "Số phiếu": propName = "SoPhieu"; break;
+                case "Tên khách": propName = "TenKhach"; break;
+                case "Địa chỉ": propName = "DiaChi"; break;
+                case "Điện thoại": propName = "DienThoai"; break;
+                case "Email": propName = "Email"; break;
+                case "Tổng cộng": propName = "TongCong"; break;
+                case "Phương thức đặt": propName = "PhuongThucDatName"; break;
+                case "Mục đích đặt": propName = "MucDichDatName"; break;
+                case "Từ giờ": propName = "TuGio"; break;
+                case "Đến giờ": propName = "DenGio"; break;
+                case "Từ ngày": propName = "TuNgay"; break;
+                case "Đến ngày": propName = "DenNgay"; break;
             }
 
             if (!string.IsNullOrEmpty(propName))
@@ -253,6 +267,12 @@ namespace QuanLyBar.Client.Views
                 if (prop != null)
                 {
                     var val = prop.GetValue(item);
+                    if (val is System.DateTime dt)
+                    {
+                        if (header == "Từ giờ" || header == "Đến giờ")
+                            return dt.ToString("HH:mm");
+                        return dt.ToString("dd/MM/yyyy");
+                    }
                     return val != null ? val.ToString() : "";
                 }
             }

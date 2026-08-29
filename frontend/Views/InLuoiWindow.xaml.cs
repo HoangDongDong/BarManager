@@ -13,9 +13,13 @@ namespace QuanLyBar.Client.Views
             public bool IsChecked { get; set; }
         }
 
-        public InLuoiWindow(DataGrid grid)
+        public InLuoiWindow(DataGrid grid, string defaultTitle = "Đặt hàng")
         {
             InitializeComponent();
+            if (!string.IsNullOrEmpty(defaultTitle))
+            {
+                TxtTieuDe.Text = defaultTitle;
+            }
             LoadColumns(grid);
         }
 
@@ -56,10 +60,11 @@ namespace QuanLyBar.Client.Views
 
                 string title = TxtTieuDe.Text;
                 string note = TxtGhiChu.Text;
-                string template = (LstMauIn.SelectedItem as ListBoxItem)?.Content?.ToString() ?? "Mẫu A4 nằm ngang";
+                string template = (LstMauIn.SelectedItem as ListBoxItem)?.Tag?.ToString() ?? "Mẫu A4 nằm ngang";
                 bool inSTT = ChkInSTT.IsChecked == true;
 
                 var previewWin = new PrintPreviewWindow(data.Cast<object>(), columns, title, note, template, inSTT);
+                previewWin.Owner = this;
                 previewWin.ShowDialog();
             }
             catch (System.Exception ex)

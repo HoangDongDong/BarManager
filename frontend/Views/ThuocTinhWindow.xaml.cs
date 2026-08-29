@@ -12,12 +12,56 @@ namespace QuanLyBar.Client.Views
     public partial class ThuocTinhWindow : Window
     {
         private DBAN _ban;
+        private string _itemId;
+        private string _tableName;
 
         public ThuocTinhWindow(DBAN ban)
         {
             InitializeComponent();
             _ban = ban;
             LoadInfo();
+        }
+
+        public ThuocTinhWindow(string id, string tableName, string name, DateTime? timeCreated, DateTime? timeModified, string userCreated, string userModified)
+        {
+            InitializeComponent();
+            _itemId = id;
+            _tableName = tableName;
+            TxtTitle.Text = $"Thông tin: {name}";
+            TxtTimeCreated.Text = timeCreated?.ToString("dd/MM/yyyy hh:mm tt") ?? "--/--/---- --:-- --";
+            TxtTimeModified.Text = timeModified?.ToString("dd/MM/yyyy hh:mm tt") ?? "--/--/---- --:-- --";
+            TxtUserCreated.Text = !string.IsNullOrEmpty(userCreated) ? userCreated : "Administrator";
+            TxtUserModified.Text = !string.IsNullOrEmpty(userModified) ? userModified : "Administrator";
+            _ = LoadGenericReferenceCountsAsync();
+        }
+
+        private async Task LoadGenericReferenceCountsAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    int countDatHang = 0;
+                    try { countDatHang = await conn.ExecuteScalarAsync<int>($"SELECT COUNT(1) FROM TDATHANGCHITIET WHERE DMATHANGID = @Id", new { Id = _itemId }); } catch { }
+                    int countDonHang = 0;
+                    try { countDonHang = await conn.ExecuteScalarAsync<int>($"SELECT COUNT(1) FROM TDONHANGCHITIET WHERE DMATHANGID = @Id", new { Id = _itemId }); } catch { }
+                    int countHoaDon = 0;
+                    try { countHoaDon = await conn.ExecuteScalarAsync<int>($"SELECT COUNT(1) FROM THOADONCHITIET WHERE DMATHANGID = @Id", new { Id = _itemId }); } catch { }
+
+                    ItemDatHang.Header = $"Đặt hàng({countDatHang})";
+                    ItemDonHang.Header = $"Đơn hàng({countDonHang})";
+                    ItemHoaDon.Header = $"Hóa đơn({countHoaDon})";
+                    ItemSuaChua.Header = $"Sửa chữa(0)";
+                }
+            }
+            catch
+            {
+                ItemDatHang.Header = "Đặt hàng(0)";
+                ItemDonHang.Header = "Đơn hàng(0)";
+                ItemHoaDon.Header = "Hóa đơn(0)";
+                ItemSuaChua.Header = "Sửa chữa(0)";
+            }
         }
 
         private async void LoadInfo()

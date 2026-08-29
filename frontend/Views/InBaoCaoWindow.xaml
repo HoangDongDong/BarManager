@@ -1,0 +1,91 @@
+<Window x:Class="QuanLyBar.Client.Views.InBaoCaoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="IN BÁO CÁO" Height="360" Width="540"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#dbe7f7" Loaded="Window_Loaded">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Mẫu in -->
+        <Grid Grid.Row="0" Margin="5,5,5,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="65"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Mẫu in:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13"/>
+            <ComboBox x:Name="CmbMauIn" Grid.Column="1" Height="26" SelectedIndex="1">
+                <ComboBoxItem Tag="54">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⭐ " Foreground="Purple"/>
+                        <TextBlock Text="Mẫu đặt hàng 54 mm"/>
+                    </StackPanel>
+                </ComboBoxItem>
+                <ComboBoxItem Tag="54_2">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⭐ " Foreground="Purple"/>
+                        <TextBlock Text="Mẫu đặt hàng 54 mm(2 dòng)"/>
+                    </StackPanel>
+                </ComboBoxItem>
+                <ComboBoxItem Tag="80">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🎫 " Foreground="DarkSlateBlue"/>
+                        <TextBlock Text="Mẫu đặt hàng 80 mm"/>
+                    </StackPanel>
+                </ComboBoxItem>
+                <ComboBoxItem Tag="A4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🎫 " Foreground="Goldenrod"/>
+                        <TextBlock Text="Mẫu đặt hàng A4"/>
+                    </StackPanel>
+                </ComboBoxItem>
+                <ComboBoxItem Tag="A5">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🌸 " Foreground="DeepPink"/>
+                        <TextBlock Text="Mẫu đặt hàng A5"/>
+                    </StackPanel>
+                </ComboBoxItem>
+            </ComboBox>
+        </Grid>
+
+        <!-- Tùy chọn GroupBox -->
+        <GroupBox Grid.Row="1" Header="Tùy chọn" Margin="0,0,0,10" Padding="12,10" Background="Transparent" BorderBrush="#a3b8d4">
+            <StackPanel>
+                <RadioButton x:Name="RbXemManHinh" GroupName="PrintOptions" Content="Xem trên màn hình" IsChecked="True" Margin="0,4,0,8" FontWeight="SemiBold" Checked="Option_Checked"/>
+                
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton x:Name="RbInMayIn" GroupName="PrintOptions" Content="In ra máy in" VerticalAlignment="Center" Checked="Option_Checked" Unchecked="Option_Checked"/>
+                    <ComboBox x:Name="CmbPrinters" Grid.Column="1" Height="24" IsEnabled="False"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton x:Name="RbXuatExcel" GroupName="PrintOptions" Content="Xuất excel" Grid.Column="0" Checked="Option_Checked"/>
+                    <RadioButton x:Name="RbXuatPdf" GroupName="PrintOptions" Content="Xuất pdf" Grid.Column="1" Checked="Option_Checked"/>
+                </Grid>
+
+                <RadioButton x:Name="RbGuiMail" GroupName="PrintOptions" Content="Gửi mail" Margin="0,0,0,8" Checked="Option_Checked"/>
+                <RadioButton x:Name="RbThietKe" GroupName="PrintOptions" Content="Thiết kế mẫu in" Margin="0,0,0,4" Checked="Option_Checked"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Nút hành động -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+            <Button x:Name="BtnThucHien" Content="Thực hiện" Width="95" Height="28" Margin="0,0,10,0" IsDefault="True"
+                    Background="White" BorderBrush="#0055cc" BorderThickness="1.5" FontWeight="SemiBold" Click="BtnThucHien_Click"/>
+            <Button x:Name="BtnThoat" Content="Thoát" Width="85" Height="28" IsCancel="True"
+                    Background="White" BorderBrush="#999" Click="BtnThoat_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

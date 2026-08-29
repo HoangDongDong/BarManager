@@ -44,9 +44,10 @@ namespace QuanLyBar.Client.Services
         private ObservableCollection<NhomMatHangViewModel> BuildTree(List<NhomMatHangViewModel> flatList)
         {
             var tree = new ObservableCollection<NhomMatHangViewModel>();
-            var lookup = flatList.ToDictionary(g => g.Id);
+            var activeItems = flatList.Where(g => g.Status != false).ToList();
+            var lookup = activeItems.Where(g => !string.IsNullOrEmpty(g.Id)).ToDictionary(g => g.Id);
 
-            foreach (var item in flatList)
+            foreach (var item in activeItems)
             {
                 if (!string.IsNullOrEmpty(item.ParentId) && lookup.ContainsKey(item.ParentId))
                 {
@@ -57,6 +58,15 @@ namespace QuanLyBar.Client.Services
                     tree.Add(item);
                 }
             }
+
+            // Thêm "Thùng rác" (chứa mặt hàng đã xóa)
+            var trashNode = new NhomMatHangViewModel
+            {
+                Id = "-1",
+                Name = "Thùng rác",
+                IsExpanded = false
+            };
+            tree.Add(trashNode);
 
             // Thêm nút "Tất cả" ở đầu
             var root = new NhomMatHangViewModel
@@ -94,17 +104,32 @@ namespace QuanLyBar.Client.Services
                                m.DDONVITINHID as DdonvitinhId,
                                d.NAME as DonViTinhName,
                                m.DDONVITINHCHANID as DdonvitinhchanId,
-                               dc.NAME as DonViTinhChanName
+                               dc.NAME as DonViTinhChanName,
+                               m.STATUS as Status,
+                               m.TIMECREATED as Timecreated,
+                               m.TIMEMODIFIED as Timemodified,
+                               COALESCE(uc.NAME, 'Administrator') as UsercreatedName,
+                               COALESCE(um.NAME, 'Administrator') as UsermodifiedName
                         FROM DMATHANG m
                         LEFT JOIN DNHOMMATHANG n ON m.DNHOMMATHANGID = n.ID
                         LEFT JOIN DLOAIMATHANG l ON m.DLOAIMATHANGID = l.ID
                         LEFT JOIN DDONVITINH d ON m.DDONVITINHID = d.ID
                         LEFT JOIN DDONVITINH dc ON m.DDONVITINHCHANID = dc.ID
+                        LEFT JOIN SUSER uc ON m.USERCREATEDID = uc.ID
+                        LEFT JOIN SUSER um ON m.USERMODIFIEDID = um.ID
                         WHERE 1=1 ";
 
-                    if (!string.IsNullOrEmpty(nhomId))
+                    if (nhomId == "-1")
                     {
-                        sql += " AND (m.DNHOMMATHANGID = @NhomId OR n.PARENTID = @NhomId OR n.PARENTDIR LIKE '%' || @NhomId || ',%')";
+                        sql += " AND m.STATUS = 0";
+                    }
+                    else
+                    {
+                        sql += " AND (m.STATUS <> 0 OR m.STATUS IS NULL)";
+                        if (!string.IsNullOrEmpty(nhomId))
+                        {
+                            sql += " AND (m.DNHOMMATHANGID = @NhomId OR n.PARENTID = @NhomId OR n.PARENTDIR LIKE '%' || @NhomId || ',%')";
+                        }
                     }
 
                     sql += " ORDER BY m.NAME";
@@ -126,7 +151,7 @@ namespace QuanLyBar.Client.Services
                 System.Windows.MessageBox.Show("Lỗi tải danh sách mặt hàng: " + ex.Message);
                 return new List<MatHangViewModel>();
             }
-        } // <-- Add this closing bracket
+        }
 
         public async Task<List<DDONVITINH>> GetDonViTinhListAsync()
         {
@@ -422,7 +447,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> DeleteMatHangAsync(string id)
+        public async Task<bool> DeleteMatHangAsync(string id, bool isPermanent = false)
         {
             try
             {
@@ -430,7 +455,9 @@ namespace QuanLyBar.Client.Services
                 {
                     await conn.OpenAsync();
                     
-                    string sql = "DELETE FROM DMATHANG WHERE ID = @Id";
+                    string sql = isPermanent
+                        ? "DELETE FROM DMATHANG WHERE CAST(ID AS VARCHAR(50)) = @Id"
+                        : "UPDATE DMATHANG SET STATUS = 0 WHERE CAST(ID AS VARCHAR(50)) = @Id";
                     var parameters = new { Id = id };
 
                     int affectedRows = await conn.ExecuteAsync(sql, parameters);
@@ -443,6 +470,47 @@ namespace QuanLyBar.Client.Services
                 return false;
             }
         }
+
+        public async Task<bool> RestoreMatHangAsync(string id)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "UPDATE DMATHANG SET STATUS = 1 WHERE CAST(ID AS VARCHAR(50)) = @Id";
+                    var parameters = new { Id = id };
+
+                    int affectedRows = await conn.ExecuteAsync(sql, parameters);
+                    return affectedRows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi khôi phục mặt hàng: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> EmptyTrashAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "DELETE FROM DMATHANG WHERE STATUS = 0";
+                    await conn.ExecuteAsync(sql);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi dọn sạch thùng rác: " + ex.Message);
+                return false;
+            }
+        }
+
         public async Task<bool> InsertNhomMatHangAsync(DNHOMMATHANG model)
         {
             try
@@ -450,13 +518,27 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
+
+                    // Kiểm tra trùng tên nhóm mặt hàng
+                    if (!string.IsNullOrWhiteSpace(model.Name))
+                    {
+                        string checkSql = "SELECT COUNT(1) FROM DNHOMMATHANG WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Name)) AND (STATUS <> 0 OR STATUS IS NULL)";
+                        int count = await conn.ExecuteScalarAsync<int>(checkSql, new { Name = model.Name });
+                        if (count > 0)
+                        {
+                            System.Windows.MessageBox.Show($"Nhóm mặt hàng '{model.Name}' đã tồn tại trong hệ thống! Vui lòng chọn tên khác.", "Cảnh báo trùng tên", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                            return false;
+                        }
+                    }
+
+                    string newId = !string.IsNullOrEmpty(model.Id) ? model.Id : Guid.NewGuid().ToString();
                     
                     string sql = @"
-                        INSERT INTO DNHOMMATHANG (ID, CODE, NAME, DLOAIDO_ID, PARENT_ID)
-                        VALUES (@Id, @Code, @Name, @DloaidoId, @ParentId)";
+                        INSERT INTO DNHOMMATHANG (ID, CODE, NAME, DLOAIDOID, PARENTID, STATUS, USERCREATEDID, TIMECREATED)
+                        VALUES (@Id, @Code, @Name, @DloaidoId, @ParentId, 1, 1, CURRENT_TIMESTAMP)";
 
                     var parameters = new {
-                        Id = model.Id,
+                        Id = newId,
                         Code = model.Code,
                         Name = model.Name,
                         DloaidoId = model.DloaidoId,
@@ -486,11 +568,25 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
+
+                    // Kiểm tra trùng tên khi sửa
+                    if (!string.IsNullOrWhiteSpace(model.Name))
+                    {
+                        string checkSql = "SELECT COUNT(1) FROM DNHOMMATHANG WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Name)) AND CAST(ID AS VARCHAR(50)) <> @Id AND (STATUS <> 0 OR STATUS IS NULL)";
+                        int count = await conn.ExecuteScalarAsync<int>(checkSql, new { Name = model.Name, Id = model.Id });
+                        if (count > 0)
+                        {
+                            System.Windows.MessageBox.Show($"Nhóm mặt hàng '{model.Name}' đã tồn tại trong hệ thống! Vui lòng chọn tên khác.", "Cảnh báo trùng tên", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                            return false;
+                        }
+                    }
                     
                     string sql = @"
                         UPDATE DNHOMMATHANG 
-                        SET NAME = @Name
-                        WHERE ID = @Id";
+                        SET NAME = @Name,
+                            TIMEMODIFIED = CURRENT_TIMESTAMP,
+                            USERMODIFIEDID = 1
+                        WHERE CAST(ID AS VARCHAR(50)) = @Id";
 
                     var parameters = new {
                         Id = model.Id,
@@ -516,7 +612,12 @@ namespace QuanLyBar.Client.Services
                 {
                     await conn.OpenAsync();
                     
-                    string sql = "DELETE FROM DNHOMMATHANG WHERE ID = @Id";
+                    // Gỡ liên kết mặt hàng về null
+                    await conn.ExecuteAsync("UPDATE DMATHANG SET DNHOMMATHANGID = NULL WHERE CAST(DNHOMMATHANGID AS VARCHAR(50)) = @Id", new { Id = id });
+                    // Xóa nhóm con nếu có
+                    await conn.ExecuteAsync("DELETE FROM DNHOMMATHANG WHERE CAST(PARENTID AS VARCHAR(50)) = @Id", new { Id = id });
+                    // Xóa nhóm
+                    string sql = "DELETE FROM DNHOMMATHANG WHERE CAST(ID AS VARCHAR(50)) = @Id";
                     int affectedRows = await conn.ExecuteAsync(sql, new { Id = id });
                     return affectedRows > 0;
                 }

@@ -20,6 +20,9 @@ namespace QuanLyBar.Client.Views
             DgInMaVach.ItemsSource = _matHangInMaVachList;
         }
 
+        private System.Collections.Generic.List<MatHangViewModel> _allMatHangs;
+        private string _currentNhomId = null;
+
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             // Load danh sách nhóm mặt hàng lên TreeView
@@ -34,6 +37,13 @@ namespace QuanLyBar.Client.Views
         {
             if (e.NewValue is NhomMatHangViewModel selectedNhom)
             {
+                bool isTrash = selectedNhom.Id == "-1";
+                if (BtnThemMoi != null) BtnThemMoi.IsEnabled = !isTrash;
+                if (BtnChinhSua != null) BtnChinhSua.IsEnabled = !isTrash;
+                if (BtnThemExcel != null) BtnThemExcel.IsEnabled = !isTrash;
+                if (BtnImportDinhLuong != null) BtnImportDinhLuong.IsEnabled = !isTrash;
+                if (BtnXoa != null) BtnXoa.Content = isTrash ? "❌ Xóa vĩnh viễn" : "❌ Xóa (Del)";
+
                 // Nếu chọn "Tất cả" (Id = string.Empty) thì truyền null để lấy hết
                 string filterId = string.IsNullOrEmpty(selectedNhom.Id) ? null : selectedNhom.Id;
                 LoadMatHangData(filterId);
@@ -42,8 +52,225 @@ namespace QuanLyBar.Client.Views
 
         private async void LoadMatHangData(string nhomId)
         {
-            var data = await _matHangService.GetMatHangListAsync(nhomId);
-            DgMatHang.ItemsSource = data;
+            _currentNhomId = nhomId;
+            _allMatHangs = await _matHangService.GetMatHangListAsync(nhomId);
+            ApplyFilter();
+        }
+
+        private string _currentSortColumn = "Name";
+        private bool _isSortAscending = true;
+
+        private void ApplyFilter()
+        {
+            if (_allMatHangs == null)
+            {
+                DgMatHang.ItemsSource = null;
+                return;
+            }
+
+            var query = _allMatHangs.AsEnumerable();
+            string filter = TxtLocMatHang?.Text?.Trim();
+            if (!string.IsNullOrEmpty(filter))
+            {
+                query = query.Where(m => 
+                    (!string.IsNullOrEmpty(m.Name) && m.Name.IndexOf(filter, System.StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(m.Code) && m.Code.IndexOf(filter, System.StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(m.NhomMatHangName) && m.NhomMatHangName.IndexOf(filter, System.StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(m.LoaiMatHangName) && m.LoaiMatHangName.IndexOf(filter, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                );
+            }
+
+            // Sắp xếp
+            query = _currentSortColumn switch
+            {
+                "Nhom" => _isSortAscending ? query.OrderBy(m => m.NhomMatHangName) : query.OrderByDescending(m => m.NhomMatHangName),
+                "Loai" => _isSortAscending ? query.OrderBy(m => m.LoaiMatHangName) : query.OrderByDescending(m => m.LoaiMatHangName),
+                "Dvt" => _isSortAscending ? query.OrderBy(m => m.DonViTinhName) : query.OrderByDescending(m => m.DonViTinhName),
+                "GiaBan" => _isSortAscending ? query.OrderBy(m => m.Giaban) : query.OrderByDescending(m => m.Giaban),
+                "GiaNhap" => _isSortAscending ? query.OrderBy(m => m.Gianhap) : query.OrderByDescending(m => m.Gianhap),
+                "DvtChan" => _isSortAscending ? query.OrderBy(m => m.DonViTinhChanName) : query.OrderByDescending(m => m.DonViTinhChanName),
+                "QuyDoi" => _isSortAscending ? query.OrderBy(m => m.Quydoi) : query.OrderByDescending(m => m.Quydoi),
+                "GiaBanChan" => _isSortAscending ? query.OrderBy(m => m.Giabanchan) : query.OrderByDescending(m => m.Giabanchan),
+                "Code" => _isSortAscending ? query.OrderBy(m => m.Code) : query.OrderByDescending(m => m.Code),
+                _ => _isSortAscending ? query.OrderBy(m => m.Name) : query.OrderByDescending(m => m.Name)
+            };
+
+            var list = query.ToList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                list[i].Stt = i + 1;
+            }
+
+            DgMatHang.ItemsSource = list;
+        }
+
+        private void TxtLocMatHang_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ApplyFilter();
+        }
+
+        private void DataGridRow_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row)
+            {
+                row.IsSelected = true;
+                row.Focus();
+            }
+        }
+
+        private void DgMatHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DgMatHang.SelectedItem is MatHangViewModel selected)
+            {
+                if (TxtInfoKhoiTao != null)
+                    TxtInfoKhoiTao.Text = selected.Timecreated?.ToString("dd/MM/yyyy hh:mm tt") ?? "--/--/---- --:--:--";
+                if (TxtInfoNguoiTao != null)
+                    TxtInfoNguoiTao.Text = !string.IsNullOrEmpty(selected.UsercreatedName) ? selected.UsercreatedName : "Administrator";
+                if (TxtInfoSuaDoi != null)
+                    TxtInfoSuaDoi.Text = selected.Timemodified?.ToString("dd/MM/yyyy hh:mm tt") ?? "--/--/---- --:--:--";
+                if (TxtInfoNguoiSua != null)
+                    TxtInfoNguoiSua.Text = !string.IsNullOrEmpty(selected.UsermodifiedName) ? selected.UsermodifiedName : "Administrator";
+            }
+            else
+            {
+                if (TxtInfoKhoiTao != null) TxtInfoKhoiTao.Text = "--/--/---- --:--:--";
+                if (TxtInfoNguoiTao != null) TxtInfoNguoiTao.Text = "Administrator";
+                if (TxtInfoSuaDoi != null) TxtInfoSuaDoi.Text = "--/--/---- --:--:--";
+                if (TxtInfoNguoiSua != null) TxtInfoNguoiSua.Text = "Administrator";
+            }
+        }
+
+        private void GridContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            bool isTrash = _currentNhomId == "-1";
+            if (isTrash)
+            {
+                if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Visible;
+                if (MenuThemMoi != null) MenuThemMoi.Visibility = Visibility.Collapsed;
+                if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Collapsed;
+                if (Sep1 != null) Sep1.Visibility = Visibility.Collapsed;
+                if (MenuDanhLaiMaHang != null) MenuDanhLaiMaHang.Visibility = Visibility.Collapsed;
+                if (MenuDatCot != null) MenuDatCot.Visibility = Visibility.Collapsed;
+                if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Collapsed;
+                if (Sep2 != null) Sep2.Visibility = Visibility.Collapsed;
+                if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Collapsed;
+                if (Sep3 != null) Sep3.Visibility = Visibility.Collapsed;
+                if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Collapsed;
+                if (Sep5 != null) Sep5.Visibility = Visibility.Collapsed;
+                if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Collapsed;
+                if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Collapsed;
+                if (MenuXoa != null) MenuXoa.Header = "Xóa vĩnh viễn";
+                if (MenuSapXep != null) MenuSapXep.Header = "Sắp xếp";
+            }
+            else
+            {
+                if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Collapsed;
+                if (MenuThemMoi != null) MenuThemMoi.Visibility = Visibility.Visible;
+                if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Visible;
+                if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Visible;
+                if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Visible;
+                if (Sep1 != null) Sep1.Visibility = Visibility.Visible;
+                if (MenuDanhLaiMaHang != null) MenuDanhLaiMaHang.Visibility = Visibility.Visible;
+                if (MenuDatCot != null) MenuDatCot.Visibility = Visibility.Visible;
+                if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Visible;
+                if (Sep2 != null) Sep2.Visibility = Visibility.Visible;
+                if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Visible;
+                if (Sep3 != null) Sep3.Visibility = Visibility.Visible;
+                if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Visible;
+                if (Sep5 != null) Sep5.Visibility = Visibility.Visible;
+                if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Visible;
+                if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Visible;
+                if (MenuXoa != null) MenuXoa.Header = "Xóa";
+                if (MenuSapXep != null) MenuSapXep.Header = "Sắp xếp theo";
+            }
+        }
+
+        private async void MenuItem_KhoiPhuc_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang.SelectedItem is MatHangViewModel selected)
+            {
+                var result = MessageBox.Show($"Bạn có chắc chắn muốn khôi phục mặt hàng '{selected.Name}' không?", "Xác nhận khôi phục", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    await _matHangService.RestoreMatHangAsync(selected.Id);
+                    ReloadAllData();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một mặt hàng để khôi phục!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void MenuItem_SaoChep_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang.SelectedItem is MatHangViewModel selected)
+            {
+                Clipboard.SetText(selected.Name ?? "");
+            }
+        }
+
+        private void MenuItem_SaoChepVungChon_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedList = DgMatHang.SelectedItems.Cast<MatHangViewModel>().ToList();
+            if (selectedList.Count == 0 && DgMatHang.SelectedItem is MatHangViewModel single) selectedList.Add(single);
+            if (selectedList.Count > 0)
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("STT\tTên mặt hàng\tNhóm mặt hàng\tLoại mặt hàng\tĐVT\tGiá bán\tGiá nhập\tMã hàng");
+                foreach (var m in selectedList)
+                {
+                    sb.AppendLine($"{m.Stt}\t{m.Name}\t{m.NhomMatHangName}\t{m.LoaiMatHangName}\t{m.DonViTinhName}\t{m.Giaban}\t{m.Gianhap}\t{m.Code}");
+                }
+                Clipboard.SetText(sb.ToString());
+                MessageBox.Show($"Đã sao chép {selectedList.Count} dòng vào Clipboard.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MenuItem_SortAsc_Click(object sender, RoutedEventArgs e) { _isSortAscending = true; ApplyFilter(); }
+        private void MenuItem_SortDesc_Click(object sender, RoutedEventArgs e) { _isSortAscending = false; ApplyFilter(); }
+        private void MenuItem_SortByName_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "Name"; ApplyFilter(); }
+        private void MenuItem_SortByNhom_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "Nhom"; ApplyFilter(); }
+        private void MenuItem_SortByLoai_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "Loai"; ApplyFilter(); }
+        private void MenuItem_SortByDvt_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "Dvt"; ApplyFilter(); }
+        private void MenuItem_SortByGiaBan_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "GiaBan"; ApplyFilter(); }
+        private void MenuItem_SortByGiaNhap_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "GiaNhap"; ApplyFilter(); }
+        private void MenuItem_SortByDvtChan_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "DvtChan"; ApplyFilter(); }
+        private void MenuItem_SortByQuyDoi_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "QuyDoi"; ApplyFilter(); }
+        private void MenuItem_SortByGiaBanChan_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "GiaBanChan"; ApplyFilter(); }
+        private void MenuItem_SortByCode_Click(object sender, RoutedEventArgs e) { _currentSortColumn = "Code"; ApplyFilter(); }
+
+        private void MenuDanhLaiMaHang_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Chức năng đánh lại mã hàng tự động.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void MenuItem_TuDongGianCot_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var col in DgMatHang.Columns)
+            {
+                col.Width = DataGridLength.Auto;
+            }
+        }
+
+        private void MenuCotHienThi_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Tùy chọn ẩn/hiển thị cột.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void MenuItem_ThuocTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang.SelectedItem is MatHangViewModel selected)
+            {
+                var win = new ThuocTinhWindow(selected.Id, "DMATHANG", selected.Name, selected.Timecreated, selected.Timemodified, selected.UsercreatedName, selected.UsermodifiedName);
+                win.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một mặt hàng để xem thuộc tính!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void BtnThemMoi_Click(object sender, RoutedEventArgs e)
@@ -80,19 +307,31 @@ namespace QuanLyBar.Client.Views
         
         private async void BtnXoa_Click(object sender, RoutedEventArgs e)
         {
+            bool isTrash = _currentNhomId == "-1";
+
             if (DgMatHang.SelectedItem is MatHangViewModel selectedMatHang)
             {
-                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa mặt hàng '{selectedMatHang.Name}' không?", 
-                                             "Xác nhận xóa", 
-                                             MessageBoxButton.YesNo, 
-                                             MessageBoxImage.Question);
+                string msg = isTrash 
+                    ? $"Bạn có chắc chắn muốn XÓA VĨNH VIỄN mặt hàng '{selectedMatHang.Name}' không?"
+                    : $"Bạn có chắc muốn đưa mặt hàng '{selectedMatHang.Name}' vào Thùng rác không?";
+
+                var result = MessageBox.Show(msg, "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
-                    bool success = await _matHangService.DeleteMatHangAsync(selectedMatHang.Id);
+                    bool success = await _matHangService.DeleteMatHangAsync(selectedMatHang.Id, isPermanent: isTrash);
                     if (success)
                     {
                         ReloadMatHangGrid();
                     }
+                }
+            }
+            else if (isTrash)
+            {
+                var confirmEmpty = MessageBox.Show("Bạn có chắc chắn muốn DỌN SẠCH THÙNG RÁC (Xóa vĩnh viễn toàn bộ mặt hàng trong thùng rác)?", "Dọn sạch thùng rác", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (confirmEmpty == MessageBoxResult.Yes)
+                {
+                    await _matHangService.EmptyTrashAsync();
+                    ReloadMatHangGrid();
                 }
             }
             else

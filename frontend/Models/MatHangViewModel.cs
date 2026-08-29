@@ -29,7 +29,7 @@ namespace QuanLyBar.Client.Models
         public string DonViTinhName { get; set; } // Tên đơn vị tính
         public string DonViTinhChanName { get; set; } // Tên đơn vị tính chẵn
 
-        // Các trường phục vụ Import Excel
+        // Các trường phục vụ Import Excel & Mở rộng
         public string Ghichu { get; set; }
         public decimal? Tontoithieu { get; set; }
         public decimal? Tontoida { get; set; }
@@ -39,5 +39,15 @@ namespace QuanLyBar.Client.Models
         public string Doitackygui { get; set; }
         public decimal? Macdinhgiamgia { get; set; }
         public decimal? Macdinhgiamtien { get; set; }
+
+        // Audit fields & Status
+        public bool? Status { get; set; }
+        public DateTime? Timecreated { get; set; }
+        public DateTime? Timemodified { get; set; }
+        public string UsercreatedName { get; set; }
+        public string UsermodifiedName { get; set; }
+
+        public bool IsTamKhoa => Tamkhoa == "1" || Tamkhoa == "True" || Tamkhoa == "true";
+        public bool IsGiaTheoThoiGia => Giatheothoigia.HasValue && Giatheothoigia.Value > 0;
     }
 }

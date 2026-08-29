@@ -37,15 +37,15 @@
                         <MenuItem Header="Lưu &amp; Mới" InputGestureText="Ctrl+S"/>
                         <MenuItem Header="Lưu &amp; Thoát" InputGestureText="Enter" Click="Menu_LuuVaThoat_Click"/>
                         <Separator/>
-                        <MenuItem Header="In" InputGestureText="Ctrl+P"/>
-                        <MenuItem Header="Xem trước" InputGestureText="Ctrl+Shift+P"/>
+                        <MenuItem Header="In" InputGestureText="Ctrl+P" Click="Menu_LuuVaIn_Click"/>
+                        <MenuItem Header="Xem trước" InputGestureText="Ctrl+Shift+P" Click="Menu_LuuVaXemIn_Click"/>
                         <Separator/>
                         <MenuItem Header="Thoát" InputGestureText="ESC" Click="Menu_Thoat_Click"/>
                     </MenuItem>
                 </Menu>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
-                <Button Content="⬅ Trước (F10)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="SteelBlue"/>
-                <Button Content="➡ Sau (F11)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="SteelBlue"/>
+                <Button x:Name="BtnTruoc" Content="⬅ Trước (F10)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="SteelBlue" Click="BtnTruoc_Click"/>
+                <Button x:Name="BtnSau" Content="➡ Sau (F11)" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="SteelBlue" Click="BtnSau_Click"/>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
                 <Button Content="➕ Tạo mới" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Green" Click="BtnTaoMoi_Click"/>
                 <Button Content="📄 Sao chép" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0" Foreground="Gray"/>
@@ -56,7 +56,7 @@
         <!-- Main Content -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="450"/>
+                <ColumnDefinition Width="600"/>
                 <ColumnDefinition Width="5"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -72,11 +72,11 @@
                 <!-- Input Form -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="80"/>
-                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="70"/>
-                        <ColumnDefinition Width="100"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="28"/>
@@ -91,23 +91,29 @@
 
                     <!-- Row 0: Ngày / Số phiếu / Đặt lúc -->
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Ngày" VerticalAlignment="Center"/>
-                    <DatePicker Grid.Row="0" Grid.Column="1" x:Name="DpNgay" VerticalAlignment="Center" Margin="0,2,5,2"/>
+                    <DatePicker Grid.Row="0" Grid.Column="1" x:Name="DpNgay" VerticalAlignment="Center" Margin="0,2,5,2" SelectedDateChanged="DpNgay_SelectedDateChanged"/>
                     
                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Số phiếu" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="0" Grid.Column="3" x:Name="TxtSoPhieu" IsReadOnly="True" Background="#f0f0f0" VerticalAlignment="Center" Margin="0,2,5,2"/>
                     
                     <StackPanel Grid.Row="0" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Đặt lúc" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                        <TextBox x:Name="TxtDatLuc" Width="50" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                        <CheckBox Content="Đặt tiền trước" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        <TextBlock Text="Đặt lúc" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtDatLuc" Width="45" Margin="0,0,5,0" VerticalAlignment="Center" LostFocus="TimeTextBox_LostFocus"/>
+                        <CheckBox Content="Đặt tiền trước" VerticalAlignment="Center" Margin="2,0,0,0"/>
                     </StackPanel>
 
                     <!-- Row 1: Giờ vào / Giờ ra / Màu -->
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Giờ vào" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtGioVao" Background="#aee4ff" VerticalAlignment="Center" Margin="0,2,5,2"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,5,2">
+                        <DatePicker x:Name="DpTuNgay" Width="105" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtGioVao" Width="48" Background="#aee4ff" VerticalAlignment="Center" TextAlignment="Center" LostFocus="TimeTextBox_LostFocus"/>
+                    </StackPanel>
                     
                     <TextBlock Grid.Row="1" Grid.Column="2" Text="Giờ ra" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="1" Grid.Column="3" x:Name="TxtGioRa" Background="#ffffcc" VerticalAlignment="Center" Margin="0,2,5,2"/>
+                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,5,2">
+                        <DatePicker x:Name="DpDenNgay" Width="105" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="TxtGioRa" Background="#ffffcc" Width="48" VerticalAlignment="Center" TextAlignment="Center" LostFocus="TimeTextBox_LostFocus"/>
+                    </StackPanel>
                     
                     <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Màu:" Margin="0,0,5,0" VerticalAlignment="Center"/>
@@ -117,7 +123,7 @@
                     <!-- Row 2: Phòng -->
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Phòng" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" x:Name="TxtPhong" IsReadOnly="True" Background="#f0f0f0" VerticalAlignment="Center" Margin="0,2,5,2"/>
-                    <Button Grid.Row="2" Grid.Column="4" Content="🔍 Chọn (F8)" Padding="5,2" HorizontalAlignment="Left" Width="80" Click="BtnChonPhong_Click"/>
+                    <Button Grid.Row="2" Grid.Column="4" Content="🔍 Chọn (F8)" Padding="5,2" HorizontalAlignment="Left" Width="85" Click="BtnChonPhong_Click"/>
 
                     <!-- Row 3: Khách hàng -->
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Khách hàng" VerticalAlignment="Center"/>
@@ -130,7 +136,7 @@
                         <ToggleButton Grid.Column="1" x:Name="BtnKhachHangToggle" Content="▼" Width="20" Click="BtnKhachHangToggle_Click"/>
                         
                         <Popup x:Name="PopupKhachHang" IsOpen="{Binding IsChecked, ElementName=BtnKhachHangToggle}" 
-                               StaysOpen="False" PlacementTarget="{Binding ElementName=TxtKhachHang}" Width="450">
+                               StaysOpen="False" PlacementTarget="{Binding ElementName=TxtKhachHang}" Width="480">
                             <Border Background="White" BorderBrush="Gray" BorderThickness="1" SnapsToDevicePixels="True">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -142,17 +148,17 @@
                                               HeadersVisibility="Column" SelectionMode="Single"
                                               MouseDoubleClick="DgKhachHang_MouseDoubleClick">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Mã khách" Binding="{Binding Ma}" Width="70"/>
-                                            <DataGridTextColumn Header="Tên khách hàng" Binding="{Binding Name}" Width="150"/>
-                                            <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi}" Width="120"/>
-                                            <DataGridTextColumn Header="Điện thoại" Binding="{Binding DienThoai}" Width="100"/>
+                                            <DataGridTextColumn Header="Mã khách" Binding="{Binding Makhach}" Width="70"/>
+                                            <DataGridTextColumn Header="Tên khách hàng" Binding="{Binding Name}" Width="150" FontWeight="SemiBold"/>
+                                            <DataGridTextColumn Header="Địa chỉ" Binding="{Binding Diachi}" Width="140"/>
+                                            <DataGridTextColumn Header="Điện thoại" Binding="{Binding Dienthoai}" Width="100"/>
                                         </DataGrid.Columns>
                                     </DataGrid>
                                     
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" Background="#f0f0f0" Margin="5">
                                         <Button Content="➕ Thêm" Width="60" Margin="0,0,5,0" Background="Transparent" BorderThickness="0" Click="BtnThemKhachHang_Click"/>
                                         <Button Content="✏️ Sửa" Width="60" Margin="0,0,5,0" Background="Transparent" BorderThickness="0"/>
-                                        <Button Content="🔄 Tải" Width="60" Margin="0,0,5,0" Background="Transparent" BorderThickness="0"/>
+                                        <Button Content="🔄 Tải" Width="60" Margin="0,0,5,0" Background="Transparent" BorderThickness="0" Click="BtnKhachHangReload_Click"/>
                                         <Button Content="📋 Danh mục" Width="80" Background="Transparent" BorderThickness="0"/>
                                     </StackPanel>
                                 </Grid>
@@ -246,10 +252,10 @@
                     <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                             <Button Content="❌ Xóa dòng (F8)" Margin="0,0,5,0" Padding="5,2" Foreground="Gray" Click="BtnXoaDong_Click"/>
-                            <Button Content="📥 Nhập từ excel" Margin="0,0,5,0" Padding="5,2" Foreground="Green"/>
-                            <Button Content="📤 Xuất excel" Margin="0,0,5,0" Padding="5,2" Foreground="Green"/>
+                            <Button x:Name="BtnNhapExcel" Content="📥 Nhập từ excel" Margin="0,0,5,0" Padding="5,2" Foreground="Green" Click="BtnNhapExcel_Click"/>
+                            <Button x:Name="BtnXuatExcel" Content="📤 Xuất excel" Margin="0,0,5,0" Padding="5,2" Foreground="Green" Click="BtnXuatExcel_Click"/>
                             <TextBlock Text="Lọc" VerticalAlignment="Center" Margin="50,0,5,0"/>
-                            <TextBox Width="100" VerticalAlignment="Center"/>
+                            <TextBox x:Name="TxtLocChiTiet" Width="100" VerticalAlignment="Center" TextChanged="TxtLocChiTiet_TextChanged"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -338,13 +344,13 @@
         <!-- Footer Action Bar -->
         <Border Grid.Row="3" Background="#e2ebf6" BorderBrush="#a4b9d6" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                <Button Content="🖨 Lưu &amp; In" Margin="10,5,5,5" Padding="10,2" Background="White"/>
-                <Button Content="📄 Lưu &amp; Xem in" Margin="5,5,5,5" Padding="10,2" Background="White"/>
+                <Button Content="🖨 Lưu &amp; In" Margin="10,5,5,5" Padding="10,2" Background="White" Click="Menu_LuuVaIn_Click"/>
+                <Button Content="📄 Lưu &amp; Xem in" Margin="5,5,5,5" Padding="10,2" Background="White" Click="Menu_LuuVaXemIn_Click"/>
             </StackPanel>
         </Border>
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="💾 Lưu" Margin="5,5,5,5" Padding="15,2" Background="White" Click="Menu_Luu_Click"/>
-            <Button Content="➕ Lưu &amp; Mới" Margin="5,5,5,5" Padding="15,2" Background="White"/>
+            <Button Content="➕ Lưu &amp; Mới" Margin="5,5,5,5" Padding="15,2" Background="White" Click="Menu_LuuVaMoi_Click"/>
             <Button Content="🚪 Lưu &amp; thoát" Margin="5,5,5,5" Padding="15,2" Background="White" Click="Menu_LuuVaThoat_Click"/>
             <Button Content="Thoát" Margin="5,5,10,5" Padding="20,2" Background="White" Click="Menu_Thoat_Click"/>
         </StackPanel>
