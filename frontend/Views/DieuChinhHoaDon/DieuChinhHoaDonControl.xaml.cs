@@ -18,6 +18,7 @@ namespace QuanLyBar.Client.Views
         private readonly LocalSuDungDichVuService _dichVuService;
         private ObservableCollection<PosNhomMatHangViewModel> _menuTreeList;
         private List<PosMatHangViewModel> _allMatHangList = new List<PosMatHangViewModel>();
+        private ObservableCollection<DichVuYeuCauViewModel> _dichVuList = new ObservableCollection<DichVuYeuCauViewModel>();
         private string _selectedNhomId;
 
         public DieuChinhHoaDonControl()
@@ -32,8 +33,14 @@ namespace QuanLyBar.Client.Views
             dpTuNgay.SelectedDate = DateTime.Today;
             dpDenNgay.SelectedDate = DateTime.Today;
             
+            if (DgDichVu != null)
+            {
+                DgDichVu.ItemsSource = _dichVuList;
+            }
+
             await LoadDataAsync();
             await LoadMenuTreeAsync();
+            await LoadDichVuYeuCauAsync();
         }
 
         private async void BtnTaiDuLieu_Click(object sender, RoutedEventArgs e)
@@ -840,6 +847,162 @@ namespace QuanLyBar.Client.Views
         private void DgMatHang_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             // Thêm món vào hóa đơn nếu cần
+        }
+
+        #endregion
+
+        #region MENU CHUỘT PHẢI CHI TIẾT HÓA ĐƠN (DgChiTiet)
+
+        private void MnuChiTiet_SaoChepO_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgChiTiet?.CurrentCell.Item is ChiTietHoaDonViewModel row)
+            {
+                var col = DgChiTiet.CurrentCell.Column as DataGridTextColumn;
+                string cellValue = "";
+                if (col != null && col.Header != null)
+                {
+                    string header = col.Header.ToString();
+                    if (header.Contains("Tên")) cellValue = row.TenMon;
+                    else if (header.Contains("ĐVT")) cellValue = row.Dvt;
+                    else if (header.Contains("SL")) cellValue = row.SoLuong.ToString("0.##");
+                    else if (header.Contains("giá")) cellValue = row.DonGia.ToString("N0");
+                    else if (header.Contains("CK")) cellValue = row.PhanTramGiamGia.ToString("N0");
+                    else if (header.Contains("tiền")) cellValue = row.ThanhTien.ToString("N0");
+                    else if (header.Contains("Ghi chú")) cellValue = row.GhiChu;
+                    else cellValue = row.TenMon;
+                }
+                else
+                {
+                    cellValue = row.TenMon;
+                }
+                Clipboard.SetText(cellValue ?? "");
+                MessageBox.Show($"Đã sao chép ô: {cellValue}", "Sao chép ô", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MnuChiTiet_SaoChepDong_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel row)
+            {
+                string rowText = $"{row.Stt}\t{row.TenMon}\t{row.Dvt}\t{row.SoLuong:0.##}\t{row.DonGia:N0}\t{row.PhanTramGiamGia}\t{row.ThanhTien:N0}\t{row.GhiChu}";
+                Clipboard.SetText(rowText);
+                MessageBox.Show($"Đã sao chép dòng '{row.TenMon}' vào Clipboard!", "Sao chép dòng", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MnuChiTiet_TuDongDanCot_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgChiTiet != null)
+            {
+                foreach (var col in DgChiTiet.Columns)
+                {
+                    col.Width = DataGridLength.Auto;
+                    col.Width = DataGridLength.SizeToHeader;
+                }
+            }
+        }
+
+        private void MnuChiTiet_CotHienThi_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ChonCotHienThiWindow(DgChiTiet, new List<string> { "STT", "Tên hàng", "ĐVT", "SL", "Đ.giá", "CK%", "T.tiền", "Ghi chú" });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void MnuChiTiet_XuatExcel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Excel CSV (*.csv)|*.csv|All files (*.*)|*.*",
+                    FileName = $"ChiTietHoaDon_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                };
+                if (saveDialog.ShowDialog() == true)
+                {
+                    var items = DgChiTiet?.ItemsSource as IEnumerable<ChiTietHoaDonViewModel>;
+                    if (items != null)
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        sb.AppendLine("STT,Tên hàng,Đơn vị tính,Số lượng,Đơn giá,CK%,Thành tiền,Ghi chú");
+                        foreach (var item in items)
+                        {
+                            sb.AppendLine($"\"{item.Stt}\",\"{item.TenMon}\",\"{item.Dvt}\",{item.SoLuong},{item.DonGia},{item.PhanTramGiamGia},{item.ThanhTien},\"{item.GhiChu}\"");
+                        }
+                        System.IO.File.WriteAllText(saveDialog.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+                        MessageBox.Show("Xuất file Excel CSV thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xuất Excel: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void MnuChiTiet_InDanhSach_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new InLuoiWindow(DgChiTiet, "Chi tiết hóa đơn");
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        #endregion
+
+        #region TAB D.VỤ (DỊCH VỤ)
+
+        private async Task LoadDichVuYeuCauAsync()
+        {
+            try
+            {
+                var data = await _dichVuService.GetDichVuYeuCauListAsync();
+                _dichVuList.Clear();
+                foreach (var item in data)
+                {
+                    _dichVuList.Add(item);
+                }
+            }
+            catch { }
+        }
+
+        private async void BtnRefreshDichVu_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadDichVuYeuCauAsync();
+        }
+
+        private void BtnVaoPhongDichVu_Click(object sender, RoutedEventArgs e)
+        {
+            VaoPhongDichVuDuocChon();
+        }
+
+        private void DgDichVu_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            VaoPhongDichVuDuocChon();
+        }
+
+        private void VaoPhongDichVuDuocChon()
+        {
+            if (DgDichVu?.SelectedItem is DichVuYeuCauViewModel selectedItem)
+            {
+                // Chọn hóa đơn tương ứng với phòng/bàn trong danh sách hóa đơn nếu có
+                if (!string.IsNullOrEmpty(selectedItem.Phong) && DgHoaDon?.ItemsSource is IEnumerable<HoaDonViewModel> hoaDons)
+                {
+                    var found = hoaDons.FirstOrDefault(h => h.Ban != null && h.Ban.Equals(selectedItem.Phong, StringComparison.OrdinalIgnoreCase));
+                    if (found != null)
+                    {
+                        DgHoaDon.SelectedItem = found;
+                        DgHoaDon.ScrollIntoView(found);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Không tìm thấy hóa đơn của bàn '{selectedItem.Phong}' trong danh sách lọc hiện tại!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một hàng dịch vụ trong danh sách để vào phòng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         #endregion

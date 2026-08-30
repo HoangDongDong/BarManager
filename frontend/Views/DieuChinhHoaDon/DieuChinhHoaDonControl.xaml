@@ -290,6 +290,20 @@
                 <DataGrid x:Name="DgChiTiet" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
                           GridLinesVisibility="All" AlternatingRowBackground="#f0f5fb" Background="White"
                           HeadersVisibility="Column" RowHeight="22" FontSize="11">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Chuyển một phần sang hóa đơn khác" IsEnabled="False"/>
+                            <MenuItem Header="Chuyển tất cả sang hóa đơn khác" IsEnabled="False"/>
+                            <MenuItem Header="Sao chép ô" Click="MnuChiTiet_SaoChepO_Click"/>
+                            <MenuItem Header="Sao chép dòng" Click="MnuChiTiet_SaoChepDong_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Tự động dãn cột" Click="MnuChiTiet_TuDongDanCot_Click"/>
+                            <MenuItem Header="Cột hiển thị" Click="MnuChiTiet_CotHienThi_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Xuất dữ liệu Excel" Click="MnuChiTiet_XuatExcel_Click"/>
+                            <MenuItem Header="In danh sách" Click="MnuChiTiet_InDanhSach_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="" Binding="{Binding Stt}" Width="28">
                             <DataGridTextColumn.ElementStyle>
@@ -377,6 +391,53 @@
                     <!-- Tab GHI CHÚ -->
                     <TabItem Header="GHI CHÚ">
                         <TextBox x:Name="TxtGhiChu" AcceptsReturn="True" TextWrapping="Wrap" Margin="4"/>
+                    </TabItem>
+
+                    <!-- Tab D.VỤ -->
+                    <TabItem x:Name="TabDichVu" Header="D.VỤ">
+                        <Grid Background="#d8e8f8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="26"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Toolbar: Refresh, Vào phòng -->
+                            <Border Grid.Row="0" Background="#c2d9ee" BorderBrush="#a4c6e2" BorderThickness="0,0,0,1" Padding="6,1">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="BtnRefreshDichVu" Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,12,0" Click="BtnRefreshDichVu_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🔄" Foreground="#0050b3" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Refresh" FontSize="11" Foreground="#003a8c" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="BtnVaoPhongDichVu" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnVaoPhongDichVu_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="▶" Foreground="#389e0d" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Vào phòng" FontSize="11" Foreground="#237804" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- DataGrid Yêu cầu dịch vụ -->
+                            <DataGrid x:Name="DgDichVu" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
+                                      IsReadOnly="True" HeadersVisibility="Column" SelectionMode="Single"
+                                      Background="White" GridLinesVisibility="All" BorderThickness="0"
+                                      RowHeight="22" FontSize="11" MouseDoubleClick="DgDichVu_MouseDoubleClick">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Nội dung" Binding="{Binding NoiDung}" Width="*"/>
+                                    <DataGridTextColumn Header="Phòng" Binding="{Binding Phong}" Width="85"/>
+                                    <DataGridTextColumn Header="Số lần" Binding="{Binding SoLan}" Width="60">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
                     </TabItem>
                 </TabControl>
             </Grid>
