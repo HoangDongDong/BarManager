@@ -25,9 +25,11 @@
 
     <Grid Background="#e5ecf3">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3.8*"/>
-            <ColumnDefinition Width="4.2*"/>
-            <ColumnDefinition Width="2.8*"/>
+            <ColumnDefinition Width="3.8*" MinWidth="200"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="4.2*" MinWidth="250"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="2.8*" MinWidth="220"/>
         </Grid.ColumnDefinitions>
 
         <!-- ======================= CỘT TRÁI: SƠ ĐỒ KHU VỰC & BÀN ======================= -->
@@ -109,8 +111,12 @@
             </ScrollViewer>
         </Border>
 
+        <!-- Thanh co giãn 1 -->
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                      Background="#bccddf" Cursor="SizeWE" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns"/>
+
         <!-- ======================= CỘT GIỮA: THÔNG TIN PHIẾU & ĐƠN HÀNG ======================= -->
-        <Border Grid.Column="1" Margin="4" Background="White" BorderBrush="#b6c1cd" BorderThickness="1">
+        <Border Grid.Column="2" Margin="4" Background="White" BorderBrush="#b6c1cd" BorderThickness="1">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -378,8 +384,12 @@
             </Grid>
         </Border>
 
+        <!-- Thanh co giãn 2 -->
+        <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                      Background="#bccddf" Cursor="SizeWE" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns"/>
+
         <!-- ======================= CỘT PHẢI: CHỨC NĂNG & THỰC ĐƠN ======================= -->
-        <Grid Grid.Column="2" Margin="4">
+        <Grid Grid.Column="4" Margin="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="68"/>
                 <ColumnDefinition Width="*"/>

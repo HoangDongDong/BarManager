@@ -204,6 +204,17 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
+            int maxMinutes = await _service.GetThoiGianChoPhepHuyBillMinutesAsync();
+            if (_currentBan.StartTime.HasValue)
+            {
+                var elapsed = DateTime.Now - _currentBan.StartTime.Value;
+                if (elapsed.TotalMinutes > maxMinutes)
+                {
+                    MessageBox.Show($"Không được phép hủy hóa đơn có thời gian lớn hơn {maxMinutes} phút", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
+
             var lyDoWin = new NhapLyDoHuyWindow();
             lyDoWin.Owner = Window.GetWindow(this);
             if (lyDoWin.ShowDialog() == true)

@@ -8,9 +8,11 @@
              
     <Grid Background="#dce7f5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3.8*"/>
-            <ColumnDefinition Width="3.7*"/>
-            <ColumnDefinition Width="2.5*"/>
+            <ColumnDefinition Width="3.8*" MinWidth="200"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="3.7*" MinWidth="250"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="2.5*" MinWidth="220"/>
         </Grid.ColumnDefinitions>
 
         <!-- ======================= CỘT TRÁI: DANH SÁCH HÓA ĐƠN ======================= -->
@@ -158,8 +160,12 @@
             </DataGrid>
         </Grid>
 
+        <!-- Thanh co giãn 1 -->
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                      Background="#bccddf" Cursor="SizeWE" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns"/>
+
         <!-- ======================= CỘT GIỮA: ORDER CHI TIẾT ======================= -->
-        <Border Grid.Column="1" BorderBrush="#b6c1cd" BorderThickness="1" Background="White" Margin="2,4,2,4">
+        <Border Grid.Column="2" BorderBrush="#b6c1cd" BorderThickness="1" Background="White" Margin="2,4,2,4">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -376,8 +382,12 @@
             </Grid>
         </Border>
 
+        <!-- Thanh co giãn 2 -->
+        <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                      Background="#bccddf" Cursor="SizeWE" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns"/>
+
         <!-- ======================= CỘT PHẢI: CHỨC NĂNG & THỰC ĐƠN ======================= -->
-        <Grid Grid.Column="2" Margin="4">
+        <Grid Grid.Column="4" Margin="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="65"/>
                 <ColumnDefinition Width="*"/>

@@ -422,6 +422,25 @@ namespace QuanLyBar.Client.Services
             return await FinishTableOrderWithDetailsAsync(orderId, 0, 0, 0, 0, "TienMat");
         }
 
+        public async Task<int> GetThoiGianChoPhepHuyBillMinutesAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    var minutes = await conn.ExecuteScalarAsync<int?>(
+                        "SELECT FIRST 1 INTVALUE FROM SCONFIG WHERE NAME = 'ThoiGianChoPhepHuyBill' AND STATUS > 0"
+                    );
+                    return (minutes.HasValue && minutes.Value > 0) ? minutes.Value : 50;
+                }
+            }
+            catch
+            {
+                return 50;
+            }
+        }
+
         public async Task<bool> CancelOrderAsync(string orderId, string lyDoHuy = "")
         {
             if (string.IsNullOrEmpty(orderId)) return false;
