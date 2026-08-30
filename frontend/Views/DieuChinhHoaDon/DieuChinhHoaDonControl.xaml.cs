@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Dapper;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
 
@@ -15,7 +16,9 @@ namespace QuanLyBar.Client.Views
     {
         private readonly LocalHoaDonService _hoaDonService;
         private readonly LocalSuDungDichVuService _dichVuService;
+        private ObservableCollection<PosNhomMatHangViewModel> _menuTreeList;
         private List<PosMatHangViewModel> _allMatHangList = new List<PosMatHangViewModel>();
+        private string _selectedNhomId;
 
         public DieuChinhHoaDonControl()
         {
@@ -63,21 +66,33 @@ namespace QuanLyBar.Client.Views
         {
             try
             {
-                var menuTree = await _dichVuService.GetNhomMatHangTreeAsync();
-                SetTreeExpandState(menuTree, true);
-                TvMenu.ItemsSource = menuTree;
+                _menuTreeList = await _dichVuService.GetNhomMatHangTreeAsync();
+                SetTreeExpandState(_menuTreeList, true);
+                TvMenu.ItemsSource = _menuTreeList;
                 
-                if (menuTree != null && menuTree.Count > 0)
+                if (_menuTreeList != null && _menuTreeList.Count > 0)
                 {
-                    menuTree[0].IsSelected = true;
+                    _menuTreeList[0].IsSelected = true;
                 }
 
-                _allMatHangList = await _dichVuService.GetMatHangListAsync(null);
-                FilterMatHangList();
+                await LoadMatHangListAsync();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi khi tải danh mục: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task LoadMatHangListAsync()
+        {
+            try
+            {
+                _allMatHangList = await _dichVuService.GetMatHangListAsync(_selectedNhomId);
+                FilterMatHangList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải danh sách món: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -98,16 +113,8 @@ namespace QuanLyBar.Client.Views
         {
             if (e.NewValue is PosNhomMatHangViewModel selectedItem)
             {
-                try
-                {
-                    string searchNhomId = string.IsNullOrEmpty(selectedItem.Id) ? null : selectedItem.Id;
-                    _allMatHangList = await _dichVuService.GetMatHangListAsync(searchNhomId);
-                    FilterMatHangList();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi tải danh sách món: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                _selectedNhomId = string.IsNullOrEmpty(selectedItem.Id) ? null : selectedItem.Id;
+                await LoadMatHangListAsync();
             }
         }
 
@@ -497,6 +504,342 @@ namespace QuanLyBar.Client.Views
         private void BtnKhachHangDanhMuc_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Mở danh mục quản lý khách hàng.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        #endregion
+
+        #region MENU CHUỘT PHẢI CÂY THỰC ĐƠN (TvMenu)
+
+        private async void MenuTree_ThemMoi_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ThemNhomWindow(false);
+            win.Owner = Window.GetWindow(this);
+            if (win.ShowDialog() == true)
+            {
+                await LoadMenuTreeAsync();
+            }
+        }
+
+        private async void MenuTree_ThemCon_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ThemNhomWindow(false);
+            win.Owner = Window.GetWindow(this);
+            if (win.ShowDialog() == true)
+            {
+                await LoadMenuTreeAsync();
+            }
+        }
+
+        private async void MenuTree_ChinhSua_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = TvMenu?.SelectedItem as PosNhomMatHangViewModel;
+            if (selected == null || string.IsNullOrEmpty(selected.Id))
+            {
+                MessageBox.Show("Vui lòng chọn một nhóm để chỉnh sửa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            var win = new ThemNhomWindow(false, selected.Name);
+            win.Owner = Window.GetWindow(this);
+            if (win.ShowDialog() == true)
+            {
+                await LoadMenuTreeAsync();
+            }
+        }
+
+        private void MenuTree_SortAZ_Click(object sender, RoutedEventArgs e)
+        {
+            if (_menuTreeList != null && _menuTreeList.Count > 0 && _menuTreeList[0].Children != null)
+            {
+                var sorted = _menuTreeList[0].Children.OrderBy(x => x.Name).ToList();
+                _menuTreeList[0].Children.Clear();
+                foreach (var item in sorted)
+                {
+                    _menuTreeList[0].Children.Add(item);
+                }
+            }
+        }
+
+        private async void MenuTree_Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadMenuTreeAsync();
+            await LoadMatHangListAsync();
+        }
+
+        private void MenuTree_SaoChep_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvMenu?.SelectedItem is PosNhomMatHangViewModel selected)
+            {
+                Clipboard.SetText(selected.Name ?? "");
+                MessageBox.Show($"Đã sao chép tên nhóm '{selected.Name}' vào Clipboard!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MenuTree_MoRong_Click(object sender, RoutedEventArgs e)
+        {
+            SetTreeExpandState(_menuTreeList, true);
+        }
+
+        private void MenuTree_ThuGon_Click(object sender, RoutedEventArgs e)
+        {
+            SetTreeExpandState(_menuTreeList, false);
+            if (_menuTreeList != null && _menuTreeList.Count > 0)
+            {
+                _menuTreeList[0].IsExpanded = true;
+            }
+        }
+
+        private async void MenuTree_Xoa_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvMenu?.SelectedItem is PosNhomMatHangViewModel selected && !string.IsNullOrEmpty(selected.Id))
+            {
+                var ask = MessageBox.Show($"Bạn có chắc chắn muốn xóa nhóm '{selected.Name}' và đưa vào thùng rác không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (ask == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        using (var conn = DbConnectionManager.GetConnection())
+                        {
+                            await conn.OpenAsync();
+                            await conn.ExecuteAsync("UPDATE DNHOMMATHANG SET STATUS = 0 WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = selected.Id });
+                        }
+                        await LoadMenuTreeAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi khi xóa nhóm: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Không thể xóa nhóm gốc 'Tất cả'!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void MenuTree_DoiTen_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvMenu?.SelectedItem is PosNhomMatHangViewModel selected && !string.IsNullOrEmpty(selected.Id))
+            {
+                var win = new InputWindow("Đổi tên nhóm", "Nhập tên nhóm mới:", selected.Name);
+                win.Owner = Window.GetWindow(this);
+                if (win.ShowDialog() == true && !string.IsNullOrWhiteSpace(win.InputText))
+                {
+                    string newName = win.InputText.Trim();
+                    try
+                    {
+                        using (var conn = DbConnectionManager.GetConnection())
+                        {
+                            await conn.OpenAsync();
+                            await conn.ExecuteAsync("UPDATE DNHOMMATHANG SET NAME = @Name WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Name = newName, Id = selected.Id });
+                        }
+                        selected.Name = newName;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi khi đổi tên: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void MenuTree_ThungRac_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Mở danh mục thùng rác nhóm mặt hàng.", "Thùng rác", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void MenuTree_BieuTuong_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Chức năng đổi biểu tượng nhóm đang sẵn sàng.", "Biểu tượng", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void MenuTree_ThuocTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvMenu?.SelectedItem is PosNhomMatHangViewModel selected)
+            {
+                MessageBox.Show($"Tên nhóm: {selected.Name}\nMã nhóm: {selected.Id}", "Thuộc tính nhóm", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        #endregion
+
+        #region MENU CHUỘT PHẢI DANH SÁCH MẶT HÀNG (DgMatHang)
+
+        private void MenuMatHang_ThemMoi_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ThemMoiMatHangWindow(_selectedNhomId, null, null, -1, async () => { await LoadMatHangListAsync(); });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void MenuMatHang_ChinhSua_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang?.SelectedItem is PosMatHangViewModel selected)
+            {
+                var win = new ThemMoiMatHangWindow(_selectedNhomId, selected.Id, null, -1, async () => { await LoadMatHangListAsync(); });
+                win.Owner = Window.GetWindow(this);
+                win.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một mặt hàng để chỉnh sửa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void MenuMatHang_ThungRac_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang?.SelectedItem is PosMatHangViewModel selected)
+            {
+                var ask = MessageBox.Show($"Bạn có chắc chắn muốn đưa mặt hàng '{selected.Name}' vào Thùng rác không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (ask == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        using (var conn = DbConnectionManager.GetConnection())
+                        {
+                            await conn.OpenAsync();
+                            await conn.ExecuteAsync("UPDATE DMATHANG SET STATUS = 0 WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = selected.Id });
+                        }
+                        await LoadMatHangListAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi khi chuyển vào thùng rác: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một mặt hàng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void MenuMatHang_XoaVinhVien_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang?.SelectedItem is PosMatHangViewModel selected)
+            {
+                var ask = MessageBox.Show($"Bạn có chắc chắn muốn XÓA VĨNH VIỄN mặt hàng '{selected.Name}' khỏi hệ thống không?\nThao tác này không thể hoàn tác!", "Cảnh báo", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (ask == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        using (var conn = DbConnectionManager.GetConnection())
+                        {
+                            await conn.OpenAsync();
+                            await conn.ExecuteAsync("DELETE FROM DMATHANG WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = selected.Id });
+                        }
+                        await LoadMatHangListAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Không thể xóa mặt hàng do đã phát sinh giao dịch trong hóa đơn: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một mặt hàng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void MenuMatHang_Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadMatHangListAsync();
+        }
+
+        private void MenuMatHang_SaoChepO_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang?.CurrentCell.Item is PosMatHangViewModel row)
+            {
+                var col = DgMatHang.CurrentCell.Column as DataGridTextColumn;
+                string cellValue = "";
+                if (col != null && col.Header != null)
+                {
+                    string header = col.Header.ToString();
+                    if (header.Contains("Tên")) cellValue = row.Name;
+                    else if (header.Contains("ĐVT")) cellValue = row.DonViTinh;
+                    else if (header.Contains("Giá")) cellValue = row.GiaBan?.ToString("N0") ?? "0";
+                    else if (header.Contains("Mã")) cellValue = row.Code;
+                    else cellValue = row.Name;
+                }
+                else
+                {
+                    cellValue = row.Name;
+                }
+                Clipboard.SetText(cellValue ?? "");
+                MessageBox.Show($"Đã sao chép ô: {cellValue}", "Sao chép ô", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MenuMatHang_SaoChepDong_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang?.SelectedItem is PosMatHangViewModel row)
+            {
+                string rowText = $"{row.Name}\t{row.DonViTinh}\t{row.GiaBan:N0}\t{row.Code}";
+                Clipboard.SetText(rowText);
+                MessageBox.Show($"Đã sao chép dòng '{row.Name}' vào Clipboard!", "Sao chép dòng", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MenuMatHang_TuDongGianCot_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgMatHang != null)
+            {
+                foreach (var col in DgMatHang.Columns)
+                {
+                    col.Width = DataGridLength.Auto;
+                    col.Width = DataGridLength.SizeToHeader;
+                }
+            }
+        }
+
+        private void MenuMatHang_CotHienThi_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ChonCotHienThiWindow(DgMatHang, new List<string> { "Tên hàng", "ĐVT", "Giá bán", "Mã" });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void MenuMatHang_XuatExcel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Excel CSV (*.csv)|*.csv|All files (*.*)|*.*",
+                    FileName = $"DanhSachMatHang_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                };
+                if (saveDialog.ShowDialog() == true)
+                {
+                    var items = DgMatHang?.ItemsSource as IEnumerable<PosMatHangViewModel>;
+                    if (items != null)
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        sb.AppendLine("Mã hàng,Tên hàng,Đơn vị tính,Giá bán");
+                        foreach (var item in items)
+                        {
+                            sb.AppendLine($"\"{item.Code}\",\"{item.Name}\",\"{item.DonViTinh}\",{item.GiaBan ?? 0}");
+                        }
+                        System.IO.File.WriteAllText(saveDialog.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+                        MessageBox.Show("Xuất file Excel CSV thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xuất Excel: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void MenuMatHang_InDanhSach_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new InLuoiWindow(DgMatHang, "Danh sách mặt hàng");
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void DgMatHang_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // Thêm món vào hóa đơn nếu cần
         }
 
         #endregion

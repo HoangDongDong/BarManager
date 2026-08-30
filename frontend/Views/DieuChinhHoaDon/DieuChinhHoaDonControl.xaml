@@ -428,6 +428,29 @@
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                             <StackPanel Orientation="Horizontal" Margin="0,2">
+                                <StackPanel.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Thêm mới" Click="MenuTree_ThemMoi_Click"/>
+                                        <MenuItem Header="Thêm con" Click="MenuTree_ThemCon_Click"/>
+                                        <MenuItem Header="✏️ Chỉnh sửa" Click="MenuTree_ChinhSua_Click"/>
+                                        <MenuItem Header="Sắp xếp theo">
+                                            <MenuItem Header="Theo tên (A - Z)" Click="MenuTree_SortAZ_Click"/>
+                                            <MenuItem Header="Mặc định" Click="MenuTree_Refresh_Click"/>
+                                        </MenuItem>
+                                        <MenuItem Header="🔄 Refresh" Click="MenuTree_Refresh_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="📑 Sao chép" Click="MenuTree_SaoChep_Click"/>
+                                        <MenuItem Header="Mở rộng" Click="MenuTree_MoRong_Click"/>
+                                        <MenuItem Header="Thu gọn" Click="MenuTree_ThuGon_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="❌ Xóa" Click="MenuTree_Xoa_Click"/>
+                                        <MenuItem Header="Đổi tên" Click="MenuTree_DoiTen_Click"/>
+                                        <MenuItem Header="Thùng rác" Click="MenuTree_ThungRac_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="🖼️ Biểu tượng" Click="MenuTree_BieuTuong_Click"/>
+                                        <MenuItem Header="⚙️ Thuộc tính" Click="MenuTree_ThuocTinh_Click"/>
+                                    </ContextMenu>
+                                </StackPanel.ContextMenu>
                                 <TextBlock Text="📁" Margin="0,0,5,0" Foreground="Orange"/>
                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11.5"/>
                             </StackPanel>
@@ -438,7 +461,27 @@
                 <!-- Items Grid -->
                 <DataGrid x:Name="DgMatHang" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
                           IsReadOnly="True" GridLinesVisibility="All" AlternatingRowBackground="#f0f5fb"
-                          Background="White" RowHeight="22" FontSize="11" HeadersVisibility="Column">
+                          Background="White" RowHeight="22" FontSize="11" HeadersVisibility="Column"
+                          MouseDoubleClick="DgMatHang_MouseDoubleClick">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="➕ Thêm mới" Click="MenuMatHang_ThemMoi_Click"/>
+                            <MenuItem Header="✏️ Chỉnh sửa" Click="MenuMatHang_ChinhSua_Click"/>
+                            <Separator/>
+                            <MenuItem Header="🗑️ Chuyển vào thùng rác" Click="MenuMatHang_ThungRac_Click"/>
+                            <MenuItem Header="❌ Xóa khỏi hệ thống" Click="MenuMatHang_XoaVinhVien_Click"/>
+                            <Separator/>
+                            <MenuItem Header="🔄 Refresh" Click="MenuMatHang_Refresh_Click"/>
+                            <MenuItem Header="📑 Sao chép ô" Click="MenuMatHang_SaoChepO_Click"/>
+                            <MenuItem Header="📑 Sao chép dòng" Click="MenuMatHang_SaoChepDong_Click"/>
+                            <Separator/>
+                            <MenuItem Header="🔲 Tự động giãn cột" Click="MenuMatHang_TuDongGianCot_Click"/>
+                            <MenuItem Header="📑 Cột hiển thị" Click="MenuMatHang_CotHienThi_Click"/>
+                            <Separator/>
+                            <MenuItem Header="📊 Xuất dữ liệu Excel" Click="MenuMatHang_XuatExcel_Click"/>
+                            <MenuItem Header="🖨️ In danh sách" Click="MenuMatHang_InDanhSach_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tên hàng" Binding="{Binding Name}" Width="*"/>
                         <DataGridTextColumn Header="ĐVT" Binding="{Binding DonViTinh}" Width="35">
