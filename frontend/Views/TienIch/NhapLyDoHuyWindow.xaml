@@ -1,0 +1,42 @@
+<Window x:Class="QuanLyBar.Client.Views.NhapLyDoHuyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nhập lý do" Height="190" Width="430"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        ShowInTaskbar="False" Background="#dbe7f5"
+        FontFamily="Segoe UI" FontSize="13">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" Padding="15,12" BorderBrush="#c2d5ec" BorderThickness="0,0,0,1">
+            <TextBlock Text="Mời bạn nhập lý do hủy" FontWeight="Bold" Foreground="#111111" FontSize="13"/>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="1" Margin="20,15,20,10" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Lý do:" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="#222222"/>
+            <TextBox x:Name="TxtLyDo" Grid.Column="1" Height="26" VerticalContentAlignment="Center" Padding="5,2"
+                     BorderBrush="#0078d7" BorderThickness="1" Background="White"/>
+        </Grid>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,15">
+            <Button x:Name="BtnChapNhan" Content="Chấp nhận" Width="90" Height="26" Margin="0,0,10,0"
+                    Background="White" BorderBrush="#a0b5cd" BorderThickness="1"
+                    IsDefault="True" Click="BtnChapNhan_Click" Cursor="Hand"/>
+            <Button x:Name="BtnHuyBo" Content="Hủy bỏ" Width="90" Height="26"
+                    Background="White" BorderBrush="#a0b5cd" BorderThickness="1"
+                    IsCancel="True" Click="BtnHuyBo_Click" Cursor="Hand"/>
+        </StackPanel>
+    </Grid>
+</Window>

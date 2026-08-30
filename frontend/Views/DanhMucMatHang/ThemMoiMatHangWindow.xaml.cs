@@ -104,6 +104,16 @@ namespace QuanLyBar.Client.Views
                 BtnXoaDong_Click(null, null);
                 e.Handled = true;
             }
+            else if (e.Key == System.Windows.Input.Key.F10)
+            {
+                BtnTruoc_Click(null, null);
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.F11)
+            {
+                BtnSau_Click(null, null);
+                e.Handled = true;
+            }
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -124,6 +134,21 @@ namespace QuanLyBar.Client.Views
                 foreach (var mat in allMats)
                 {
                     AllMaterials.Add(mat);
+                }
+
+                // Tự động tải danh sách mặt hàng để duyệt Trước/Sau nếu danh sách chưa được truyền vào
+                if (_matHangList == null || _matHangList.Count == 0)
+                {
+                    var list = await _matHangService.GetMatHangListAsync(!string.IsNullOrEmpty(_selectedNhomId) ? _selectedNhomId : null);
+                    if (list == null || list.Count == 0)
+                    {
+                        list = allMats;
+                    }
+                    _matHangList = list;
+                    if (!string.IsNullOrEmpty(_matHangIdToEdit) && _matHangList != null)
+                    {
+                        _currentIndex = _matHangList.FindIndex(m => m.Id == _matHangIdToEdit);
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(_matHangIdToEdit))
@@ -185,10 +210,11 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnTruoc_Click(object sender, RoutedEventArgs e)
         {
-            if (_currentIndex > 0)
+            if (_matHangList != null && _currentIndex > 0)
             {
                 _currentIndex--;
                 _matHangIdToEdit = _matHangList[_currentIndex].Id;
+                this.Title = "MẶT HÀNG - SỬA";
                 await LoadDataById(_matHangIdToEdit);
                 UpdateNavigationButtons();
             }
@@ -196,7 +222,7 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnSau_Click(object sender, RoutedEventArgs e)
         {
-            if (_matHangList != null && _currentIndex < _matHangList.Count - 1)
+            if (_matHangList != null && _currentIndex >= 0 && _currentIndex < _matHangList.Count - 1)
             {
                 _currentIndex++;
                 _matHangIdToEdit = _matHangList[_currentIndex].Id;

@@ -4,6 +4,8 @@ namespace QuanLyBar.Client.Models
 {
     public class ChiTietHoaDonViewModel
     {
+        public string Id { get; set; }
+        public string MatHangId { get; set; }
         public int Stt { get; set; }
         public string TenMon { get; set; }
         public string Dvt { get; set; }
@@ -11,5 +13,6 @@ namespace QuanLyBar.Client.Models
         public decimal DonGia { get; set; }
         public decimal PhanTramGiamGia { get; set; }
         public decimal ThanhTien { get; set; }
+        public string GhiChu { get; set; }
     }
 }

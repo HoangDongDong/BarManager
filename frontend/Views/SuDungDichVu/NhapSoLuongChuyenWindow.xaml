@@ -1,0 +1,39 @@
+<Window x:Class="QuanLyBar.Client.Views.NhapSoLuongChuyenWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NHẬP SỐ LƯỢNG CHUYỂN" Height="260" Width="430"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#d2e3f5"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tiêu đề phụ -->
+        <TextBlock Grid.Row="0" Text="Nhập số lượng cho mặt hàng" FontWeight="Bold" FontSize="13" Foreground="#1e293b" Margin="0,0,0,15"/>
+
+        <!-- Thông tin mặt hàng và Số lượng -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="10,0,10,15">
+            <TextBlock x:Name="TxtTenMatHang" Text="Mặt hàng: Bánh đa" FontSize="18" FontWeight="Bold" Foreground="#002060" Margin="0,0,0,18"/>
+            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="Số lượng:" FontSize="15" FontWeight="SemiBold" Foreground="#1e293b" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBox x:Name="TxtSoLuong" Width="80" Height="28" Text="1" FontSize="15" FontWeight="Bold" Foreground="#004085"
+                         VerticalContentAlignment="Center" TextAlignment="Center" BorderBrush="#007acc" BorderThickness="1"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Nút bấm -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="BtnGhiDuLieu" Content="Ghi dữ liệu" Width="95" Height="28" Margin="0,0,10,0" 
+                    Background="White" BorderBrush="#b6c1cd" FontWeight="SemiBold" Cursor="Hand" Click="BtnGhiDuLieu_Click"/>
+            <Button x:Name="BtnThoat" Content="Thoát" Width="80" Height="28" 
+                    Background="White" BorderBrush="#b6c1cd" FontWeight="SemiBold" Cursor="Hand" Click="BtnThoat_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

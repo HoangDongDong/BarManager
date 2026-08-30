@@ -1,0 +1,120 @@
+<Window x:Class="QuanLyBar.Client.Views.KiemDoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Kiểm đồ" Height="450" Width="650"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Background="#dce8f8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="46"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header Banner -->
+        <Border Grid.Row="0" Background="#b9d6f3" BorderBrush="#9dc3e6" BorderThickness="0,0,0,1">
+            <TextBlock Text="KIỂM TRA &amp; NHẬP SỐ HÀNG TRẢ LẠI"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontWeight="Bold" FontSize="16" Foreground="#002766"/>
+        </Border>
+
+        <!-- DataGrid Items -->
+        <DataGrid x:Name="DgKiemDo" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
+                  GridLinesVisibility="All" Background="White" RowHeight="25" FontSize="12"
+                  AlternatingRowBackground="#f0f5fb" Margin="6,4">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="" Binding="{Binding Stt}" Width="35" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Mặt hàng" Binding="{Binding MatHang}" Width="*" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Padding" Value="4,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0}}" Width="80" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="0,0,4,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="CK%" Binding="{Binding ChietKhauPt, StringFormat={}{0:N0}}" Width="50" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="0,0,4,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="SL gọi" Binding="{Binding SlGoi, StringFormat={}{0:0.##}}" Width="65" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <!-- Cột SL trả cho phép chỉnh sửa -->
+                <DataGridTemplateColumn Header="SL trả" Width="70">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding SlTra, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.##}}"
+                                     TextAlignment="Center" FontWeight="Bold" Foreground="#d4380d"
+                                     VerticalContentAlignment="Center" BorderBrush="#ffbb96" Margin="1"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="SL sử dụng" Binding="{Binding SlSuDung, StringFormat={}{0:0.##}}" Width="85" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Foreground" Value="#0050b3"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Bottom Footer -->
+        <Border Grid.Row="2" Background="#c2daf3" BorderBrush="#9dc3e6" BorderThickness="0,1,0,0" Padding="10,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="BtnThucHien" Width="105" Height="28" Margin="0,0,10,0" Background="White" BorderBrush="#52c41a" Cursor="Hand" Click="BtnThucHien_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="✔" Foreground="#389e0d" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Thực hiện" FontWeight="SemiBold" Foreground="#135200" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnHuyBo" Width="95" Height="28" Background="White" BorderBrush="#ff4d4f" Cursor="Hand" Click="BtnHuyBo_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🚫" Foreground="#cf1322" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Hủy bỏ" FontWeight="SemiBold" Foreground="#820014" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

@@ -60,7 +60,20 @@
                                                     BorderBrush="{Binding SelectionBorderBrush}"
                                                     Background="{Binding SelectionBackground}"
                                                     BorderThickness="2" CornerRadius="4">
-                                                <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Click="Ban_Click" Tag="{Binding}">
+                                                <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Click="Ban_Click" PreviewMouseRightButtonDown="Ban_PreviewMouseRightButtonDown" Tag="{Binding}">
+                                                    <Button.ContextMenu>
+                                                        <ContextMenu Opened="TableContextMenu_Opened">
+                                                            <MenuItem Header="➕ Mở bàn" Click="MnuMoBan_Click"/>
+                                                            <MenuItem Header="📋 Mở bàn từ đặt trước" Click="MnuMoBanDatTruoc_Click"/>
+                                                            <MenuItem Header="💰 Thanh toán" Click="MnuThanhToan_Click"/>
+                                                            <MenuItem Header="🔄 Refresh" Click="MnuRefresh_Click"/>
+                                                            <Separator/>
+                                                            <MenuItem Header="🔁 Chuyển bàn" Click="MnuChuyenBan_Click"/>
+                                                            <MenuItem Header="🔀 Gộp bàn" Click="MnuGopBan_Click"/>
+                                                            <Separator/>
+                                                            <MenuItem Header="❌ Hủy hóa đơn" Click="MnuHuyHoaDon_Click"/>
+                                                        </ContextMenu>
+                                                    </Button.ContextMenu>
                                                     <Grid>
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="56"/>
@@ -228,6 +241,19 @@
                           CanUserAddRows="False" GridLinesVisibility="All" 
                           AlternatingRowBackground="#f9f9f9" Margin="4,0"
                           HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="➡️ Chuyển một phần sang hóa đơn khác" Click="MnuChuyenMotPhan_Click"/>
+                            <MenuItem Header="➡️ Chuyển tất cả sang hóa đơn khác" Click="MnuChuyenTatCa_Click"/>
+                            <MenuItem Header="📑 Sao chép ô" Click="MnuSaoChepOCell_Click"/>
+                            <MenuItem Header="📄 Sao chép dòng" Click="MnuSaoChepDongRow_Click"/>
+                            <MenuItem Header="↔️ Tự động dãn cột" Click="MnuTuDongDanCot_Click"/>
+                            <MenuItem Header="📊 Cột hiển thị" Click="MnuCotHienThiChiTiet_Click"/>
+                            <Separator/>
+                            <MenuItem Header="📊 Xuất dữ liệu Excel" Click="MnuXuatExcelChiTiet_Click"/>
+                            <MenuItem Header="🖨️ In danh sách" Click="MnuInDanhSachChiTiet_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tên hàng" Binding="{Binding MatHangName}" Width="*" FontWeight="SemiBold"/>
                         <DataGridTextColumn Header="ĐVT" Binding="{Binding DonViTinh}" Width="45"/>
@@ -266,8 +292,9 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 
-                <!-- Khung dưới: Tab Tổng kết / Ghi chú -->
-                <TabControl Grid.Row="2" Height="125" Margin="4,4,4,4">
+                <!-- Khung dưới: Tab Tổng kết / Ghi chú / Dịch vụ (Hiển thị ngang) -->
+                <TabControl Grid.Row="2" Height="135" Margin="4,4,4,4">
+                    <!-- Tab TỔNG -->
                     <TabItem Header="TỔNG">
                         <Grid Background="#cbe8f6" Margin="0">
                             <Grid.ColumnDefinitions>
@@ -296,8 +323,56 @@
                         </Grid>
                     </TabItem>
                     
+                    <!-- Tab GHI CHÚ -->
                     <TabItem Header="GHI CHÚ">
                         <TextBox x:Name="TxtOrderGhiChu" AcceptsReturn="True" TextWrapping="Wrap" Margin="4"/>
+                    </TabItem>
+
+                    <!-- Tab D.VỤ -->
+                    <TabItem x:Name="TabDichVu" Header="D.VỤ">
+                        <Grid Background="#d8e8f8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="26"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Toolbar: Refresh, Vào phòng -->
+                            <Border Grid.Row="0" Background="#c2d9ee" BorderBrush="#a4c6e2" BorderThickness="0,0,0,1" Padding="6,1">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="BtnRefreshDichVu" Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,12,0" Click="BtnRefreshDichVu_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🔄" Foreground="#0050b3" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Refresh" FontSize="11" Foreground="#003a8c" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="BtnVaoPhongDichVu" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnVaoPhongDichVu_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="▶" Foreground="#389e0d" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Vào phòng" FontSize="11" Foreground="#237804" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- DataGrid Yêu cầu dịch vụ -->
+                            <DataGrid x:Name="DgDichVu" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
+                                      IsReadOnly="True" HeadersVisibility="Column" SelectionMode="Single"
+                                      Background="White" GridLinesVisibility="All" BorderThickness="0"
+                                      RowHeight="22" FontSize="11" MouseDoubleClick="DgDichVu_MouseDoubleClick">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Nội dung" Binding="{Binding NoiDung}" Width="*"/>
+                                    <DataGridTextColumn Header="Phòng" Binding="{Binding Phong}" Width="85"/>
+                                    <DataGridTextColumn Header="Số lần" Binding="{Binding SoLan}" Width="60">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
                     </TabItem>
                 </TabControl>
             </Grid>
@@ -311,24 +386,27 @@
             </Grid.ColumnDefinitions>
             
             <!-- Phím chức năng dọc -->
-            <StackPanel x:Name="PanelActionsDoc" Grid.Column="0" Margin="0,0,4,0">
-                <Button Height="40" Style="{StaticResource ActionButtonStyle}" Click="BtnChuyenBan_Click">
+            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                <Button x:Name="BtnChuyenBan" Height="40" Style="{StaticResource ActionButtonStyle}" Click="BtnChuyenBan_Click">
                     <TextBlock Text="Chuyển bàn" TextWrapping="Wrap" TextAlignment="Center" FontSize="11"/>
                 </Button>
-                <Button Content="Gộp bàn" Height="40" Style="{StaticResource ActionButtonStyle}" FontSize="11" Click="BtnGopBan_Click"/>
-                <Button Content="Số lượng" Height="36" Style="{StaticResource ActionButtonStyle}" FontSize="11" Click="BtnDatSl_Click"/>
-                <Button Content="&lt;&lt; Thêm" Height="28" Margin="0,0,0,2" FontSize="11" Background="#e2f0d9" BorderBrush="#a9d18e" Cursor="Hand" Click="BtnThemMon_Click"/>
-                <Button Content="Giảm &gt;&gt;" Height="28" Margin="0,0,0,2" FontSize="11" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamSoLuong_Click"/>
-                <Button Content="❌ Xóa" Height="28" Margin="0,0,0,8" FontSize="11" Foreground="Red" Style="{StaticResource ActionButtonStyle}" Click="BtnXoaMon_Click"/>
+                <Button x:Name="BtnGopBan" Content="Gộp bàn" Height="40" Style="{StaticResource ActionButtonStyle}" FontSize="11" Click="BtnGopBan_Click"/>
+                <Button x:Name="BtnDatSl" Content="Số lượng" Height="36" Style="{StaticResource ActionButtonStyle}" FontSize="11" Click="BtnDatSl_Click"/>
+                <Button x:Name="BtnThemMon" Content="&lt;&lt; Thêm" Height="28" Margin="0,0,0,2" FontSize="11" Background="#e2f0d9" BorderBrush="#a9d18e" Cursor="Hand" Click="BtnThemMon_Click"/>
+                <Button x:Name="BtnGiamSoLuong" Content="Giảm &gt;&gt;" Height="28" Margin="0,0,0,2" FontSize="11" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamSoLuong_Click"/>
+                <Button x:Name="BtnXoaMon" Content="❌ Xóa" Height="28" Margin="0,0,0,8" FontSize="11" Foreground="Red" Style="{StaticResource ActionButtonStyle}" Click="BtnXoaMon_Click"/>
                 
-                <Button Height="38" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamGiaTheoNhom_Click">
+                <Button x:Name="BtnGiamGiaTheoNhom" Height="38" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamGiaTheoNhom_Click">
                     <TextBlock Text="% theo nhóm" TextWrapping="Wrap" TextAlignment="Center" FontSize="11"/>
                 </Button>
-                <Button Height="38" Style="{StaticResource ActionButtonStyle}" Click="BtnInCheBien_Click">
+                <Button x:Name="BtnInCheBien" Height="38" Style="{StaticResource ActionButtonStyle}" Click="BtnInCheBien_Click">
                     <TextBlock Text="In chế biến (F10)" TextWrapping="Wrap" TextAlignment="Center" FontSize="11"/>
                 </Button>
-                <Button Height="44" Background="#ffe58f" BorderBrush="#d48806" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnThanhToan_Click">
+                <Button x:Name="BtnThanhToan" Height="44" Background="#ffe58f" BorderBrush="#d48806" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnThanhToan_Click">
                     <TextBlock Text="Thanh toán (F11)" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Foreground="#b32400"/>
+                </Button>
+                <Button x:Name="BtnThongKe" Height="44" Background="#e6f7ff" BorderBrush="#91d5ff" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnThongKe_Click">
+                    <TextBlock Text="Thống kê (F9)" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Foreground="#0050b3"/>
                 </Button>
             </StackPanel>
             

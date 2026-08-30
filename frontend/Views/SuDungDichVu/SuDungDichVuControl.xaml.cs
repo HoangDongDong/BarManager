@@ -21,6 +21,7 @@ namespace QuanLyBar.Client.Views
         private List<PosKhuVucViewModel> _khuVucList;
         private string _selectedNhomId = string.Empty;
         private DispatcherTimer _timer;
+        private ObservableCollection<DichVuYeuCauViewModel> _dichVuList = new ObservableCollection<DichVuYeuCauViewModel>();
 
         public SuDungDichVuControl()
         {
@@ -40,9 +41,12 @@ namespace QuanLyBar.Client.Views
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            if (DgDichVu != null) DgDichVu.ItemsSource = _dichVuList;
+
             await LoadKhuVucBansAsync();
             await LoadMenuTreeAsync();
             await LoadMatHangListAsync();
+            await LoadDichVuYeuCauAsync();
 
             _timer?.Start();
         }
@@ -114,6 +118,114 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private void Ban_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is PosBanViewModel ban)
+            {
+                SelectBan(ban);
+            }
+        }
+
+        private void TableContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            if (sender is ContextMenu menu)
+            {
+                bool isOccupied = _currentBan != null && _currentBan.IsOccupied;
+
+                foreach (var item in menu.Items)
+                {
+                    if (item is MenuItem mi)
+                    {
+                        string h = mi.Header?.ToString() ?? "";
+                        if (h.Contains("Mở bàn từ đặt trước") || h.Contains("Mở bàn"))
+                        {
+                            mi.IsEnabled = !isOccupied;
+                        }
+                        else if (h.Contains("Refresh"))
+                        {
+                            mi.IsEnabled = true;
+                        }
+                        else
+                        {
+                            mi.IsEnabled = isOccupied;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MnuMoBan_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentBan == null) return;
+            if (!_currentBan.IsOccupied)
+            {
+                BtnBatDau_Click(this, new RoutedEventArgs());
+            }
+        }
+
+        private void MnuMoBanDatTruoc_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentBan == null) return;
+            if (!_currentBan.IsOccupied)
+            {
+                BtnBatDau_Click(this, new RoutedEventArgs());
+                if (TxtKhachHang != null)
+                {
+                    TxtKhachHang.Focus();
+                }
+            }
+        }
+
+        private void MnuThanhToan_Click(object sender, RoutedEventArgs e)
+        {
+            BtnThanhToan_Click(this, new RoutedEventArgs());
+        }
+
+        private async void MnuRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadKhuVucBansAsync();
+        }
+
+        private void MnuChuyenBan_Click(object sender, RoutedEventArgs e)
+        {
+            BtnChuyenBan_Click(this, new RoutedEventArgs());
+        }
+
+        private void MnuGopBan_Click(object sender, RoutedEventArgs e)
+        {
+            BtnGopBan_Click(this, new RoutedEventArgs());
+        }
+
+        private async void MnuHuyHoaDon_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentBan == null || !_currentBan.IsOccupied || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+            {
+                MessageBox.Show("Bàn hiện tại không có đơn hàng để hủy!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var lyDoWin = new NhapLyDoHuyWindow();
+            lyDoWin.Owner = Window.GetWindow(this);
+            if (lyDoWin.ShowDialog() == true)
+            {
+                string lyDo = lyDoWin.LyDo;
+                if (await _service.CancelOrderAsync(_currentBan.ActiveOrderId, lyDo))
+                {
+                    _currentBan.IsOccupied = false;
+                    _currentBan.StartTime = null;
+                    _currentBan.ActiveOrderId = null;
+                    _currentBan.SoPhieu = "";
+                    _currentBan.TienHang = 0;
+                    _currentBan.GiamGia = 0;
+                    _currentBan.TongCong = 0;
+                    _currentBan.OrderItems.Clear();
+                    _currentBan.UpdateTimerText();
+                    SelectBan(_currentBan);
+                    MessageBox.Show($"Đã hủy hóa đơn của bàn '{_currentBan.Name}' thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+        }
+
         private async void SelectBan(PosBanViewModel ban)
         {
             if (ban == null) return;
@@ -180,8 +292,9 @@ namespace QuanLyBar.Client.Views
                 ban.OrderItems = new ObservableCollection<PosDonHangChiTietViewModel>();
                 if (DgChiTiet != null) DgChiTiet.ItemsSource = ban.OrderItems;
 
-                if (TxtSoPhieu != null) TxtSoPhieu.Text = "";
-                if (TxtSoKhach != null) TxtSoKhach.Text = "0";
+                string nextSoPhieu = await _service.GetNextSoPhieuAsync(DateTime.Now);
+                if (TxtSoPhieu != null) TxtSoPhieu.Text = nextSoPhieu;
+                if (TxtSoKhach != null) TxtSoKhach.Text = "1";
                 if (TxtKhachHang != null) TxtKhachHang.Text = "";
                 if (TxtOrderGhiChu != null) TxtOrderGhiChu.Text = "";
             }
@@ -195,7 +308,18 @@ namespace QuanLyBar.Client.Views
             bool isStarted = _currentBan != null && _currentBan.IsOccupied;
 
             if (BorderOrderToolbar != null) BorderOrderToolbar.IsEnabled = isStarted;
-            if (PanelActionsDoc != null) PanelActionsDoc.IsEnabled = isStarted;
+            
+            if (BtnChuyenBan != null) BtnChuyenBan.IsEnabled = isStarted;
+            if (BtnGopBan != null) BtnGopBan.IsEnabled = isStarted;
+            if (BtnDatSl != null) BtnDatSl.IsEnabled = isStarted;
+            if (BtnThemMon != null) BtnThemMon.IsEnabled = isStarted;
+            if (BtnGiamSoLuong != null) BtnGiamSoLuong.IsEnabled = isStarted;
+            if (BtnXoaMon != null) BtnXoaMon.IsEnabled = isStarted;
+            if (BtnGiamGiaTheoNhom != null) BtnGiamGiaTheoNhom.IsEnabled = isStarted;
+            if (BtnInCheBien != null) BtnInCheBien.IsEnabled = isStarted;
+            if (BtnThanhToan != null) BtnThanhToan.IsEnabled = isStarted;
+            if (BtnThongKe != null) BtnThongKe.IsEnabled = true;
+
             if (DgChiTiet != null) DgChiTiet.IsEnabled = isStarted;
             if (TxtGiamGiaPt != null) TxtGiamGiaPt.IsEnabled = isStarted;
             if (TxtGiamGia != null) TxtGiamGia.IsEnabled = isStarted;
@@ -233,19 +357,23 @@ namespace QuanLyBar.Client.Views
             }
 
             int.TryParse(TxtSoKhach?.Text?.Trim(), out int soKhach);
+            if (soKhach <= 0) soKhach = 1;
             string khachHang = TxtKhachHang?.Text?.Trim();
             string ghiChu = TxtOrderGhiChu?.Text?.Trim();
 
-            string orderId = await _service.StartTableOrderAsync(_currentBan.Id, startTime, soKhach, khachHang, ghiChu);
-            if (!string.IsNullOrEmpty(orderId))
+            var result = await _service.StartTableOrderAsync(_currentBan.Id, startTime, soKhach, khachHang, ghiChu);
+            if (result != null && !string.IsNullOrEmpty(result.OrderId))
             {
                 _currentBan.IsOccupied = true;
                 _currentBan.StartTime = startTime;
-                _currentBan.ActiveOrderId = orderId;
+                _currentBan.ActiveOrderId = result.OrderId;
+                _currentBan.SoPhieu = result.SoPhieu;
                 _currentBan.SoKhach = soKhach;
                 _currentBan.KhachHangName = khachHang;
                 _currentBan.GhiChu = ghiChu;
                 _currentBan.UpdateTimerText();
+
+                if (TxtSoPhieu != null) TxtSoPhieu.Text = result.SoPhieu;
 
                 if (BtnBatDau != null)
                 {
@@ -254,7 +382,7 @@ namespace QuanLyBar.Client.Views
                 }
 
                 UpdateOrderControlState();
-                MessageBox.Show($"Đã bắt đầu mở bàn '{_currentBan.Name}' thành công lúc {startTime:HH:mm:ss}!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"Đã bắt đầu mở bàn '{_currentBan.Name}' (Số phiếu: {result.SoPhieu}) lúc {startTime:HH:mm:ss}!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -481,28 +609,67 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnThanhToan_Click(object sender, RoutedEventArgs e)
         {
-            if (_currentBan == null || !_currentBan.IsOccupied)
+            if (_currentBan == null || !_currentBan.IsOccupied || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
             {
                 MessageBox.Show("Bàn hiện tại không có đơn hàng đang hoạt động!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var confirm = MessageBox.Show($"Xác nhận thanh toán và kết thúc bàn '{_currentBan.Name}'?\nTổng cộng: {_currentBan.TongCong:N0} VNĐ", "Xác nhận thanh toán", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (confirm == MessageBoxResult.Yes)
+            // 1. Cảnh báo nếu thanh toán hóa đơn ngày cũ
+            if (_currentBan.StartTime.HasValue && _currentBan.StartTime.Value.Date < DateTime.Today)
             {
-                if (await _service.FinishTableOrderAsync(_currentBan.ActiveOrderId))
+                string oldDateStr = _currentBan.StartTime.Value.ToString("dd/MM/yyyy");
+                string todayStr = DateTime.Today.ToString("dd/MM/yyyy");
+                MessageBox.Show($"Bạn đang thanh toán hóa đơn còn mở từ ngày cũ '{oldDateStr}'\nHệ thống sẽ chuyển hóa đơn này sang ngày hiện tại '{todayStr}'", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                await _service.UpdateOrderDateToTodayAsync(_currentBan.ActiveOrderId);
+            }
+
+            // 2. Mở cửa sổ Xác nhận thanh toán
+            var win = new XacNhanThanhToanWindow(_currentBan);
+            win.Owner = Window.GetWindow(this);
+            if (win.ShowDialog() == true)
+            {
+                decimal khachDua = win.KhachDua;
+                decimal traLai = win.TraLai;
+                decimal theATM = win.TheATM;
+                decimal theTraTruoc = win.TheTraTruoc;
+                bool isNo = win.IsKhachNo;
+                bool inBill = win.IsInBill;
+
+                string loaiTT = isNo ? "CongNo" : (theATM > 0 ? "TheATM" : (theTraTruoc > 0 ? "The" : "TienMat"));
+
+                if (await _service.FinishTableOrderWithDetailsAsync(_currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT))
                 {
-                    MessageBox.Show($"Thanh toán bàn '{_currentBan.Name}' thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                    
+                    if (inBill)
+                    {
+                        var printWin = new HoaDonBanHangPrintWindow(_currentBan, isTamTinh: false);
+                        printWin.Owner = Window.GetWindow(this);
+                        printWin.ShowDialog();
+                    }
+
                     _currentBan.IsOccupied = false;
                     _currentBan.StartTime = null;
                     _currentBan.ActiveOrderId = null;
+                    _currentBan.SoPhieu = "";
+                    _currentBan.TienHang = 0;
+                    _currentBan.GiamGia = 0;
+                    _currentBan.TongCong = 0;
                     _currentBan.OrderItems.Clear();
                     _currentBan.UpdateTimerText();
 
                     SelectBan(_currentBan);
                 }
             }
+        }
+
+        private void BtnThongKe_Click(object sender, RoutedEventArgs e)
+        {
+            string banId = _currentBan?.Id;
+            string banName = _currentBan?.Name;
+            var win = new ThongKeCaLamViecWindow(banId, banName);
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
         }
 
         private async void BtnChuyenBan_Click(object sender, RoutedEventArgs e)
@@ -577,12 +744,13 @@ namespace QuanLyBar.Client.Views
                 if (!targetBan.IsOccupied || string.IsNullOrEmpty(targetBan.ActiveOrderId))
                 {
                     DateTime startTime = _currentBan.StartTime ?? DateTime.Now;
-                    string newOrderId = await _service.StartTableOrderAsync(targetBan.Id, startTime, _currentBan.SoKhach, _currentBan.KhachHangName, _currentBan.GhiChu);
-                    if (string.IsNullOrEmpty(newOrderId)) return;
+                    var startRes = await _service.StartTableOrderAsync(targetBan.Id, startTime, _currentBan.SoKhach, _currentBan.KhachHangName, _currentBan.GhiChu);
+                    if (startRes == null || string.IsNullOrEmpty(startRes.OrderId)) return;
 
                     targetBan.IsOccupied = true;
                     targetBan.StartTime = startTime;
-                    targetBan.ActiveOrderId = newOrderId;
+                    targetBan.ActiveOrderId = startRes.OrderId;
+                    targetBan.SoPhieu = startRes.SoPhieu;
                     targetBan.OrderItems = new ObservableCollection<PosDonHangChiTietViewModel>();
                 }
                 else if (targetBan.OrderItems == null)
@@ -764,6 +932,11 @@ namespace QuanLyBar.Client.Views
             {
                 e.Handled = true;
                 BtnInCheBien_Click(this, new RoutedEventArgs());
+            }
+            else if (e.Key == Key.F9)
+            {
+                e.Handled = true;
+                BtnThongKe_Click(this, new RoutedEventArgs());
             }
             else if (e.Key == Key.F3)
             {
@@ -1268,6 +1441,297 @@ namespace QuanLyBar.Client.Views
             win.Owner = Window.GetWindow(this);
             win.ShowDialog();
         }
+
+        #region DgChiTiet Context Menu Handlers
+
+        private async void MnuChuyenMotPhan_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentBan == null || !_currentBan.IsOccupied) return;
+
+            if (!(DgChiTiet.SelectedItem is PosDonHangChiTietViewModel selectedItem))
+            {
+                MessageBox.Show("Vui lòng chọn một mặt hàng trên lưới để chuyển!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var qtyWin = new NhapSoLuongChuyenWindow(selectedItem.MatHangName, selectedItem.SoLuong);
+            qtyWin.Owner = Window.GetWindow(this);
+            if (qtyWin.ShowDialog() != true) return;
+
+            decimal chuyenSl = qtyWin.SoLuong;
+
+            var allBans = _khuVucList?.SelectMany(k => k.BanList).ToList() ?? new List<PosBanViewModel>();
+            var chonBanWin = new ChonBanChuyenGopWindow(_currentBan, allBans, isMergeMode: false);
+            chonBanWin.Owner = Window.GetWindow(this);
+            if (chonBanWin.ShowDialog() != true || chonBanWin.SelectedTargetBan == null) return;
+
+            var targetBan = chonBanWin.SelectedTargetBan;
+
+            // Nếu bàn nhận chưa mở thì tự động mở bàn
+            if (!targetBan.IsOccupied || string.IsNullOrEmpty(targetBan.ActiveOrderId))
+            {
+                var startRes = await _service.StartTableOrderAsync(targetBan.Id, DateTime.Now, 1, "", "");
+                if (startRes != null)
+                {
+                    targetBan.IsOccupied = true;
+                    targetBan.ActiveOrderId = startRes.OrderId;
+                    targetBan.SoPhieu = startRes.SoPhieu;
+                    targetBan.StartTime = DateTime.Now;
+                    targetBan.OrderItems.Clear();
+                    targetBan.UpdateTimerText();
+                }
+            }
+
+            // 1. Trừ số lượng ở bàn hiện tại
+            if (chuyenSl >= selectedItem.SoLuong)
+            {
+                _currentBan.OrderItems.Remove(selectedItem);
+            }
+            else
+            {
+                selectedItem.SoLuong -= chuyenSl;
+                selectedItem.ThanhTien = selectedItem.SoLuong * selectedItem.DonGia;
+            }
+
+            // 2. Thêm vào bàn nhận
+            var targetItem = targetBan.OrderItems.FirstOrDefault(x => x.MatHangId == selectedItem.MatHangId);
+            if (targetItem != null)
+            {
+                targetItem.SoLuong += chuyenSl;
+                targetItem.ThanhTien = targetItem.SoLuong * targetItem.DonGia;
+            }
+            else
+            {
+                targetBan.OrderItems.Add(new PosDonHangChiTietViewModel
+                {
+                    MatHangId = selectedItem.MatHangId,
+                    MatHangName = selectedItem.MatHangName,
+                    DonViTinh = selectedItem.DonViTinh,
+                    SoLuong = chuyenSl,
+                    DonGia = selectedItem.DonGia,
+                    ThanhTien = chuyenSl * selectedItem.DonGia,
+                    GhiChu = selectedItem.GhiChu
+                });
+            }
+
+            // 3. Lưu dữ liệu cả 2 bàn
+            RecalculateTotals();
+            await AutoSaveOrderAsync();
+
+            decimal targetTienHang = targetBan.OrderItems.Sum(x => x.ThanhTien);
+            targetBan.TienHang = targetTienHang;
+            targetBan.TongCong = targetTienHang;
+            await _service.SaveOrderAsync(targetBan.ActiveOrderId, targetBan.OrderItems.ToList(), targetBan.TienHang, targetBan.GiamGia, targetBan.TongCong, "", targetBan.SoKhach);
+
+            SelectBan(_currentBan);
+            MessageBox.Show($"Đã chuyển {chuyenSl} '{selectedItem.MatHangName}' sang bàn '{targetBan.Name}' thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private async void MnuChuyenTatCa_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentBan == null || !_currentBan.IsOccupied || _currentBan.OrderItems.Count == 0)
+            {
+                MessageBox.Show("Bàn hiện tại không có món ăn để chuyển!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var allBans = _khuVucList?.SelectMany(k => k.BanList).ToList() ?? new List<PosBanViewModel>();
+            var chonBanWin = new ChonBanChuyenGopWindow(_currentBan, allBans, isMergeMode: false);
+            chonBanWin.Owner = Window.GetWindow(this);
+            if (chonBanWin.ShowDialog() != true || chonBanWin.SelectedTargetBan == null) return;
+
+            var targetBan = chonBanWin.SelectedTargetBan;
+
+            // Nếu bàn nhận chưa mở thì tự động mở bàn
+            if (!targetBan.IsOccupied || string.IsNullOrEmpty(targetBan.ActiveOrderId))
+            {
+                var startRes = await _service.StartTableOrderAsync(targetBan.Id, DateTime.Now, 1, "", "");
+                if (startRes != null)
+                {
+                    targetBan.IsOccupied = true;
+                    targetBan.ActiveOrderId = startRes.OrderId;
+                    targetBan.SoPhieu = startRes.SoPhieu;
+                    targetBan.StartTime = DateTime.Now;
+                    targetBan.OrderItems.Clear();
+                    targetBan.UpdateTimerText();
+                }
+            }
+
+            foreach (var item in _currentBan.OrderItems)
+            {
+                var targetItem = targetBan.OrderItems.FirstOrDefault(x => x.MatHangId == item.MatHangId);
+                if (targetItem != null)
+                {
+                    targetItem.SoLuong += item.SoLuong;
+                    targetItem.ThanhTien = targetItem.SoLuong * targetItem.DonGia;
+                }
+                else
+                {
+                    targetBan.OrderItems.Add(new PosDonHangChiTietViewModel
+                    {
+                        MatHangId = item.MatHangId,
+                        MatHangName = item.MatHangName,
+                        DonViTinh = item.DonViTinh,
+                        SoLuong = item.SoLuong,
+                        DonGia = item.DonGia,
+                        ThanhTien = item.ThanhTien,
+                        GhiChu = item.GhiChu
+                    });
+                }
+            }
+
+            _currentBan.OrderItems.Clear();
+            RecalculateTotals();
+
+            // Kết thúc/giải phóng bàn cũ
+            await _service.FinishTableOrderAsync(_currentBan.ActiveOrderId);
+            _currentBan.IsOccupied = false;
+            _currentBan.StartTime = null;
+            _currentBan.ActiveOrderId = null;
+            _currentBan.UpdateTimerText();
+
+            // Lưu bàn nhận
+            decimal targetTienHang = targetBan.OrderItems.Sum(x => x.ThanhTien);
+            targetBan.TienHang = targetTienHang;
+            targetBan.TongCong = targetTienHang;
+            await _service.SaveOrderAsync(targetBan.ActiveOrderId, targetBan.OrderItems.ToList(), targetBan.TienHang, targetBan.GiamGia, targetBan.TongCong, "", targetBan.SoKhach);
+
+            SelectBan(targetBan);
+            MessageBox.Show($"Đã chuyển tất cả món từ '{_currentBan.Name}' sang bàn '{targetBan.Name}' thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void MnuSaoChepOCell_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgChiTiet.CurrentCell.Item != null && DgChiTiet.CurrentCell.Column != null)
+            {
+                var cellContent = DgChiTiet.CurrentCell.Column.GetCellContent(DgChiTiet.CurrentCell.Item);
+                if (cellContent is TextBlock tb)
+                {
+                    Clipboard.SetText(tb.Text ?? "");
+                }
+            }
+        }
+
+        private void MnuSaoChepDongRow_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgChiTiet.SelectedItem is PosDonHangChiTietViewModel item)
+            {
+                string rowText = $"{item.MatHangName}\t{item.DonViTinh}\t{item.SoLuong}\t{item.DonGia:N0}\t{item.ChietKhauPhanTram}\t{item.ThanhTien:N0}\t{item.GhiChu}";
+                Clipboard.SetText(rowText);
+            }
+        }
+
+        private void MnuTuDongDanCot_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var col in DgChiTiet.Columns)
+            {
+                col.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
+            }
+        }
+
+        private void MnuCotHienThiChiTiet_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ChonCotHienThiWindow(DgChiTiet, new List<string> { "Tên hàng", "ĐVT", "SL", "Đ.giá", "CK%", "T.tiền", "Ghi chú" });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void MnuXuatExcelChiTiet_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Excel CSV (*.csv)|*.csv|All files (*.*)|*.*",
+                    FileName = $"DanhSachMon_{_currentBan?.Name}_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                };
+                if (saveDialog.ShowDialog() == true)
+                {
+                    var items = DgChiTiet?.ItemsSource as IEnumerable<PosDonHangChiTietViewModel>;
+                    if (items != null)
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        sb.AppendLine("Tên hàng,ĐVT,Số lượng,Đơn giá,Chiết khấu %,Thành tiền,Ghi chú");
+                        foreach (var item in items)
+                        {
+                            sb.AppendLine($"\"{item.MatHangName}\",\"{item.DonViTinh}\",{item.SoLuong},{item.DonGia},{item.ChietKhauPhanTram},{item.ThanhTien},\"{item.GhiChu}\"");
+                        }
+                        System.IO.File.WriteAllText(saveDialog.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+                        MessageBox.Show("Xuất file Excel CSV thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xuất Excel: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void MnuInDanhSachChiTiet_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new InLuoiWindow(DgChiTiet, $"DANH SÁCH MÓN - {_currentBan?.Name}");
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        #endregion
+
+        #region TAB D.VỤ (DỊCH VỤ)
+
+        private async Task LoadDichVuYeuCauAsync()
+        {
+            try
+            {
+                var data = await _service.GetDichVuYeuCauListAsync();
+                _dichVuList.Clear();
+                foreach (var item in data)
+                {
+                    _dichVuList.Add(item);
+                }
+            }
+            catch { }
+        }
+
+        private async void BtnRefreshDichVu_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadDichVuYeuCauAsync();
+        }
+
+        private void BtnVaoPhongDichVu_Click(object sender, RoutedEventArgs e)
+        {
+            VaoPhongDichVuDuocChon();
+        }
+
+        private void DgDichVu_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            VaoPhongDichVuDuocChon();
+        }
+
+        private void VaoPhongDichVuDuocChon()
+        {
+            if (DgDichVu.SelectedItem is DichVuYeuCauViewModel selectedItem)
+            {
+                var targetBan = _khuVucList?.SelectMany(k => k.BanList)
+                    .FirstOrDefault(b => b.Id == selectedItem.BanId || (b.Name != null && b.Name.Equals(selectedItem.Phong, StringComparison.OrdinalIgnoreCase)));
+                if (targetBan != null)
+                {
+                    SelectBan(targetBan);
+                }
+                else
+                {
+                    MessageBox.Show($"Không tìm thấy bàn/phòng '{selectedItem.Phong}' trên sơ đồ!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một hàng dịch vụ trong danh sách để vào phòng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        #endregion
     }
 }
+
+
+
 

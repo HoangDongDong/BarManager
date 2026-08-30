@@ -105,7 +105,47 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<string> StartTableOrderAsync(string banId, DateTime startTime, int soKhach, string khachHangId, string ghiChu)
+        public class StartOrderResult
+        {
+            public string OrderId { get; set; }
+            public string SoPhieu { get; set; }
+            public int SoHd { get; set; }
+        }
+
+        public async Task<string> GetNextSoPhieuAsync(DateTime dateTime)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    DateTime monthStart = new DateTime(dateTime.Year, dateTime.Month, 1);
+                    DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
+                    string prefix = $"{dateTime:MM}{dateTime:yy}";
+
+                    int maxFromDonHang = await conn.ExecuteScalarAsync<int>(
+                        "SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE NAME LIKE @Prefix", 
+                        new { Prefix = prefix + "%" });
+
+                    string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON WHERE CAST(NGAY AS DATE) >= @MonthStart AND CAST(NGAY AS DATE) <= @MonthEnd ORDER BY TIMECREATED DESC";
+                    var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql, new { MonthStart = monthStart.Date, MonthEnd = monthEnd.Date });
+                    int maxFromTso = 0;
+                    if (tsoRow != null)
+                    {
+                        int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                    }
+
+                    int nextNumber = Math.Max(maxFromDonHang, maxFromTso) + 1;
+                    return $"{prefix}{nextNumber:D5}";
+                }
+            }
+            catch
+            {
+                return $"{dateTime:MM}{dateTime:yy}00001";
+            }
+        }
+
+        public async Task<StartOrderResult> StartTableOrderAsync(string banId, DateTime startTime, int soKhach, string khachHangId, string ghiChu)
         {
             try
             {
@@ -114,11 +154,27 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
 
                     string orderId = Guid.NewGuid().ToString();
-                    
-                    // Tạo số phiếu HDxx/xxxxx
-                    string countSql = "SELECT COUNT(*) FROM TDONHANG WHERE CAST(NGAY AS DATE) = @Today";
-                    int countToday = await conn.ExecuteScalarAsync<int>(countSql, new { Today = startTime.Date }) + 1;
-                    string soPhieu = $"HD{startTime:yy}/{countToday:D5}";
+                    DateTime monthStart = new DateTime(startTime.Year, startTime.Month, 1);
+                    DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
+                    string prefix = $"{startTime:MM}{startTime:yy}";
+
+                    // Lấy số thứ tự lớn nhất từ TDONHANG và TSOHOADON
+                    int maxFromDonHang = await conn.ExecuteScalarAsync<int>(
+                        "SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE NAME LIKE @Prefix", 
+                        new { Prefix = prefix + "%" });
+
+                    string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON WHERE CAST(NGAY AS DATE) >= @MonthStart AND CAST(NGAY AS DATE) <= @MonthEnd ORDER BY TIMECREATED DESC";
+                    var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql, new { MonthStart = monthStart.Date, MonthEnd = monthEnd.Date });
+                    int maxFromTso = 0;
+                    string tsoId = null;
+                    if (tsoRow != null)
+                    {
+                        tsoId = tsoRow.ID?.ToString();
+                        int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                    }
+
+                    int nextSo = Math.Max(maxFromDonHang, maxFromTso) + 1;
+                    string soPhieu = $"{prefix}{nextSo:D5}";
 
                     int userCreatedId = 1;
                     if (SessionContext.CurrentUser != null && int.TryParse(SessionContext.CurrentUser.Id, out int parsedUserId))
@@ -126,17 +182,41 @@ namespace QuanLyBar.Client.Services
                         userCreatedId = parsedUserId;
                     }
 
+                    // Cập nhật hoặc thêm mới vào TSOHOADON
+                    if (!string.IsNullOrEmpty(tsoId))
+                    {
+                        string updateTsoSql = "UPDATE TSOHOADON SET SO = @So, TIMEMODIFIED = CURRENT_TIMESTAMP, USERMODIFIEDID = @UserId WHERE CAST(ID AS VARCHAR(50)) = @TsoId";
+                        await conn.ExecuteAsync(updateTsoSql, new { So = nextSo.ToString(), UserId = userCreatedId, TsoId = tsoId });
+                    }
+                    else
+                    {
+                        string insertTsoSql = @"
+                            INSERT INTO TSOHOADON (
+                                ID, NGAY, SO, STATUS, USERCREATEDID, TIMECREATED
+                            ) VALUES (
+                                @Id, @Ngay, @So, 1, @UserId, CURRENT_TIMESTAMP
+                            )";
+                        await conn.ExecuteAsync(insertTsoSql, new { 
+                            Id = Guid.NewGuid().ToString(), 
+                            Ngay = monthStart, 
+                            So = nextSo.ToString(), 
+                            UserId = userCreatedId 
+                        });
+                    }
+
+                    // Tạo mới đơn hàng trong TDONHANG
                     string insertSql = @"
                         INSERT INTO TDONHANG (
-                            ID, NAME, DBANID, BATDAU, NGAY, SOKHACH, DKHACHHANGID, NOTE, STATUS, USERCREATEDID, TIMECREATED
+                            ID, NAME, SOHD, SOTT, DBANID, BATDAU, NGAY, SOKHACH, DKHACHHANGID, NOTE, STATUS, USERCREATEDID, TIMECREATED
                         ) VALUES (
-                            @Id, @SoPhieu, @DbanId, @BatDau, @Ngay, @SoKhach, @KhachHangId, @Note, 1, @UserCreatedId, CURRENT_TIMESTAMP
+                            @Id, @SoPhieu, @SoHd, @SoHd, @DbanId, @BatDau, @Ngay, @SoKhach, @KhachHangId, @Note, 1, @UserCreatedId, CURRENT_TIMESTAMP
                         )";
 
                     await conn.ExecuteAsync(insertSql, new
                     {
                         Id = orderId,
                         SoPhieu = soPhieu,
+                        SoHd = nextSo,
                         DbanId = banId,
                         BatDau = startTime,
                         Ngay = startTime.Date,
@@ -146,7 +226,12 @@ namespace QuanLyBar.Client.Services
                         UserCreatedId = userCreatedId
                     });
 
-                    return orderId;
+                    return new StartOrderResult
+                    {
+                        OrderId = orderId,
+                        SoPhieu = soPhieu,
+                        SoHd = nextSo
+                    };
                 }
             }
             catch (Exception ex)
@@ -269,23 +354,144 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> FinishTableOrderAsync(string orderId)
+        public async Task<bool> UpdateOrderDateToTodayAsync(string orderId)
         {
             if (string.IsNullOrEmpty(orderId)) return false;
-
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
-                    string sql = "UPDATE TDONHANG SET KETTHUC = CURRENT_TIMESTAMP, STATUS = 2 WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
+                    string sql = "UPDATE TDONHANG SET NGAY = CURRENT_DATE, TIMECREATED = CURRENT_TIMESTAMP WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
                     await conn.ExecuteAsync(sql, new { OrderId = orderId });
+                    return true;
+                }
+            }
+            catch { return false; }
+        }
+
+        public async Task<bool> FinishTableOrderWithDetailsAsync(string orderId, decimal khachDua, decimal traLai, decimal theATM, decimal theTraTruoc, string loaiThanhToan)
+        {
+            if (string.IsNullOrEmpty(orderId)) return false;
+
+            try
+            {
+                int loaiTtInt = 0;
+                if (loaiThanhToan == "ChuyenKhoan") loaiTtInt = 1;
+                else if (loaiThanhToan == "TheATM" || loaiThanhToan == "The") loaiTtInt = 2;
+                else if (loaiThanhToan == "TheTraTruoc") loaiTtInt = 3;
+                else if (loaiThanhToan == "CongNo" || loaiThanhToan == "KhachNo") loaiTtInt = 4;
+                else if (loaiThanhToan == "Voucher") loaiTtInt = 5;
+
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        UPDATE TDONHANG 
+                        SET KETTHUC = CURRENT_TIMESTAMP, 
+                            GIOTHANHTOAN = CURRENT_TIMESTAMP, 
+                            STATUS = 2,
+                            KHACHDUA = @KhachDua,
+                            TRALAI = @TraLai,
+                            TIENMAT = @TienMat,
+                            THE = @TheATM,
+                            THETRATRUOC = @TheTraTruoc,
+                            LOAITHANHTOAN = @LoaiTtInt
+                        WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
+                    await conn.ExecuteAsync(sql, new { 
+                        OrderId = orderId, 
+                        KhachDua = khachDua.ToString("0.##"),
+                        TraLai = traLai.ToString("0.##"),
+                        TienMat = loaiTtInt == 0 ? khachDua : 0,
+                        TheATM = theATM.ToString("0.##"),
+                        TheTraTruoc = theTraTruoc.ToString("0.##"),
+                        LoaiTtInt = loaiTtInt
+                    });
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi kết thúc bàn: " + ex.Message);
+                MessageBox.Show("Lỗi kết thúc đơn hàng: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> FinishTableOrderAsync(string orderId)
+        {
+            return await FinishTableOrderWithDetailsAsync(orderId, 0, 0, 0, 0, "TienMat");
+        }
+
+        public async Task<bool> CancelOrderAsync(string orderId, string lyDoHuy = "")
+        {
+            if (string.IsNullOrEmpty(orderId)) return false;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        int userCreatedId = 1;
+                        if (SessionContext.CurrentUser != null && int.TryParse(SessionContext.CurrentUser.Id, out int parsedUserId))
+                        {
+                            userCreatedId = parsedUserId;
+                        }
+
+                        string noteSuffix = string.IsNullOrWhiteSpace(lyDoHuy) ? " [Đã hủy]" : $" [Hủy: {lyDoHuy}]";
+
+                        // 1. Update TDONHANG
+                        string sqlOrder = @"
+                            UPDATE TDONHANG 
+                            SET STATUS = 0, 
+                                KETTHUC = CURRENT_TIMESTAMP, 
+                                TIMEMODIFIED = CURRENT_TIMESTAMP,
+                                NOTE = COALESCE(NOTE, '') || @NoteSuffix
+                            WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
+                        await conn.ExecuteAsync(sqlOrder, new { OrderId = orderId, NoteSuffix = noteSuffix }, trans);
+
+                        // 2. Update TDONHANGCHITIET
+                        string sqlDetails = @"
+                            UPDATE TDONHANGCHITIET 
+                            SET STATUS = 0, 
+                                TIMEMODIFIED = CURRENT_TIMESTAMP 
+                            WHERE CAST(TDONHANGID AS VARCHAR(50)) = @OrderId";
+                        await conn.ExecuteAsync(sqlDetails, new { OrderId = orderId }, trans);
+
+                        // 3. Copy sang TDONHANGHUY (nếu có bảng)
+                        try
+                        {
+                            string copyHuySql = @"
+                                INSERT INTO TDONHANGHUY (
+                                    ID, NAME, NOTE, STATUS, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED, 
+                                    NGAY, USERCREATEDID, KHACHHANG, NHANVEN, THUNGAN, TIENHANG, 
+                                    TIENGIAMGIA, TILEGIAMGIA, TONGCONG, NGAYHUY, GIOHUY, TDONHANGID, LYDOHUY, BAN
+                                )
+                                SELECT 
+                                    h.ID, h.NAME, h.NOTE, 0, @UserId, CURRENT_TIMESTAMP, h.TIMECREATED,
+                                    h.NGAY, @UserId, k.NAME, u.NAME, u.NAME, h.TIENHANG,
+                                    h.TIENGIAMGIA, h.TILEGIAMGIA, h.TONGCONG, CURRENT_DATE, CURRENT_TIMESTAMP, h.ID, @LyDoHuy, b.NAME
+                                FROM TDONHANG h
+                                LEFT JOIN DBAN b ON h.DBANID = b.ID
+                                LEFT JOIN DKHACHHANG k ON h.DKHACHHANGID = k.ID
+                                LEFT JOIN SUSER u ON CAST(u.ID AS VARCHAR(50)) = CAST(@UserId AS VARCHAR(50))
+                                WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId";
+
+                            await conn.ExecuteAsync(copyHuySql, new { OrderId = orderId, UserId = userCreatedId, LyDoHuy = lyDoHuy }, trans);
+                        }
+                        catch
+                        {
+                            // Bỏ qua nếu có cột bảng lịch sử hủy khác biệt
+                        }
+
+                        trans.Commit();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi hủy hóa đơn: " + ex.Message);
                 return false;
             }
         }
@@ -495,6 +701,36 @@ namespace QuanLyBar.Client.Services
             {
                 MessageBox.Show("Lỗi lấy món ăn: " + ex.Message);
                 return new List<PosMatHangViewModel>();
+            }
+        }
+        public async Task<List<DichVuYeuCauViewModel>> GetDichVuYeuCauListAsync()
+        {
+            var list = new List<DichVuYeuCauViewModel>();
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT 
+                            CAST(d.ID AS VARCHAR(50)) as Id, 
+                            CAST(d.DBANID AS VARCHAR(50)) as BanId, 
+                            b.NAME as Phong, 
+                            COALESCE(d.NOTE, 'Yêu cầu phục vụ') as NoiDung,
+                            1 as SoLan,
+                            d.TIMECREATED as ThoiGian
+                        FROM TDONHANG d
+                        JOIN DBAN b ON d.DBANID = b.ID
+                        WHERE d.STATUS = 1 AND d.NOTE IS NOT NULL AND TRIM(d.NOTE) <> ''
+                        ORDER BY d.TIMECREATED DESC";
+                    
+                    var rows = (await conn.QueryAsync<DichVuYeuCauViewModel>(sql)).ToList();
+                    return rows;
+                }
+            }
+            catch
+            {
+                return list;
             }
         }
     }

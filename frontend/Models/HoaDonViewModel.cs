@@ -21,7 +21,9 @@ namespace QuanLyBar.Client.Models
         public decimal TheThanhToan { get; set; }
         public decimal TienMat { get; set; }
         public int SoKhach { get; set; }
+        public decimal TiLeGiamGiaGio { get; set; }
         public string SoOrder { get; set; }
         public decimal TienGiamGiaGio { get; set; }
+        public string GhiChu { get; set; }
     }
 }

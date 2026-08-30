@@ -1,0 +1,136 @@
+<Window x:Class="QuanLyBar.Client.Views.XacNhanThanhToanWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="XÁC NHẬN THANH TOÁN" Height="430" Width="600"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#d2e3f5"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ======================= HEADER ======================= -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- BÀN -->
+            <Border Grid.Column="0" Background="#fffdc2" BorderBrush="#fadb14" BorderThickness="1" Padding="8,3" CornerRadius="2">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="BÀN: " FontWeight="Bold" FontSize="18" Foreground="Red"/>
+                    <TextBlock x:Name="TxtTenBanHeader" Text="Bàn 05" FontWeight="Bold" FontSize="18" Foreground="Red"/>
+                </StackPanel>
+            </Border>
+
+            <!-- In tạm tính (F8) -->
+            <Button x:Name="BtnInTamTinh" Grid.Column="2" Height="30" Padding="10,2" Cursor="Hand" Background="White" BorderBrush="#b6c1cd" Click="BtnInTamTinh_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="In tạm tính (F8)" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Text="🔍" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- ======================= NỘI DUNG THANH TOÁN ======================= -->
+        <Grid Grid.Row="1" Margin="0,4,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Hình ảnh Ví tiền bên trái -->
+            <StackPanel Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,10,0">
+                <Border Width="90" Height="90" Background="#faad14" CornerRadius="12" Padding="8" BorderBrush="#d48806" BorderThickness="2">
+                    <Grid>
+                        <TextBlock Text="👛" FontSize="46" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- Các ô nhập tiền bên phải -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- TỔNG TIỀN -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="TỔNG TIỀN:" Foreground="#8b0000" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="0,4"/>
+                <TextBox x:Name="TxtTongTien" Grid.Row="0" Grid.Column="1" Text="0" Background="#dff1fb" FontSize="18" FontWeight="Bold" Foreground="#004085" BorderThickness="1" BorderBrush="#a8c5e2" TextAlignment="Right" VerticalContentAlignment="Center" Height="32" Margin="0,4" IsReadOnly="True"/>
+
+                <!-- Khách đưa -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Khách đưa:" Foreground="#8b0000" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,4"/>
+                <TextBox x:Name="TxtKhachDua" Grid.Row="1" Grid.Column="1" Text="0" Background="White" FontSize="17" FontWeight="Bold" Foreground="#0055aa" BorderThickness="1" BorderBrush="#007acc" TextAlignment="Right" VerticalContentAlignment="Center" Height="32" Margin="0,4" TextChanged="MoneyInput_TextChanged"/>
+
+                <!-- Thẻ ATM, Visa -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Thẻ ATM, Visa:" Foreground="#8b0000" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,4"/>
+                <TextBox x:Name="TxtTheATM" Grid.Row="2" Grid.Column="1" Text="0" Background="White" FontSize="15" FontWeight="Bold" BorderThickness="1" BorderBrush="#b6c1cd" TextAlignment="Right" VerticalContentAlignment="Center" Height="30" Margin="0,4" TextChanged="MoneyInput_TextChanged"/>
+
+                <!-- Thẻ trả trước -->
+                <Button Grid.Row="3" Grid.Column="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Left" Cursor="Hand" Click="BtnNhapTheTraTruoc_Click">
+                    <TextBlock Text="Thẻ trả trước:" Foreground="#0033cc" FontSize="14" FontWeight="SemiBold" TextDecorations="Underline" VerticalAlignment="Center" Margin="0,4"/>
+                </Button>
+                <TextBox x:Name="TxtTheTraTruoc" Grid.Row="3" Grid.Column="1" Text="0" Background="White" FontSize="15" FontWeight="Bold" BorderThickness="1" BorderBrush="#b6c1cd" TextAlignment="Right" VerticalContentAlignment="Center" Height="30" Margin="0,4" TextChanged="MoneyInput_TextChanged"/>
+
+                <!-- Trả lại -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Trả lại:" Foreground="#8b0000" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Margin="0,4"/>
+                <TextBox x:Name="TxtTraLai" Grid.Row="4" Grid.Column="1" Text="0" Background="#dff1fb" FontSize="18" FontWeight="Bold" Foreground="#b30000" BorderThickness="1" BorderBrush="#a8c5e2" TextAlignment="Right" VerticalContentAlignment="Center" Height="32" Margin="0,4" IsReadOnly="True"/>
+            </Grid>
+        </Grid>
+
+        <!-- ======================= FOOTER VÀ NÚT BẤM ======================= -->
+        <Grid Grid.Row="2" Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Hướng dẫn bên trái -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Bottom" Margin="0,0,15,0">
+                <TextBlock Text="- Bạn chọn &quot;Đóng bill và in&quot; để xác nhận thanh toán, in hóa đơn và đóng bill." FontSize="11" Foreground="#475569" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                <TextBlock Text="- Bạn chọn &quot;Đóng bill không in&quot; để xác nhận thanh toán, KHÔNG in hóa đơn và đóng bill (tiết kiệm giấy)." FontSize="11" Foreground="#475569" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                <TextBlock Text="- Bạn chọn &quot;Hủy bỏ&quot; để thoát khỏi cửa sổ." FontSize="11" Foreground="#475569" Margin="0,0,0,4"/>
+                <CheckBox x:Name="ChkKhachHangNo" Content="Khách hàng nợ" FontWeight="SemiBold" Foreground="#1e293b" Checked="ChkKhachHangNo_Checked" Unchecked="ChkKhachHangNo_Unchecked"/>
+            </StackPanel>
+
+            <!-- Nút chức năng bên phải -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
+                <Button x:Name="BtnDongBillVaIn" Height="36" Background="#f6ffed" BorderBrush="#b7eb8f" Cursor="Hand" Margin="0,0,0,4" Click="BtnDongBillVaIn_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Đóng bill và in" FontWeight="Bold" FontSize="13" Foreground="#135200" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="🖨" FontSize="14" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnDongBillKhongIn" Height="36" Background="White" BorderBrush="#d9d9d9" Cursor="Hand" Margin="0,0,0,4" Click="BtnDongBillKhongIn_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Đóng bill không in (F9)" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Text="📄" FontSize="13" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnHuyBo" Height="32" Background="#fff1f0" BorderBrush="#ffa39e" Cursor="Hand" Click="BtnHuyBo_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Hủy bỏ" FontWeight="Bold" Foreground="#cf1322" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="❌" FontSize="12" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
