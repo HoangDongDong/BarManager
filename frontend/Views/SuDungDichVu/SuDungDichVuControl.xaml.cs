@@ -445,6 +445,11 @@ namespace QuanLyBar.Client.Views
 
             RecalculateTotals();
             await AutoSaveOrderAsync();
+
+            _ = LocalLuuVetService.GhiLuuVetAsync(
+                _currentBan.ActiveOrderId, _currentBan.Name, "Sử dụng dịch vụ", 
+                $"Thêm '{matHang.Name}' vào bill, số lượng: 1", 
+                4, 1, matHang.GiaBan ?? 0, matHang.GiaBan ?? 0, matHang.Name);
         }
 
         private async void DgMatHang_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -474,6 +479,11 @@ namespace QuanLyBar.Client.Views
                 item.SoLuong += 1;
                 RecalculateTotals();
                 await AutoSaveOrderAsync();
+
+                _ = LocalLuuVetService.GhiLuuVetAsync(
+                    _currentBan?.ActiveOrderId, _currentBan?.Name, "Sử dụng dịch vụ", 
+                    $"Thêm '{item.MatHangName}' vào bill, số lượng: 1", 
+                    4, 1, item.DonGia, item.DonGia, item.MatHangName);
             }
         }
 
@@ -491,6 +501,11 @@ namespace QuanLyBar.Client.Views
                 }
                 RecalculateTotals();
                 await AutoSaveOrderAsync();
+
+                _ = LocalLuuVetService.GhiLuuVetAsync(
+                    _currentBan?.ActiveOrderId, _currentBan?.Name, "Sử dụng dịch vụ", 
+                    $"Giảm '{item.MatHangName}', số lượng: 1", 
+                    4, 1, item.DonGia, item.DonGia, item.MatHangName);
             }
         }
 
@@ -498,9 +513,18 @@ namespace QuanLyBar.Client.Views
         {
             if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item && _currentBan?.OrderItems != null)
             {
+                decimal sl = item.SoLuong;
+                decimal gia = item.DonGia;
+                string ten = item.MatHangName;
+
                 _currentBan.OrderItems.Remove(item);
                 RecalculateTotals();
                 await AutoSaveOrderAsync();
+
+                _ = LocalLuuVetService.GhiLuuVetAsync(
+                    _currentBan?.ActiveOrderId, _currentBan?.Name, "Sử dụng dịch vụ", 
+                    $"Xóa mặt hàng '{ten}' Số lượng '{sl:0.##}'", 
+                    4, sl, gia, sl * gia, ten);
             }
         }
 
@@ -514,6 +538,11 @@ namespace QuanLyBar.Client.Views
                     item.SoLuong = sl;
                     RecalculateTotals();
                     await AutoSaveOrderAsync();
+
+                    _ = LocalLuuVetService.GhiLuuVetAsync(
+                        _currentBan?.ActiveOrderId, _currentBan?.Name, "Sử dụng dịch vụ", 
+                        $"Đổi số lượng mặt hàng '{item.MatHangName}' thành '{sl:0.##}'", 
+                        4, sl, item.DonGia, sl * item.DonGia, item.MatHangName);
                 }
             }
         }
@@ -528,6 +557,11 @@ namespace QuanLyBar.Client.Views
                     item.DonGia = gia;
                     RecalculateTotals();
                     await AutoSaveOrderAsync();
+
+                    _ = LocalLuuVetService.GhiLuuVetAsync(
+                        _currentBan?.ActiveOrderId, _currentBan?.Name, "Sử dụng dịch vụ", 
+                        $"Đổi đơn giá mặt hàng '{item.MatHangName}' thành '{gia:N0}'", 
+                        4, item.SoLuong, gia, item.SoLuong * gia, item.MatHangName);
                 }
             }
         }
@@ -539,8 +573,14 @@ namespace QuanLyBar.Client.Views
                 var win = new InputWindow("Ghi chú món", $"Nhập ghi chú cho '{item.MatHangName}':", item.GhiChu ?? "");
                 if (win.ShowDialog() == true)
                 {
-                    item.GhiChu = win.InputText?.Trim();
+                    string note = win.InputText?.Trim() ?? "";
+                    item.GhiChu = note;
                     await AutoSaveOrderAsync();
+
+                    _ = LocalLuuVetService.GhiLuuVetAsync(
+                        _currentBan?.ActiveOrderId, _currentBan?.Name, "Sử dụng dịch vụ", 
+                        $"Ghi chú mặt hàng '{item.MatHangName}': '{note}'", 
+                        4, 0, 0, 0, item.MatHangName);
                 }
             }
         }
@@ -555,6 +595,11 @@ namespace QuanLyBar.Client.Views
                     item.ChietKhauPhanTram = ck;
                     RecalculateTotals();
                     await AutoSaveOrderAsync();
+
+                    _ = LocalLuuVetService.GhiLuuVetAsync(
+                        _currentBan?.ActiveOrderId, _currentBan?.Name, "Sử dụng dịch vụ", 
+                        $"Chiết khấu mặt hàng '{item.MatHangName}' {ck}%", 
+                        4, item.SoLuong, item.DonGia, 0, item.MatHangName);
                 }
             }
         }

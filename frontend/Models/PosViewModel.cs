@@ -131,6 +131,7 @@ namespace QuanLyBar.Client.Models
         public string Id { get; set; }
         public string Name { get; set; }
         public string ParentId { get; set; }
+        public string Icon { get; set; } = "📁";
         public bool IsExpanded { get => _isExpanded; set { _isExpanded = value; OnPropertyChanged(); } }
         public bool IsSelected { get => _isSelected; set { _isSelected = value; OnPropertyChanged(); } }
         public ObservableCollection<PosNhomMatHangViewModel> Children { get; set; } = new ObservableCollection<PosNhomMatHangViewModel>();

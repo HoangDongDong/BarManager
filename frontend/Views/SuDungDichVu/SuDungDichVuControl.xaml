@@ -136,7 +136,7 @@
                             
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock x:Name="TxtSelectedBanHeader" Text="[Chưa chọn bàn]" FontWeight="Bold" Foreground="#003366" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
-                                <TextBox x:Name="TxtGioBatDau" Width="75" Height="22" VerticalContentAlignment="Center" TextAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBox x:Name="TxtGioBatDau" Width="75" Height="22" VerticalContentAlignment="Center" TextAlignment="Center" Margin="0,0,4,0" IsReadOnly="True" Background="#f4f4f4"/>
                                 <Button x:Name="BtnBatDau" Content="Bắt đầu" Width="72" Height="24" FontWeight="Bold" Background="#27ae60" Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnBatDau_Click"/>
                             </StackPanel>
                             
@@ -160,7 +160,7 @@
                             
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock Text="Số phiếu" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                <TextBox x:Name="TxtSoPhieu" Width="85" Height="22" Margin="0,0,8,0" VerticalContentAlignment="Center"/>
+                                <TextBox x:Name="TxtSoPhieu" Width="85" Height="22" Margin="0,0,8,0" VerticalContentAlignment="Center" IsReadOnly="True" Background="#f4f4f4"/>
                                 <TextBlock Text="Số khách" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <TextBox x:Name="TxtSoKhach" Width="36" Height="22" Text="0" TextAlignment="Right" VerticalContentAlignment="Center"/>
                             </StackPanel>
@@ -244,7 +244,7 @@
                 
                 <!-- Khung giữa: Lưới danh sách món đã gọi -->
                 <DataGrid x:Name="DgChiTiet" Grid.Row="1" AutoGenerateColumns="False" 
-                          CanUserAddRows="False" GridLinesVisibility="All" 
+                          CanUserAddRows="False" IsReadOnly="True" GridLinesVisibility="All" 
                           AlternatingRowBackground="#f9f9f9" Margin="4,0"
                           HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0">
                     <DataGrid.ContextMenu>

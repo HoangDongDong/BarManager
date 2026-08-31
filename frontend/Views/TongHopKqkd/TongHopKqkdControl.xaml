@@ -4,140 +4,293 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="1000">
+             d:DesignHeight="850" d:DesignWidth="1100">
+
+    <UserControl.Resources>
+        <Style x:Key="RowTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsBold}" Value="True">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
              
-    <Grid Background="#e5ecf3">
+    <Grid Background="#759dc9">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
-        <!-- Toolbar lọc dữ liệu -->
-        <Border Grid.Row="0" Background="#e3eaf5" Padding="5" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Từ ngày:" VerticalAlignment="Center" Margin="5,0"/>
-                <DatePicker x:Name="dpTuNgay" Width="100"/>
-                <TextBlock Text="Đến ngày:" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                <DatePicker x:Name="dpDenNgay" Width="100"/>
+        <!-- Toolbar Lọc dữ liệu -->
+        <Border Grid.Row="0" Background="#e3eaf5" Padding="6,4" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Từ ngày" VerticalAlignment="Center" Margin="5,0,5,0" FontWeight="SemiBold"/>
+                <DatePicker x:Name="dpTuNgay" Width="105" Height="24" SelectedDateChanged="DpNgay_SelectedDateChanged"/>
+                <TextBlock Text="Đến ngày" VerticalAlignment="Center" Margin="10,0,5,0" FontWeight="SemiBold"/>
+                <DatePicker x:Name="dpDenNgay" Width="105" Height="24" SelectedDateChanged="DpNgay_SelectedDateChanged"/>
                 
-                <TextBlock Text="Cửa hàng:" VerticalAlignment="Center" Margin="15,0,5,0"/>
-                <ComboBox Width="150" Margin="0,0,10,0" Text="TRỤ SỞ CHÍNH" IsEditable="True"/>
+                <TextBlock Text="Cửa hàng:" VerticalAlignment="Center" Margin="15,0,5,0" FontWeight="SemiBold"/>
                 
-                <Button Content="Tải dữ liệu (F5)" Margin="10,0,5,0" Padding="10,2" Click="BtnTaiDuLieu_Click"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Toolbar Report Viewer giả lập -->
-        <Border Grid.Row="1" Background="#f0f0f0" Padding="2" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal">
-                <Button Content="🖨️ Print" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-                <Button Content="💾 Save ▼" Margin="5,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-                <TextBlock Text="|" VerticalAlignment="Center" Margin="5,0" Foreground="Gray"/>
-                <Button Content="✉" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-                <Button Content="🔍" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-                <TextBlock Text="|" VerticalAlignment="Center" Margin="5,0" Foreground="Gray"/>
-                <Button Content="|◄" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-                <Button Content="◄" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-                <TextBlock Text="1 of 1" VerticalAlignment="Center" Margin="5,0"/>
-                <Button Content="►" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-                <Button Content="►|" Margin="2,0" Padding="5,2" Background="Transparent" BorderThickness="0"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Vùng hiển thị Báo cáo -->
-        <ScrollViewer Grid.Row="2" Background="#7b91a7" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <Border Background="White" Width="800" Margin="20" Padding="40" HorizontalAlignment="Center" VerticalAlignment="Top" BorderBrush="Black" BorderThickness="1">
-                <Border.Effect>
-                    <DropShadowEffect Color="Black" Direction="320" ShadowDepth="5" Opacity="0.5"/>
-                </Border.Effect>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                <!-- Cửa hàng Selector với Dropdown & Nút Thêm / Tải / Danh mục -->
+                <Grid Margin="0,0,15,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="24"/>
+                    </Grid.ColumnDefinitions>
                     
-                    <!-- Header Báo cáo -->
-                    <Grid Grid.Row="0" Margin="0,0,0,20">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="80" Height="80" BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left">
-                            <TextBlock Text="Logo" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtSelectedCuaHang" Grid.Column="0" Height="24" VerticalContentAlignment="Center" 
+                             Text="TRỤ SỞ CHÍNH" Padding="4,0" Background="White" BorderBrush="#a4b8cc" IsReadOnly="True"
+                             PreviewMouseDown="TxtSelectedCuaHang_PreviewMouseDown"/>
+                    
+                    <ToggleButton x:Name="BtnToggleCuaHang" Grid.Column="1" Height="24" Background="#e8eff7" 
+                                  BorderBrush="#a4b8cc" BorderThickness="0,1,1,1" Cursor="Hand">
+                        <TextBlock Text="▼" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#555"/>
+                    </ToggleButton>
+
+                    <!-- Popup Cửa hàng -->
+                    <Popup x:Name="PopupCuaHang" PlacementTarget="{Binding ElementName=TxtSelectedCuaHang}" 
+                           Placement="Bottom" StaysOpen="False" IsOpen="{Binding ElementName=BtnToggleCuaHang, Path=IsChecked, Mode=TwoWay}"
+                           AllowsTransparency="True">
+                        <Border Width="220" Background="White" BorderBrush="#7192b8" BorderThickness="1" Margin="0,2,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" MaxHeight="180"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Danh sách trụ sở/cửa hàng -->
+                                <ListBox x:Name="LstCuaHang" Grid.Row="0" BorderThickness="0" Background="White"
+                                         SelectionChanged="LstCuaHang_SelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="2,3">
+                                                <TextBlock Text="🖥️" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                                <!-- Thanh công cụ dưới Popup: Thêm, Tải, Danh mục -->
+                                <Border Grid.Row="1" Background="#f0f4f9" BorderBrush="#d0dbe5" BorderThickness="0,1,0,0" Padding="4,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="BtnThemCuaHang" Grid.Column="0" Margin="1" Height="24" Background="White" 
+                                                BorderBrush="#b8c8d8" Cursor="Hand" Click="BtnThemCuaHang_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="➕" Foreground="Green" FontSize="10" Margin="0,0,3,0"/>
+                                                <TextBlock Text="Thêm" FontSize="11"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button x:Name="BtnTaiCuaHang" Grid.Column="1" Margin="1" Height="24" Background="White" 
+                                                BorderBrush="#b8c8d8" Cursor="Hand" Click="BtnTaiCuaHang_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🔄" Foreground="#0055aa" FontSize="10" Margin="0,0,3,0"/>
+                                                <TextBlock Text="Tải" FontSize="11"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button x:Name="BtnDanhMucCuaHang" Grid.Column="2" Margin="1" Height="24" Background="White" 
+                                                BorderBrush="#b8c8d8" Cursor="Hand" Click="BtnDanhMucCuaHang_Click">
+                                            <TextBlock Text="Danh mục" FontSize="11"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </Grid>
                         </Border>
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                            <TextBlock Text="NÀNG HƯƠNG QUÁN" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" Foreground="#ff6600"/>
-                            <TextBlock Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Điện thoại: 0909090880    Email:" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-                    
-                    <!-- Tiêu đề Báo cáo -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,20">
-                        <TextBlock Text="BÁO CÁO KẾT QUẢ KINH DOANH" FontWeight="Bold" FontSize="20" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Từ ngày 01/08/2026 Đến ngày 25/08/2026" HorizontalAlignment="Center" FontStyle="Italic"/>
-                    </StackPanel>
-                    
-                    <!-- Bảng số liệu -->
-                    <DataGrid x:Name="DgKqkd" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="All" BorderBrush="Black" BorderThickness="1" HeadersVisibility="Column" Background="White" RowBackground="White" AlternatingRowBackground="White" Foreground="Black">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="White"/>
-                                <Setter Property="BorderBrush" Value="Black"/>
-                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            </Style>
-                            <Style TargetType="DataGridCell">
-                                <Setter Property="BorderBrush" Value="Black"/>
-                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                <Setter Property="Padding" Value="5,2"/>
-                            </Style>
-                        </DataGrid.Resources>
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Stt" Binding="{Binding Stt}" Width="40">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Chỉ tiêu" Binding="{Binding ChiTieu}" Width="250"/>
-                            <DataGridTextColumn Header="Giá trị" Binding="{Binding GiaTri}" Width="100">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="%" Binding="{Binding PhanTram}" Width="50">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Tăng giảm so với&#x0a;tháng trước" Binding="{Binding TangGiam}" Width="120">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="KQKD tháng&#x0a;trước" Binding="{Binding KqThangTruoc}" Width="100">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                        </DataGrid.Columns>
-                        
-                    </DataGrid>
+                    </Popup>
                 </Grid>
-            </Border>
+
+                <Button Content="🔄 Tải dữ liệu (F5)" Margin="0,0,5,0" Padding="12,2" Height="24" Background="White" BorderBrush="#a4b8cc" Cursor="Hand" Click="BtnTaiDuLieu_Click"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Thanh Toolbar In ấn & Xem trước kiểu Ribbon -->
+        <Border Grid.Row="1" Background="#e3edf7" Padding="4,3" BorderBrush="#a4bcd5" BorderThickness="0,0,0,1">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <Button x:Name="BtnPrint" Margin="2,0" Padding="6,2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnPrint_Click" ToolTip="In tài liệu">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🖨️" FontSize="14" Margin="0,0,4,0"/>
+                            <TextBlock Text="Print" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnSave" Margin="2,0" Padding="6,2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnSave_Click" ToolTip="Lưu ra Excel">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾" FontSize="14" Margin="0,0,4,0"/>
+                            <TextBlock Text="Save" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                    <Separator Width="1" Margin="6,2" Background="#b0c4de"/>
+                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Gửi Email">
+                        <TextBlock Text="✉️" FontSize="14"/>
+                    </Button>
+                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Tìm kiếm">
+                        <TextBlock Text="🔍" FontSize="14"/>
+                    </Button>
+                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Sao chép">
+                        <TextBlock Text="📑" FontSize="14"/>
+                    </Button>
+                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Cài đặt trang">
+                        <TextBlock Text="📄" FontSize="14"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Phân trang ở giữa -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="20,0,0,0" VerticalAlignment="Center">
+                    <Button Content="|◄◄" Width="26" Height="20" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                    <Button Content="◄" Width="20" Height="20" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                    <Border Background="White" BorderBrush="#a4bcd5" BorderThickness="1" Margin="4,0" Padding="6,1">
+                        <TextBlock Text="1" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="of 1" VerticalAlignment="Center" Margin="2,0,4,0"/>
+                    <Button Content="►" Width="20" Height="20" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                    <Button Content="►►|" Width="26" Height="20" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Vùng hiển thị Văn Bản Báo Cáo KQKD (Canvas gradient, trang in viền cam) -->
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#96bee7" Offset="0"/>
+                    <GradientStop Color="#709ecd" Offset="1"/>
+                </LinearGradientBrush>
+            </ScrollViewer.Background>
+
+            <Grid HorizontalAlignment="Center" Margin="30">
+                <!-- Tờ giấy in có viền màu vàng cam như ảnh mẫu -->
+                <Border x:Name="PaperContainer" Background="White" BorderBrush="#e69500" BorderThickness="2" Padding="25" Width="760">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" ShadowDepth="4" Opacity="0.35" Color="#000000"/>
+                    </Border.Effect>
+
+                    <StackPanel>
+                        <!-- Header Báo Cáo: Logo và Thông tin nhà hàng -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Icon / Logo bát đũa -->
+                            <Border Grid.Column="0" Width="65" Height="65" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="🥢" FontSize="42" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#444"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtTenCuaHang" Text="NÀNG HƯƠNG QUÁN" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                <TextBlock Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                <TextBlock Text="Điện thoại: 0909090880   Email:" FontSize="11" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Tiêu đề Báo Cáo & Khoảng ngày -->
+                        <Grid Margin="0,10,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="TxtKhoangThoiGian" Text="Từ ngày 01/08/2026 Đến ngày 31/08/2026" FontSize="11" FontStyle="Italic" VerticalAlignment="Center"/>
+                            <TextBlock Text="BÁO CÁO KẾT QUẢ KINH DOANH" Grid.Column="1" FontWeight="Bold" FontSize="15" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Bảng số liệu Báo Cáo KQKD SIÊU NHẸ (ItemsControl) -->
+                        <Border BorderBrush="Black" BorderThickness="1,1,0,0" Background="White">
+                            <StackPanel>
+                                <!-- Header Table -->
+                                <Grid Height="24" Background="White">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="35"/>
+                                        <ColumnDefinition Width="170"/>
+                                        <ColumnDefinition Width="45"/>
+                                        <ColumnDefinition Width="95"/>
+                                        <ColumnDefinition Width="45"/>
+                                        <ColumnDefinition Width="45"/>
+                                        <ColumnDefinition Width="135"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,3"><TextBlock Text="" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
+                                    <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="4,3"><TextBlock Text="" FontWeight="Bold"/></Border>
+                                    <Border Grid.Column="2" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,3"><TextBlock Text="% / DT" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center"/></Border>
+                                    <Border Grid.Column="3" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,3"><TextBlock Text="Giá trị" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center"/></Border>
+                                    <Border Grid.Column="4" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,3"><TextBlock Text="%" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center"/></Border>
+                                    <Border Grid.Column="5" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,3"><TextBlock Text=" %/CP" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center"/></Border>
+                                    <Border Grid.Column="6" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,3"><TextBlock Text="Tăng giảm so với tháng trước" FontWeight="Bold" FontSize="10" HorizontalAlignment="Center"/></Border>
+                                    <Border Grid.Column="7" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,3"><TextBlock Text="KQKD tháng trước" FontWeight="Bold" FontSize="10" HorizontalAlignment="Center"/></Border>
+                                </Grid>
+
+                                <!-- Items List -->
+                                <ItemsControl x:Name="IctKqkd">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Height="21" Background="White">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="35"/>
+                                                    <ColumnDefinition Width="170"/>
+                                                    <ColumnDefinition Width="45"/>
+                                                    <ColumnDefinition Width="95"/>
+                                                    <ColumnDefinition Width="45"/>
+                                                    <ColumnDefinition Width="45"/>
+                                                    <ColumnDefinition Width="135"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.Column="0" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,2">
+                                                    <TextBlock Text="{Binding Stt}" HorizontalAlignment="Center" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                                <Border Grid.Column="1" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="4,2">
+                                                    <TextBlock Text="{Binding ChiTieu}" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                                <Border Grid.Column="2" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,2">
+                                                    <TextBlock Text="{Binding PhanTramDt}" HorizontalAlignment="Center" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                                <Border Grid.Column="3" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,2">
+                                                    <TextBlock Text="{Binding GiaTri}" HorizontalAlignment="Right" Padding="0,0,4,0" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                                <Border Grid.Column="4" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,2">
+                                                    <TextBlock Text="{Binding PhanTram}" HorizontalAlignment="Center" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                                <Border Grid.Column="5" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,2">
+                                                    <TextBlock Text="{Binding PhanTramCp}" HorizontalAlignment="Center" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                                <Border Grid.Column="6" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,2">
+                                                    <TextBlock Text="{Binding TangGiam}" HorizontalAlignment="Right" Padding="0,0,4,0" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                                <Border Grid.Column="7" BorderBrush="Black" BorderThickness="0,0,1,1" Padding="2,2">
+                                                    <TextBlock Text="{Binding KqThangTruoc}" HorizontalAlignment="Right" Padding="0,0,4,0" Style="{StaticResource RowTextStyle}"/>
+                                                </Border>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Chữ ký & Ngày lập ở góc phải/dưới -->
+                        <Grid Margin="0,15,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="220"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock x:Name="TxtNgayLap" Text="Ngày 31 tháng 08 năm 2026" FontSize="11" FontStyle="Italic" Margin="0,0,0,4" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Người lập" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center"/>
+                                <TextBlock Text="(Ký, họ tên)" FontSize="10" FontStyle="Italic" HorizontalAlignment="Center" Margin="0,2,0,50"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </ScrollViewer>
     </Grid>
 </UserControl>

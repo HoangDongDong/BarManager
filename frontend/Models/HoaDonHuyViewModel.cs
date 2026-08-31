@@ -4,7 +4,7 @@ namespace QuanLyBar.Client.Models
 {
     public class HoaDonHuyViewModel
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public DateTime? Ngay { get; set; }
         public string SoPhieu { get; set; }
         public string GhiChu { get; set; }

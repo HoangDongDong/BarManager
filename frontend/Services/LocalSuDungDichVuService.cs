@@ -226,6 +226,11 @@ namespace QuanLyBar.Client.Services
                         UserCreatedId = userCreatedId
                     });
 
+                    // Ghi lưu vết mở bàn
+                    string banName = await conn.QueryFirstOrDefaultAsync<string>(
+                        "SELECT NAME FROM DBAN WHERE CAST(ID AS VARCHAR(50)) = @BanId", new { BanId = banId });
+                    _ = LocalLuuVetService.GhiLuuVetAsync(orderId, banName, "Sử dụng dịch vụ", $"Mở hóa đơn trên bàn '{banName}'", 0);
+
                     return new StartOrderResult
                     {
                         OrderId = orderId,
@@ -386,6 +391,11 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
+
+                    var orderInfo = await conn.QueryFirstOrDefaultAsync(
+                        "SELECT h.NAME as SoPhieu, h.TONGCONG as TongCong, h.NGAY as Ngay, b.NAME as BanName FROM TDONHANG h LEFT JOIN DBAN b ON h.DBANID = b.ID WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId",
+                        new { OrderId = orderId });
+
                     string sql = @"
                         UPDATE TDONHANG 
                         SET KETTHUC = CURRENT_TIMESTAMP, 
@@ -407,6 +417,16 @@ namespace QuanLyBar.Client.Services
                         TheTraTruoc = theTraTruoc.ToString("0.##"),
                         LoaiTtInt = loaiTtInt
                     });
+
+                    if (orderInfo != null)
+                    {
+                        string soPhieu = orderInfo.SOPHIEU?.ToString() ?? "";
+                        decimal tongCong = orderInfo.TONGCONG != null ? Convert.ToDecimal(orderInfo.TONGCONG) : 0;
+                        DateTime ngay = orderInfo.NGAY != null ? Convert.ToDateTime(orderInfo.NGAY) : DateTime.Today;
+                        string banName = orderInfo.BANNAME?.ToString() ?? "";
+                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, banName, "Sử dụng dịch vụ", $"Đóng hóa đơn (Có in), số phiếu:{soPhieu}, ngày: {ngay:dd/MM/yyyy}", 1, 0, 0, tongCong);
+                    }
+
                     return true;
                 }
             }
@@ -451,15 +471,146 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
                     using (var trans = conn.BeginTransaction())
                     {
-                        int userCreatedId = 1;
-                        if (SessionContext.CurrentUser != null && int.TryParse(SessionContext.CurrentUser.Id, out int parsedUserId))
+                        string userId = "4f1466a0-0756-4ba9-afa8-053b96ca7569";
+                        string userName = "Administrator";
+                        if (SessionContext.CurrentUser != null)
                         {
-                            userCreatedId = parsedUserId;
+                            if (!string.IsNullOrEmpty(SessionContext.CurrentUser.Id))
+                                userId = SessionContext.CurrentUser.Id;
+                            if (!string.IsNullOrEmpty(SessionContext.CurrentUser.TenDangNhap))
+                                userName = SessionContext.CurrentUser.TenDangNhap;
                         }
 
-                        string noteSuffix = string.IsNullOrWhiteSpace(lyDoHuy) ? " [Đã hủy]" : $" [Hủy: {lyDoHuy}]";
+                        // 1. Get original order info
+                        string queryOrder = @"
+                            SELECT 
+                                h.NAME as SoPhieu,
+                                h.NOTE as GhiChu,
+                                h.NGAY as Ngay,
+                                h.BATDAU as BatDau,
+                                h.GIOTHANHTOAN as GioThanhToan,
+                                COALESCE(h.TIENHANG, 0) as TienHang,
+                                COALESCE(h.TIENTHUE, 0) as TienThue,
+                                COALESCE(h.TILETHUE, 0) as TiLeThue,
+                                COALESCE(h.TIENGIAMGIA, 0) as TienGiamGia,
+                                COALESCE(h.TILEGIAMGIA, 0) as TiLeGiamGia,
+                                COALESCE(h.TRALAI, 0) as TraLai,
+                                COALESCE(h.PHIVANCHUYEN, 0) as PhiVanChuyen,
+                                COALESCE(h.TIENGIO, 0) as TienGio,
+                                COALESCE(h.PHIDICHVU, 0) as PhiDichVu,
+                                k.NAME as KhachHang,
+                                b.NAME as BanName,
+                                u.NAME as NhanVien
+                            FROM TDONHANG h
+                            LEFT JOIN DBAN b ON h.DBANID = b.ID
+                            LEFT JOIN DKHACHHANG k ON h.DKHACHHANGID = k.ID
+                            LEFT JOIN SUSER u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                            WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId";
 
-                        // 1. Update TDONHANG
+                        var ord = await conn.QueryFirstOrDefaultAsync(queryOrder, new { OrderId = orderId }, trans);
+
+                        string newHuyId = Guid.NewGuid().ToString();
+                        string soPhieu = ord?.SOPHIEU?.ToString() ?? "";
+                        string banName = ord?.BANNAME?.ToString() ?? "";
+                        string khachHang = ord?.KHACHHANG?.ToString() ?? "";
+                        string nhanVien = ord?.NHANVIEN?.ToString() ?? userName;
+                        DateTime ngay = ord?.NGAY != null ? Convert.ToDateTime(ord.NGAY) : DateTime.Today;
+                        decimal tienHang = ord?.TIENHANG != null ? Convert.ToDecimal(ord.TIENHANG) : 0;
+                        decimal tienThue = ord?.TIENTHUE != null ? Convert.ToDecimal(ord.TIENTHUE) : 0;
+                        decimal tiLeThue = ord?.TILETHUE != null ? Convert.ToDecimal(ord.TILETHUE) : 0;
+                        decimal tienGiamGia = ord?.TIENGIAMGIA != null ? Convert.ToDecimal(ord.TIENGIAMGIA) : 0;
+                        decimal tiLeGiamGia = ord?.TILEGIAMGIA != null ? Convert.ToDecimal(ord.TILEGIAMGIA) : 0;
+                        decimal traLai = ord?.TRALAI != null ? Convert.ToDecimal(ord.TRALAI) : 0;
+                        decimal phiVanChuyen = ord?.PHIVANCHUYEN != null ? Convert.ToDecimal(ord.PHIVANCHUYEN) : 0;
+                        decimal tienGio = ord?.TIENGIO != null ? Convert.ToDecimal(ord.TIENGIO) : 0;
+                        decimal phiDichVu = ord?.PHIDICHVU != null ? Convert.ToDecimal(ord.PHIDICHVU) : 0;
+
+                        // 2. Insert into TDONHANGHUY
+                        string insertHuySql = @"
+                            INSERT INTO TDONHANGHUY (
+                                ID, NAME, NOTE, STATUS, TIMECREATED, NGAY, USERCREATEDID,
+                                KHACHHANG, NHANVEN, THUNGAN, DOITRA, DATHANHTOAN, GIOTHANHTOAN,
+                                TRALAI, TIENHANG, TILETHUE, TIENTHUE, TILEGIAMGIA, TIENGIAMGIA,
+                                PHIVANCHUYEN, THANHTOANBOI, NGAYHUY, GIOHUY, TDONHANGID, LYDOHUY,
+                                TIENGIO, PHIDICHVU, BAN
+                            ) VALUES (
+                                @Id, @Name, @Note, 30, CURRENT_TIMESTAMP, @Ngay, @UserCreatedId,
+                                @KhachHang, @NhanVien, @ThuNgan, 0, 0, NULL,
+                                @TraLai, @TienHang, @TiLeThue, @TienThue, @TiLeGiamGia, @TienGiamGia,
+                                @PhiVanChuyen, @ThanhToanBoi, CURRENT_DATE, CURRENT_TIMESTAMP, @OriginalOrderId, @LyDoHuy,
+                                @TienGio, @PhiDichVu, @Ban
+                            )";
+
+                        await conn.ExecuteAsync(insertHuySql, new
+                        {
+                            Id = newHuyId,
+                            Name = soPhieu,
+                            Note = ord?.GHICHU?.ToString() ?? "",
+                            Ngay = ngay.Date,
+                            UserCreatedId = userId,
+                            KhachHang = khachHang,
+                            NhanVien = nhanVien,
+                            ThuNgan = userName,
+                            TraLai = traLai,
+                            TienHang = tienHang,
+                            TiLeThue = tiLeThue,
+                            TienThue = tienThue,
+                            TiLeGiamGia = tiLeGiamGia,
+                            TienGiamGia = tienGiamGia,
+                            PhiVanChuyen = phiVanChuyen,
+                            ThanhToanBoi = userName,
+                            OriginalOrderId = orderId,
+                            LyDoHuy = lyDoHuy,
+                            TienGio = tienGio,
+                            PhiDichVu = phiDichVu,
+                            Ban = banName
+                        }, trans);
+
+                        // 3. Query all order details from TDONHANGCHITIET
+                        string queryDetails = @"
+                            SELECT 
+                                c.NOTE as GhiChu,
+                                COALESCE(m.CODE, '') as MaHang,
+                                COALESCE(c.TENHANG, m.NAME) as TenHang,
+                                COALESCE(dvt.NAME, 'đĩa') as Dvt,
+                                COALESCE(c.DONGIA, 0) as DonGia,
+                                COALESCE(c.THANHTIEN, 0) as ThanhTien,
+                                COALESCE(c.SLXUAT, c.SLNHAP, 1) as SoLuong
+                            FROM TDONHANGCHITIET c
+                            LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                            LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                            WHERE CAST(c.TDONHANGID AS VARCHAR(50)) = @OrderId";
+
+                        var details = (await conn.QueryAsync(queryDetails, new { OrderId = orderId }, trans)).ToList();
+
+                        string insertHuyDetailSql = @"
+                            INSERT INTO TDONHANGHUYCHITIET (
+                                ID, NOTE, TDONHANGHUYID, STATUS, TIMECREATED, USERCREATEDID,
+                                MAHANG, TENHANG, DVT, DONGIA, THANHTIEN, SOLUONG
+                            ) VALUES (
+                                @Id, @Note, @TdonhangHuyId, 30, CURRENT_TIMESTAMP, @UserCreatedId,
+                                @MaHang, @TenHang, @Dvt, @DonGia, @ThanhTien, @SoLuong
+                            )";
+
+                        foreach (var d in details)
+                        {
+                            await conn.ExecuteAsync(insertHuyDetailSql, new
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                Note = d.GHICHU?.ToString() ?? "",
+                                TdonhangHuyId = newHuyId,
+                                UserCreatedId = userId,
+                                MaHang = d.MAHANG?.ToString() ?? "",
+                                TenHang = d.TENHANG?.ToString() ?? "",
+                                Dvt = d.DVT?.ToString() ?? "",
+                                DonGia = Convert.ToDecimal(d.DONGIA),
+                                ThanhTien = Convert.ToDecimal(d.THANHTIEN),
+                                SoLuong = Convert.ToDecimal(d.SOLUONG)
+                            }, trans);
+                        }
+
+                        // 4. Update TDONHANG and TDONHANGCHITIET
+                        string noteSuffix = string.IsNullOrWhiteSpace(lyDoHuy) ? " [Đã hủy]" : $" [Hủy: {lyDoHuy}]";
                         string sqlOrder = @"
                             UPDATE TDONHANG 
                             SET STATUS = 0, 
@@ -469,7 +620,6 @@ namespace QuanLyBar.Client.Services
                             WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
                         await conn.ExecuteAsync(sqlOrder, new { OrderId = orderId, NoteSuffix = noteSuffix }, trans);
 
-                        // 2. Update TDONHANGCHITIET
                         string sqlDetails = @"
                             UPDATE TDONHANGCHITIET 
                             SET STATUS = 0, 
@@ -477,40 +627,18 @@ namespace QuanLyBar.Client.Services
                             WHERE CAST(TDONHANGID AS VARCHAR(50)) = @OrderId";
                         await conn.ExecuteAsync(sqlDetails, new { OrderId = orderId }, trans);
 
-                        // 3. Copy sang TDONHANGHUY (nếu có bảng)
-                        try
-                        {
-                            string copyHuySql = @"
-                                INSERT INTO TDONHANGHUY (
-                                    ID, NAME, NOTE, STATUS, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED, 
-                                    NGAY, USERCREATEDID, KHACHHANG, NHANVEN, THUNGAN, TIENHANG, 
-                                    TIENGIAMGIA, TILEGIAMGIA, TONGCONG, NGAYHUY, GIOHUY, TDONHANGID, LYDOHUY, BAN
-                                )
-                                SELECT 
-                                    h.ID, h.NAME, h.NOTE, 0, @UserId, CURRENT_TIMESTAMP, h.TIMECREATED,
-                                    h.NGAY, @UserId, k.NAME, u.NAME, u.NAME, h.TIENHANG,
-                                    h.TIENGIAMGIA, h.TILEGIAMGIA, h.TONGCONG, CURRENT_DATE, CURRENT_TIMESTAMP, h.ID, @LyDoHuy, b.NAME
-                                FROM TDONHANG h
-                                LEFT JOIN DBAN b ON h.DBANID = b.ID
-                                LEFT JOIN DKHACHHANG k ON h.DKHACHHANGID = k.ID
-                                LEFT JOIN SUSER u ON CAST(u.ID AS VARCHAR(50)) = CAST(@UserId AS VARCHAR(50))
-                                WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId";
-
-                            await conn.ExecuteAsync(copyHuySql, new { OrderId = orderId, UserId = userCreatedId, LyDoHuy = lyDoHuy }, trans);
-                        }
-                        catch
-                        {
-                            // Bỏ qua nếu có cột bảng lịch sử hủy khác biệt
-                        }
-
                         trans.Commit();
+
+                        // 5. Ghi lưu vết hủy bill
+                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, banName, "Sử dụng dịch vụ", $"Hủy hóa đơn số phiếu: {soPhieu}, lý do: {lyDoHuy}", 1);
+
                         return true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi hủy hóa đơn: " + ex.Message);
+                MessageBox.Show("Lỗi hủy hóa đơn: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
@@ -523,11 +651,24 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
+
+                    var info = await conn.QueryFirstOrDefaultAsync(
+                        "SELECT b1.NAME as OldBan, b2.NAME as NewBan FROM TDONHANG h LEFT JOIN DBAN b1 ON h.DBANID = b1.ID, DBAN b2 WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId AND CAST(b2.ID AS VARCHAR(50)) = @NewBanId",
+                        new { OrderId = orderId, NewBanId = newBanId });
+
                     string sql = @"
                         UPDATE TDONHANG 
                         SET DBANID = @BanId, TIMEMODIFIED = CURRENT_TIMESTAMP
                         WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
                     int rows = await conn.ExecuteAsync(sql, new { BanId = newBanId, OrderId = orderId });
+
+                    if (rows > 0 && info != null)
+                    {
+                        string oldBan = info.OLDBAN?.ToString() ?? "";
+                        string newBan = info.NEWBAN?.ToString() ?? "";
+                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, newBan, "Sử dụng dịch vụ", $"Chuyển bàn từ '{oldBan}' sang '{newBan}'", 2);
+                    }
+
                     return rows > 0;
                 }
             }
@@ -611,7 +752,7 @@ namespace QuanLyBar.Client.Services
             catch { return false; }
         }
 
-        public async Task<bool> UpdateOrderCustomerAsync(string orderId, string khachHangId)
+        public async Task<bool> UpdateOrderCustomerAsync(string orderId, string khachHangId, string chucNang = "Sử dụng dịch vụ")
         {
             if (string.IsNullOrEmpty(orderId)) return false;
             try
@@ -621,6 +762,14 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
                     string sql = "UPDATE TDONHANG SET DKHACHHANGID = @KhachHangId WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
                     await conn.ExecuteAsync(sql, new { KhachHangId = khachHangId, OrderId = orderId });
+
+                    string khName = await conn.QueryFirstOrDefaultAsync<string>(
+                        "SELECT NAME FROM DKHACHHANG WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = khachHangId });
+                    if (!string.IsNullOrEmpty(khName))
+                    {
+                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, null, chucNang, $"Đặt khách hàng '{khName}'", 3);
+                    }
+
                     return true;
                 }
             }

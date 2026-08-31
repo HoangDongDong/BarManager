@@ -32,20 +32,22 @@ namespace QuanLyBar.Client.Views
         {
             dpTuNgay.SelectedDate = DateTime.Today;
             dpDenNgay.SelectedDate = DateTime.Today;
-            
-            if (DgDichVu != null)
-            {
-                DgDichVu.ItemsSource = _dichVuList;
-            }
 
             await LoadDataAsync();
             await LoadMenuTreeAsync();
-            await LoadDichVuYeuCauAsync();
         }
 
         private async void BtnTaiDuLieu_Click(object sender, RoutedEventArgs e)
         {
             await LoadDataAsync();
+        }
+
+        private async void DpNgay_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+            {
+                await LoadDataAsync();
+            }
         }
 
         private async Task LoadDataAsync()
@@ -154,20 +156,17 @@ namespace QuanLyBar.Client.Views
                 try
                 {
                     // 1. Hiển thị thông tin chung lên phần Header
-                    TxtGioBatDau.Text = selectedHoaDon.BatDau.HasValue 
-                        ? selectedHoaDon.BatDau.Value.ToString("dd/MM/yyyy HH:mm") 
-                        : (selectedHoaDon.Ngay.HasValue ? selectedHoaDon.Ngay.Value.ToString("dd/MM/yyyy") : "");
+                    if (TxtGioBatDau != null)
+                    {
+                        TxtGioBatDau.Text = selectedHoaDon.BatDau.HasValue 
+                            ? selectedHoaDon.BatDau.Value.ToString("dd/MM/yyyy HH:mm") 
+                            : (selectedHoaDon.Ngay.HasValue ? selectedHoaDon.Ngay.Value.ToString("dd/MM/yyyy") : "");
+                    }
 
-                    var gioKetThuc = selectedHoaDon.KetThuc ?? selectedHoaDon.GioThanhToan;
-                    TxtGioKetThuc.Text = gioKetThuc.HasValue 
-                        ? gioKetThuc.Value.ToString("dd/MM/yyyy HH:mm") 
-                        : "";
-
-                    DpNgayOrder.SelectedDate = selectedHoaDon.Ngay ?? DateTime.Today;
-                    TxtSoPhieu.Text = selectedHoaDon.SoPhieu ?? "";
-                    TxtSoKhach.Text = selectedHoaDon.SoKhach > 0 ? selectedHoaDon.SoKhach.ToString() : "1";
-                    TxtTenBan.Text = selectedHoaDon.Ban ?? "";
-                    TxtKhachHang.Text = selectedHoaDon.KhachHang ?? "";
+                    if (DpNgayOrder != null) DpNgayOrder.SelectedDate = selectedHoaDon.Ngay ?? DateTime.Today;
+                    if (TxtSoPhieu != null) TxtSoPhieu.Text = selectedHoaDon.SoPhieu ?? "";
+                    if (TxtSoKhach != null) TxtSoKhach.Text = selectedHoaDon.SoKhach > 0 ? selectedHoaDon.SoKhach.ToString() : "0";
+                    if (TxtKhachHang != null) TxtKhachHang.Text = selectedHoaDon.KhachHang ?? "";
 
                     // 2. Hiển thị thông tin Tổng kết ở Footer
                     TxtTienHang.Text = selectedHoaDon.TienHang.ToString("N0");
@@ -225,6 +224,211 @@ namespace QuanLyBar.Client.Views
             else
             {
                 MessageBox.Show("Vui lòng chọn một hóa đơn trong danh sách để trả đồ!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private async Task ReloadCurrentHoaDonDetailsAsync()
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon)
+            {
+                var chiTietList = await _hoaDonService.GetChiTietHoaDonAsync(selectedHoaDon.Id);
+                DgChiTiet.ItemsSource = chiTietList;
+
+                if (chiTietList != null)
+                {
+                    decimal tienHang = chiTietList.Sum(x => x.ThanhTien);
+                    selectedHoaDon.TienHang = tienHang;
+                    
+                    decimal giamPt = selectedHoaDon.TiLeGiamGia;
+                    decimal giamTien = selectedHoaDon.TienGiamGia;
+                    decimal tongCong = Math.Max(0, tienHang - (tienHang * giamPt / 100m) - giamTien);
+                    selectedHoaDon.TongCong = tongCong;
+
+                    TxtTienHang.Text = tienHang.ToString("N0");
+                    TxtTongCong.Text = tongCong.ToString("N0");
+                }
+            }
+        }
+
+        private async void BtnTangSoLuong_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon && DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel chiTiet)
+            {
+                bool ok = await _hoaDonService.UpdateSoLuongMonHoaDonAsync(chiTiet.Id, selectedHoaDon.Id, chiTiet.SoLuong + 1);
+                if (ok)
+                {
+                    await ReloadCurrentHoaDonDetailsAsync();
+                }
+            }
+        }
+
+        private async void BtnGiamSoLuong_Click(object sender, RoutedEventArgs e)
+        {
+            await GiamMonSelectedAsync();
+        }
+
+        private async void BtnXoaMon_Click(object sender, RoutedEventArgs e)
+        {
+            await XoaMonSelectedAsync();
+        }
+
+        private async void BtnDatSl_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon && DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel chiTiet)
+            {
+                var win = new InputWindow("Đặt số lượng", $"Nhập số lượng cho '{chiTiet.TenMon}':", chiTiet.SoLuong.ToString("0.##"));
+                win.Owner = Window.GetWindow(this);
+                if (win.ShowDialog() == true && decimal.TryParse(win.InputText?.Trim(), out decimal sl) && sl > 0)
+                {
+                    bool ok = await _hoaDonService.UpdateSoLuongMonHoaDonAsync(chiTiet.Id, selectedHoaDon.Id, sl);
+                    if (ok)
+                    {
+                        await ReloadCurrentHoaDonDetailsAsync();
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một món trong danh sách chi tiết để đặt số lượng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private async void BtnDoiGia_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon && DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel chiTiet)
+            {
+                var win = new InputWindow("Đổi đơn giá", $"Nhập đơn giá mới cho '{chiTiet.TenMon}':", chiTiet.DonGia.ToString("0"));
+                win.Owner = Window.GetWindow(this);
+                if (win.ShowDialog() == true && decimal.TryParse(win.InputText?.Trim(), out decimal gia) && gia >= 0)
+                {
+                    bool ok = await _hoaDonService.UpdateDonGiaMonHoaDonAsync(chiTiet.Id, selectedHoaDon.Id, gia);
+                    if (ok)
+                    {
+                        await ReloadCurrentHoaDonDetailsAsync();
+                    }
+                }
+            }
+        }
+
+        private async void BtnGhiChu_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel chiTiet)
+            {
+                var win = new InputWindow("Ghi chú món", $"Nhập ghi chú cho '{chiTiet.TenMon}':", chiTiet.GhiChu ?? "");
+                win.Owner = Window.GetWindow(this);
+                if (win.ShowDialog() == true)
+                {
+                    bool ok = await _hoaDonService.UpdateGhiChuMonHoaDonAsync(chiTiet.Id, win.InputText?.Trim());
+                    if (ok)
+                    {
+                        await ReloadCurrentHoaDonDetailsAsync();
+                    }
+                }
+            }
+        }
+
+        private async void BtnChietKhau_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon && DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel chiTiet)
+            {
+                var win = new InputWindow("Chiết khấu %", $"Nhập tỷ lệ chiết khấu % cho '{chiTiet.TenMon}':", chiTiet.PhanTramGiamGia.ToString("0"));
+                win.Owner = Window.GetWindow(this);
+                if (win.ShowDialog() == true && decimal.TryParse(win.InputText?.Trim(), out decimal ck) && ck >= 0 && ck <= 100)
+                {
+                    bool ok = await _hoaDonService.UpdateChietKhauMonHoaDonAsync(chiTiet.Id, selectedHoaDon.Id, ck);
+                    if (ok)
+                    {
+                        await ReloadCurrentHoaDonDetailsAsync();
+                    }
+                }
+            }
+        }
+
+        private async void BtnThemSangOrder_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon)
+            {
+                if (DgMatHang?.SelectedItem is PosMatHangViewModel matHang)
+                {
+                    bool ok = await _hoaDonService.AddMonToHoaDonAsync(selectedHoaDon.Id, matHang, 1);
+                    if (ok)
+                    {
+                        await ReloadCurrentHoaDonDetailsAsync();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Vui lòng chọn món ăn trong thực đơn bên phải!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một hóa đơn cần thêm món!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private async void BtnGiamSangOrder_Click(object sender, RoutedEventArgs e)
+        {
+            await GiamMonSelectedAsync();
+        }
+
+        private async void BtnXoaKhoiOrder_Click(object sender, RoutedEventArgs e)
+        {
+            await XoaMonSelectedAsync();
+        }
+
+        private async Task GiamMonSelectedAsync()
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon && DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel chiTiet)
+            {
+                bool ok = await _hoaDonService.GiamSoLuongMonHoaDonAsync(chiTiet.Id, selectedHoaDon.Id, 1);
+                if (ok)
+                {
+                    await ReloadCurrentHoaDonDetailsAsync();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một món trong danh sách chi tiết để giảm số lượng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private async Task XoaMonSelectedAsync()
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon && DgChiTiet?.SelectedItem is ChiTietHoaDonViewModel chiTiet)
+            {
+                var ask = MessageBox.Show($"Bạn có chắc chắn muốn xóa món '{chiTiet.TenMon}' khỏi hóa đơn không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (ask == MessageBoxResult.Yes)
+                {
+                    bool ok = await _hoaDonService.XoaMonHoaDonAsync(chiTiet.Id, selectedHoaDon.Id);
+                    if (ok)
+                    {
+                        await ReloadCurrentHoaDonDetailsAsync();
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một món trong danh sách chi tiết để xóa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void BtnGiamGiaTheoNhom_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Chức năng giảm giá theo nhóm mặt hàng.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnInLaiBill_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon)
+            {
+                var win = new InLuoiWindow(DgChiTiet, $"HÓA ĐƠN BÁN HÀNG - SỐ PHIẾU: {selectedHoaDon.SoPhieu}");
+                win.Owner = Window.GetWindow(this);
+                win.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một hóa đơn để in!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -844,9 +1048,16 @@ namespace QuanLyBar.Client.Views
             win.ShowDialog();
         }
 
-        private void DgMatHang_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void DgMatHang_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // Thêm món vào hóa đơn nếu cần
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon && DgMatHang?.SelectedItem is PosMatHangViewModel matHang)
+            {
+                bool ok = await _hoaDonService.AddMonToHoaDonAsync(selectedHoaDon.Id, matHang, 1);
+                if (ok)
+                {
+                    await ReloadCurrentHoaDonDetailsAsync();
+                }
+            }
         }
 
         #endregion
@@ -945,64 +1156,6 @@ namespace QuanLyBar.Client.Views
             var win = new InLuoiWindow(DgChiTiet, "Chi tiết hóa đơn");
             win.Owner = Window.GetWindow(this);
             win.ShowDialog();
-        }
-
-        #endregion
-
-        #region TAB D.VỤ (DỊCH VỤ)
-
-        private async Task LoadDichVuYeuCauAsync()
-        {
-            try
-            {
-                var data = await _dichVuService.GetDichVuYeuCauListAsync();
-                _dichVuList.Clear();
-                foreach (var item in data)
-                {
-                    _dichVuList.Add(item);
-                }
-            }
-            catch { }
-        }
-
-        private async void BtnRefreshDichVu_Click(object sender, RoutedEventArgs e)
-        {
-            await LoadDichVuYeuCauAsync();
-        }
-
-        private void BtnVaoPhongDichVu_Click(object sender, RoutedEventArgs e)
-        {
-            VaoPhongDichVuDuocChon();
-        }
-
-        private void DgDichVu_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            VaoPhongDichVuDuocChon();
-        }
-
-        private void VaoPhongDichVuDuocChon()
-        {
-            if (DgDichVu?.SelectedItem is DichVuYeuCauViewModel selectedItem)
-            {
-                // Chọn hóa đơn tương ứng với phòng/bàn trong danh sách hóa đơn nếu có
-                if (!string.IsNullOrEmpty(selectedItem.Phong) && DgHoaDon?.ItemsSource is IEnumerable<HoaDonViewModel> hoaDons)
-                {
-                    var found = hoaDons.FirstOrDefault(h => h.Ban != null && h.Ban.Equals(selectedItem.Phong, StringComparison.OrdinalIgnoreCase));
-                    if (found != null)
-                    {
-                        DgHoaDon.SelectedItem = found;
-                        DgHoaDon.ScrollIntoView(found);
-                    }
-                    else
-                    {
-                        MessageBox.Show($"Không tìm thấy hóa đơn của bàn '{selectedItem.Phong}' trong danh sách lọc hiện tại!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Vui lòng chọn một hàng dịch vụ trong danh sách để vào phòng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
         }
 
         #endregion

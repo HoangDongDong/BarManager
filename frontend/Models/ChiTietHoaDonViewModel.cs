@@ -6,6 +6,7 @@ namespace QuanLyBar.Client.Models
     {
         public string Id { get; set; }
         public string MatHangId { get; set; }
+        public string MaHang { get; set; }
         public int Stt { get; set; }
         public string TenMon { get; set; }
         public string Dvt { get; set; }
