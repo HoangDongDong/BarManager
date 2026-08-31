@@ -17,7 +17,7 @@
         
         <TreeView x:Name="TvKhuVuc" Grid.Row="1" BorderBrush="LightGray" BorderThickness="1">
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type models:KhuVucViewModel}" ItemsSource="{Binding Children}">
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" Margin="0,2">
                         <TextBlock Text="📁 " Foreground="Goldenrod" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>

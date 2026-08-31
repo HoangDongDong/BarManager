@@ -19,10 +19,7 @@ namespace QuanLyBar.Client
                 this.Title = $"Phần Mềm Quản Lý Bar, Nhà Hàng - [{userInfoStr}]";
                 
                 AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
-                AddTab("Quản lý bán hàng", new QuanLyBar.Client.Views.QuanLyBanHangControl());
-                AddTab("Lưu vết hoạt động", new QuanLyBar.Client.Views.LuuVetHoatDongControl());
-                AddTab("Chi tiết hoạt động ngày", new QuanLyBar.Client.Views.ChiTietHoatDongControl());
-                AddTab("Tổng hợp kết quả kinh doanh", new QuanLyBar.Client.Views.TongHopKqkdControl());
+                AddTab("Danh mục khách hàng", new QuanLyBar.Client.Views.DanhMucKhachHangControl());
             }
         }
 
@@ -154,6 +151,10 @@ namespace QuanLyBar.Client
                     else if (tabName == "Danh mục hóa đơn hủy")
                     {
                         content = new QuanLyBar.Client.Views.DanhMucHoaDonHuyControl();
+                    }
+                    else if (tabName == "Danh mục khách hàng")
+                    {
+                        content = new QuanLyBar.Client.Views.DanhMucKhachHangControl();
                     }
                     else
                     {
