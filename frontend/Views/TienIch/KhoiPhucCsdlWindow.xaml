@@ -1,0 +1,80 @@
+<Window x:Class="QuanLyBar.Client.Views.KhoiPhucCsdlWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Khôi phục CSDL" Height="300" Width="470" 
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#cddfef">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="55"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="15,0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Icon Database với tia sét -->
+                <Grid Width="34" Height="34" Margin="0,0,12,0">
+                    <TextBlock Text="🗄️" FontSize="26" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Text="⚡" FontSize="18" Foreground="#ffaa00" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-4,-2"/>
+                </Grid>
+                <TextBlock Text="Khôi phục cơ sở dữ liệu" FontWeight="Bold" FontSize="14.5" VerticalAlignment="Center" Foreground="#111111"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Body Form -->
+        <Grid Grid.Row="1" Margin="15,10,15,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+            </Grid.RowDefinitions>
+
+            <!-- Ghi chú cảnh báo đỏ -->
+            <TextBlock Grid.Row="0" Text="Chú ý: Bạn chỉ có thể khôi phục khi ứng dụng chạy trên máy chủ" 
+                       Foreground="#cc0000" FontStyle="Italic" FontSize="11.5" Margin="0,0,0,12"/>
+
+            <!-- File sao lưu -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="34"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="File sao lưu:" VerticalAlignment="Center" FontSize="11.5"/>
+                <TextBox x:Name="TxtFileSaoLuu" Grid.Column="1" Height="24" VerticalContentAlignment="Center" 
+                         Margin="0,0,6,0" Background="White" BorderBrush="#8ca2ba" TextChanged="TxtFiles_TextChanged"/>
+                <Button x:Name="BtnChonFileSaoLuu" Grid.Column="2" Height="24" Background="White" BorderBrush="#8ca2ba" 
+                        Cursor="Hand" Click="BtnChonFileSaoLuu_Click">
+                    <TextBlock Text="📁" FontSize="13" Foreground="#d4a017" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
+            </Grid>
+
+            <!-- File khôi phục -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="34"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="File khôi phục:" VerticalAlignment="Center" FontSize="11.5"/>
+                <TextBox x:Name="TxtFileKhoiPhuc" Grid.Column="1" Height="24" VerticalContentAlignment="Center" 
+                         Margin="0,0,6,0" Background="White" BorderBrush="#8ca2ba" TextChanged="TxtFiles_TextChanged"/>
+                <Button x:Name="BtnChonFileKhoiPhuc" Grid.Column="2" Height="24" Background="White" BorderBrush="#8ca2ba" 
+                        Cursor="Hand" Click="BtnChonFileKhoiPhuc_Click">
+                    <TextBlock Text="📁" FontSize="13" Foreground="#d4a017" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
+            </Grid>
+        </Grid>
+
+        <!-- Footer Buttons -->
+        <Border Grid.Row="2" Background="#cddfef" Padding="15,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="BtnThucHien" Content="Thực hiện" Width="85" Height="26" Margin="0,0,10,0" 
+                        Background="#f8fafd" BorderBrush="#9cb2c8" Cursor="Hand" IsEnabled="False" Click="BtnThucHien_Click"/>
+                <Button x:Name="BtnDong" Content="Đóng" Width="80" Height="26" 
+                        Background="White" BorderBrush="#1877f2" BorderThickness="1.5" Cursor="Hand" IsCancel="True" Click="BtnDong_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

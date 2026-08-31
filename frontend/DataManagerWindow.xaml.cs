@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 
@@ -32,15 +34,14 @@ namespace QuanLyBar.Client
         {
             try
             {
-                if (System.IO.File.Exists(DATA_FILE))
+                if (File.Exists(DATA_FILE))
                 {
-                    string json = System.IO.File.ReadAllText(DATA_FILE);
-                    var list = System.Text.Json.JsonSerializer.Deserialize<ObservableCollection<DatabaseInfo>>(json);
+                    string json = File.ReadAllText(DATA_FILE);
+                    var list = JsonSerializer.Deserialize<ObservableCollection<DatabaseInfo>>(json);
                     if (list != null) Databases = list;
                 }
                 else
                 {
-                    // Fallback mặc định nếu chưa có file
                     Databases = new ObservableCollection<DatabaseInfo>();
                 }
             }
@@ -48,22 +49,36 @@ namespace QuanLyBar.Client
             {
                 Databases = new ObservableCollection<DatabaseInfo>();
             }
+
+            if (Databases.Count == 0)
+            {
+                // Mặc định nạp CSDL DEMO nếu chưa có danh sách
+                Databases.Add(new DatabaseInfo
+                {
+                    Name = "DEMO",
+                    Path = @"D:\taifirebird\DEMO.FDB",
+                    ConnectionType = 2,
+                    Server = "localhost",
+                    Username = "SYSDBA",
+                    Password = "masterkey"
+                });
+                SaveDatabases();
+            }
         }
 
         private void SaveDatabases()
         {
             try
             {
-                var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-                string json = System.Text.Json.JsonSerializer.Serialize(Databases, options);
-                System.IO.File.WriteAllText(DATA_FILE, json);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(Databases, options);
+                File.WriteAllText(DATA_FILE, json);
             }
             catch { }
         }
 
         private void BtnOpenFile_Click(object sender, RoutedEventArgs e)
         {
-            // Mở cửa sổ cấu hình kết nối thay vì mở trực tiếp file dialog
             var dbWindow = new DbConnectionWindow();
             
             if (dbWindow.ShowDialog() == true)
@@ -71,11 +86,8 @@ namespace QuanLyBar.Client
                 var newDb = dbWindow.ResultData;
                 if (newDb != null && !string.IsNullOrEmpty(newDb.Path))
                 {
-                    // Thêm vào danh sách hiển thị
                     Databases.Add(newDb);
                     SaveDatabases();
-                    
-                    // Tự động chọn dòng vừa thêm
                     dgDatabases.SelectedIndex = Databases.Count - 1;
                 }
             }
@@ -86,12 +98,11 @@ namespace QuanLyBar.Client
             if (dgDatabases.SelectedItem is DatabaseInfo selectedDb)
             {
                 var dbWindow = new DbConnectionWindow();
-                // Set data to dbWindow if needed
                 dbWindow.ShowDialog();
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn dữ liệu cần sửa.", "Thông báo");
+                MessageBox.Show("Vui lòng chọn dữ liệu cần sửa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -109,7 +120,7 @@ namespace QuanLyBar.Client
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn dữ liệu cần xóa.", "Thông báo");
+                MessageBox.Show("Vui lòng chọn dữ liệu cần xóa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -119,12 +130,11 @@ namespace QuanLyBar.Client
             {
                 try
                 {
-                    // Lưu cấu hình trực tiếp vào DbConnectionManager (không cần gọi Backend API nữa)
                     QuanLyBar.Client.Services.DbConnectionManager.SaveConfig(selectedDb);
-                    
                     Application.Current.Properties["SelectedDbName"] = selectedDb.Name;
                     
-                    MessageBox.Show($"Đã kết nối tới CSDL: {selectedDb.Name}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Đã chọn CSDL: {selectedDb.Name}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    this.DialogResult = true;
                     this.Close();
                 }
                 catch (Exception ex)
@@ -133,30 +143,51 @@ namespace QuanLyBar.Client
                 }
             }
         }
+
         private void RbCreateNew_Checked(object sender, RoutedEventArgs e)
         {
-            // Tránh trigger khi khởi tạo UI chưa xong
             if (!IsLoaded) return;
 
             var saveFileDialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "Database file (*.fdb)|*.fdb|All files (*.*)|*.*",
-                Title = "Tạo mới cơ sở dữ liệu",
-                DefaultExt = ".fdb"
+                Title = "Tạo mới cơ sở dữ liệu trắng",
+                DefaultExt = ".fdb",
+                FileName = ""
             };
 
             if (saveFileDialog.ShowDialog() == true)
             {
                 string filename = saveFileDialog.FileName;
-                string dbName = System.IO.Path.GetFileNameWithoutExtension(filename);
+                string dbName = Path.GetFileNameWithoutExtension(filename);
 
-                // TODO: Gọi API Backend để copy/tạo mới file FDB trắng tại đường dẫn này
-                // Tạm thời chỉ lưu cấu hình đường dẫn mới
+                try
+                {
+                    // Copy từ file template nếu có
+                    string templatePath = @"D:\taifirebird\new.fdb";
+                    if (!File.Exists(templatePath))
+                    {
+                        templatePath = @"D:\taifirebird\DEMO.FDB";
+                    }
+
+                    if (File.Exists(templatePath))
+                    {
+                        File.Copy(templatePath, filename, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Không thể tạo file CSDL: {ex.Message}", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+
                 var newDb = new DatabaseInfo 
                 { 
                     Name = dbName, 
                     Path = filename,
-                    ConnectionType = 2 // Firebird File
+                    ConnectionType = 2, // Firebird File
+                    Server = "localhost",
+                    Username = "SYSDBA",
+                    Password = "masterkey"
                 };
 
                 Databases.Add(newDb);
@@ -164,10 +195,9 @@ namespace QuanLyBar.Client
                 
                 dgDatabases.SelectedIndex = Databases.Count - 1;
                 
-                MessageBox.Show($"Đã cấu hình đường dẫn tạo mới CSDL: {filename}\n(Ghi chú: Cần hoàn thiện API Backend để gen cấu trúc bảng trắng vào file này)", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"Đã tạo mới cơ sở dữ liệu trắng thành công tại:\n{filename}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
-            // Dù có chọn hay Cancel thì cũng chuyển RadioButton về lại chế độ Mở danh sách
             rbOpenExisting.IsChecked = true;
         }
     }

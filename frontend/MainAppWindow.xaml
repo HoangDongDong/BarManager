@@ -13,11 +13,11 @@
         <Menu Grid.Row="0" Background="#d1def0" FontSize="13" Padding="2,4" BorderBrush="#a4bce3" BorderThickness="0,0,0,1">
             <MenuItem Header="HỆ THỐNG" Foreground="#1e3f66">
                 <MenuItem Header="Cơ sở dữ liệu...">
-                    <MenuItem Header="Tạo mới cơ sở dữ liệu"/>
-                    <MenuItem Header="Sao lưu cơ sở dữ liệu"/>
-                    <MenuItem Header="Phục hồi cơ sở dữ liệu"/>
+                    <MenuItem Header="Tạo mới cơ sở dữ liệu" Click="MenuTaoMoiCsdl_Click"/>
+                    <MenuItem Header="Sao lưu cơ sở dữ liệu" Click="MenuSaoLuuCsdl_Click"/>
+                    <MenuItem Header="Phục hồi cơ sở dữ liệu" Click="MenuPhucHoiCsdl_Click"/>
                 </MenuItem>
-                <MenuItem Header="Đổi mật khẩu đăng nhập"/>
+                <MenuItem Header="Đổi mật khẩu đăng nhập" Click="MenuDoiMatKhau_Click"/>
                 <Separator/>
                 <MenuItem Header="Đăng xuất khỏi hệ thống" InputGestureText="Ctrl+Shift+L" Click="MenuLogout_Click"/>
                 <MenuItem Header="Thoát khỏi hệ thống" Foreground="Red" InputGestureText="Ctrl+Q" Click="MenuLogout_Click"/>

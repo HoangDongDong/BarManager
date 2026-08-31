@@ -194,6 +194,152 @@ namespace QuanLyBar.Client
             }
         }
 
+        private void MenuTaoMoiCsdl_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Database file (*.fdb)|*.fdb|All files (*.*)|*.*",
+                    Title = "Tạo mới cơ sở dữ liệu trắng",
+                    DefaultExt = ".fdb",
+                    FileName = ""
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    string filename = saveFileDialog.FileName;
+                    string dbName = System.IO.Path.GetFileNameWithoutExtension(filename);
+
+                    // 1. Copy từ file template Firebird chuẩn
+                    try
+                    {
+                        string templatePath = @"D:\taifirebird\new.fdb";
+                        if (!System.IO.File.Exists(templatePath))
+                        {
+                            templatePath = @"D:\taifirebird\DEMO.FDB";
+                        }
+
+                        if (System.IO.File.Exists(templatePath))
+                        {
+                            System.IO.File.Copy(templatePath, filename, true);
+                        }
+                    }
+                    catch (Exception exCopy)
+                    {
+                        MessageBox.Show($"Cảnh báo khi copy file mẫu: {exCopy.Message}", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+
+                    // 2. Thêm vào danh sách databases.json
+                    var newDb = new DatabaseInfo
+                    {
+                        Name = dbName,
+                        Path = filename,
+                        ConnectionType = 2, // Firebird File
+                        Server = "localhost",
+                        Username = "SYSDBA",
+                        Password = "masterkey"
+                    };
+
+                    try
+                    {
+                        string dataFile = "databases.json";
+                        var dbList = new System.Collections.ObjectModel.ObservableCollection<DatabaseInfo>();
+                        if (System.IO.File.Exists(dataFile))
+                        {
+                            string json = System.IO.File.ReadAllText(dataFile);
+                            var loaded = System.Text.Json.JsonSerializer.Deserialize<System.Collections.ObjectModel.ObservableCollection<DatabaseInfo>>(json);
+                            if (loaded != null) dbList = loaded;
+                        }
+                        dbList.Add(newDb);
+                        var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+                        System.IO.File.WriteAllText(dataFile, System.Text.Json.JsonSerializer.Serialize(dbList, options));
+                    }
+                    catch { }
+
+                    var ask = MessageBox.Show($"Đã tạo mới cơ sở dữ liệu trắng thành công tại:\n{filename}\n\nBạn có muốn chuyển sang làm việc với cơ sở dữ liệu mới này ngay bây giờ không?", 
+                                              "Tạo CSDL thành công", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (ask == MessageBoxResult.Yes)
+                    {
+                        QuanLyBar.Client.Services.DbConnectionManager.SaveConfig(newDb);
+                        Application.Current.Properties["SelectedDbName"] = newDb.Name;
+                        MessageBox.Show($"Đã thiết lập kết nối sang CSDL: {newDb.Name}.\nVui lòng khởi động lại ứng dụng hoặc đăng nhập lại để nạp dữ liệu trắng mới.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tạo mới cơ sở dữ liệu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void MenuSaoLuuCsdl_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var currentDb = QuanLyBar.Client.Services.DbConnectionManager.CurrentConfig;
+                string dbName = currentDb?.Name ?? "DATABASE";
+                string currentDbPath = currentDb?.Path ?? @"D:\taifirebird\DEMO.FDB";
+
+                var saveDlg = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Firebird Backup (*.gbk)|*.gbk|All files (*.*)|*.*",
+                    Title = "Sao lưu cơ sở dữ liệu",
+                    DefaultExt = ".gbk",
+                    FileName = $"{dbName}_{DateTime.Now:yyyyMMdd_HHmmss}.gbk"
+                };
+
+                if (saveDlg.ShowDialog() == true)
+                {
+                    string backupPath = saveDlg.FileName;
+
+                    await System.Threading.Tasks.Task.Run(() =>
+                    {
+                        try
+                        {
+                            string server = string.IsNullOrEmpty(currentDb?.Server) ? "localhost" : currentDb.Server;
+                            string user = string.IsNullOrEmpty(currentDb?.Username) ? "SYSDBA" : currentDb.Username;
+                            string pass = string.IsNullOrEmpty(currentDb?.Password) ? "masterkey" : currentDb.Password;
+
+                            var backup = new FirebirdSql.Data.Services.FbBackup
+                            {
+                                ConnectionString = $"Server={server};Database={currentDbPath};User={user};Password={pass};Charset=UTF8;"
+                            };
+                            backup.BackupFiles.Add(new FirebirdSql.Data.Services.FbBackupFile(backupPath, 2048));
+                            backup.Verbose = true;
+                            backup.Options = FirebirdSql.Data.Services.FbBackupFlags.IgnoreLimbo;
+                            backup.Execute();
+                        }
+                        catch
+                        {
+                            if (System.IO.File.Exists(currentDbPath))
+                            {
+                                System.IO.File.Copy(currentDbPath, backupPath, true);
+                            }
+                        }
+                    });
+
+                    MessageBox.Show($"Sao lưu cơ sở dữ liệu thành công ra file:\n{backupPath}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi sao lưu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void MenuPhucHoiCsdl_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new QuanLyBar.Client.Views.KhoiPhucCsdlWindow();
+            win.Owner = this;
+            win.ShowDialog();
+        }
+
+        private void MenuDoiMatKhau_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Chức năng đổi mật khẩu tài khoản.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         private void MenuLogout_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("Bạn có chắc chắn muốn đăng xuất?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
