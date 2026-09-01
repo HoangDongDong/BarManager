@@ -1,0 +1,492 @@
+<Window x:Class="QuanLyBar.Client.Views.ThemDotKhuyenMaiWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:QuanLyBar.Client.Models"
+        Title="ĐỢT KHUYẾN MẠI - THÊM MỚI" Height="560" Width="750"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip" Background="#cddfef"
+        KeyDown="Window_KeyDown">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- 0. Header -->
+            <RowDefinition Height="50"/>
+            <!-- 1. Sub Toolbar -->
+            <RowDefinition Height="30"/>
+            <!-- 2. Common Inputs -->
+            <RowDefinition Height="Auto"/>
+            <!-- 3. Dynamic Lower Area (5 Views) -->
+            <RowDefinition Height="*"/>
+            <!-- 4. Bottom Action Buttons -->
+            <RowDefinition Height="45"/>
+        </Grid.RowDefinitions>
+
+        <!-- 0. Header Banner -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#a3bde0" BorderThickness="0,0,0,1" Padding="12,0">
+            <Grid VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="30" Height="30" Background="#f39c12" CornerRadius="4" Margin="0,0,10,0">
+                        <TextBlock Text="%" FontWeight="Bold" FontSize="18" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock x:Name="TxtHeaderTitle" Text="Đợt khuyến mại" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" Foreground="#111"/>
+                </StackPanel>
+                <TextBlock Text="(Ctrl+S: Lưu&amp;Mới, Ctrl+L: Lưu, Ctrl+N: Mới, Ctrl+P: In, ESC: Thoát)" 
+                           HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11.5" Foreground="#333"/>
+            </Grid>
+        </Border>
+
+        <!-- 1. Sub Toolbar -->
+        <Border Grid.Row="1" Background="#e2ecf7" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="4,0">
+            <DockPanel LastChildFill="False">
+                <Button Content="↗️ Phím tắt ▾" Margin="2,2" Padding="5,1" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Separator Margin="3,2"/>
+                <Button Content="⬅️ Trước (F10)" Margin="2,2" Padding="5,1" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Button Content="➡️ Sau (F11)" Margin="2,2" Padding="5,1" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Separator Margin="3,2"/>
+                <Button x:Name="BtnTaoMoiTop" Content="➕ Tạo mới" Margin="2,2" Padding="5,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnTaoMoi_Click"/>
+                <Button Content="📑 Sao chép" Margin="2,2" Padding="5,1" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                <Button Content="❌ Xóa" Margin="2,2" Padding="5,1" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+            </DockPanel>
+        </Border>
+
+        <!-- 2. Common Inputs Area -->
+        <Border Grid.Row="2" Background="#cddfef" Padding="15,8,15,4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="28"/>
+                    <RowDefinition Height="28"/>
+                    <RowDefinition Height="28"/>
+                    <RowDefinition Height="28"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="135"/>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="65"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Row 0: Tên đợt khuyến mại & Ghi chú -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Tên đợt khuyến mại" VerticalAlignment="Center" FontSize="12"/>
+                <TextBox x:Name="TxtTenDot" Grid.Row="0" Grid.Column="1" Height="23" VerticalContentAlignment="Center" Background="#e1f5fe" BorderBrush="#0078d7" BorderThickness="1.5"/>
+
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="Ghi chú" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0" FontSize="12"/>
+                <TextBox x:Name="TxtGhiChu" Grid.Row="0" Grid.Column="3" Height="23" VerticalContentAlignment="Center" Background="White" BorderBrush="#999" BorderThickness="1"/>
+
+                <!-- Row 1: Loại hình khuyến mại -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Loại hình khuyến mại" VerticalAlignment="Center" FontSize="12"/>
+                <ComboBox x:Name="CboLoaiHinh" Grid.Row="1" Grid.Column="1" Height="23" Background="White" VerticalContentAlignment="Center" SelectionChanged="CboLoaiHinh_SelectionChanged">
+                    <ComboBoxItem Content="Giảm giá % theo sản phẩm" IsSelected="True"/>
+                    <ComboBoxItem Content="Giảm giá theo nhóm hàng"/>
+                    <ComboBoxItem Content="Giảm giá tiền theo sản phẩm"/>
+                    <ComboBoxItem Content="Giảm giá tổng bill"/>
+                    <ComboBoxItem Content="Mua x sản phẩm tặng y sản phẩm"/>
+                </ComboBox>
+
+                <!-- Row 2: Từ ngày, Đến ngày, Ngừng áp dụng -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Từ ngày" VerticalAlignment="Center" FontSize="12"/>
+                <DatePicker x:Name="DpTuNgay" Grid.Row="2" Grid.Column="1" Height="23" VerticalContentAlignment="Center"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="2" Text="Đến ngày" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0" FontSize="12"/>
+                <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <DatePicker x:Name="DpDenNgay" Width="130" Height="23" VerticalContentAlignment="Center"/>
+                    <CheckBox x:Name="ChkNgungApDung" Content="Ngừng áp dụng" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="12"/>
+                </StackPanel>
+
+                <!-- Row 3: Từ giờ, Đến giờ -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Từ giờ" VerticalAlignment="Center" FontSize="12"/>
+                <TextBox x:Name="TxtTuGio" Grid.Row="3" Grid.Column="1" Height="23" Text="00:00" VerticalContentAlignment="Center" Background="#fffff0" BorderBrush="#b6cadf"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="2" Text="Đến giờ" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0" FontSize="12"/>
+                <TextBox x:Name="TxtDenGio" Grid.Row="3" Grid.Column="3" Width="130" Height="23" HorizontalAlignment="Left" Text="23:59" VerticalContentAlignment="Center" Background="#fffff0" BorderBrush="#b6cadf"/>
+            </Grid>
+        </Border>
+
+        <!-- 3. Dynamic Lower Area (5 Views) -->
+        <Grid Grid.Row="3" Margin="15,4,15,4">
+            
+            <!-- VIEW 1: Giảm giá % theo sản phẩm -->
+            <Grid x:Name="ViewGiamGiaPhanTramSanPham" Visibility="Visible">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180" MinWidth="120" MaxWidth="260"/>
+                    <ColumnDefinition Width="4"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Cột trái: TreeView Nhóm hàng -->
+                <Border Grid.Column="0" Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                    <TreeView x:Name="TvNhomHang1" BorderThickness="0" SelectedItemChanged="TvNhomHang_SelectedItemChanged">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type models:NhomKhachHangTreeItem}" ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="{Binding Icon}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Border>
+
+                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
+
+                <!-- Cột phải: DataGrid -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="28"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#e2ecf7" BorderBrush="#b6cadf" BorderThickness="1,1,1,0" Padding="3,1">
+                        <DockPanel LastChildFill="False">
+                            <Button x:Name="BtnThemSp1" Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemSp_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="➕" Foreground="Green" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Thêm" VerticalAlignment="Center" FontSize="11.5" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnXoaSp1" Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnXoaSp1_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="❌" Foreground="Red" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Xóa" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnImportExcel_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="💹" Foreground="Green" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Import excel" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </Button>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                        <DataGrid x:Name="DgGiamGiaPhanTramSp" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                                  RowHeight="24" SelectionMode="Single" SelectionUnit="FullRow"
+                                  Background="White" RowBackground="White" AlternatingRowBackground="#f9fbff">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=" " Binding="{Binding Stt}" IsReadOnly="True" Width="35">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="Foreground" Value="#555"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Mã hàng" Binding="{Binding Mahang}" IsReadOnly="True" Width="85"/>
+                                <DataGridTextColumn Header="Mặt hàng" Binding="{Binding TenHang}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0}}" IsReadOnly="True" Width="85">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Tỉ lệ giảm giá" Binding="{Binding TileGiamGia, UpdateSourceTrigger=PropertyChanged}" Width="95">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,4,0"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Foreground" Value="#0078d7"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="ĐVT" Binding="{Binding Dvt}" IsReadOnly="True" Width="60"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- VIEW 2: Giảm giá theo nhóm hàng -->
+            <Grid x:Name="ViewGiamGiaTheoNhomHang" Visibility="Collapsed">
+                <Border Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                    <DataGrid x:Name="DgGiamGiaTheoNhomHang" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              HeadersVisibility="Column" GridLinesVisibility="All"
+                              HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                              RowHeight="24" SelectionMode="Single" SelectionUnit="FullRow"
+                              Background="White" RowBackground="White" AlternatingRowBackground="#f9fbff">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="STT" Binding="{Binding SttStr}" IsReadOnly="True" Width="45">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Nhóm hàng" Binding="{Binding TenNhom}" IsReadOnly="True" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Margin" Value="6,0,0,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Tỉ lệ giảm (%)" Binding="{Binding TileGiamGia, UpdateSourceTrigger=PropertyChanged}" Width="150">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="Margin" Value="0,0,6,0"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground" Value="#0078d7"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- VIEW 3: Giảm giá tiền theo sản phẩm -->
+            <Grid x:Name="ViewGiamGiaTienTheoSanPham" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180" MinWidth="120" MaxWidth="260"/>
+                    <ColumnDefinition Width="4"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                    <TreeView x:Name="TvNhomHang3" BorderThickness="0" SelectedItemChanged="TvNhomHang_SelectedItemChanged">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type models:NhomKhachHangTreeItem}" ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="{Binding Icon}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Border>
+
+                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
+
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="28"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#e2ecf7" BorderBrush="#b6cadf" BorderThickness="1,1,1,0" Padding="3,1">
+                        <DockPanel LastChildFill="False">
+                            <Button x:Name="BtnThemSp3" Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemSp_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="➕" Foreground="Green" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Thêm" VerticalAlignment="Center" FontSize="11.5" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnXoaSp3" Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnXoaSp3_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="❌" Foreground="Red" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Xóa" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </Button>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                        <DataGrid x:Name="DgGiamGiaTienSp" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                                  RowHeight="24" SelectionMode="Single" SelectionUnit="FullRow"
+                                  Background="White" RowBackground="White" AlternatingRowBackground="#f9fbff">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=" " Binding="{Binding Stt}" IsReadOnly="True" Width="35">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="Foreground" Value="#555"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Mặt hàng" Binding="{Binding TenHang}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0}}" IsReadOnly="True" Width="85">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="ĐVT" Binding="{Binding Dvt}" IsReadOnly="True" Width="55"/>
+                                <DataGridTextColumn Header="Mã hàng" Binding="{Binding Mahang}" IsReadOnly="True" Width="80"/>
+                                <DataGridTextColumn Header="Giá khuyến mại" Binding="{Binding GiaKhuyenMai, StringFormat={}{0:N0}, UpdateSourceTrigger=PropertyChanged}" Width="105">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,4,0"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Foreground" Value="#0078d7"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- VIEW 4: Giảm giá tổng bill -->
+            <Grid x:Name="ViewGiamGiaTongBill" Visibility="Collapsed">
+                <StackPanel VerticalAlignment="Top" Margin="0,15,0,0">
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="65"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Tỉ lệ giảm giá tiền hàng" VerticalAlignment="Center" FontSize="12.5"/>
+                        <TextBox x:Name="TxtTileGiamTienHang" Grid.Column="1" Height="24" Text="0" VerticalContentAlignment="Center" TextAlignment="Right"/>
+                        <TextBlock Text="%" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12.5"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="65"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="65"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Khuyến mại tiền phòng" VerticalAlignment="Center" FontSize="12.5"/>
+                        <TextBox x:Name="TxtTileGiamTienPhong" Grid.Column="1" Height="24" Text="0" VerticalContentAlignment="Center" TextAlignment="Right"/>
+                        <TextBlock Text="% cho" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,8,0" FontSize="12.5"/>
+                        <TextBox x:Name="TxtSoPhutDauTien" Grid.Column="3" Height="24" Text="0" VerticalContentAlignment="Center" TextAlignment="Right"/>
+                        <TextBlock Text="phút đầu tiên kể từ khi vào phòng" Grid.Column="4" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12.5"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+
+            <!-- VIEW 5: Mua x sản phẩm tặng y sản phẩm -->
+            <Grid x:Name="ViewMuaXTangY" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180" MinWidth="120" MaxWidth="260"/>
+                    <ColumnDefinition Width="4"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                    <TreeView x:Name="TvNhomHang5" BorderThickness="0" SelectedItemChanged="TvNhomHang_SelectedItemChanged">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type models:NhomKhachHangTreeItem}" ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="{Binding Icon}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Border>
+
+                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
+
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="28"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#e2ecf7" BorderBrush="#b6cadf" BorderThickness="1,1,1,0" Padding="3,1">
+                        <DockPanel LastChildFill="False">
+                            <Button x:Name="BtnThemSp5" Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemSp5_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="➕" Foreground="Green" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Thêm" VerticalAlignment="Center" FontSize="11.5" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnXoaSp5" Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnXoaSp5_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="❌" Foreground="Red" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Xóa" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnThemTheoNhom5" Margin="2,0" Padding="6,1" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnThemTheoNhom5_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🗂️" Foreground="#0078d7" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Thêm theo nhóm" VerticalAlignment="Center" FontSize="11.5"/>
+                                </StackPanel>
+                            </Button>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                        <DataGrid x:Name="DgMuaXTangY" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                                  RowHeight="24" SelectionMode="Single" SelectionUnit="FullRow"
+                                  Background="White" RowBackground="White" AlternatingRowBackground="#f9fbff">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=" " Binding="{Binding Stt}" IsReadOnly="True" Width="35">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="Foreground" Value="#555"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Mặt hàng mua" Binding="{Binding TenHang}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="Số lượng mua" Binding="{Binding SoLuongMua, UpdateSourceTrigger=PropertyChanged}" Width="85">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="ĐVT mua" Binding="{Binding Dvt}" IsReadOnly="True" Width="65">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Số lượng tặng" Binding="{Binding SoLuongTang, UpdateSourceTrigger=PropertyChanged}" Width="85">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Foreground" Value="#0078d7"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Mặt hàng tặng" Binding="{Binding TenHangTang}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="ĐVT mua" Binding="{Binding DvtTang}" IsReadOnly="True" Width="65">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- 4. Bottom Action Buttons -->
+        <Border Grid.Row="4" Background="#cddfef" Padding="15,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="BtnLuu" Content="💾 Lưu" Width="80" Height="26" Margin="0,0,6,0" Background="White" BorderBrush="#708090" Cursor="Hand" FontWeight="SemiBold" Click="BtnLuu_Click"/>
+                <Button x:Name="BtnLuuVaMoi" Content="Lưu &amp; Mới" Width="90" Height="26" Margin="0,0,6,0" Background="White" BorderBrush="#708090" Cursor="Hand" Click="BtnLuuVaMoi_Click"/>
+                <Button x:Name="BtnLuuVaThoat" Content="Lưu &amp; thoát" Width="90" Height="26" Margin="0,0,6,0" Background="White" BorderBrush="#708090" Cursor="Hand" Click="BtnLuuVaThoat_Click"/>
+                <Button x:Name="BtnThoat" Content="Thoát" Width="75" Height="26" Background="White" BorderBrush="#708090" Cursor="Hand" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

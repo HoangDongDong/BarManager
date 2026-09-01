@@ -20,6 +20,7 @@ namespace QuanLyBar.Client
                 
                 AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
                 AddTab("Danh mục khách hàng", new QuanLyBar.Client.Views.DanhMucKhachHangControl());
+                AddTab("Danh mục đợt khuyến mại", new QuanLyBar.Client.Views.DanhMucDotKhuyenMaiControl());
             }
         }
 
@@ -159,6 +160,10 @@ namespace QuanLyBar.Client
                     else if (tabName == "Gửi tin nhắn tới khách hàng" || tabName == "Gửi tin nhắn khách hàng" || tabName == "Gửi tin nhắn")
                     {
                         content = new QuanLyBar.Client.Views.GuiTinNhanKhachHangControl();
+                    }
+                    else if (tabName == "Danh mục đợt khuyến mại" || tabName == "Đợt khuyến mại")
+                    {
+                        content = new QuanLyBar.Client.Views.DanhMucDotKhuyenMaiControl();
                     }
                     else
                     {

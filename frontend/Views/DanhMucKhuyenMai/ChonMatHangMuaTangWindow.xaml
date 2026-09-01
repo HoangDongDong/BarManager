@@ -1,0 +1,180 @@
+<Window x:Class="QuanLyBar.Client.Views.ChonMatHangMuaTangWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:QuanLyBar.Client.Models"
+        Title="MUA 1 TẶNG 1" Height="560" Width="820"
+        WindowStartupLocation="CenterOwner"
+        Background="#dbe5f1"
+        FontFamily="Segoe UI" FontSize="12">
+    
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Padding" Value="14,2"/>
+            <Setter Property="Background" Value="#f0f0f0"/>
+            <Setter Property="BorderBrush" Value="#707070"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#e4eef9"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0078d7"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#cce4f7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="38"/>
+        </Grid.RowDefinitions>
+
+        <!-- Main Body: Split Left (Tree) & Right (2 DataGrids) -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230" MinWidth="160" MaxWidth="320"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Cột trái: TreeView Nhóm hàng -->
+            <Border Grid.Column="0" Background="White" BorderBrush="#828790" BorderThickness="1">
+                <TreeView x:Name="TvNhomHang" BorderThickness="0" SelectedItemChanged="TvNhomHang_SelectedItemChanged">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type models:NhomKhachHangTreeItem}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                <TextBlock Text="{Binding Icon}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="11.5"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
+
+            <!-- Cột phải: 2 Phần (Mặt hàng mua & Mặt hàng tặng) -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- PHẦN 1: MẶT HÀNG MUA -->
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,3" LastChildFill="False">
+                        <TextBlock Text="MẶT HÀNG MUA" FontWeight="Bold" FontSize="12" Foreground="#004a99" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                        <TextBox x:Name="TxtTimMua" Width="140" Height="22" VerticalContentAlignment="Center" Background="White" BorderBrush="#0078d7" BorderThickness="1.5" Padding="3,0" TextChanged="TxtTimMua_TextChanged"/>
+                    </DockPanel>
+
+                    <Border Grid.Row="1" Background="White" BorderBrush="#0078d7" BorderThickness="1.5">
+                        <DataGrid x:Name="DgMatHangMua" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#d0d7de" VerticalGridLinesBrush="#d0d7de"
+                                  RowHeight="22" SelectionMode="Single" SelectionUnit="FullRow"
+                                  Background="White" RowBackground="White" AlternatingRowBackground="#f3f8ff"
+                                  SelectionChanged="DgMatHangMua_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=" " Binding="{Binding SttStr}" IsReadOnly="True" Width="40">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="Foreground" Value="#333"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Mặt hàng" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0}}" IsReadOnly="True" Width="90">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Tên đơn vị tính" Binding="{Binding Dvt}" IsReadOnly="True" Width="90"/>
+                                <DataGridTextColumn Header="Mã hàng" Binding="{Binding Mahang}" IsReadOnly="True" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+
+                <GridSplitter Grid.Row="1" Height="6" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeNS"/>
+
+                <!-- PHẦN 2: MẶT HÀNG TẶNG -->
+                <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,3" LastChildFill="False">
+                        <TextBlock Text="MẶT HÀNG TẶNG" FontWeight="Bold" FontSize="12" Foreground="#004a99" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                        <TextBox x:Name="TxtTimTang" Width="140" Height="22" VerticalContentAlignment="Center" Background="White" BorderBrush="#0078d7" BorderThickness="1.5" Padding="3,0" TextChanged="TxtTimTang_TextChanged"/>
+                    </DockPanel>
+
+                    <Border Grid.Row="1" Background="White" BorderBrush="#0078d7" BorderThickness="1.5">
+                        <DataGrid x:Name="DgMatHangTang" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#d0d7de" VerticalGridLinesBrush="#d0d7de"
+                                  RowHeight="22" SelectionMode="Single" SelectionUnit="FullRow"
+                                  Background="White" RowBackground="White" AlternatingRowBackground="#f3f8ff">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header=" " Binding="{Binding SttStr}" IsReadOnly="True" Width="40">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                            <Setter Property="Foreground" Value="#333"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Mặt hàng" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0}}" IsReadOnly="True" Width="90">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="Margin" Value="0,0,4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Tên đơn vị tính" Binding="{Binding Dvt}" IsReadOnly="True" Width="90"/>
+                                <DataGridTextColumn Header="Mã hàng" Binding="{Binding Mahang}" IsReadOnly="True" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Bottom Actions -->
+        <DockPanel Grid.Row="1" VerticalAlignment="Bottom" LastChildFill="False">
+            <CheckBox x:Name="ChkTangCungMatHang" Content="Tặng cùng mặt hàng" VerticalAlignment="Center" Margin="4,0,0,0" Checked="ChkTangCungMatHang_Changed" Unchecked="ChkTangCungMatHang_Changed"/>
+            <Button Content="Hủy bỏ" DockPanel.Dock="Right" Margin="6,0,0,0" Width="85" IsCancel="True" Click="BtnHuy_Click"/>
+            <Button Content="Chấp nhận" DockPanel.Dock="Right" Margin="6,0,0,0" Width="85" FontWeight="SemiBold" IsDefault="True" Click="BtnChon_Click"/>
+        </DockPanel>
+    </Grid>
+</Window>
