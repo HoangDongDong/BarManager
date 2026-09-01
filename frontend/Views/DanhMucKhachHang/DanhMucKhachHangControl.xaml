@@ -243,15 +243,80 @@
                         </Style>
                     </DataGrid.RowHeaderStyle>
 
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
+
                     <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="➕ Thêm mới" Click="BtnThemMoi_Click"/>
-                            <MenuItem Header="✏️ Chỉnh sửa" Click="BtnChinhSua_Click"/>
-                            <MenuItem Header="❌ Xóa" Click="BtnXoa_Click"/>
-                            <Separator/>
-                            <MenuItem Header="📑 Sao chép" Click="MenuSaoChep_Click"/>
-                            <MenuItem Header="🔄 Refresh" Click="MenuRefresh_Click"/>
-                            <MenuItem Header="🖨️ In danh sách" Click="BtnIn_Click"/>
+                        <ContextMenu x:Name="GridContextMenu" Opened="GridContextMenu_Opened">
+                            <!-- Chế độ thùng rác -->
+                            <MenuItem x:Name="MenuKhoiPhuc" Header="Khôi phục" Click="MenuItem_KhoiPhuc_Click" Visibility="Collapsed">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="↩️" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <!-- Chế độ bình thường -->
+                            <MenuItem x:Name="MenuThemMoi" Header="Thêm Khách hàng" Click="BtnThemMoi_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="➕" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuThemNhanhExcel" Header="Thêm nhanh (excel)" Click="BtnThemExcel_Click"/>
+                            <MenuItem x:Name="MenuCapNhatNhanhExcel" Header="Cập nhật nhanh (excel)" Click="BtnThemExcel_Click"/>
+                            <MenuItem x:Name="MenuChinhSua" Header="Chỉnh sửa" Click="BtnChinhSua_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="✏️" Foreground="#c07000"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator x:Name="SepDatLoc"/>
+                            <MenuItem x:Name="MenuDatCot" Header="Đặt Mã khách"/>
+                            <MenuItem x:Name="MenuLocCot" Header="Lọc Mã khách"/>
+                            <Separator x:Name="SepSapXep"/>
+                            <MenuItem x:Name="MenuSapXep" Header="Sắp xếp theo">
+                                <MenuItem Header="Sắp xếp tăng dần" Click="MenuItem_SortAsc_Click"/>
+                                <MenuItem Header="Sắp xếp giảm dần" Click="MenuItem_SortDesc_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Mã khách" Click="MenuItem_SortByMaKhach_Click"/>
+                                <MenuItem Header="Tên khách hàng" Click="MenuItem_SortByName_Click"/>
+                                <MenuItem Header="Địa chỉ" Click="MenuItem_SortByDiaChi_Click"/>
+                                <MenuItem Header="Điện thoại" Click="MenuItem_SortByDienThoai_Click"/>
+                                <MenuItem Header="Email" Click="MenuItem_SortByEmail_Click"/>
+                                <MenuItem Header="Nhóm khách hàng" Click="MenuItem_SortByNhom_Click"/>
+                                <MenuItem Header="Mã số thuế" Click="MenuItem_SortByMst_Click"/>
+                                <MenuItem Header="Nhân viên" Click="MenuItem_SortByNhanVien_Click"/>
+                                <MenuItem Header="Tỉnh thành" Click="MenuItem_SortByTinhThanh_Click"/>
+                                <MenuItem Header="Facebook" Click="MenuItem_SortByFacebook_Click"/>
+                                <MenuItem Header="Thẻ trả trước" Click="MenuItem_SortByTheTraTruoc_Click"/>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuRefresh" Header="Refresh" Click="MenuRefresh_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="🔄" Foreground="Green" FontWeight="Bold"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuInDanhSach" Header="In danh sách" Click="BtnIn_Click"/>
+                            <Separator x:Name="SepSaoChep"/>
+                            <MenuItem x:Name="MenuSaoChepO" Header="Sao chép ô" Click="MenuItem_SaoChepO_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📄" Foreground="Navy"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuSaoChepVungChon" Header="Sao chép vùng chọn" Click="MenuItem_SaoChepVungChon_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📑" Foreground="Navy"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuXoa" Header="Xóa" Click="BtnXoa_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="❌" Foreground="Red"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator x:Name="SepKhac"/>
+                            <MenuItem x:Name="MenuTuDongGianCot" Header="Tự động giãn cột" Click="MenuItem_TuDongGianCot_Click"/>
+                            <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" Click="MenuCotHienThi_Click"/>
+                            <MenuItem x:Name="MenuThuocTinh" Header="Thuộc tính" Click="MenuItem_ThuocTinh_Click"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
 

@@ -18,6 +18,9 @@ namespace QuanLyBar.Client.Views
         private List<KhachHangViewModel> _rawList = new List<KhachHangViewModel>();
         private NhomKhachHangTreeItem _selectedNhom;
         private int _groupMode = 0; // 0: Nhóm khách hàng, 1: Nhân viên, 2: Tỉnh thành
+        private DataGridColumn _clickedColumn = null;
+        private DataGridCell _clickedCell = null;
+        private string _clickedCellValue = "";
 
         public DanhMucKhachHangControl()
         {
@@ -277,24 +280,22 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnThemMoi_Click(object sender, RoutedEventArgs e)
         {
-            var win = new ThemKhachHangWindow(null, _nhomTree?[0]?.Children);
+            var win = new ThemKhachHangWindow((string)null, _nhomTree?[0]?.Children);
             win.Owner = Window.GetWindow(this);
-            if (win.ShowDialog() == true)
-            {
-                await RefreshGridAsync();
-            }
+            win.OnSaved += async () => await RefreshGridAsync();
+            win.ShowDialog();
+            await RefreshGridAsync();
         }
 
         private async void BtnChinhSua_Click(object sender, RoutedEventArgs e)
         {
             if (DgKhachHang.SelectedItem is KhachHangViewModel selected)
             {
-                var win = new ThemKhachHangWindow(selected, _nhomTree?[0]?.Children);
+                var win = new ThemKhachHangWindow(selected.Id, _nhomTree?[0]?.Children);
                 win.Owner = Window.GetWindow(this);
-                if (win.ShowDialog() == true)
-                {
-                    await RefreshGridAsync();
-                }
+                win.OnSaved += async () => await RefreshGridAsync();
+                win.ShowDialog();
+                await RefreshGridAsync();
             }
             else
             {
@@ -311,11 +312,19 @@ namespace QuanLyBar.Client.Views
         {
             if (DgKhachHang.SelectedItem is KhachHangViewModel selected)
             {
-                var ask = MessageBox.Show($"Bạn có chắc chắn muốn xóa khách hàng '{selected.Name}' ({selected.Makhach})?", 
-                                          "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                bool isTrash = _selectedNhom != null && (_selectedNhom.Id == "TRASH" || _selectedNhom.ParentId == "TRASH");
+                string title = isTrash ? "Xác nhận xóa vĩnh viễn" : "Xác nhận xóa";
+                string msg = isTrash 
+                    ? $"Bạn có chắc chắn muốn XÓA VĨNH VIỄN khách hàng '{selected.Name}' ({selected.Makhach}) không?" 
+                    : $"Bạn có chắc chắn muốn xóa khách hàng '{selected.Name}' ({selected.Makhach})?";
+
+                var ask = MessageBox.Show(msg, title, MessageBoxButton.YesNo, isTrash ? MessageBoxImage.Warning : MessageBoxImage.Question);
                 if (ask == MessageBoxResult.Yes)
                 {
-                    bool ok = await LocalKhachHangService.DeleteKhachHangAsync(selected.Id);
+                    bool ok = isTrash 
+                        ? await LocalKhachHangService.DeletePermanentKhachHangAsync(selected.Id)
+                        : await LocalKhachHangService.DeleteKhachHangAsync(selected.Id);
+
                     if (ok)
                     {
                         await RefreshGridAsync();
@@ -332,30 +341,106 @@ namespace QuanLyBar.Client.Views
             }
         }
 
-        private void BtnThemExcel_Click(object sender, RoutedEventArgs e)
+        private async void BtnThemExcel_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Tính năng nhập từ Excel đang sẵn sàng.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            var win = new ThemNhanhKhachHangBangExcelWindow();
+            win.Owner = Window.GetWindow(this);
+            if (win.ShowDialog() == true)
+            {
+                await RefreshGridAsync();
+            }
         }
 
         private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"Đã xuất danh sách {_rawList.Count} khách hàng ra Excel thành công.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            var items = (DgKhachHang.ItemsSource as System.Collections.IEnumerable)?.Cast<KhachHangViewModel>().ToList() ?? _rawList;
+            if (items == null || items.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu khách hàng để xuất!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*",
+                Title = "Xuất danh sách khách hàng ra Excel",
+                FileName = "DanhSachKhachHang.xlsx"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var workbook = new ClosedXML.Excel.XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("KhachHang");
+
+                        // Headers
+                        string[] headers = new[]
+                        {
+                            "STT", "Mã khách", "Tên khách hàng", "Địa chỉ", "Điện thoại", "Email",
+                            "Nhóm khách hàng", "Mã số thuế", "Nhân viên", "Tỉnh thành", "Facebook",
+                            "Thẻ trả trước", "Ghi chú", "Điểm tích lũy ban đầu", "Ngày thành lập/sinh nhật"
+                        };
+
+                        for (int col = 0; col < headers.Length; col++)
+                        {
+                            worksheet.Cell(1, col + 1).Value = headers[col];
+                        }
+
+                        // Style header
+                        var headerRow = worksheet.Row(1);
+                        headerRow.Style.Font.Bold = true;
+                        headerRow.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromHtml("#dfe9f5");
+                        headerRow.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+                        headerRow.Height = 25;
+
+                        int row = 2;
+                        int stt = 1;
+                        foreach (var item in items)
+                        {
+                            worksheet.Cell(row, 1).Value = stt++;
+                            worksheet.Cell(row, 2).Value = item.Makhach ?? "";
+                            worksheet.Cell(row, 3).Value = item.Name ?? "";
+                            worksheet.Cell(row, 4).Value = item.Diachi ?? "";
+                            worksheet.Cell(row, 5).Value = item.Dienthoai ?? "";
+                            worksheet.Cell(row, 6).Value = item.Email ?? "";
+                            worksheet.Cell(row, 7).Value = item.TenNhomKhachHang ?? "";
+                            worksheet.Cell(row, 8).Value = item.Masothue ?? "";
+                            worksheet.Cell(row, 9).Value = item.TenNhanVien ?? "";
+                            worksheet.Cell(row, 10).Value = item.TinhThanh ?? "";
+                            worksheet.Cell(row, 11).Value = item.Facebook ?? "";
+                            worksheet.Cell(row, 12).Value = item.TheTraTruoc ?? "";
+                            worksheet.Cell(row, 13).Value = item.Note ?? "";
+                            worksheet.Cell(row, 14).Value = item.Diemtichluy;
+                            worksheet.Cell(row, 15).Value = item.Ngaysinh?.ToString("dd/MM/yyyy") ?? "";
+
+                            row++;
+                        }
+
+                        // Apply borders
+                        var dataRange = worksheet.Range(1, 1, row - 1, headers.Length);
+                        dataRange.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
+                        dataRange.Style.Border.InsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
+
+                        worksheet.Columns().AdjustToContents();
+                        workbook.SaveAs(sfd.FileName);
+                    }
+
+                    MessageBox.Show($"Đã xuất danh sách {items.Count} khách hàng ra Excel thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi xuất Excel: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         private void BtnIn_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                var printDlg = new PrintDialog();
-                if (printDlg.ShowDialog() == true)
-                {
-                    printDlg.PrintVisual(DgKhachHang, "Danh Mục Khách Hàng");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi in danh sách: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            var win = new InLuoiWindow(DgKhachHang, "Khách hàng");
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
         }
 
         private void BtnTong_Click(object sender, RoutedEventArgs e)
@@ -807,6 +892,420 @@ namespace QuanLyBar.Client.Views
             if (_selectedNhom != null)
             {
                 MessageBox.Show($"Tên: {_selectedNhom.Name}\nID: {_selectedNhom.Id}\nLoại: {_selectedNhom.Icon}", "Thuộc tính", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        #endregion
+
+        #region DataGrid ContextMenu Handlers
+        private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row)
+            {
+                if (!row.IsSelected)
+                {
+                    DgKhachHang.SelectedItems.Clear();
+                    row.IsSelected = true;
+                }
+                row.Focus();
+
+                var hit = VisualTreeHelper.HitTest(row, e.GetPosition(row));
+                if (hit != null)
+                {
+                    DependencyObject dep = hit.VisualHit;
+                    while (dep != null && !(dep is DataGridCell))
+                    {
+                        dep = VisualTreeHelper.GetParent(dep);
+                    }
+                    if (dep is DataGridCell cell)
+                    {
+                        _clickedCell = cell;
+                        _clickedColumn = cell.Column;
+                        _clickedCellValue = (cell.Content as TextBlock)?.Text ?? "";
+                    }
+                }
+            }
+        }
+
+        private async void GridContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            if (MenuDatCot == null || MenuLocCot == null) return;
+
+            bool isTrash = _selectedNhom != null && (_selectedNhom.Id == "TRASH" || _selectedNhom.ParentId == "TRASH");
+
+            if (isTrash)
+            {
+                if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Visible;
+                if (MenuThemMoi != null) MenuThemMoi.Visibility = Visibility.Collapsed;
+                if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Collapsed;
+                if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Collapsed;
+                if (SepDatLoc != null) SepDatLoc.Visibility = Visibility.Collapsed;
+                if (MenuDatCot != null) MenuDatCot.Visibility = Visibility.Collapsed;
+                if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Collapsed;
+                if (SepSapXep != null) SepSapXep.Visibility = Visibility.Collapsed;
+                if (MenuSapXep != null)
+                {
+                    MenuSapXep.Visibility = Visibility.Visible;
+                    MenuSapXep.Header = "Sắp xếp";
+                }
+                if (MenuRefresh != null) MenuRefresh.Visibility = Visibility.Visible;
+                if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Collapsed;
+                if (SepSaoChep != null) SepSaoChep.Visibility = Visibility.Collapsed;
+                if (MenuSaoChepO != null)
+                {
+                    MenuSaoChepO.Visibility = Visibility.Visible;
+                    MenuSaoChepO.Header = "Sao chép";
+                }
+                if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Collapsed;
+                if (SepKhac != null) SepKhac.Visibility = Visibility.Visible;
+                if (MenuXoa != null)
+                {
+                    MenuXoa.Visibility = Visibility.Visible;
+                    MenuXoa.Header = "Xóa vĩnh viễn";
+                }
+                if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Collapsed;
+                if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Collapsed;
+                if (MenuThuocTinh != null) MenuThuocTinh.Visibility = Visibility.Visible;
+                return;
+            }
+
+            if (MenuKhoiPhuc != null) MenuKhoiPhuc.Visibility = Visibility.Collapsed;
+            if (MenuThemMoi != null) MenuThemMoi.Visibility = Visibility.Visible;
+            if (MenuThemNhanhExcel != null) MenuThemNhanhExcel.Visibility = Visibility.Visible;
+            if (MenuCapNhatNhanhExcel != null) MenuCapNhatNhanhExcel.Visibility = Visibility.Visible;
+            if (MenuChinhSua != null) MenuChinhSua.Visibility = Visibility.Visible;
+            if (SepDatLoc != null) SepDatLoc.Visibility = Visibility.Visible;
+            if (MenuDatCot != null) MenuDatCot.Visibility = Visibility.Visible;
+            if (MenuLocCot != null) MenuLocCot.Visibility = Visibility.Visible;
+            if (SepSapXep != null) SepSapXep.Visibility = Visibility.Visible;
+            if (MenuSapXep != null)
+            {
+                MenuSapXep.Visibility = Visibility.Visible;
+                MenuSapXep.Header = "Sắp xếp theo";
+            }
+            if (MenuRefresh != null) MenuRefresh.Visibility = Visibility.Visible;
+            if (MenuInDanhSach != null) MenuInDanhSach.Visibility = Visibility.Visible;
+            if (SepSaoChep != null) SepSaoChep.Visibility = Visibility.Visible;
+            if (MenuSaoChepO != null)
+            {
+                MenuSaoChepO.Visibility = Visibility.Visible;
+                MenuSaoChepO.Header = "Sao chép ô";
+            }
+            if (MenuSaoChepVungChon != null) MenuSaoChepVungChon.Visibility = Visibility.Visible;
+            if (SepKhac != null) SepKhac.Visibility = Visibility.Visible;
+            if (MenuXoa != null)
+            {
+                MenuXoa.Visibility = Visibility.Visible;
+                MenuXoa.Header = "Xóa";
+            }
+            if (MenuTuDongGianCot != null) MenuTuDongGianCot.Visibility = Visibility.Visible;
+            if (MenuCotHienThi != null) MenuCotHienThi.Visibility = Visibility.Visible;
+            if (MenuThuocTinh != null) MenuThuocTinh.Visibility = Visibility.Visible;
+
+            string colHeader = _clickedColumn?.Header?.ToString() ?? "Mã khách";
+            var selectedList = DgKhachHang.SelectedItems.Cast<KhachHangViewModel>().ToList();
+            if (selectedList.Count == 0 && DgKhachHang.SelectedItem is KhachHangViewModel single) selectedList.Add(single);
+
+            MenuDatCot.Items.Clear();
+            MenuLocCot.Items.Clear();
+            MenuDatCot.Click -= MenuDatCot_Click;
+            MenuLocCot.Click -= MenuLocCot_Click;
+
+            MenuDatCot.Header = $"Đặt {colHeader}";
+            MenuLocCot.Header = $"Lọc {colHeader}";
+
+            if (colHeader == "Nhóm khách hàng")
+            {
+                var nhoms = await LocalKhachHangService.GetNhomKhachHangLookupAsync();
+                foreach (var nh in nhoms)
+                {
+                    string nhId = nh.ID?.ToString();
+                    string nhName = nh.NAME?.ToString();
+
+                    var miDat = new MenuItem { Header = nhName, Tag = nhId };
+                    miDat.Click += async (s, args) =>
+                    {
+                        var ids = selectedList.Select(k => k.Id).ToList();
+                        if (await LocalKhachHangService.UpdateCustomersColumnAsync(ids, "DNHOMKHACHHANGID", nhId))
+                        {
+                            await RefreshGridAsync();
+                        }
+                    };
+                    MenuDatCot.Items.Add(miDat);
+
+                    var miLoc = new MenuItem { Header = nhName };
+                    miLoc.Click += (s, args) =>
+                    {
+                        TxtLoc.Text = nhName;
+                    };
+                    MenuLocCot.Items.Add(miLoc);
+                }
+            }
+            else if (colHeader == "Nhân viên")
+            {
+                var nvs = await LocalKhachHangService.GetNhanVienLookupAsync();
+                foreach (var nv in nvs)
+                {
+                    string nvId = nv.ID?.ToString();
+                    string nvName = nv.NAME?.ToString();
+
+                    var miDat = new MenuItem { Header = nvName, Tag = nvId };
+                    miDat.Click += async (s, args) =>
+                    {
+                        var ids = selectedList.Select(k => k.Id).ToList();
+                        if (await LocalKhachHangService.UpdateCustomersColumnAsync(ids, "DNHANVIENID", nvId))
+                        {
+                            await RefreshGridAsync();
+                        }
+                    };
+                    MenuDatCot.Items.Add(miDat);
+
+                    var miLoc = new MenuItem { Header = nvName };
+                    miLoc.Click += (s, args) =>
+                    {
+                        TxtLoc.Text = nvName;
+                    };
+                    MenuLocCot.Items.Add(miLoc);
+                }
+            }
+            else if (colHeader == "Tỉnh thành")
+            {
+                var tts = await LocalKhachHangService.GetTinhThanhLookupAsync();
+                foreach (var tt in tts)
+                {
+                    string ttId = tt.ID?.ToString();
+                    string ttName = tt.NAME?.ToString();
+
+                    var miDat = new MenuItem { Header = ttName, Tag = ttId };
+                    miDat.Click += async (s, args) =>
+                    {
+                        var ids = selectedList.Select(k => k.Id).ToList();
+                        if (await LocalKhachHangService.UpdateCustomersColumnAsync(ids, "DTINHTHANHID", ttId))
+                        {
+                            await RefreshGridAsync();
+                        }
+                    };
+                    MenuDatCot.Items.Add(miDat);
+
+                    var miLoc = new MenuItem { Header = ttName };
+                    miLoc.Click += (s, args) =>
+                    {
+                        TxtLoc.Text = ttName;
+                    };
+                    MenuLocCot.Items.Add(miLoc);
+                }
+            }
+            else
+            {
+                MenuDatCot.Click += MenuDatCot_Click;
+                MenuLocCot.Click += MenuLocCot_Click;
+            }
+        }
+
+        private async void MenuDatCot_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedList = DgKhachHang.SelectedItems.Cast<KhachHangViewModel>().ToList();
+            if (selectedList.Count == 0 && DgKhachHang.SelectedItem is KhachHangViewModel single) selectedList.Add(single);
+            if (selectedList.Count == 0) return;
+
+            string colHeader = _clickedColumn?.Header?.ToString() ?? "Mã khách";
+            string currentVal = _clickedCellValue ?? "";
+
+            var inputWin = new InputWindow($"Đặt {colHeader}", $"Nhập giá trị mới cho '{colHeader}':", currentVal);
+            inputWin.Owner = Window.GetWindow(this);
+            if (inputWin.ShowDialog() == true)
+            {
+                string newVal = inputWin.InputText?.Trim() ?? "";
+                string dbCol = "NAME";
+
+                if (colHeader == "Mã khách") dbCol = "MAKHACH";
+                else if (colHeader == "Tên khách hàng") dbCol = "NAME";
+                else if (colHeader == "Địa chỉ") dbCol = "DIACHI";
+                else if (colHeader == "Điện thoại") dbCol = "DIENTHOAI";
+                else if (colHeader == "Email") dbCol = "EMAIL";
+                else if (colHeader == "Mã số thuế") dbCol = "MASOTHUE";
+                else if (colHeader == "Facebook") dbCol = "FACEBOOK";
+                else if (colHeader == "Thẻ trả trước") dbCol = "THETRATRUOC";
+
+                var ids = selectedList.Select(k => k.Id).ToList();
+                if (await LocalKhachHangService.UpdateCustomersColumnAsync(ids, dbCol, newVal))
+                {
+                    await RefreshGridAsync();
+                }
+            }
+        }
+
+        private void MenuLocCot_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_clickedCellValue))
+            {
+                TxtLoc.Text = _clickedCellValue;
+            }
+        }
+
+        private async void MenuItem_KhoiPhuc_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgKhachHang.SelectedItem is KhachHangViewModel selected)
+            {
+                var ask = MessageBox.Show($"Bạn có chắc chắn muốn khôi phục khách hàng '{selected.Name}' ({selected.Makhach}) không?", "Xác nhận khôi phục", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (ask == MessageBoxResult.Yes)
+                {
+                    if (await LocalKhachHangService.RestoreKhachHangAsync(selected.Id))
+                    {
+                        await RefreshGridAsync();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Không thể khôi phục khách hàng này!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn khách hàng để khôi phục!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void MenuItem_SortAsc_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Name).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortDesc_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderByDescending(k => k.Name).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByMaKhach_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Makhach).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByName_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Name).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByDiaChi_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Diachi).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByDienThoai_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Dienthoai).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByEmail_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Email).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByNhom_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.TenNhomKhachHang).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByMst_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Masothue).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByNhanVien_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.TenNhanVien).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByTinhThanh_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.TinhThanh).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByFacebook_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.Facebook).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void MenuItem_SortByTheTraTruoc_Click(object sender, RoutedEventArgs e)
+        {
+            _rawList = _rawList.OrderBy(k => k.TheTraTruoc).ToList();
+            RebindSttAndGrid();
+        }
+
+        private void RebindSttAndGrid()
+        {
+            int stt = 1;
+            foreach (var item in _rawList)
+            {
+                item.Stt = stt++;
+            }
+            DgKhachHang.ItemsSource = null;
+            DgKhachHang.ItemsSource = _rawList;
+        }
+
+
+
+        private void MenuItem_SaoChepO_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_clickedCellValue))
+            {
+                Clipboard.SetText(_clickedCellValue);
+            }
+            else
+            {
+                Clipboard.Clear();
+            }
+        }
+
+        private void MenuItem_SaoChepVungChon_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedList = DgKhachHang.SelectedItems.Cast<KhachHangViewModel>().ToList();
+            if (selectedList.Count == 0 && DgKhachHang.SelectedItem is KhachHangViewModel single) selectedList.Add(single);
+            if (selectedList.Count == 0) return;
+
+            var sb = new System.Text.StringBuilder();
+            foreach (var item in selectedList)
+            {
+                sb.AppendLine($"{item.Makhach}\t{item.Name}\t{item.Diachi}\t{item.Dienthoai}\t{item.Email}\t{item.TenNhomKhachHang}\t{item.Masothue}\t{item.TenNhanVien}\t{item.TinhThanh}\t{item.Facebook}\t{item.TheTraTruoc}");
+            }
+            Clipboard.SetText(sb.ToString());
+        }
+
+        private void MenuItem_TuDongGianCot_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var col in DgKhachHang.Columns)
+            {
+                col.Width = DataGridLength.Auto;
+                col.Width = DataGridLength.SizeToCells;
+            }
+        }
+
+        private void MenuCotHienThi_Click(object sender, RoutedEventArgs e)
+        {
+            var defaults = new List<string> { "Mã khách", "Tên khách hàng", "Địa chỉ", "Điện thoại", "Email", "Nhóm khách hàng", "Mã số thuế", "Nhân viên", "Tỉnh thành", "Facebook", "Thẻ trả trước" };
+            var win = new ChonCotHienThiWindow(DgKhachHang, defaults);
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void MenuItem_ThuocTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgKhachHang.SelectedItem is KhachHangViewModel selected)
+            {
+                MessageBox.Show($"Khách hàng: {selected.Name} ({selected.Makhach})\nNhóm: {selected.TenNhomKhachHang}\nĐịa chỉ: {selected.Diachi}\nĐiện thoại: {selected.Dienthoai}", 
+                                "Thuộc tính", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
         #endregion

@@ -27,12 +27,26 @@ namespace QuanLyBar.Client.Services
                 {
                     string json = File.ReadAllText(ConfigFilePath);
                     CurrentConfig = JsonConvert.DeserializeObject<DatabaseInfo>(json);
-                    Application.Current.Properties["SelectedDbName"] = CurrentConfig?.Name;
                 }
             }
-            catch (Exception ex)
+            catch { }
+
+            if (CurrentConfig == null)
             {
-                MessageBox.Show("Lỗi đọc file cấu hình DB: " + ex.Message);
+                CurrentConfig = new DatabaseInfo
+                {
+                    Name = "HIHI",
+                    Path = @"D:\saoluu\HIHI.FDB",
+                    ConnectionType = 2,
+                    Server = "localhost",
+                    Username = "SYSDBA",
+                    Password = "masterkey"
+                };
+            }
+
+            if (Application.Current != null)
+            {
+                Application.Current.Properties["SelectedDbName"] = CurrentConfig?.Name;
             }
         }
 

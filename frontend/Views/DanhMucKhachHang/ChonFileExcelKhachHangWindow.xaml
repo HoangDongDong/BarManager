@@ -1,0 +1,40 @@
+<Window x:Class="QuanLyBar.Client.Views.ChonFileExcelKhachHangWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chọn file excel hoặc xuất file mẫu" 
+        Height="270" Width="430" 
+        WindowStartupLocation="CenterOwner" 
+        ResizeMode="NoResize" 
+        Background="#dce7f5"
+        FontFamily="Segoe UI" FontSize="12">
+    
+    <Grid Margin="18,15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Nếu bạn chưa có file excel, click vào &quot;Xuất file mẫu&quot;" 
+                   Grid.Row="0" Foreground="#112233" FontSize="12" Margin="0,0,0,8"/>
+
+        <Button x:Name="BtnXuatMauHienThi" Grid.Row="1" Content="Xuất file mẫu các cột đang hiển thị trong danh sách" 
+                Height="28" Margin="0,0,0,6" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnXuatMauHienThi_Click"/>
+
+        <Button x:Name="BtnXuatMauTatCa" Grid.Row="2" Content="Xuất file mẫu tất cả các cột (bao gồm cả cột ẩn)" 
+                Height="28" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnXuatMauTatCa_Click"/>
+
+        <TextBlock Text="Nếu đã có mẫu, click &quot;Chọn file excel&quot;" 
+                   Grid.Row="4" Foreground="#112233" FontSize="12" Margin="0,4,0,8"/>
+
+        <Button x:Name="BtnChonFile" Grid.Row="5" Content="Chọn file excel" 
+                Height="28" Margin="0,0,0,6" Background="#ffffff" BorderBrush="#0078d7" BorderThickness="1.5" FontWeight="SemiBold" Cursor="Hand" Click="BtnChonFile_Click"/>
+
+        <Button x:Name="BtnHuyBo" Grid.Row="6" Content="Hủy bỏ" 
+                Height="28" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" IsCancel="True" Click="BtnHuyBo_Click"/>
+    </Grid>
+</Window>

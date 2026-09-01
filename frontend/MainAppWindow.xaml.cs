@@ -156,6 +156,10 @@ namespace QuanLyBar.Client
                     {
                         content = new QuanLyBar.Client.Views.DanhMucKhachHangControl();
                     }
+                    else if (tabName == "Gửi tin nhắn tới khách hàng" || tabName == "Gửi tin nhắn khách hàng" || tabName == "Gửi tin nhắn")
+                    {
+                        content = new QuanLyBar.Client.Views.GuiTinNhanKhachHangControl();
+                    }
                     else
                     {
                         content = new System.Windows.Controls.TextBlock

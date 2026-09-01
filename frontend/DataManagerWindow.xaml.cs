@@ -28,6 +28,17 @@ namespace QuanLyBar.Client
             InitializeComponent();
             LoadDatabases();
             dgDatabases.ItemsSource = Databases;
+
+            // Mặc định chọn dòng HIHI
+            var defaultDb = Databases.FirstOrDefault(d => string.Equals(d.Name, "HIHI", StringComparison.OrdinalIgnoreCase))
+                            ?? Databases.FirstOrDefault(d => string.Equals(d.Name, QuanLyBar.Client.Services.DbConnectionManager.CurrentConfig?.Name, StringComparison.OrdinalIgnoreCase))
+                            ?? Databases.FirstOrDefault();
+
+            if (defaultDb != null)
+            {
+                dgDatabases.SelectedItem = defaultDb;
+                dgDatabases.ScrollIntoView(defaultDb);
+            }
         }
 
         private void LoadDatabases()
@@ -52,7 +63,7 @@ namespace QuanLyBar.Client
 
             if (Databases.Count == 0)
             {
-                // Mặc định nạp CSDL DEMO nếu chưa có danh sách
+                // Mặc định nạp CSDL DEMO và HIHI nếu chưa có danh sách
                 Databases.Add(new DatabaseInfo
                 {
                     Name = "DEMO",
@@ -62,7 +73,35 @@ namespace QuanLyBar.Client
                     Username = "SYSDBA",
                     Password = "masterkey"
                 });
+
+                Databases.Add(new DatabaseInfo
+                {
+                    Name = "HIHI",
+                    Path = @"D:\saoluu\HIHI.FDB",
+                    ConnectionType = 2,
+                    Server = "localhost",
+                    Username = "SYSDBA",
+                    Password = "masterkey"
+                });
+
                 SaveDatabases();
+            }
+            else
+            {
+                // Đảm bảo có HIHI trong danh sách nếu file tồn tại
+                if (!Databases.Any(d => string.Equals(d.Name, "HIHI", StringComparison.OrdinalIgnoreCase)) && File.Exists(@"D:\saoluu\HIHI.FDB"))
+                {
+                    Databases.Add(new DatabaseInfo
+                    {
+                        Name = "HIHI",
+                        Path = @"D:\saoluu\HIHI.FDB",
+                        ConnectionType = 2,
+                        Server = "localhost",
+                        Username = "SYSDBA",
+                        Password = "masterkey"
+                    });
+                    SaveDatabases();
+                }
             }
         }
 

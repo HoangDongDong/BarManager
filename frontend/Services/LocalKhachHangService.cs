@@ -567,6 +567,149 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        public static async Task<bool> DeletePermanentKhachHangAsync(string id)
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string sql = "DELETE FROM DKHACHHANG WHERE ID = @Id";
+                    int affected = await conn.ExecuteAsync(sql, new { Id = id });
+                    return affected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error DeletePermanentKhachHangAsync: " + ex.Message);
+                return false;
+            }
+        }
+
+        public static async Task<List<string>> GetAllKhachHangIdsAsync()
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string sql = "SELECT ID FROM DKHACHHANG WHERE STATUS > 0 ORDER BY MAKHACH, NAME";
+                    var rows = await conn.QueryAsync<string>(sql);
+                    return rows.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error GetAllKhachHangIdsAsync: " + ex.Message);
+                return new List<string>();
+            }
+        }
+
+        public static async Task<dynamic> GetKhachHangByIdAsync(string id)
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string sql = @"
+                        SELECT 
+                            K.*,
+                            N.NAME AS TENNHOMKHACHHANG,
+                            NV.NAME AS TENNHANVIEN,
+                            TT.NAME AS TENTINHTHANH
+                        FROM DKHACHHANG K
+                        LEFT JOIN DNHOMKHACHHANG N ON K.DNHOMKHACHHANGID = N.ID
+                        LEFT JOIN DNHANVIEN NV ON K.DNHANVIENID = NV.ID
+                        LEFT JOIN DTINHTHANH TT ON K.DTINHTHANHID = TT.ID
+                        WHERE K.ID = @Id";
+                    return await conn.QueryFirstOrDefaultAsync(sql, new { Id = id });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error GetKhachHangByIdAsync: " + ex.Message);
+                return null;
+            }
+        }
+
+        public static async Task<string> GetNextMaKhachAsync()
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string sql = "SELECT MAKHACH FROM DKHACHHANG WHERE MAKHACH LIKE 'KH%' ORDER BY MAKHACH DESC";
+                    var list = (await conn.QueryAsync<string>(sql)).ToList();
+                    int maxNum = 0;
+                    foreach (var code in list)
+                    {
+                        if (!string.IsNullOrEmpty(code) && code.StartsWith("KH") && int.TryParse(code.Substring(2), out int n))
+                        {
+                            if (n > maxNum) maxNum = n;
+                        }
+                    }
+                    return $"KH{(maxNum + 1):D5}";
+                }
+            }
+            catch
+            {
+                return "KH00001";
+            }
+        }
+
+        public static async Task<List<dynamic>> GetNhanVienLookupAsync()
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string sql = "SELECT ID, NAME FROM DNHANVIEN WHERE STATUS > 0 ORDER BY NAME";
+                    return (await conn.QueryAsync(sql)).ToList();
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
+
+        public static async Task<List<dynamic>> GetNhomKhachHangLookupAsync()
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string sql = "SELECT ID, NAME FROM DNHOMKHACHHANG WHERE STATUS > 0 ORDER BY NAME";
+                    return (await conn.QueryAsync(sql)).ToList();
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
+
+        public static async Task<List<dynamic>> GetTinhThanhLookupAsync()
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string sql = "SELECT ID, NAME FROM DTINHTHANH WHERE STATUS > 0 ORDER BY NAME";
+                    return (await conn.QueryAsync(sql)).ToList();
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
+
         public static async Task<bool> SaveKhachHangAsync(KhachHangViewModel model, bool isNew)
         {
             try
@@ -579,16 +722,16 @@ namespace QuanLyBar.Client.Services
 
                     if (isNew)
                     {
-                        string id = Guid.NewGuid().ToString();
+                        string id = string.IsNullOrEmpty(model.Id) ? Guid.NewGuid().ToString() : model.Id;
                         string sql = @"
                             INSERT INTO DKHACHHANG (
                                 ID, MAKHACH, NAME, DIACHI, DIENTHOAI, EMAIL, 
-                                DNHOMKHACHHANGID, MASOTHUE, STATUS, TIMECREATED, 
+                                DNHOMKHACHHANGID, DNHANVIENID, DTINHTHANHID, MASOTHUE, STATUS, TIMECREATED, 
                                 TIMEMODIFIED, NGAYSINH, DIEMTICHLUYBANDAU, NOTE, FACEBOOK,
                                 USERCREATEDID, USERMODIFIEDID
                             ) VALUES (
                                 @Id, @Makhach, @Name, @Diachi, @Dienthoai, @Email, 
-                                @DnhomkhachhangId, @Masothue, 30, @Now, 
+                                @DnhomkhachhangId, @DnhanvienId, @DtinhthanhId, @Masothue, 30, @Now, 
                                 @Now, @Ngaysinh, @Diemtichluy, @Note, @Facebook,
                                 @UserId, @UserId
                             )";
@@ -602,6 +745,8 @@ namespace QuanLyBar.Client.Services
                             Dienthoai = model.Dienthoai,
                             Email = model.Email,
                             DnhomkhachhangId = string.IsNullOrEmpty(model.DnhomkhachhangId) ? null : model.DnhomkhachhangId,
+                            DnhanvienId = string.IsNullOrEmpty(model.TenNhanVien) ? null : model.TenNhanVien,
+                            DtinhthanhId = string.IsNullOrEmpty(model.TinhThanh) ? null : model.TinhThanh,
                             Masothue = model.Masothue,
                             Now = DateTime.Now,
                             Ngaysinh = model.Ngaysinh,
@@ -622,9 +767,12 @@ namespace QuanLyBar.Client.Services
                                 DIENTHOAI = @Dienthoai,
                                 EMAIL = @Email,
                                 DNHOMKHACHHANGID = @DnhomkhachhangId,
+                                DNHANVIENID = @DnhanvienId,
+                                DTINHTHANHID = @DtinhthanhId,
                                 MASOTHUE = @Masothue,
                                 TIMEMODIFIED = @Now,
                                 NGAYSINH = @Ngaysinh,
+                                DIEMTICHLUYBANDAU = @Diemtichluy,
                                 NOTE = @Note,
                                 FACEBOOK = @Facebook,
                                 USERMODIFIEDID = @UserId
@@ -639,9 +787,12 @@ namespace QuanLyBar.Client.Services
                             Dienthoai = model.Dienthoai,
                             Email = model.Email,
                             DnhomkhachhangId = string.IsNullOrEmpty(model.DnhomkhachhangId) ? null : model.DnhomkhachhangId,
+                            DnhanvienId = string.IsNullOrEmpty(model.TenNhanVien) ? null : model.TenNhanVien,
+                            DtinhthanhId = string.IsNullOrEmpty(model.TinhThanh) ? null : model.TinhThanh,
                             Masothue = model.Masothue,
                             Now = DateTime.Now,
                             Ngaysinh = model.Ngaysinh,
+                            Diemtichluy = model.Diemtichluy,
                             Note = model.Note,
                             Facebook = model.Facebook,
                             UserId = userId
@@ -1258,6 +1409,27 @@ namespace QuanLyBar.Client.Services
             catch (Exception ex)
             {
                 Console.WriteLine("Error DeletePermanentTinhThanhAsync: " + ex.Message);
+                return false;
+            }
+        }
+        public static async Task<bool> UpdateCustomersColumnAsync(List<string> ids, string columnName, object value)
+        {
+            if (ids == null || ids.Count == 0) return false;
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    string inClause = string.Join(",", ids.Select(id => $"'{id.Replace("'", "''")}'"));
+                    string valSql = value == null ? "NULL" : $"'{value.ToString().Replace("'", "''")}'";
+                    string sql = $"UPDATE DKHACHHANG SET {columnName} = {valSql}, TIMEMODIFIED = CURRENT_TIMESTAMP WHERE ID IN ({inClause})";
+                    await conn.ExecuteAsync(sql);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error UpdateCustomersColumnAsync: " + ex.Message);
                 return false;
             }
         }

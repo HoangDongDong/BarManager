@@ -1,76 +1,251 @@
 <Window x:Class="QuanLyBar.Client.Views.ThemKhachHangWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Thông tin khách hàng" Height="420" Width="550"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#D5E3F5">
+        Title="😀 KHÁCH HÀNG - THÊM MỚI" 
+        Height="580" Width="460" 
+        WindowStartupLocation="CenterOwner" 
+        ResizeMode="NoResize" 
+        Background="#dce7f5"
+        FontFamily="Segoe UI" FontSize="12"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="55"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Sub Toolbar -->
+            <RowDefinition Height="*"/>    <!-- Form Content -->
+            <RowDefinition Height="Auto"/> <!-- Footer -->
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="White" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="15,0">
+        <!-- 1. Header Banner -->
+        <Border Grid.Row="0" Background="#fffde6" BorderBrush="#e2d6b5" BorderThickness="0,0,0,1" Padding="15,8">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="👤" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBlock x:Name="TxtHeaderTitle" Text="Thêm mới khách hàng" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" Foreground="#1a3a5c"/>
+                <TextBlock Text="😀" FontSize="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TxtHeaderTitle" Text="Khách hàng" FontSize="14.5" FontWeight="Bold" Foreground="#112233" VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
 
-        <!-- Form Content -->
-        <Grid Grid.Row="1" Margin="20,12,20,10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="32"/>
-                <RowDefinition Height="32"/>
-                <RowDefinition Height="32"/>
-                <RowDefinition Height="32"/>
-                <RowDefinition Height="32"/>
-                <RowDefinition Height="32"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="110"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- 2. Sub Toolbar -->
+        <Border Grid.Row="1" Background="#eaf1fa" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="6,3">
+            <DockPanel LastChildFill="False">
+                <Button x:Name="BtnPhimTat" Margin="2,0" Padding="5,2" Background="#f4f7fb" BorderBrush="#c2d5ea" Cursor="Hand" Click="BtnPhimTat_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="↗️" FontSize="11" Margin="0,0,3,0"/>
+                        <TextBlock Text="Phím tắt ▾" FontSize="11"/>
+                    </StackPanel>
+                    <Button.ContextMenu>
+                        <ContextMenu x:Name="CmPhimTat">
+                            <MenuItem Header="Tạo mới (Ctrl+N)" Click="MiTaoMoi_Click"/>
+                            <MenuItem Header="Sao chép (Alt+C)" Click="MiSaoChep_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Lưu (Ctrl+L)" Click="MiLuu_Click"/>
+                            <MenuItem Header="Lưu &amp; Mới (Ctrl+S)" Click="MiLuuVaMoi_Click"/>
+                            <MenuItem Header="Lưu &amp; Thoát (Enter)" Click="MiLuuVaThoat_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Thoát (ESC)" Click="MiThoat_Click"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
 
-            <!-- Mã khách -->
-            <TextBlock Text="Mã khách (*):" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtMaKhach" Grid.Row="0" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Margin="0,2"/>
+                <Button x:Name="BtnTruoc" Margin="2,0" Padding="5,2" Background="#f4f7fb" BorderBrush="#c2d5ea" Cursor="Hand" Click="BtnTruoc_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⬅️" FontSize="11" Margin="0,0,3,0"/>
+                        <TextBlock Text="Trước (F10)" FontSize="11"/>
+                    </StackPanel>
+                </Button>
 
-            <!-- Tên khách hàng -->
-            <TextBlock Text="Tên khách (*):" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtTenKhach" Grid.Row="1" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Margin="0,2"/>
+                <Button x:Name="BtnSau" Margin="2,0" Padding="5,2" Background="#f4f7fb" BorderBrush="#c2d5ea" Cursor="Hand" Click="BtnSau_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➡️" FontSize="11" Margin="0,0,3,0"/>
+                        <TextBlock Text="Sau (F11)" FontSize="11"/>
+                    </StackPanel>
+                </Button>
 
-            <!-- Nhóm khách hàng -->
-            <TextBlock Text="Nhóm khách:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
-            <ComboBox x:Name="CboNhomKhach" Grid.Row="2" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Margin="0,2"
-                      DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                <Button x:Name="BtnTaoMoi" Margin="2,0" Padding="5,2" Background="#f4f7fb" BorderBrush="#c2d5ea" Cursor="Hand" Click="BtnTaoMoi_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➕" Foreground="Green" FontSize="11" Margin="0,0,3,0"/>
+                        <TextBlock Text="Tạo mới" FontSize="11"/>
+                    </StackPanel>
+                </Button>
 
-            <!-- Điện thoại -->
-            <TextBlock Text="Điện thoại:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtDienThoai" Grid.Row="3" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Margin="0,2"/>
+                <Button x:Name="BtnSaoChep" Margin="2,0" Padding="5,2" Background="#f4f7fb" BorderBrush="#c2d5ea" Cursor="Hand" Click="BtnSaoChep_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📑" FontSize="11" Margin="0,0,3,0"/>
+                        <TextBlock Text="Sao chép" FontSize="11"/>
+                    </StackPanel>
+                </Button>
 
-            <!-- Email -->
-            <TextBlock Text="Email:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtEmail" Grid.Row="4" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Margin="0,2"/>
+                <Button x:Name="BtnXoa" Margin="2,0" Padding="5,2" Background="#f4f7fb" BorderBrush="#c2d5ea" Cursor="Hand" Click="BtnXoa_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❌" Foreground="Red" FontSize="11" Margin="0,0,3,0"/>
+                        <TextBlock Text="Xóa" FontSize="11"/>
+                    </StackPanel>
+                </Button>
+            </DockPanel>
+        </Border>
 
-            <!-- Địa chỉ -->
-            <TextBlock Text="Địa chỉ:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtDiaChi" Grid.Row="5" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Margin="0,2"/>
+        <!-- 3. Form Content -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="15,8">
+            <StackPanel>
+                <!-- Mã khách -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Mã khách" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtMaKhach" Grid.Column="1" Height="24" Background="#e1f5fe" BorderBrush="#0288d1" BorderThickness="1.5" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
 
-            <!-- Ghi chú -->
-            <TextBlock Text="Ghi chú:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Top" Margin="0,5,0,0"/>
-            <TextBox x:Name="TxtGhiChu" Grid.Row="6" Grid.Column="1" Height="45" TextWrapping="Wrap" VerticalContentAlignment="Top" Margin="0,2"/>
-        </Grid>
+                <!-- Tên khách hàng -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Tên khách hàng" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtTenKhach" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
 
-        <!-- Footer -->
-        <Border Grid.Row="2" Background="#cddfef" Padding="15,8">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button x:Name="BtnLuu" Content="💾 Lưu" Width="85" Height="28" Margin="0,0,10,0" 
-                        Background="White" BorderBrush="#8ca2ba" Cursor="Hand" Click="BtnLuu_Click"/>
-                <Button x:Name="BtnDong" Content="Đóng" Width="80" Height="28" 
-                        Background="White" BorderBrush="#1877f2" BorderThickness="1.5" Cursor="Hand" IsCancel="True" Click="BtnDong_Click"/>
+                <!-- Địa chỉ -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Địa chỉ" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtDiaChi" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
+
+                <!-- Điện thoại -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Điện thoại" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtDienThoai" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
+
+                <!-- Email -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Email" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtEmail" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
+
+                <!-- Ngày thành lập/sinh nhật & Điểm tích lũy ban đầu -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="105"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Ngày thành lập/sinh nhật" VerticalAlignment="Center"/>
+                    <DatePicker x:Name="DpNgaySinh" Grid.Column="1" Height="24" VerticalContentAlignment="Center"/>
+                    <TextBlock Text="Điểm tích lũy ban đầu" Grid.Column="2" VerticalAlignment="Center" Margin="8,0,4,0"/>
+                    <TextBox x:Name="TxtDiemTichLuy" Grid.Column="3" Height="24" Text="0" VerticalContentAlignment="Center" TextAlignment="Right" Padding="4,0"/>
+                </Grid>
+
+                <!-- Giá bán -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Giá bán" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CboGiaBan" Grid.Column="1" Height="24" VerticalContentAlignment="Center">
+                        <ComboBoxItem Content="Mặc định" IsSelected="True"/>
+                        <ComboBoxItem Content="Giá sỉ"/>
+                        <ComboBoxItem Content="Giá VIP"/>
+                    </ComboBox>
+                </Grid>
+
+                <!-- Mã số thuế -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Mã số thuế" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtMaSoThue" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
+
+                <!-- Nhân viên -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Nhân viên" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CboNhanVien" Grid.Column="1" Height="24" VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID"/>
+                </Grid>
+
+                <!-- Nhóm khách hàng -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Nhóm khách hàng" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CboNhomKhach" Grid.Column="1" Height="24" VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID"/>
+                </Grid>
+
+                <!-- Tỉnh thành -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Tỉnh thành" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CboTinhThanh" Grid.Column="1" Height="24" VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID"/>
+                </Grid>
+
+                <!-- Facebook -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Facebook" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtFacebook" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
+
+                <!-- Thẻ trả trước -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Thẻ trả trước" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CboTheTraTruoc" Grid.Column="1" Height="24" VerticalContentAlignment="Center">
+                        <ComboBoxItem Content="-- Không chọn --" IsSelected="True"/>
+                    </ComboBox>
+                </Grid>
+
+                <!-- Ghi chú -->
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Ghi chú" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtGhiChu" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 4. Footer Buttons -->
+        <Border Grid.Row="3" Background="#eaf1fa" BorderBrush="#b6cadf" BorderThickness="0,1,0,0" Padding="12,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnLuu" Content="💾 Lưu" Width="75" Height="26" Margin="3,0" Background="#f4f7fb" BorderBrush="#a4bce3" Cursor="Hand" Click="BtnLuu_Click"/>
+                <Button x:Name="BtnLuuVaMoi" Content="Lưu &amp; Mới" Width="85" Height="26" Margin="3,0" Background="#f4f7fb" BorderBrush="#a4bce3" Cursor="Hand" Click="BtnLuuVaMoi_Click"/>
+                <Button x:Name="BtnLuuVaThoat" Content="Lưu &amp; thoát" Width="85" Height="26" Margin="3,0" Background="#f4f7fb" BorderBrush="#a4bce3" Cursor="Hand" Click="BtnLuuVaThoat_Click"/>
+                <Button x:Name="BtnThoat" Content="Thoát" Width="70" Height="26" Margin="3,0" Background="#ffffff" BorderBrush="#0078d7" BorderThickness="1.5" FontWeight="SemiBold" Cursor="Hand" Click="BtnThoat_Click"/>
             </StackPanel>
         </Border>
     </Grid>

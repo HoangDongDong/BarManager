@@ -84,27 +84,37 @@ namespace QuanLyBar.Client.Views
             }
 
             DgMapping.ItemsSource = MappingList;
+            AutoMapFields();
         }
 
-        private void BtnTuDongChon_Click(object sender, RoutedEventArgs e)
+        private void AutoMapFields()
         {
-            // Tự động map dựa trên tên giống nhau
             foreach (var mapping in MappingList)
             {
-                if (_systemFields.Contains(mapping.ExcelColumn))
+                if (string.IsNullOrWhiteSpace(mapping.ExcelColumn)) continue;
+
+                string colName = mapping.ExcelColumn.Trim();
+                if (_systemFields.Contains(colName))
                 {
-                    mapping.MappedField = mapping.ExcelColumn;
+                    mapping.MappedField = colName;
                 }
                 else
                 {
-                    // Thử tìm mapping tương đối
-                    var match = _systemFields.FirstOrDefault(f => f.ToLower() == mapping.ExcelColumn.ToLower());
+                    string norm = colName.ToLowerInvariant().Replace(" ", "").Replace("/", "").Replace("-", "").Replace("_", "");
+                    var match = _systemFields.FirstOrDefault(f => !string.IsNullOrEmpty(f) && 
+                        (f.Equals(colName, StringComparison.OrdinalIgnoreCase) || 
+                         f.ToLowerInvariant().Replace(" ", "").Replace("/", "").Replace("-", "").Replace("_", "") == norm));
                     if (match != null)
                     {
                         mapping.MappedField = match;
                     }
                 }
             }
+        }
+
+        private void BtnTuDongChon_Click(object sender, RoutedEventArgs e)
+        {
+            AutoMapFields();
         }
 
         private void BtnChapNhan_Click(object sender, RoutedEventArgs e)

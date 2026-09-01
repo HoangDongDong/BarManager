@@ -17,11 +17,17 @@ namespace QuanLyBar.Client.Views
         private readonly string _parentId;
         public event Action OnSaved;
 
-        public ThemNhanhKhachHangWindow(int groupMode, string parentId = null)
+        private readonly string _initialText;
+
+        public ThemNhanhKhachHangWindow(int groupMode, string parentId = null, IEnumerable<string> initialItems = null)
         {
             InitializeComponent();
             _groupMode = groupMode;
             _parentId = parentId;
+            if (initialItems != null)
+            {
+                _initialText = string.Join(Environment.NewLine, initialItems);
+            }
 
             string typeName = "Nhân viên";
             if (_groupMode == 0) typeName = "Nhóm khách hàng";
@@ -33,6 +39,10 @@ namespace QuanLyBar.Client.Views
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (!string.IsNullOrEmpty(_initialText))
+            {
+                TxtDanhSach.Text = _initialText;
+            }
             try
             {
                 var service = new LocalKhachDatHangService();

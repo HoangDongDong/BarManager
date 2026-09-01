@@ -12,10 +12,15 @@ namespace QuanLyBar.Client.Views
     public partial class PrintPreviewWindow : Window
     {
         private readonly List<HoaDonViewModel> _hoaDonList;
+        private readonly IEnumerable<object> _rawData;
+        private readonly List<InLuoiWindow.ColumnInfo> _columns;
+        private readonly string _reportTitle;
+        private readonly string _note;
         private readonly string _templateType;
         private readonly string _storeName;
         private readonly DateTime _tuNgay;
         private readonly DateTime _denNgay;
+        private readonly bool _inSTT;
 
         public PrintPreviewWindow(
             IEnumerable<object> data,
@@ -26,6 +31,7 @@ namespace QuanLyBar.Client.Views
         {
             InitializeComponent();
 
+            _rawData = data;
             _templateType = templateType;
             _storeName = string.IsNullOrEmpty(storeName) ? "NÀNG HƯƠNG QUÁN" : storeName;
             _tuNgay = tuNgay ?? DateTime.Today;
@@ -46,10 +52,197 @@ namespace QuanLyBar.Client.Views
             BuildReportView();
         }
 
-        // Backward compatibility constructor
+        // Constructor gọi từ InLuoiWindow
         public PrintPreviewWindow(IEnumerable<object> data, List<InLuoiWindow.ColumnInfo> columns, string title, string note, string templateType, bool inSTT)
-            : this(data, templateType, "NÀNG HƯƠNG QUÁN", DateTime.Today, DateTime.Today)
         {
+            InitializeComponent();
+
+            _rawData = data;
+            _columns = columns?.Where(c => c.IsChecked).ToList();
+            _reportTitle = string.IsNullOrWhiteSpace(title) ? "BÁO CÁO TỔNG HỢP" : title;
+            _note = note;
+            _templateType = string.IsNullOrWhiteSpace(templateType) ? "Mẫu A4 thẳng đứng" : templateType;
+            _inSTT = inSTT;
+            _storeName = "NÀNG HƯƠNG QUÁN";
+            _tuNgay = DateTime.Today;
+            _denNgay = DateTime.Today;
+
+            _hoaDonList = new List<HoaDonViewModel>();
+            if (data != null)
+            {
+                foreach (var item in data)
+                {
+                    if (item is HoaDonViewModel hd) _hoaDonList.Add(hd);
+                }
+            }
+
+            if (_columns != null && _columns.Count > 0)
+            {
+                BuildGenericReportView();
+            }
+            else
+            {
+                BuildReportView();
+            }
+        }
+
+        private void BuildGenericReportView()
+        {
+            TxtTenCuaHang.Text = _storeName.ToUpper();
+            TxtTieuDeBaoCao.Text = _reportTitle.ToUpper();
+
+            if (!string.IsNullOrWhiteSpace(_note))
+            {
+                TxtKhoangThoiGian.Text = _note;
+                TxtKhoangThoiGian.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                TxtKhoangThoiGian.Visibility = Visibility.Collapsed;
+            }
+
+            TxtNgayLap.Text = $"Ngày {DateTime.Now.Day} tháng {DateTime.Now.Month} năm {DateTime.Now.Year}";
+
+            // Khổ in
+            int totalCols = _columns.Count + (_inSTT ? 1 : 0);
+            if (_templateType.Contains("80", StringComparison.OrdinalIgnoreCase) || _templateType.Contains("58", StringComparison.OrdinalIgnoreCase))
+            {
+                PrintContentPanel.Width = 340;
+                PaperContainer.Padding = new Thickness(10);
+            }
+            else if (_templateType.Contains("ngang", StringComparison.OrdinalIgnoreCase))
+            {
+                PrintContentPanel.Width = Math.Max(980, totalCols * 85);
+                PaperContainer.Padding = new Thickness(25);
+            }
+            else
+            {
+                PrintContentPanel.Width = Math.Max(780, totalCols * 75);
+                PaperContainer.Padding = new Thickness(20);
+            }
+
+            GridTable.Children.Clear();
+            GridTable.ColumnDefinitions.Clear();
+            GridTable.RowDefinitions.Clear();
+
+            int colIdx = 0;
+            if (_inSTT)
+            {
+                GridTable.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
+                colIdx++;
+            }
+
+            foreach (var c in _columns)
+            {
+                string hNorm = RemoveDiacritics(c.Header).ToLowerInvariant();
+                double weight = 1.0;
+                if (hNorm.Contains("diachi")) weight = 1.8;
+                else if (hNorm.Contains("tenkhach") || hNorm.Contains("khachhang")) weight = 1.5;
+                else if (hNorm.Contains("email")) weight = 1.4;
+                else if (hNorm.Contains("nhom")) weight = 1.3;
+
+                GridTable.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(weight, GridUnitType.Star) });
+            }
+
+            // Header Row
+            GridTable.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            colIdx = 0;
+            if (_inSTT)
+            {
+                AddTableCell(0, colIdx++, "STT", FontWeights.Bold, HorizontalAlignment.Center);
+            }
+            foreach (var c in _columns)
+            {
+                AddTableCell(0, colIdx++, c.Header, FontWeights.Bold, HorizontalAlignment.Center);
+            }
+
+            if (_rawData == null) return;
+
+            int rowIndex = 1;
+            foreach (var obj in _rawData)
+            {
+                GridTable.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                colIdx = 0;
+
+                if (_inSTT)
+                {
+                    AddTableCell(rowIndex, colIdx++, rowIndex.ToString(), FontWeights.Normal, HorizontalAlignment.Center);
+                }
+
+                foreach (var c in _columns)
+                {
+                    string val = GetObjectPropertyValue(obj, c.Header);
+                    HorizontalAlignment align = HorizontalAlignment.Left;
+                    if (decimal.TryParse(val.Replace(",", "").Replace(".", ""), out _) && !val.StartsWith("0") && val.Length > 0 && !val.Contains("@"))
+                    {
+                        align = HorizontalAlignment.Right;
+                    }
+                    AddTableCell(rowIndex, colIdx++, val, FontWeights.Normal, align, 4);
+                }
+
+                rowIndex++;
+            }
+        }
+
+        private string RemoveDiacritics(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "";
+            var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+            var stringBuilder = new System.Text.StringBuilder(capacity: normalizedString.Length);
+
+            for (int i = 0; i < normalizedString.Length; i++)
+            {
+                char c = normalizedString[i];
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).Replace("đ", "d").Replace("Đ", "D");
+        }
+
+        private string GetObjectPropertyValue(object obj, string header)
+        {
+            if (obj == null) return "";
+
+            string hRaw = header?.Trim() ?? "";
+            string hNorm = RemoveDiacritics(hRaw).ToLowerInvariant().Replace(" ", "").Replace("/", "").Replace("-", "").Replace("_", "");
+
+            if (obj is KhachHangViewModel kh)
+            {
+                if (hNorm.Contains("makhach") || hNorm == "ma") return kh.Makhach ?? "";
+                if (hNorm.Contains("tenkhach") || hNorm.Contains("khachhang") || hNorm == "ten") return kh.Name ?? "";
+                if (hNorm.Contains("diachi")) return kh.Diachi ?? "";
+                if (hNorm.Contains("dienthoai") || hNorm.Contains("sdt") || hNorm.Contains("phone")) return kh.Dienthoai ?? "";
+                if (hNorm.Contains("email")) return kh.Email ?? "";
+                if (hNorm.Contains("nhom")) return kh.TenNhomKhachHang ?? "";
+                if (hNorm.Contains("masothue") || hNorm.Contains("mst")) return kh.Masothue ?? "";
+                if (hNorm.Contains("nhanvien")) return kh.TenNhanVien ?? "";
+                if (hNorm.Contains("tinh")) return kh.TinhThanh ?? "";
+                if (hNorm.Contains("facebook") || hNorm == "fb") return kh.Facebook ?? "";
+                if (hNorm.Contains("the")) return kh.TheTraTruoc ?? "";
+                if (hNorm.Contains("ghichu") || hNorm == "note") return kh.Note ?? "";
+                if (hNorm.Contains("diem")) return kh.Diemtichluy.ToString("N0");
+                if (hNorm.Contains("ngaysinh") || hNorm.Contains("thanhlap") || hNorm.Contains("sinhnhat")) return kh.Ngaysinh?.ToString("dd/MM/yyyy") ?? "";
+            }
+
+            // Reflection fallback
+            var properties = obj.GetType().GetProperties();
+            foreach (var prop in properties)
+            {
+                string pNorm = RemoveDiacritics(prop.Name).ToLowerInvariant().Replace(" ", "").Replace("_", "");
+                if (pNorm == hNorm || prop.Name.Equals(header, StringComparison.OrdinalIgnoreCase))
+                {
+                    var val = prop.GetValue(obj);
+                    if (val is DateTime dt) return dt.ToString("dd/MM/yyyy");
+                    if (val is decimal dec) return dec.ToString("N0");
+                    return val?.ToString() ?? "";
+                }
+            }
+
+            return "";
         }
 
         private void BuildReportView()
@@ -182,6 +375,8 @@ namespace QuanLyBar.Client.Views
                 Text = text,
                 FontWeight = weight,
                 HorizontalAlignment = align,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap,
                 FontSize = 11
             };
             cell.Child = tb;
