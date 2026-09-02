@@ -33,6 +33,16 @@ namespace QuanLyBar.Client.Views
                 TxtTheATM.Text = "0";
                 TxtTheTraTruoc.Text = "0";
                 TxtTraLai.Text = "0";
+
+                if (_ban.GiamGia > 0)
+                {
+                    BorderKhuyenMaiTag.Visibility = Visibility.Visible;
+                    TxtKhuyenMaiTag.Text = $"🎁 Tiền hàng: {_ban.TienHang:N0}đ | Giảm giá: -{_ban.GiamGia:N0}đ";
+                }
+                else
+                {
+                    BorderKhuyenMaiTag.Visibility = Visibility.Collapsed;
+                }
             }
 
             Loaded += (s, e) =>

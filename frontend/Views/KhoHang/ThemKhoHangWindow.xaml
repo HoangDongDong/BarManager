@@ -1,0 +1,155 @@
+<Window x:Class="QuanLyBar.Client.Views.KhoHang.ThemKhoHangWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KHO HÀNG - SỬA" Height="400" Width="470"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#dbe6f3" WindowStyle="SingleBorderWindow"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <!-- Style Button Ribbon -->
+        <Style x:Key="RibbonBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#d0e1f9"/>
+                    <Setter Property="BorderBrush" Value="#90b8e8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style Footer Button -->
+        <Style x:Key="FooterBtnStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="78"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#a0b8d4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e6f0fa"/>
+                    <Setter Property="BorderBrush" Value="#6495ed"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Banner -->
+            <RowDefinition Height="Auto"/> <!-- Toolbar -->
+            <RowDefinition Height="*"/>    <!-- Form fields -->
+            <RowDefinition Height="Auto"/> <!-- Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. BANNER (Nền kem, chữ Kho hàng) -->
+        <Border Grid.Row="0" Background="#fffbe6" BorderBrush="#f0e6b2" BorderThickness="0,0,0,1" Padding="12,6">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="🏠" FontSize="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Kho hàng" FontWeight="Bold" FontSize="16" Foreground="#222" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. RIBBON TOOLBAR -->
+        <Border Grid.Row="1" Background="#e2ecf7" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="4,3">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <!-- Phím tắt ▾ -->
+                    <Button x:Name="BtnPhimTat" Content="↗ Phím tắt ▾" Style="{StaticResource RibbonBtnStyle}" Click="BtnPhimTat_Click">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Tạo mới (Ctrl+N)" Click="MiTaoMoi_Click"/>
+                                <MenuItem Header="Lưu (Ctrl+L)" Click="MiLuu_Click"/>
+                                <MenuItem Header="Lưu &amp; Mới (Ctrl+S)" Click="MiLuuVaMoi_Click"/>
+                                <MenuItem Header="Lưu &amp; Thoát (Ctrl+Enter)" Click="MiLuuVaThoat_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Trước (F10)" Click="BtnTruoc_Click"/>
+                                <MenuItem Header="Sau (F11)" Click="BtnSau_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Thoát (Esc)" Click="MiThoat_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+
+                    <Button x:Name="BtnTruoc" Content="⬅ Trước (F10)" Style="{StaticResource RibbonBtnStyle}" Click="BtnTruoc_Click"/>
+                    <Button x:Name="BtnSau" Content="➡ Sau (F11)" Style="{StaticResource RibbonBtnStyle}" Click="BtnSau_Click"/>
+                    <Button x:Name="BtnTaoMoi" Content="➕ Tạo mới" Style="{StaticResource RibbonBtnStyle}" Click="BtnTaoMoi_Click"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 3. FORM FIELDS -->
+        <Border Grid.Row="2" Background="#dbe6f3" Padding="16,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Tên kho hàng + Ảnh -->
+                    <RowDefinition Height="Auto"/> <!-- Cửa hàng -->
+                    <RowDefinition Height="Auto"/> <!-- Cho phép âm kho -->
+                    <RowDefinition Height="*"/>    <!-- Ghi chú -->
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Tên kho hàng + Ảnh -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Tên kho hàng" VerticalAlignment="Center" Margin="0,0,8,8" FontSize="12"/>
+                <TextBox x:Name="TxtTenKho" Grid.Row="0" Grid.Column="1" Height="24" Margin="0,0,8,8"
+                         VerticalContentAlignment="Center" Padding="4,0" BorderBrush="#0078d7" BorderThickness="1.5"
+                         FontWeight="Bold" Background="White"/>
+
+                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                    <TextBlock Text="Ảnh:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12"/>
+                    <Border BorderBrush="#9ab5cf" BorderThickness="1" Background="White" Height="24" Width="46" CornerRadius="2">
+                        <Button x:Name="BtnAnh" Content="🔍 ▾" Background="Transparent" BorderThickness="0"
+                                FontSize="10" Cursor="Hand" Click="BtnAnh_Click"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Cửa hàng -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Cửa hàng" VerticalAlignment="Center" Margin="0,0,8,8" FontSize="12"/>
+                <ComboBox x:Name="CboCuaHang" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Height="24" Margin="0,0,0,8"
+                          VerticalContentAlignment="Center" Background="#f4f8e8" BorderBrush="#9ab5cf">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💻 " Margin="0,0,4,0"/>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- Cho phép âm kho -->
+                <CheckBox x:Name="ChkChoPhepAmKho" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                          Content="Cho phép âm kho" Margin="0,2,0,10" VerticalContentAlignment="Center" FontSize="12"/>
+
+                <!-- Ghi chú -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Ghi chú" VerticalAlignment="Top" Margin="0,4,8,0" FontSize="12"/>
+                <TextBox x:Name="TxtGhiChu" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                         AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                         BorderBrush="#9ab5cf" Padding="4" Background="White"/>
+            </Grid>
+        </Border>
+
+        <!-- 4. FOOTER BUTTONS -->
+        <Border Grid.Row="3" Background="#dbe6f3" BorderBrush="#b6cadf" BorderThickness="0,1,0,0" Padding="10,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnLuu" Content="💾 Lưu" Style="{StaticResource FooterBtnStyle}" Click="BtnLuu_Click"/>
+                <Button x:Name="BtnLuuVaMoi" Content="Lưu &amp; Mới" Style="{StaticResource FooterBtnStyle}" Click="BtnLuuVaMoi_Click"/>
+                <Button x:Name="BtnLuuVaThoat" Content="Lưu &amp; thoát" Style="{StaticResource FooterBtnStyle}" Click="BtnLuuVaThoat_Click"/>
+                <Button x:Name="BtnThoat" Content="Thoát" Style="{StaticResource FooterBtnStyle}" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

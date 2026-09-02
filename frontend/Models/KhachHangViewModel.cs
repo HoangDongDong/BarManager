@@ -63,6 +63,7 @@ namespace QuanLyBar.Client.Models
         }
 
         public bool IsExpanded { get; set; } = true;
+        public bool IsSelected { get; set; }
         public string Icon { get; set; } = "📁";
         public string IconColor { get; set; } = "#f0ad4e";
         public string ParentId { get; set; }

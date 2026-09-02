@@ -165,6 +165,21 @@ namespace QuanLyBar.Client
                     {
                         content = new QuanLyBar.Client.Views.DanhMucDotKhuyenMaiControl();
                     }
+                    else if (tabName == "Khách hàng thân thiết")
+                    {
+                        content = new QuanLyBar.Client.Views.KhachHangThanThietControl();
+                    }
+                    else if (tabName == "Danh mục thẻ trả trước" || tabName == "Thẻ trả trước")
+                    {
+                        content = new QuanLyBar.Client.Views.DanhMucTheTraTruocControl();
+                    }
+                    else if (tabName == "Danh mục kho hàng" || tabName == "Kho hàng")
+                    {
+                        var win = new QuanLyBar.Client.Views.KhoHang.DanhMucKhoHangWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
                     else
                     {
                         content = new System.Windows.Controls.TextBlock

@@ -294,7 +294,15 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="80"/>
+                        <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="120">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#c0392b"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
                 
@@ -317,7 +325,10 @@
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="Tiền hàng" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
                             <TextBox x:Name="TxtTienHang" Grid.Row="0" Grid.Column="2" Text="0" Background="#d6ebf5" BorderThickness="1" IsReadOnly="True" TextAlignment="Right" VerticalContentAlignment="Center" Margin="4" FontWeight="Bold"/>
                             
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="Giảm giá" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
+                                <TextBlock x:Name="TxtTenDotKhuyenMaiBill" Text="🎁 KM tổng bill" Foreground="#c0392b" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0" Visibility="Collapsed"/>
+                                <TextBlock Text="Giảm giá" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="4">
                                 <TextBox x:Name="TxtGiamGiaPt" Width="40" Text="0" TextAlignment="Right" VerticalContentAlignment="Center" TextChanged="TxtGiamGia_TextChanged"/>
                                 <TextBlock Text="%" VerticalAlignment="Center" Margin="3,0,3,0"/>

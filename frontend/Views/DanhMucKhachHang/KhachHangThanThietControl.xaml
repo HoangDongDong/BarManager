@@ -1,0 +1,607 @@
+<UserControl x:Class="QuanLyBar.Client.Views.KhachHangThanThietControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:models="clr-namespace:QuanLyBar.Client.Models"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1150"
+             Loaded="UserControl_Loaded">
+
+    <UserControl.Resources>
+        <Style x:Key="HeaderTabStyle" TargetType="Border">
+            <Setter Property="Background" Value="#dfe9f5"/>
+            <Setter Property="BorderBrush" Value="#a3bde0"/>
+            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+            <Setter Property="CornerRadius" Value="3,3,0,0"/>
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+
+        <Style x:Key="SubToolbarBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="#f4f7fb"/>
+            <Setter Property="BorderBrush" Value="#9cb2c8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11.5"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#f0f4fa">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" MinWidth="140" MaxWidth="350"/>
+            <ColumnDefinition Width="4"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- CỘT TRÁI: CÂY PHÂN NHÓM KHÁCH HÀNG -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Tab Header Nhóm -->
+            <Border Grid.Row="0" Style="{StaticResource HeaderTabStyle}" Margin="5,5,0,0">
+                <TextBlock Text="Nhóm khách hàng" FontWeight="Bold" FontSize="12.5" Foreground="#1e3f66" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- TreeView có ContextMenu giống Danh mục khách hàng -->
+            <Border Grid.Row="1" Background="White" BorderBrush="#b6cadf" BorderThickness="1" Margin="5,0,0,5">
+                <TreeView x:Name="TvNhomKhachHang" BorderThickness="0" 
+                          SelectedItemChanged="TvNhomKhachHang_SelectedItemChanged"
+                          PreviewMouseRightButtonDown="TvNhomKhachHang_PreviewMouseRightButtonDown">
+                    
+                    <!-- ContextMenu trên TreeView nhóm khách hàng -->
+                    <TreeView.ContextMenu>
+                        <ContextMenu x:Name="CmTreeView">
+                            <!-- 1. Thêm mới -->
+                            <MenuItem Header="Thêm mới">
+                                <MenuItem Header="➕  Thêm nhóm khách hàng" Click="MiThemMoiItem_Click"/>
+                                <MenuItem Header="Thêm nhanh" Click="MiThemNhanhGoc_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Thêm phân cách" Click="MiThemPhanCach_Click"/>
+                                <MenuItem Header="📁  Thêm thư mục" Click="MiThemThuMucGoc_Click"/>
+                            </MenuItem>
+
+                            <!-- 2. Thêm con -->
+                            <MenuItem Header="Thêm con">
+                                <MenuItem Header="➕  Thêm nhóm khách hàng" Click="MiThemConItem_Click"/>
+                                <MenuItem Header="Thêm nhanh" Click="MiThemNhanhCon_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Thêm phân cách" Click="MiThemPhanCach_Click"/>
+                                <MenuItem Header="📁  Thêm thư mục" Click="MiThemThuMucCon_Click"/>
+                            </MenuItem>
+
+                            <!-- 3. Chỉnh sửa -->
+                            <MenuItem Header="✏️  Chỉnh sửa" Click="MiChinhSua_Click"/>
+
+                            <!-- 4. Sắp xếp theo -->
+                            <MenuItem Header="Sắp xếp theo">
+                                <MenuItem x:Name="MiSapXepTen" Header="Tên" IsCheckable="True" IsChecked="True" Click="MiSapXepTen_Click"/>
+                                <MenuItem x:Name="MiSapXepTuyChon" Header="Thứ tự tùy chọn" IsCheckable="True" Click="MiSapXepTuyChon_Click"/>
+                            </MenuItem>
+
+                            <!-- 5. Refresh -->
+                            <MenuItem Header="🔄  Refresh" Click="BtnTaiLaiNhom_Click"/>
+
+                            <Separator/>
+
+                            <!-- 6. Sao chép, Mở rộng, Thu gọn -->
+                            <MenuItem Header="📑  Sao chép" Click="MiSaoChepNhom_Click"/>
+                            <MenuItem Header="Mở rộng" Click="MiMoRong_Click"/>
+                            <MenuItem Header="Thu gọn" Click="MiThuGon_Click"/>
+
+                            <Separator/>
+
+                            <!-- 7. Xóa, Đổi tên, Thùng rác -->
+                            <MenuItem Header="❌  Xóa" Click="BtnXoaNhom_Click"/>
+                            <MenuItem Header="Đổi tên" Click="MiDoiTen_Click"/>
+                            <MenuItem Header="Thùng rác" Click="MiThungRac_Click"/>
+
+                            <Separator/>
+
+                            <!-- 8. Biểu tượng, Thuộc tính -->
+                            <MenuItem Header="Biểu tượng" Click="MiBieuTuong_Click"/>
+                            <MenuItem Header="Thuộc tính" Click="MiThuocTinh_Click"/>
+                        </ContextMenu>
+                    </TreeView.ContextMenu>
+
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type models:NhomKhachHangTreeItem}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal" Margin="2">
+                                <TextBlock Text="{Binding Icon}" FontSize="13" Foreground="{Binding IconColor}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="True"/>
+                            <Setter Property="Padding" Value="2,2"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
+            </Border>
+        </Grid>
+
+        <!-- SPLITTER CỘT TRÁI / PHẢI -->
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="#cbd5e1" Cursor="SizeWE"/>
+
+        <!-- CỘT PHẢI: NỬA TRÊN LÀ DANH SÁCH KHÁCH HÀNG, NỬA DƯỚI LÀ TAB CHI TIẾT TẶNG ĐIỂM / HÓA ĐƠN -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Tab title "Khách hàng thân thiết" -->
+                <RowDefinition Height="3*" MinHeight="150"/> <!-- Danh sách Khách hàng -->
+                <RowDefinition Height="5"/> <!-- GridSplitter -->
+                <RowDefinition Height="2*" MinHeight="150"/> <!-- TabControl chi tiết điểm -->
+            </Grid.RowDefinitions>
+
+            <!-- Tab Header Khách hàng thân thiết -->
+            <Border Grid.Row="0" Style="{StaticResource HeaderTabStyle}" Margin="0,5,5,0" HorizontalAlignment="Left" Width="170">
+                <TextBlock Text="Khách hàng thân thiết" FontWeight="Bold" FontSize="12.5" Foreground="#1e3f66" HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- NỬA TRÊN: TOOLBAR + DATAGRID KHÁCH HÀNG -->
+            <Grid Grid.Row="1" Margin="0,0,5,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Toolbar Lọc (F3) + Refresh -->
+                <Border Grid.Row="0" Background="#eaf1fa" BorderBrush="#b6cadf" BorderThickness="1,1,1,0" Padding="5,4">
+                    <WrapPanel VerticalAlignment="Center">
+                        <TextBlock Text="Lọc (F3):" VerticalAlignment="Center" Margin="0,0,5,0" FontSize="12"/>
+                        <TextBox x:Name="TxtLoc" Width="180" Height="23" VerticalContentAlignment="Center" Margin="0,0,8,0" TextChanged="TxtLoc_TextChanged" KeyDown="TxtLoc_KeyDown"/>
+                        <Button x:Name="BtnRefresh" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnRefresh_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔄" FontSize="11" Margin="0,0,3,0"/>
+                                <TextBlock Text="Refresh"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </Border>
+
+                <!-- DataGrid Danh sách khách hàng thân thiết -->
+                <Border Grid.Row="1" Background="White" BorderBrush="#b6cadf" BorderThickness="1">
+                    <DataGrid x:Name="DgKhachHang" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              IsReadOnly="True" HeadersVisibility="All" GridLinesVisibility="All"
+                              HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                              RowHeight="25" SelectionMode="Single" SelectionUnit="FullRow"
+                              Background="White" RowBackground="White" AlternatingRowBackground="#f8fbff"
+                              SelectionChanged="DgKhachHang_SelectionChanged">
+                        
+                        <!-- RowStyle bắt sự kiện chuột phải để chọn dòng và lấy cell -->
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <EventSetter Event="PreviewMouseRightButtonDown" Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                            </Style>
+                        </DataGrid.RowStyle>
+
+                        <!-- ContextMenu trên DataGrid danh sách khách hàng -->
+                        <DataGrid.ContextMenu>
+                            <ContextMenu x:Name="GridContextMenu">
+                                <MenuItem x:Name="MenuSaoChepO" Header="Sao chép ô" Click="MenuItem_SaoChepO_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="📄" Foreground="Navy"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="MenuSaoChepDong" Header="Sao chép dòng" Click="MenuItem_SaoChepDong_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="📑" Foreground="Navy"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Name="MenuTuDongGianCot" Header="Tự động dãn cột" Click="MenuItem_TuDongGianCot_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="↔️" Foreground="#1e3f66"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" Click="MenuCotHienThi_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="🎛️" Foreground="#1e3f66"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Name="MenuXuatExcel" Header="Xuất dữ liệu Excel" Click="MenuItem_XuatExcel_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="📊" Foreground="Green" FontWeight="Bold"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="MenuInDanhSach" Header="In danh sách" Click="MenuItem_InDanhSach_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="🖨️" Foreground="#333333"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+
+                        <!-- RowHeader hiển thị STT -->
+                        <DataGrid.RowHeaderStyle>
+                            <Style TargetType="{x:Type DataGridRowHeader}">
+                                <Setter Property="Width" Value="32"/>
+                                <Setter Property="Background" Value="#dfe9f5"/>
+                                <Setter Property="BorderBrush" Value="#b6cadf"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="Content" Value="{Binding Stt}"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="FontSize" Value="11"/>
+                            </Style>
+                        </DataGrid.RowHeaderStyle>
+
+                        <DataGrid.Columns>
+                            <!-- Tên khách hàng -->
+                            <DataGridTextColumn Header="Tên khách hàng" Binding="{Binding Name}" Width="160">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Địa chỉ -->
+                            <DataGridTextColumn Header="Địa chỉ" Binding="{Binding Diachi}" Width="220">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Điện thoại -->
+                            <DataGridTextColumn Header="Điện thoại" Binding="{Binding Dienthoai}" Width="105">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Email -->
+                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="140">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Doanh số -->
+                            <DataGridTextColumn Header="Doanh số" Binding="{Binding DoanhSo, StringFormat='{}{0:#,##0}'}" Width="105">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Số hóa đơn -->
+                            <DataGridTextColumn Header="Số hóa đơn" Binding="{Binding SoHoaDon, StringFormat='{}{0:#,##0}'}" Width="80">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Điểm tích lũy -->
+                            <DataGridTextColumn Header="Điểm tích lũy" Binding="{Binding DiemTichLuy, StringFormat='{}{0:#,##0.##}'}" Width="95">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground" Value="#0055aa"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Điểm tích lũy ban đầu -->
+                            <DataGridTextColumn Header="Điểm tích lũy ban đầu" Binding="{Binding DiemTichLuyBanDau, StringFormat='{}{0:#,##0.##}'}" Width="135">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <!-- Ghi chú -->
+                            <DataGridTextColumn Header="Ghi chú" Binding="{Binding Note}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="4,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- SPLITTER GIỮA 2 BẢNG -->
+            <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#cbd5e1" Cursor="SizeNS"/>
+
+            <!-- NỬA DƯỚI: TAB CHI TIẾT TẶNG ĐIỂM VÀ ĐIỂM THEO HÓA ĐƠN -->
+            <TabControl Grid.Row="3" Background="#f0f4fa" Margin="0,2,5,5" BorderBrush="#b6cadf">
+                <!-- TAB 1: TẶNG ĐIỂM - TẶNG QUÀ -->
+                <TabItem Header="Tặng điểm - tặng quà" FontWeight="SemiBold">
+                    <Grid Background="White">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Toolbar: + Thêm mới, Sửa, X Xóa -->
+                        <Border Grid.Row="0" Background="#eaf1fa" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="5,3">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BtnThemTangDiem" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnThemTangDiem_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="➕" Foreground="Green" Margin="0,0,4,0"/>
+                                        <TextBlock Text="Thêm mới"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnSuaTangDiem" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnSuaTangDiem_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="✏️" Margin="0,0,4,0"/>
+                                        <TextBlock Text="Sửa"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnXoaTangDiem" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnXoaTangDiem_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="❌" Foreground="Crimson" Margin="0,0,4,0"/>
+                                        <TextBlock Text="Xóa"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- DataGrid Tặng điểm - tặng quà -->
+                        <DataGrid Grid.Row="1" x:Name="DgTangGiamDiem" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  IsReadOnly="True" HeadersVisibility="All" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                                  RowHeight="25" SelectionMode="Single" SelectionUnit="FullRow"
+                                  Background="White" RowBackground="White" AlternatingRowBackground="#f8fbff"
+                                  MouseDoubleClick="DgTangGiamDiem_MouseDoubleClick">
+                            
+                            <DataGrid.ContextMenu>
+                                <ContextMenu x:Name="CmTangGiamDiem">
+                                    <MenuItem Header="Thêm Tăng giảm điểm" Click="BtnThemTangDiem_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="➕" Foreground="Green"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Thêm nhanh (excel)" Click="MiThemNhanhExcel_Click"/>
+                                    <MenuItem Header="Cập nhật nhanh (excel)" Click="MiCapNhatNhanhExcel_Click"/>
+                                    <MenuItem Header="Chỉnh sửa" Click="BtnSuaTangDiem_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="✏️"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Sắp xếp theo">
+                                        <MenuItem Header="Sắp xếp tăng dần" Click="MiSapXepTangDan_Click"/>
+                                        <MenuItem Header="Sắp xếp giảm dần" Click="MiSapXepGiamDan_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="Ngày" Click="MiSapXepNgay_Click"/>
+                                        <MenuItem Header="Số phiếu" Click="MiSapXepSoPhieu_Click"/>
+                                        <MenuItem Header="Ghi chú" Click="MiSapXepGhiChu_Click"/>
+                                        <MenuItem Header="Điểm tăng" Click="MiSapXepDiemTang_Click"/>
+                                        <MenuItem Header="Điểm giảm" Click="MiSapXepDiemGiam_Click"/>
+                                        <MenuItem Header="Lý do" Click="MiSapXepLyDo_Click"/>
+                                    </MenuItem>
+
+                                    <MenuItem Header="Refresh" Click="BtnRefreshTangDiem_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🔄" Foreground="Green"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="In danh sách" Click="MiInDanhSachTangDiem_Click"/>
+
+                                    <Separator/>
+
+                                    <MenuItem Header="Sao chép ô" Click="MiSaoChepOTangDiem_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📄"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Sao chép vùng chọn" Click="MiSaoChepVungChonTangDiem_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📑"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Xóa" Click="BtnXoaTangDiem_Click">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="❌" Foreground="Crimson"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <Separator/>
+
+                                    <MenuItem Header="Tự động dãn cột" Click="MiTuDongGianCotTangDiem_Click"/>
+                                    <MenuItem Header="Cột hiển thị" Click="MiCotHienThiTangDiem_Click"/>
+                                    <MenuItem Header="Thuộc tính" Click="MiThuocTinhTangDiem_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
+                            <!-- RowStyle bắt sự kiện chuột phải -->
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}">
+                                    <EventSetter Event="PreviewMouseRightButtonDown" Handler="DgTangGiamDiem_Row_PreviewMouseRightButtonDown"/>
+                                </Style>
+                            </DataGrid.RowStyle>
+
+                            <!-- RowHeader hiển thị STT -->
+                            <DataGrid.RowHeaderStyle>
+                                <Style TargetType="{x:Type DataGridRowHeader}">
+                                    <Setter Property="Width" Value="32"/>
+                                    <Setter Property="Background" Value="#dfe9f5"/>
+                                    <Setter Property="BorderBrush" Value="#b6cadf"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                    <Setter Property="Content" Value="{Binding Stt}"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="11"/>
+                                </Style>
+                            </DataGrid.RowHeaderStyle>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat='{}{0:dd/MM/yyyy}'}" Width="110">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="100">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Điểm tăng" Binding="{Binding DiemTang, StringFormat='{}{0:#,##0.##}'}" Width="110">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Right"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Điểm giảm" Binding="{Binding DiemGiam, StringFormat='{}{0:#,##0.##}'}" Width="110">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Right"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Lý do" Binding="{Binding LyDo}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 2: ĐIỂM THEO HÓA ĐƠN -->
+                <TabItem Header="Điểm theo hóa đơn" FontWeight="SemiBold">
+                    <Grid Background="White">
+                        <DataGrid x:Name="DgDiemHoaDon" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  IsReadOnly="True" HeadersVisibility="All" GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                                  RowHeight="25" SelectionMode="Single" SelectionUnit="FullRow"
+                                  Background="White" RowBackground="White" AlternatingRowBackground="#f8fbff">
+                            
+                            <!-- RowHeader hiển thị STT -->
+                            <DataGrid.RowHeaderStyle>
+                                <Style TargetType="{x:Type DataGridRowHeader}">
+                                    <Setter Property="Width" Value="32"/>
+                                    <Setter Property="Background" Value="#dfe9f5"/>
+                                    <Setter Property="BorderBrush" Value="#b6cadf"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                    <Setter Property="Content" Value="{Binding Stt}"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="11"/>
+                                </Style>
+                            </DataGrid.RowHeaderStyle>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay, StringFormat='{}{0:dd/MM/yyyy}'}" Width="120">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="130">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Tổng cộng" Binding="{Binding TongCong, StringFormat='{}{0:#,##0}'}" Width="130">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Right"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Điểm" Binding="{Binding Diem, StringFormat='{}{0:#,##0}'}" Width="100">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Right"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+
+                                <DataGridTextColumn Header="Điểm sử dụng" Binding="{Binding DiemSuDung, StringFormat='{}{0:#,##0}'}" Width="130">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextAlignment" Value="Right"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="4,0"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</UserControl>

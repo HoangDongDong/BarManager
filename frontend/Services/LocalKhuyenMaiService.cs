@@ -403,5 +403,132 @@ namespace QuanLyBar.Client.Services
                 return false;
             }
         }
+
+        public static async Task<List<ActiveDotKhuyenMaiInfo>> GetActivePromotionsAsync(DateTime checkTime)
+        {
+            var result = new List<ActiveDotKhuyenMaiInfo>();
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+
+                    DateTime checkDate = checkTime.Date;
+                    TimeSpan checkTod = checkTime.TimeOfDay;
+
+                    string sqlMaster = @"
+                        SELECT d.ID, d.NAME, d.NOTE, d.DLOAIHINHKHUYENMAIID,
+                               d.TUNGAY, d.DENNGAY, d.TUGIO, d.DENGIO, d.NGUNGAPDUNG,
+                               d.TILEGIAMGIA, d.TILEGIAMGIATONG,
+                               l.NAME AS TENLOAIHINH
+                        FROM DDOTKHUYENMAI d
+                        LEFT JOIN DLOAIHINHKHUYENMAI l ON d.DLOAIHINHKHUYENMAIID = l.ID
+                        WHERE (d.STATUS = 30 OR d.STATUS > 0 OR d.STATUS IS NULL)
+                          AND (d.NGUNGAPDUNG IS NULL OR d.NGUNGAPDUNG = '0' OR d.NGUNGAPDUNG = 0)";
+
+                    var masterRows = (await conn.QueryAsync(sqlMaster)).ToList();
+
+                    foreach (var r in masterRows)
+                    {
+                        // Kiểm tra ngày áp dụng
+                        DateTime? tuNgay = ParseDateTime(r.TUNGAY);
+                        DateTime? denNgay = ParseDateTime(r.DENNGAY);
+                        if (tuNgay.HasValue && checkDate < tuNgay.Value.Date) continue;
+                        if (denNgay.HasValue && checkDate > denNgay.Value.Date) continue;
+
+                        // Kiểm tra khung giờ (nếu có cấu hình)
+                        if (r.TUGIO != null && r.DENGIO != null && !string.IsNullOrWhiteSpace(r.TUGIO.ToString()) && !string.IsNullOrWhiteSpace(r.DENGIO.ToString()))
+                        {
+                            DateTime? dtTu = ParseDateTime(r.TUGIO);
+                            DateTime? dtDen = ParseDateTime(r.DENGIO);
+                            if (dtTu.HasValue && dtDen.HasValue)
+                            {
+                                TimeSpan tu = dtTu.Value.TimeOfDay;
+                                TimeSpan den = dtDen.Value.TimeOfDay;
+
+                                if (tu <= den)
+                                {
+                                    if (checkTod < tu || checkTod > den) continue;
+                                }
+                                else
+                                {
+                                    // Qua đêm (VD: 22:00 -> 04:00)
+                                    if (checkTod < tu && checkTod > den) continue;
+                                }
+                            }
+                        }
+
+                        string dotId = r.ID?.ToString()?.Trim();
+                        var activeDot = new ActiveDotKhuyenMaiInfo
+                        {
+                            Id = dotId,
+                            Name = r.NAME?.ToString()?.Trim() ?? "",
+                            LoaiHinhName = r.TENLOAIHINH?.ToString()?.Trim() ?? "",
+                            TileGiamGia = ParseDecimal(r.TILEGIAMGIA) ?? 0,
+                            TileGiamGiaTong = ParseDecimal(r.TILEGIAMGIATONG) ?? 0
+                        };
+
+                        // Tải chi tiết khuyến mại
+                        string sqlDetails = $@"
+                            SELECT c.DMATHANGID, c.DNHOMMATHANGID, c.GIABAN, c.TILEGIAMGIA, 
+                                   c.SOLUONGMUA, c.DMATHANGTANGID, c.SOLUONGTANG,
+                                   mt.NAME AS TENHANGTANG, dt.NAME AS DVTTANG
+                            FROM DDOTKHUYENMAICHITIET c
+                            LEFT JOIN DMATHANG mt ON c.DMATHANGTANGID = mt.ID
+                            LEFT JOIN DDONVITINH dt ON mt.DDONVITINHID = dt.ID
+                            WHERE c.DDOTKHUYENMAIID = '{dotId.Replace("'", "''")}'
+                              AND (c.STATUS = 30 OR c.STATUS > 0 OR c.STATUS IS NULL)";
+
+                        var detailRows = (await conn.QueryAsync(sqlDetails)).ToList();
+                        foreach (var d in detailRows)
+                        {
+                            activeDot.Details.Add(new ActiveKhuyenMaiChiTietInfo
+                            {
+                                MathangId = d.DMATHANGID?.ToString()?.Trim(),
+                                NhomMathangId = d.DNHOMMATHANGID?.ToString()?.Trim(),
+                                DonGiaGoc = ParseDecimal(d.GIABAN) ?? 0,
+                                TileGiamGia = ParseDecimal(d.TILEGIAMGIA) ?? 0,
+                                SoLuongMua = ParseDecimal(d.SOLUONGMUA) ?? 0,
+                                MathangTangId = d.DMATHANGTANGID?.ToString()?.Trim(),
+                                TenHangTang = d.TENHANGTANG?.ToString()?.Trim(),
+                                DvtTang = d.DVTTANG?.ToString()?.Trim(),
+                                SoLuongTang = ParseDecimal(d.SOLUONGTANG) ?? 0
+                            });
+                        }
+
+                        result.Add(activeDot);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error GetActivePromotionsAsync: " + ex.Message);
+            }
+
+            return result;
+        }
+    }
+
+    public class ActiveDotKhuyenMaiInfo
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string LoaiHinhName { get; set; }
+        public decimal TileGiamGia { get; set; }
+        public decimal TileGiamGiaTong { get; set; }
+        public List<ActiveKhuyenMaiChiTietInfo> Details { get; set; } = new List<ActiveKhuyenMaiChiTietInfo>();
+    }
+
+    public class ActiveKhuyenMaiChiTietInfo
+    {
+        public string MathangId { get; set; }
+        public string NhomMathangId { get; set; }
+        public decimal DonGiaGoc { get; set; }
+        public decimal TileGiamGia { get; set; }
+        public decimal SoLuongMua { get; set; }
+        public string MathangTangId { get; set; }
+        public string TenHangTang { get; set; }
+        public string DvtTang { get; set; }
+        public decimal SoLuongTang { get; set; }
     }
 }

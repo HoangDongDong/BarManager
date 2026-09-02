@@ -586,6 +586,11 @@ namespace QuanLyBar.Client.Views
             decimal.TryParse(TxtTileGiamTienHang.Text.Trim(), out tileGiamGia);
             decimal.TryParse(TxtTileGiamTienPhong.Text.Trim(), out tileGiamGiaTong);
 
+            string tuGioStr = TxtTuGio.Text.Trim();
+            string denGioStr = TxtDenGio.Text.Trim();
+            string tuGioSql = string.IsNullOrEmpty(tuGioStr) ? "NULL" : $"'{tuNgay:yyyy-MM-dd} {tuGioStr}:00'";
+            string denGioSql = string.IsNullOrEmpty(denGioStr) ? "NULL" : $"'{tuNgay:yyyy-MM-dd} {denGioStr}:00'";
+
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
@@ -601,12 +606,12 @@ namespace QuanLyBar.Client.Views
                                 INSERT INTO DDOTKHUYENMAI (
                                     ID, NAME, NOTE, STATUS, USERCREATEDID, USERMODIFIEDID, 
                                     TIMECREATED, TIMEMODIFIED, DLOAIHINHKHUYENMAIID,
-                                    TUNGAY, DENNGAY, NGUNGAPDUNG, TILEGIAMGIA, TILEGIAMGIATONG
+                                    TUNGAY, DENNGAY, TUGIO, DENGIO, NGUNGAPDUNG, TILEGIAMGIA, TILEGIAMGIATONG
                                 ) VALUES (
                                     '{dotId}', '{name.Replace("'", "''")}', '{note.Replace("'", "''")}', 30,
                                     '{userId}', '{userId}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
                                     {(string.IsNullOrEmpty(loaiHinhId) ? "NULL" : $"'{loaiHinhId}'")},
-                                    '{tuNgay:yyyy-MM-dd}', '{denNgay:yyyy-MM-dd}', '{ngungApDung}',
+                                    '{tuNgay:yyyy-MM-dd}', '{denNgay:yyyy-MM-dd}', {tuGioSql}, {denGioSql}, '{ngungApDung}',
                                     {tileGiamGia}, {tileGiamGiaTong}
                                 )";
                             await conn.ExecuteAsync(sqlInsertMaster, transaction: trans);
@@ -622,6 +627,8 @@ namespace QuanLyBar.Client.Views
                                     DLOAIHINHKHUYENMAIID = {(string.IsNullOrEmpty(loaiHinhId) ? "NULL" : $"'{loaiHinhId}'")},
                                     TUNGAY = '{tuNgay:yyyy-MM-dd}',
                                     DENNGAY = '{denNgay:yyyy-MM-dd}',
+                                    TUGIO = {tuGioSql},
+                                    DENGIO = {denGioSql},
                                     NGUNGAPDUNG = '{ngungApDung}',
                                     TILEGIAMGIA = {tileGiamGia},
                                     TILEGIAMGIATONG = {tileGiamGiaTong}

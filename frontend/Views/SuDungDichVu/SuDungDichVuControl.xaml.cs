@@ -289,6 +289,8 @@ namespace QuanLyBar.Client.Views
                 if (TxtSoKhach != null) TxtSoKhach.Text = ban.SoKhach.ToString();
                 if (TxtKhachHang != null) TxtKhachHang.Text = ban.KhachHangName ?? "";
                 if (TxtOrderGhiChu != null) TxtOrderGhiChu.Text = ban.GhiChu ?? "";
+
+                await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
             }
             else
             {
@@ -393,9 +395,206 @@ namespace QuanLyBar.Client.Views
                 }
 
                 UpdateOrderControlState();
+                _ = ApplyPromotionsToCurrentBanAsync(true);
                 MessageBox.Show($"Đã bắt đầu mở bàn '{_currentBan.Name}' (Số phiếu: {result.SoPhieu}) lúc {startTime:HH:mm:ss}!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
+        #region Tự động áp dụng khuyến mại
+        private async Task ApplyPromotionsToCurrentBanAsync(bool recalculateTotals = true)
+        {
+            if (_currentBan == null || !_currentBan.IsOccupied || !_currentBan.StartTime.HasValue || _currentBan.OrderItems == null)
+            {
+                if (recalculateTotals) RecalculateTotals();
+                DgChiTiet?.Items?.Refresh();
+                return;
+            }
+
+            // BƯỚC 1: Luôn RESET toàn bộ món về giá gốc và xóa khuyến mại cũ
+            foreach (var item in _currentBan.OrderItems.Where(x => !x.IsHangTang))
+            {
+                if (item.DonGiaGoc > 0)
+                {
+                    item.DonGia = item.DonGiaGoc;
+                }
+                item.ChietKhauPhanTram = 0;
+                if (!string.IsNullOrEmpty(item.GhiChu) && (item.GhiChu.StartsWith("KM:") || item.GhiChu.StartsWith("KM đợt:")))
+                {
+                    item.GhiChu = "";
+                }
+                item.Recalculate();
+            }
+
+            var oldGifts = _currentBan.OrderItems.Where(x => x.IsHangTang || (x.GhiChu != null && x.GhiChu.Contains("(Hàng tặng"))).ToList();
+            foreach (var g in oldGifts)
+            {
+                _currentBan.OrderItems.Remove(g);
+            }
+
+            if (TxtGiamGiaPt != null)
+            {
+                TxtGiamGiaPt.Text = "0";
+            }
+            if (TxtTenDotKhuyenMaiBill != null)
+            {
+                TxtTenDotKhuyenMaiBill.Visibility = Visibility.Collapsed;
+            }
+
+            // BƯỚC 2: Tải các đợt khuyến mại đang có hiệu lực (NGUNGAPDUNG = 0)
+            DateTime checkTime = _currentBan.StartTime.Value;
+            var activePromotions = await LocalKhuyenMaiService.GetActivePromotionsAsync(checkTime);
+            if (activePromotions != null && activePromotions.Count > 0)
+            {
+                // 1. Áp dụng Giảm giá % / Giảm giá tiền / Giảm giá theo nhóm
+                foreach (var item in _currentBan.OrderItems.Where(x => !x.IsHangTang))
+                {
+                    decimal maxPercentDiscount = 0;
+                    decimal bestDonGia = item.DonGia;
+                    bool hasCustomPrice = false;
+                    string matchedPromoName = "";
+
+                    foreach (var promo in activePromotions)
+                    {
+                        // Kiểm tra chi tiết mặt hàng
+                        var detailSp = promo.Details.FirstOrDefault(d => d.MathangId == item.MatHangId);
+                        if (detailSp != null)
+                        {
+                            // Giảm giá tiền theo sản phẩm
+                            if (detailSp.TileGiamGia > 100 || promo.LoaiHinhName.ToLower().Contains("tiền"))
+                            {
+                                decimal kmPrice = item.DonGia;
+                                if (detailSp.DonGiaGoc > 0 && detailSp.TileGiamGia > 0)
+                                {
+                                    decimal giaSauGiam = detailSp.DonGiaGoc - detailSp.TileGiamGia;
+                                    kmPrice = (giaSauGiam > 0 && giaSauGiam < detailSp.DonGiaGoc) ? giaSauGiam : detailSp.TileGiamGia;
+                                }
+                                else if (detailSp.TileGiamGia > 0)
+                                {
+                                    kmPrice = detailSp.TileGiamGia;
+                                }
+
+                                if (kmPrice > 0 && kmPrice <= item.DonGia)
+                                {
+                                    if (!hasCustomPrice || kmPrice < bestDonGia)
+                                    {
+                                        bestDonGia = kmPrice;
+                                        hasCustomPrice = true;
+                                        matchedPromoName = promo.Name;
+                                    }
+                                }
+                            }
+                            // Giảm giá % theo sản phẩm
+                            else if (detailSp.TileGiamGia > 0 && detailSp.TileGiamGia <= 100)
+                            {
+                                if (detailSp.TileGiamGia > maxPercentDiscount)
+                                {
+                                    maxPercentDiscount = detailSp.TileGiamGia;
+                                    matchedPromoName = promo.Name;
+                                }
+                            }
+                        }
+
+                        // Kiểm tra giảm giá theo nhóm hàng
+                        if (!string.IsNullOrEmpty(item.NhomMatHangId))
+                        {
+                            var detailNhom = promo.Details.FirstOrDefault(d => d.NhomMathangId == item.NhomMatHangId);
+                            if (detailNhom != null && detailNhom.TileGiamGia > maxPercentDiscount)
+                            {
+                                maxPercentDiscount = detailNhom.TileGiamGia;
+                                matchedPromoName = promo.Name;
+                            }
+                        }
+                    }
+
+                    if (hasCustomPrice)
+                    {
+                        item.DonGia = bestDonGia;
+                    }
+                    if (maxPercentDiscount > 0)
+                    {
+                        item.ChietKhauPhanTram = maxPercentDiscount;
+                    }
+
+                    if (!string.IsNullOrEmpty(matchedPromoName))
+                    {
+                        if (string.IsNullOrEmpty(item.GhiChu) || item.GhiChu.StartsWith("KM:") || item.GhiChu.StartsWith("KM đợt:"))
+                        {
+                            item.GhiChu = $"KM: {matchedPromoName}";
+                        }
+                    }
+
+                    item.Recalculate();
+                }
+
+                // 2. Áp dụng Mua X Tặng Y
+                foreach (var promo in activePromotions)
+                {
+                    var buyGetDetails = promo.Details.Where(d => d.SoLuongMua > 0 && d.SoLuongTang > 0 && !string.IsNullOrEmpty(d.MathangId) && !string.IsNullOrEmpty(d.MathangTangId)).ToList();
+                    foreach (var bg in buyGetDetails)
+                    {
+                        var buyItem = _currentBan.OrderItems.FirstOrDefault(x => x.MatHangId == bg.MathangId && !x.IsHangTang);
+                        if (buyItem != null && buyItem.SoLuong >= bg.SoLuongMua)
+                        {
+                            int times = (int)(buyItem.SoLuong / bg.SoLuongMua);
+                            decimal totalTang = times * bg.SoLuongTang;
+
+                            if (totalTang > 0)
+                            {
+                                string giftName = !string.IsNullOrEmpty(bg.TenHangTang) ? bg.TenHangTang : buyItem.MatHangName;
+                                string giftDvt = !string.IsNullOrEmpty(bg.DvtTang) ? bg.DvtTang : buyItem.DonViTinh;
+
+                                var giftItem = new PosDonHangChiTietViewModel
+                                {
+                                    Id = Guid.NewGuid().ToString("N").Substring(0, 20),
+                                    MatHangId = bg.MathangTangId,
+                                    MatHangName = giftName,
+                                    DonViTinh = giftDvt,
+                                    DonGiaGoc = 0,
+                                    DonGia = 0,
+                                    SoLuong = totalTang,
+                                    ChietKhauPhanTram = 0,
+                                    ThanhTien = 0,
+                                    IsHangTang = true,
+                                    GhiChu = $"(Hàng tặng đợt '{promo.Name}')",
+                                    LoaiDoId = buyItem.LoaiDoId,
+                                    LoaiDoName = buyItem.LoaiDoName
+                                };
+                                giftItem.Recalculate();
+                                _currentBan.OrderItems.Add(giftItem);
+                            }
+                        }
+                    }
+                }
+
+                // 3. Áp dụng Giảm giá tổng bill (nếu có - lấy đợt giảm cao nhất)
+                var billPromo = activePromotions
+                    .Where(p => p.TileGiamGia > 0 || p.TileGiamGiaTong > 0)
+                    .OrderByDescending(p => Math.Max(p.TileGiamGia, p.TileGiamGiaTong))
+                    .FirstOrDefault();
+                if (billPromo != null)
+                {
+                    decimal promoPt = billPromo.TileGiamGia > 0 ? billPromo.TileGiamGia : billPromo.TileGiamGiaTong;
+                    if (TxtGiamGiaPt != null)
+                    {
+                        TxtGiamGiaPt.Text = promoPt.ToString("0.#");
+                    }
+                    if (TxtTenDotKhuyenMaiBill != null)
+                    {
+                        TxtTenDotKhuyenMaiBill.Text = $"🎁 [{billPromo.Name}]";
+                        TxtTenDotKhuyenMaiBill.ToolTip = $"Đợt khuyến mại '{billPromo.Name}' giảm {promoPt:0.#}% tổng bill";
+                        TxtTenDotKhuyenMaiBill.Visibility = Visibility.Visible;
+                    }
+                }
+            }
+
+            if (recalculateTotals)
+            {
+                RecalculateTotals();
+            }
+
+            DgChiTiet?.Items?.Refresh();
+        }
+        #endregion
 
         private async void AddItemToCurrentOrder(PosMatHangViewModel matHang)
         {
@@ -419,7 +618,7 @@ namespace QuanLyBar.Client.Views
             }
 
             // Kiểm tra xem món đã có trong đơn chưa
-            var existing = _currentBan.OrderItems.FirstOrDefault(x => x.MatHangId == matHang.Id);
+            var existing = _currentBan.OrderItems.FirstOrDefault(x => x.MatHangId == matHang.Id && !x.IsHangTang);
             if (existing != null)
             {
                 existing.SoLuong += 1;
@@ -432,6 +631,8 @@ namespace QuanLyBar.Client.Views
                     MatHangId = matHang.Id,
                     MatHangName = matHang.Name,
                     DonViTinh = matHang.DonViTinh,
+                    NhomMatHangId = matHang.NhomMatHangId,
+                    DonGiaGoc = matHang.GiaBan ?? 0,
                     DonGia = matHang.GiaBan ?? 0,
                     SoLuong = 1,
                     ChietKhauPhanTram = 0,
@@ -443,7 +644,7 @@ namespace QuanLyBar.Client.Views
                 _currentBan.OrderItems.Add(newItem);
             }
 
-            RecalculateTotals();
+            await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
             await AutoSaveOrderAsync();
 
             _ = LocalLuuVetService.GhiLuuVetAsync(
@@ -474,10 +675,10 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnTangSoLuong_Click(object sender, RoutedEventArgs e)
         {
-            if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item)
+            if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item && !item.IsHangTang)
             {
                 item.SoLuong += 1;
-                RecalculateTotals();
+                await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
                 await AutoSaveOrderAsync();
 
                 _ = LocalLuuVetService.GhiLuuVetAsync(
@@ -489,7 +690,7 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnGiamSoLuong_Click(object sender, RoutedEventArgs e)
         {
-            if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item)
+            if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item && !item.IsHangTang)
             {
                 if (item.SoLuong > 1)
                 {
@@ -499,7 +700,7 @@ namespace QuanLyBar.Client.Views
                 {
                     _currentBan.OrderItems.Remove(item);
                 }
-                RecalculateTotals();
+                await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
                 await AutoSaveOrderAsync();
 
                 _ = LocalLuuVetService.GhiLuuVetAsync(
@@ -518,7 +719,7 @@ namespace QuanLyBar.Client.Views
                 string ten = item.MatHangName;
 
                 _currentBan.OrderItems.Remove(item);
-                RecalculateTotals();
+                await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
                 await AutoSaveOrderAsync();
 
                 _ = LocalLuuVetService.GhiLuuVetAsync(
@@ -530,13 +731,13 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnDatSl_Click(object sender, RoutedEventArgs e)
         {
-            if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item)
+            if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item && !item.IsHangTang)
             {
                 var win = new InputWindow("Đặt số lượng", $"Nhập số lượng cho '{item.MatHangName}':", item.SoLuong.ToString("0"));
                 if (win.ShowDialog() == true && decimal.TryParse(win.InputText?.Trim(), out decimal sl) && sl > 0)
                 {
                     item.SoLuong = sl;
-                    RecalculateTotals();
+                    await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
                     await AutoSaveOrderAsync();
 
                     _ = LocalLuuVetService.GhiLuuVetAsync(
@@ -604,46 +805,81 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private bool _isUpdatingTotals = false;
+
         private void RecalculateTotals()
         {
+            if (_isUpdatingTotals) return;
             if (TxtTienHang == null || TxtTongCong == null || TxtGiamGia == null || TxtGiamGiaPt == null)
             {
                 return;
             }
 
-            if (_currentBan == null || _currentBan.OrderItems == null)
+            _isUpdatingTotals = true;
+            try
             {
-                TxtTienHang.Text = "0";
-                TxtTongCong.Text = "0";
-                return;
+                if (_currentBan == null || _currentBan.OrderItems == null)
+                {
+                    TxtTienHang.Text = "0";
+                    TxtTongCong.Text = "0";
+                    TxtGiamGia.Text = "0";
+                    return;
+                }
+
+                decimal tienHang = _currentBan.OrderItems.Sum(x => x.ThanhTien);
+                _currentBan.TienHang = tienHang;
+
+                decimal giamPt = ParseNumber(TxtGiamGiaPt.Text, isPercent: true);
+                decimal giamTien = 0;
+                if (giamPt > 0)
+                {
+                    giamTien = Math.Round(tienHang * (giamPt / 100m));
+                }
+                else
+                {
+                    giamTien = ParseNumber(TxtGiamGia.Text);
+                }
+
+                _currentBan.GiamGia = giamTien;
+                decimal tongCong = Math.Max(0, tienHang - giamTien);
+                _currentBan.TongCong = tongCong;
+
+                TxtTienHang.Text = tienHang.ToString("N0");
+                TxtGiamGia.Text = giamTien.ToString("N0");
+                TxtTongCong.Text = tongCong.ToString("N0");
             }
-
-            decimal tienHang = _currentBan.OrderItems.Sum(x => x.ThanhTien);
-            _currentBan.TienHang = tienHang;
-
-            decimal.TryParse(TxtGiamGiaPt.Text?.Trim(), out decimal giamPt);
-            decimal giamTien = 0;
-            if (giamPt > 0)
+            finally
             {
-                giamTien = tienHang * (giamPt / 100m);
+                _isUpdatingTotals = false;
             }
-            else
+        }
+
+        private decimal ParseNumber(string text, bool isPercent = false)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return 0;
+            if (isPercent)
             {
-                decimal.TryParse(TxtGiamGia.Text?.Trim(), out giamTien);
+                string cleanPt = text.Replace(",", ".").Trim();
+                if (decimal.TryParse(cleanPt, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal resPt))
+                {
+                    return resPt;
+                }
+                return 0;
             }
-
-            _currentBan.GiamGia = giamTien;
-            decimal tongCong = Math.Max(0, tienHang - giamTien);
-            _currentBan.TongCong = tongCong;
-
-            TxtTienHang.Text = tienHang.ToString("N0");
-            TxtGiamGia.Text = giamTien.ToString("N0");
-            TxtTongCong.Text = tongCong.ToString("N0");
+            string clean = text.Replace(",", "").Replace(".", "").Trim();
+            if (decimal.TryParse(clean, out decimal res))
+            {
+                return res;
+            }
+            return 0;
         }
 
         private void TxtGiamGia_TextChanged(object sender, TextChangedEventArgs e)
         {
-            RecalculateTotals();
+            if (!_isUpdatingTotals)
+            {
+                RecalculateTotals();
+            }
         }
 
         private async Task AutoSaveOrderAsync()

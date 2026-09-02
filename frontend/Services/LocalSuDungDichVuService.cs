@@ -185,19 +185,20 @@ namespace QuanLyBar.Client.Services
                     // Cập nhật hoặc thêm mới vào TSOHOADON
                     if (!string.IsNullOrEmpty(tsoId))
                     {
-                        string updateTsoSql = "UPDATE TSOHOADON SET SO = @So, TIMEMODIFIED = CURRENT_TIMESTAMP, USERMODIFIEDID = @UserId WHERE CAST(ID AS VARCHAR(50)) = @TsoId";
-                        await conn.ExecuteAsync(updateTsoSql, new { So = nextSo.ToString(), UserId = userCreatedId, TsoId = tsoId });
+                        string updateTsoSql = "UPDATE TSOHOADON SET SO = @So, NAME = @Name, TIMEMODIFIED = CURRENT_TIMESTAMP, USERMODIFIEDID = @UserId WHERE CAST(ID AS VARCHAR(50)) = @TsoId";
+                        await conn.ExecuteAsync(updateTsoSql, new { So = nextSo.ToString(), Name = soPhieu, UserId = userCreatedId, TsoId = tsoId });
                     }
                     else
                     {
                         string insertTsoSql = @"
                             INSERT INTO TSOHOADON (
-                                ID, NGAY, SO, STATUS, USERCREATEDID, TIMECREATED
+                                ID, NAME, NGAY, SO, STATUS, USERCREATEDID, TIMECREATED
                             ) VALUES (
-                                @Id, @Ngay, @So, 1, @UserId, CURRENT_TIMESTAMP
+                                @Id, @Name, @Ngay, @So, 1, @UserId, CURRENT_TIMESTAMP
                             )";
                         await conn.ExecuteAsync(insertTsoSql, new { 
                             Id = Guid.NewGuid().ToString(), 
+                            Name = soPhieu,
                             Ngay = monthStart, 
                             So = nextSo.ToString(), 
                             UserId = userCreatedId 
@@ -259,8 +260,9 @@ namespace QuanLyBar.Client.Services
                     string sql = @"
                         SELECT c.ID as Id, c.DMATHANGID as MatHangId, c.TENHANG as MatHangName, 
                                COALESCE(dvt.NAME, 'đĩa') as DonViTinh, COALESCE(c.SLXUAT, 1) as SoLuong, 
-                               c.DONGIA as DonGia, c.TILEGIAMGIA as ChietKhauPhanTram, 
+                               c.DONGIA as DonGia, COALESCE(m.GIABAN, c.DONGIA) as DonGiaGoc, c.TILEGIAMGIA as ChietKhauPhanTram, 
                                c.THANHTIEN as ThanhTien, c.NOTE as GhiChu,
+                               m.DNHOMMATHANGID as NhomMatHangId,
                                COALESCE(n.DLOAIDOID, 1) as LoaiDoId,
                                COALESCE(ld.NAME, 'Đồ ăn') as LoaiDoName,
                                CASE WHEN c.DTRANGTHAICHEBIENID = 1 THEN 1 ELSE 0 END as DaInCheBien
@@ -393,8 +395,12 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
 
                     var orderInfo = await conn.QueryFirstOrDefaultAsync(
-                        "SELECT h.NAME as SoPhieu, h.TONGCONG as TongCong, h.NGAY as Ngay, b.NAME as BanName FROM TDONHANG h LEFT JOIN DBAN b ON h.DBANID = b.ID WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId",
+                        "SELECT h.NAME as SoPhieu, h.TONGCONG as TongCong, h.NGAY as Ngay, b.NAME as BanName, h.DKHACHHANGID as DkhachhangId FROM TDONHANG h LEFT JOIN DBAN b ON h.DBANID = b.ID WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId",
                         new { OrderId = orderId });
+
+                    decimal tongCong = orderInfo?.TONGCONG != null ? Convert.ToDecimal(orderInfo.TONGCONG) : 0;
+                    // Quy tắc: 20 000đ sẽ được 1 điểm
+                    int diemTichLuy = (int)(tongCong / 20000m);
 
                     string sql = @"
                         UPDATE TDONHANG 
@@ -406,7 +412,8 @@ namespace QuanLyBar.Client.Services
                             TIENMAT = @TienMat,
                             THE = @TheATM,
                             THETRATRUOC = @TheTraTruoc,
-                            LOAITHANHTOAN = @LoaiTtInt
+                            LOAITHANHTOAN = @LoaiTtInt,
+                            DIEM = @Diem
                         WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
                     await conn.ExecuteAsync(sql, new { 
                         OrderId = orderId, 
@@ -415,16 +422,16 @@ namespace QuanLyBar.Client.Services
                         TienMat = loaiTtInt == 0 ? khachDua : 0,
                         TheATM = theATM.ToString("0.##"),
                         TheTraTruoc = theTraTruoc.ToString("0.##"),
-                        LoaiTtInt = loaiTtInt
+                        LoaiTtInt = loaiTtInt,
+                        Diem = diemTichLuy
                     });
 
                     if (orderInfo != null)
                     {
                         string soPhieu = orderInfo.SOPHIEU?.ToString() ?? "";
-                        decimal tongCong = orderInfo.TONGCONG != null ? Convert.ToDecimal(orderInfo.TONGCONG) : 0;
                         DateTime ngay = orderInfo.NGAY != null ? Convert.ToDateTime(orderInfo.NGAY) : DateTime.Today;
                         string banName = orderInfo.BANNAME?.ToString() ?? "";
-                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, banName, "Sử dụng dịch vụ", $"Đóng hóa đơn (Có in), số phiếu:{soPhieu}, ngày: {ngay:dd/MM/yyyy}", 1, 0, 0, tongCong);
+                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, banName, "Sử dụng dịch vụ", $"Đóng hóa đơn (Có in), số phiếu:{soPhieu}, ngày: {ngay:dd/MM/yyyy}, tích lũy: {diemTichLuy} điểm", 1, 0, 0, tongCong);
                     }
 
                     return true;
@@ -837,6 +844,7 @@ namespace QuanLyBar.Client.Services
                         SELECT 
                             m.ID as Id, m.CODE as Code, m.NAME as Name, m.GIABAN as GiaBan,
                             COALESCE(dvt.NAME, 'đĩa') as DonViTinh,
+                            m.DNHOMMATHANGID as NhomMatHangId,
                             COALESCE(n.DLOAIDOID, 1) as LoaiDoId,
                             COALESCE(ld.NAME, 'Đồ ăn') as LoaiDoName
                         FROM DMATHANG m

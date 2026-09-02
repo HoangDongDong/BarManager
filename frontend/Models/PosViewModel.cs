@@ -147,6 +147,7 @@ namespace QuanLyBar.Client.Models
         public string Name { get; set; }
         public string DonViTinh { get; set; }
         public decimal? GiaBan { get; set; }
+        public string NhomMatHangId { get; set; }
         public int LoaiDoId { get; set; } = 1;
         public string LoaiDoName { get; set; } = "Đồ ăn";
 
@@ -160,6 +161,8 @@ namespace QuanLyBar.Client.Models
         private string _matHangId;
         private string _matHangName;
         private string _donViTinh;
+        private string _nhomMatHangId;
+        private bool _isHangTang = false;
         private decimal _soLuong = 1;
         private decimal _donGia = 0;
         private decimal _chietKhauPhanTram = 0;
@@ -173,6 +176,8 @@ namespace QuanLyBar.Client.Models
         public string MatHangId { get => _matHangId; set { _matHangId = value; OnPropertyChanged(); } }
         public string MatHangName { get => _matHangName; set { _matHangName = value; OnPropertyChanged(); } }
         public string DonViTinh { get => _donViTinh; set { _donViTinh = value; OnPropertyChanged(); } }
+        public string NhomMatHangId { get => _nhomMatHangId; set { _nhomMatHangId = value; OnPropertyChanged(); } }
+        public bool IsHangTang { get => _isHangTang; set { _isHangTang = value; OnPropertyChanged(); } }
         public int LoaiDoId { get => _loaiDoId; set { _loaiDoId = value; OnPropertyChanged(); } }
         public string LoaiDoName { get => _loaiDoName; set { _loaiDoName = value; OnPropertyChanged(); } }
         public bool DaInCheBien { get => _daInCheBien; set { _daInCheBien = value; OnPropertyChanged(); } }
@@ -212,6 +217,8 @@ namespace QuanLyBar.Client.Models
                 OnPropertyChanged(); 
             } 
         }
+
+        public decimal DonGiaGoc { get; set; }
 
         public decimal DonGia 
         { 

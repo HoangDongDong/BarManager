@@ -30,6 +30,11 @@
                 </StackPanel>
             </Border>
 
+            <!-- Tag Giảm giá khuyến mại -->
+            <Border x:Name="BorderKhuyenMaiTag" Grid.Column="1" Margin="10,0" Background="#fff1f0" BorderBrush="#ffccc7" BorderThickness="1" Padding="8,3" CornerRadius="2" VerticalAlignment="Center" Visibility="Collapsed">
+                <TextBlock x:Name="TxtKhuyenMaiTag" Text="🎁 Tiền hàng: 0đ | Giảm giá: -0đ" Foreground="#cf1322" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
+            </Border>
+
             <!-- In tạm tính (F8) -->
             <Button x:Name="BtnInTamTinh" Grid.Column="2" Height="30" Padding="10,2" Cursor="Hand" Background="White" BorderBrush="#b6c1cd" Click="BtnInTamTinh_Click">
                 <StackPanel Orientation="Horizontal">
