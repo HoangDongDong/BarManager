@@ -1,91 +1,141 @@
 <Window x:Class="QuanLyBar.Client.Views.InLuoiWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="In lưới" Height="520" Width="420"
+        Title="In lưới" Height="530" Width="430"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        Background="#dbe7f7">
-    <Grid Margin="10">
+        Background="#dbe7f7"
+        FontFamily="Segoe UI" FontSize="12">
+
+    <Window.Resources>
+        <Style x:Key="DialogBtn" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#8899aa"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,4"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#edf5ff"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#3388ee"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#dbeaff"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="12,10,12,10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/> <!-- 0: Header -->
+            <RowDefinition Height="Auto"/> <!-- 1: Thiết lập -->
+            <RowDefinition Height="*"/>    <!-- 2: Cột hiển thị -->
+            <RowDefinition Height="Auto"/> <!-- 3: In cột STT -->
+            <RowDefinition Height="Auto"/> <!-- 4: Nút bấm -->
         </Grid.RowDefinitions>
 
-        <!-- Header Cấu hình trang in -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5,0,0,10">
-            <TextBlock Text="🖨" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <TextBlock Text="Cấu hình trang in" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+        <!-- 0. Header Cấu hình trang in -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4,0,0,10">
+            <TextBlock Text="🖨️" FontSize="22" Margin="0,0,8,0" VerticalAlignment="Center"/>
+            <TextBlock Text="Cấu hình trang in" FontWeight="Bold" FontSize="14" Foreground="#111111" VerticalAlignment="Center"/>
         </StackPanel>
 
-        <GroupBox Header="Thiết lập" Grid.Row="1" Margin="0,0,0,8" Padding="8" BorderBrush="#a3b8d4">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="65"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Text="Tiêu đề:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,5"/>
-                <TextBox x:Name="TxtTieuDe" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" Height="24" Text="Đặt hàng"/>
-
-                <TextBlock Text="Ghi chú:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,5"/>
-                <TextBox x:Name="TxtGhiChu" Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" Height="24"/>
-
-                <TextBlock Text="Mẫu in:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                <ListBox x:Name="LstMauIn" Grid.Row="2" Grid.Column="1" Height="85" SelectionMode="Single">
-                    <ListBoxItem Tag="Mẫu 80">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📊 " Foreground="Teal"/>
-                            <TextBlock Text="Mẫu 80"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem Tag="Mẫu A4 nằm ngang" IsSelected="True">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📄 " Foreground="RoyalBlue"/>
-                            <TextBlock Text="Mẫu A4 nằm ngang"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem Tag="Mẫu A4 thẳng đứng">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📈 " Foreground="Crimson"/>
-                            <TextBlock Text="Mẫu A4 thẳng đứng"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                </ListBox>
-            </Grid>
-        </GroupBox>
-
-        <!-- Cột hiển thị -->
-        <Grid Grid.Row="2" Margin="0,0,0,5">
+        <!-- 1. GroupBox Thiết lập với Tab vàng -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="Cột hiển thị" FontWeight="SemiBold" Margin="2,0,0,4"/>
-            <Border Grid.Row="1" BorderBrush="#a3b8d4" BorderThickness="1" Background="White">
-                <ListBox x:Name="LstCotHienThi" SelectionMode="Multiple" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+            <!-- Tab vàng 'Thiết lập' chuẩn -->
+            <Border Grid.Row="0" Background="#f7b731" BorderBrush="#9ab5cf" BorderThickness="1,1,1,0" Padding="12,3" CornerRadius="2,2,0,0" HorizontalAlignment="Left" Margin="4,0,0,-1" Panel.ZIndex="1">
+                <TextBlock Text="Thiết lập" FontWeight="Bold" FontSize="11.5" Foreground="#111111"/>
+            </Border>
+
+            <!-- Khung thiết lập nội dung -->
+            <Border Grid.Row="1" Background="#f9fbfe" BorderBrush="#9ab5cf" BorderThickness="1" Padding="8,10,8,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="65"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Tiêu đề:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,6" Foreground="#222222"/>
+                    <TextBox x:Name="TxtTieuDe" Grid.Row="0" Grid.Column="1" Margin="0,0,0,6" Height="23" Text="Phiếu nhập" VerticalContentAlignment="Center" Padding="4,0" BorderBrush="#9ab5cf"/>
+
+                    <TextBlock Text="Ghi chú:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,6" Foreground="#222222"/>
+                    <TextBox x:Name="TxtGhiChu" Grid.Row="1" Grid.Column="1" Margin="0,0,0,6" Height="23" VerticalContentAlignment="Center" Padding="4,0" BorderBrush="#9ab5cf"/>
+
+                    <TextBlock Text="Mẫu in:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,4,0,0" Foreground="#222222"/>
+                    <Border Grid.Row="2" Grid.Column="1" BorderBrush="#9ab5cf" BorderThickness="1" Background="White">
+                        <ListBox x:Name="LstMauIn" Height="82" SelectionMode="Single" BorderThickness="0" Background="White">
+                            <ListBoxItem Tag="Mẫu 80">
+                                <StackPanel Orientation="Horizontal" Margin="2,1">
+                                    <TextBlock Text="📊 " Foreground="Teal" Margin="0,0,4,0"/>
+                                    <TextBlock Text="Mẫu 80"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Tag="Mẫu A4 nằm ngang" IsSelected="True">
+                                <StackPanel Orientation="Horizontal" Margin="2,1">
+                                    <TextBlock Text="📄 " Foreground="RoyalBlue" Margin="0,0,4,0"/>
+                                    <TextBlock Text="Mẫu A4 nằm ngang"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Tag="Mẫu A4 thẳng đứng">
+                                <StackPanel Orientation="Horizontal" Margin="2,1">
+                                    <TextBlock Text="📈 " Foreground="Crimson" Margin="0,0,4,0"/>
+                                    <TextBlock Text="Mẫu A4 thẳng đứng"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                        </ListBox>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 2. Cột hiển thị -->
+        <Grid Grid.Row="2" Margin="0,2,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Cột hiển thị" VerticalAlignment="Top" Margin="2,4,0,0" Foreground="#222222"/>
+            <Border Grid.Column="1" BorderBrush="#9ab5cf" BorderThickness="1" Background="White">
+                <ListBox x:Name="LstCotHienThi" SelectionMode="Multiple" BorderThickness="0" Background="White" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <CheckBox Content="{Binding Header}" IsChecked="{Binding IsChecked}" Margin="2,2"/>
+                            <CheckBox Content="{Binding Header}" IsChecked="{Binding IsChecked}" Margin="4,2" FontSize="11.5"/>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Border>
         </Grid>
         
-        <CheckBox x:Name="ChkInSTT" Grid.Row="3" Content="In cột số thứ tự" IsChecked="True" HorizontalAlignment="Left" Margin="4,5,0,5"/>
+        <!-- 3. In cột số thứ tự -->
+        <CheckBox x:Name="ChkInSTT" Grid.Row="3" Content="In cột số thứ tự" IsChecked="True" HorizontalAlignment="Left" Margin="74,6,0,8" FontSize="11.5"/>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
-            <Button x:Name="BtnHienThi" Content="Hiển thị" Width="85" Height="28" Margin="0,0,10,0" IsDefault="True"
-                    Background="White" BorderBrush="#0055cc" BorderThickness="1.5" FontWeight="SemiBold" Click="BtnHienThi_Click"/>
-            <Button x:Name="BtnThoat" Content="Thoát" Width="80" Height="28" IsCancel="True"
-                    Background="White" BorderBrush="#999" Click="BtnThoat_Click"/>
+        <!-- 4. Nút bấm Hiển thị & Thoát -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+            <Button x:Name="BtnHienThi" Content="Hiển thị" Width="90" Height="26" Margin="0,0,10,0" IsDefault="True"
+                    Style="{StaticResource DialogBtn}" BorderBrush="#0066cc" FontWeight="SemiBold" Click="BtnHienThi_Click"/>
+            <Button x:Name="BtnThoat" Content="Thoát" Width="80" Height="26" IsCancel="True"
+                    Style="{StaticResource DialogBtn}" Click="BtnThoat_Click"/>
         </StackPanel>
     </Grid>
 </Window>

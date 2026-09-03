@@ -19,8 +19,12 @@ namespace QuanLyBar.Client
                 this.Title = $"Phần Mềm Quản Lý Bar, Nhà Hàng - [{userInfoStr}]";
                 
                 AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
-                AddTab("Danh mục khách hàng", new QuanLyBar.Client.Views.DanhMucKhachHangControl());
-                AddTab("Danh mục đợt khuyến mại", new QuanLyBar.Client.Views.DanhMucDotKhuyenMaiControl());
+                AddTab("Danh mục nhà cung cấp", new QuanLyBar.Client.Views.DanhMucNhaCungCap.DanhMucNhaCungCapControl());
+                AddTab("Quản lý nhập kho", new QuanLyBar.Client.Views.QuanLyNhapKho.QuanLyNhapKhoControl());
+                AddTab("Quản lý xuất kho", new QuanLyBar.Client.Views.QuanLyXuatKho.QuanLyXuatKhoControl());
+                AddTab("Quản lý chuyển kho", new QuanLyBar.Client.Views.QuanLyChuyenKho.QuanLyChuyenKhoControl());
+                AddTab("Quản lý kiểm kê", new QuanLyBar.Client.Views.QuanLyKiemKe.QuanLyKiemKeControl());
+                MainTabControl.SelectedIndex = MainTabControl.Items.Count - 1;
             }
         }
 
@@ -179,6 +183,53 @@ namespace QuanLyBar.Client
                         win.Owner = this;
                         win.ShowDialog();
                         return;
+                    }
+                    else if (tabName == "Danh mục nhà cung cấp" || tabName == "Nhà cung cấp")
+                    {
+                        content = new QuanLyBar.Client.Views.DanhMucNhaCungCap.DanhMucNhaCungCapControl();
+                    }
+                    else if (tabName == "Quản lý nhập kho" || tabName == "Nhập hàng vào kho" || tabName == "Phiếu nhập kho")
+                    {
+                        content = new QuanLyBar.Client.Views.QuanLyNhapKho.QuanLyNhapKhoControl();
+                    }
+                    else if (tabName == "Quản lý xuất kho" || tabName == "Xuất khác" || tabName == "Xuất kho" || tabName == "Phiếu xuất kho")
+                    {
+                        tabName = "Quản lý xuất kho";
+                        content = new QuanLyBar.Client.Views.QuanLyXuatKho.QuanLyXuatKhoControl();
+                    }
+                    else if (tabName == "Quản lý chuyển kho" || tabName == "Chuyển kho" || tabName == "Phiếu chuyển kho")
+                    {
+                        tabName = "Quản lý chuyển kho";
+                        content = new QuanLyBar.Client.Views.QuanLyChuyenKho.QuanLyChuyenKhoControl();
+                    }
+                    else if (tabName == "Quản lý kiểm kê" || tabName == "Kiểm kê kho" || tabName == "Kiểm kê" || tabName == "Phiếu kiểm kê")
+                    {
+                        tabName = "Quản lý kiểm kê";
+                        content = new QuanLyBar.Client.Views.QuanLyKiemKe.QuanLyKiemKeControl();
+                    }
+                    else if (tabName == "Tính lại giá vốn" || tabName == "Tính lại giá vốn hàng bán")
+                    {
+                        var win = new QuanLyBar.Client.Views.KhoHang.TinhLaiGiaVonWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Xuất lại định lượng")
+                    {
+                        var win = new QuanLyBar.Client.Views.KhoHang.XuatLaiDinhLuongWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Tồn kho" || tabName == "Báo cáo tồn kho" || tabName == "Quản lý tồn kho")
+                    {
+                        tabName = "Tồn kho";
+                        content = new QuanLyBar.Client.Views.TonKho.TonKhoControl();
+                    }
+                    else if (tabName == "Tồn nhiều kho" || tabName == "Báo cáo tồn nhiều kho")
+                    {
+                        tabName = "Tồn nhiều kho";
+                        content = new QuanLyBar.Client.Views.TonKho.TonNhieuKhoControl();
                     }
                     else
                     {

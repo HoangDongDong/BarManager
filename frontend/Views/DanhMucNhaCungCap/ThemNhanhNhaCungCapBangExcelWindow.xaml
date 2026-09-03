@@ -1,0 +1,194 @@
+<Window x:Class="QuanLyBar.Client.Views.DanhMucNhaCungCap.ThemNhanhNhaCungCapBangExcelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thêm nhanh Nhà cung cấp bằng Excel" 
+        Height="650" Width="1000" 
+        WindowStartupLocation="CenterOwner" 
+        Background="#dce7f5"
+        FontFamily="Segoe UI" FontSize="12">
+    
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Toolbar -->
+            <RowDefinition Height="*"/>    <!-- Content -->
+            <RowDefinition Height="Auto"/> <!-- Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Header -->
+        <Border Grid.Row="0" Background="#e4edf7" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="3" Padding="10,8" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="📁" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Mời bạn điền danh sách Nhà cung cấp vào lưới phía dưới hoặc chọn file Excel để nhập nhanh." FontWeight="SemiBold" Foreground="#112233" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. Toolbar -->
+        <Border Grid.Row="1" Background="#eaf1fa" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="3" Padding="6,4" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Số dòng" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <TextBox x:Name="TxtSoDong" Width="40" Height="24" Text="1" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                
+                <Button x:Name="BtnThemDuLieu" Margin="6,0" Padding="8,2" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnThemDuLieu_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➕" Foreground="Green" FontSize="11" Margin="0,0,4,0"/>
+                        <TextBlock Text="Thêm dữ liệu" FontSize="11.5"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnXoaDuLieu" Margin="2,0" Padding="8,2" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnXoaDuLieu_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❌" Foreground="Red" FontSize="11" Margin="0,0,4,0"/>
+                        <TextBlock Text="Xóa dữ liệu" FontSize="11.5"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnDanDuLieu" Margin="6,0" Padding="8,2" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnDanDuLieu_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📋" FontSize="11" Margin="0,0,4,0"/>
+                        <TextBlock Text="Dán dữ liệu" FontSize="11.5"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnChonFileExcel" Margin="2,0" Padding="8,2" Background="#ffffff" BorderBrush="#0078d7" BorderThickness="1.5" FontWeight="SemiBold" Cursor="Hand" Click="BtnChonFileExcel_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📊" FontSize="11" Margin="0,0,4,0"/>
+                        <TextBlock Text="Chọn file Excel" FontSize="11.5"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- 3. Content -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="310"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- DataGrid bên trái -->
+            <Border Grid.Column="0" Background="White" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="2">
+                <DataGrid x:Name="DgDuLieu" AutoGenerateColumns="False" CanUserAddRows="False"
+                          GridLinesVisibility="All" HorizontalGridLinesBrush="#e0e0e0" VerticalGridLinesBrush="#e0e0e0"
+                          HeadersVisibility="Column" SelectionMode="Extended" RowHeight="25" FontSize="12">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn x:Name="ColGhiChu" Header="Ghi chú" Binding="{Binding GhiChu, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
+                        <DataGridTextColumn x:Name="ColTenNcc" Header="Tên nhà cung cấp" Binding="{Binding TenNhaCungCap, UpdateSourceTrigger=PropertyChanged}" Width="160"/>
+                        <DataGridTextColumn x:Name="ColNhomNcc" Header="Nhóm nhà cung cấp" Binding="{Binding NhomNhaCungCap, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
+                        <DataGridTextColumn x:Name="ColMaNcc" Header="Mã nhà cung cấp" Binding="{Binding MaNhaCungCap, UpdateSourceTrigger=PropertyChanged}" Width="110"/>
+                        <DataGridTextColumn x:Name="ColDiaChi" Header="Địa chỉ" Binding="{Binding DiaChi, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                        <DataGridTextColumn x:Name="ColDienThoai" Header="Điện thoại" Binding="{Binding DienThoai, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                        <DataGridTextColumn x:Name="ColEmail" Header="Email" Binding="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                        <DataGridTextColumn x:Name="ColWebsite" Header="Website" Binding="{Binding Website, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Panel Các thuộc tính chung bên phải -->
+            <Border Grid.Column="2" Background="#f4f7fb" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="3" Padding="10,8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Các thuộc tính chung" Foreground="#cc0000" FontWeight="Bold" FontSize="13" Margin="0,0,0,10"/>
+
+                        <!-- Mã NCC -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkMaNcc" Content="Mã nhà cung cấp" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <TextBox x:Name="TxtChungMaNcc" Grid.Column="1" Height="22" VerticalContentAlignment="Center" IsEnabled="{Binding ElementName=ChkMaNcc, Path=IsChecked}"/>
+                        </Grid>
+
+                        <!-- Tên NCC -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkTenNcc" Content="Tên nhà cung cấp" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <TextBox x:Name="TxtChungTenNcc" Grid.Column="1" Height="22" VerticalContentAlignment="Center" IsEnabled="{Binding ElementName=ChkTenNcc, Path=IsChecked}"/>
+                        </Grid>
+
+                        <!-- Địa chỉ -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkDiaChi" Content="Địa chỉ" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <TextBox x:Name="TxtChungDiaChi" Grid.Column="1" Height="22" VerticalContentAlignment="Center" IsEnabled="{Binding ElementName=ChkDiaChi, Path=IsChecked}"/>
+                        </Grid>
+
+                        <!-- Điện thoại -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkDienThoai" Content="Điện thoại" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <TextBox x:Name="TxtChungDienThoai" Grid.Column="1" Height="22" VerticalContentAlignment="Center" IsEnabled="{Binding ElementName=ChkDienThoai, Path=IsChecked}"/>
+                        </Grid>
+
+                        <!-- Email -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkEmail" Content="Email" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <TextBox x:Name="TxtChungEmail" Grid.Column="1" Height="22" VerticalContentAlignment="Center" IsEnabled="{Binding ElementName=ChkEmail, Path=IsChecked}"/>
+                        </Grid>
+
+                        <!-- Website -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkWebsite" Content="Website" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <TextBox x:Name="TxtChungWebsite" Grid.Column="1" Height="22" VerticalContentAlignment="Center" IsEnabled="{Binding ElementName=ChkWebsite, Path=IsChecked}"/>
+                        </Grid>
+
+                        <!-- Nhóm NCC -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkNhomNcc" Content="Nhóm NCC" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <ComboBox x:Name="CboChungNhomNcc" Grid.Column="1" Height="22" VerticalContentAlignment="Center"
+                                      SelectedValuePath="Id" DisplayMemberPath="Name"
+                                      IsEnabled="{Binding ElementName=ChkNhomNcc, Path=IsChecked}"/>
+                        </Grid>
+
+                        <!-- Ghi chú -->
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="ChkGhiChu" Content="Ghi chú" VerticalAlignment="Center" Checked="ChkThuocTinh_Changed" Unchecked="ChkThuocTinh_Changed"/>
+                            <TextBox x:Name="TxtChungGhiChu" Grid.Column="1" Height="22" VerticalContentAlignment="Center" IsEnabled="{Binding ElementName=ChkGhiChu, Path=IsChecked}"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- 4. Footer -->
+        <Border Grid.Row="3" Margin="0,8,0,0">
+            <DockPanel LastChildFill="False">
+                <Button x:Name="BtnXoaDongLoi" DockPanel.Dock="Left" Content="❌  Xóa các dòng bị lỗi" 
+                        Padding="10,4" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnXoaDongLoi_Click"/>
+
+                <Button x:Name="BtnHuyBo" DockPanel.Dock="Right" Content="Hủy bỏ" 
+                        Width="85" Height="26" Margin="6,0,0,0" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" IsCancel="True" Click="BtnHuyBo_Click"/>
+
+                <Button x:Name="BtnChapNhan" DockPanel.Dock="Right" Content="💾  Chấp nhận" 
+                        Width="105" Height="26" Background="#ffffff" BorderBrush="#0078d7" BorderThickness="1.5" FontWeight="SemiBold" Cursor="Hand" Click="BtnChapNhan_Click"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

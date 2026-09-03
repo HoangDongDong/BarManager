@@ -166,7 +166,7 @@ namespace QuanLyBar.Client.Views.KhoHang
 
         private async void MiThemThuMucCon_Click(object sender, RoutedEventArgs e)
         {
-            int? parentId = null;
+            string parentId = null;
             if (_selectedItem != null && _selectedItem.IsFolder)
             {
                 parentId = _selectedItem.Id;
@@ -188,7 +188,7 @@ namespace QuanLyBar.Client.Views.KhoHang
 
         private async void MiThemPhanCach_Click(object sender, RoutedEventArgs e)
         {
-            int? parentId = _selectedItem?.ParentId;
+            string parentId = _selectedItem?.ParentId;
             var item = new KhoHangTreeItem
             {
                 Name = "---",
@@ -255,20 +255,16 @@ namespace QuanLyBar.Client.Views.KhoHang
 
         private async void BtnThungRac_Click(object sender, RoutedEventArgs e)
         {
-            _isViewingTrash = !_isViewingTrash;
-
-            if (_isViewingTrash)
+            var win = new ThungRacKhoHangWindow();
+            win.Owner = this;
+            win.OnChanged += async () =>
             {
-                Title = "Kho hàng - [Thùng rác]";
-                BtnThungRac.Background = System.Windows.Media.Brushes.LightCoral;
-            }
-            else
-            {
-                Title = "Kho hàng";
-                BtnThungRac.Background = System.Windows.Media.Brushes.Transparent;
-            }
-
+                await LoadKhoHangTreeAsync();
+                await LoadKhoMacDinhAsync();
+            };
+            win.ShowDialog();
             await LoadKhoHangTreeAsync();
+            await LoadKhoMacDinhAsync();
         }
 
         private async void BtnXemTheoThuMuc_Click(object sender, RoutedEventArgs e)

@@ -1,0 +1,159 @@
+<Window x:Class="QuanLyBar.Client.Views.QuanLyNhapKho.NhapExcelPhieuNhapWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nhập danh sách mặt hàng từ Excel" 
+        Height="620" Width="1050" 
+        WindowStartupLocation="CenterOwner" 
+        Background="#dce7f5"
+        FontFamily="Segoe UI" FontSize="12">
+    
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 1. Header -->
+            <RowDefinition Height="Auto"/> <!-- 2. Toolbar -->
+            <RowDefinition Height="*"/>    <!-- 3. Content -->
+            <RowDefinition Height="Auto"/> <!-- 4. Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Header Hướng dẫn -->
+        <Border Grid.Row="0" Background="#e4edf7" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="3" Padding="10,8" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="📊" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Chọn file Excel hoặc dán dữ liệu (Copy/Paste) danh sách mặt hàng để nhập nhanh vào phiếu nhập kho." FontWeight="SemiBold" Foreground="#112233" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. Toolbar -->
+        <Border Grid.Row="1" Background="#eaf1fa" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="3" Padding="6,4" Margin="0,0,0,8">
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Left">
+                    <TextBlock Text="Số dòng:" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                    <TextBox x:Name="TxtSoDong" Width="40" Height="24" Text="1" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                    
+                    <Button x:Name="BtnThemDuLieu" Margin="6,0" Padding="8,2" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnThemDuLieu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="➕" Foreground="Green" FontSize="11" Margin="0,0,4,0"/>
+                            <TextBlock Text="Thêm dòng" FontSize="11.5"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="BtnXoaDuLieu" Margin="2,0" Padding="8,2" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnXoaDuLieu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="❌" Foreground="Red" FontSize="11" Margin="0,0,4,0"/>
+                            <TextBlock Text="Xóa hết" FontSize="11.5"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="BtnDanDuLieu" Margin="6,0" Padding="8,2" Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnDanDuLieu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" FontSize="11" Margin="0,0,4,0"/>
+                            <TextBlock Text="Dán dữ liệu (Paste)" FontSize="11.5"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="BtnChonFileExcel" Margin="2,0" Padding="12,2" Background="#ffffff" BorderBrush="#0078d7" BorderThickness="1.5" FontWeight="SemiBold" Cursor="Hand" Click="BtnChonFileExcel_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📊" FontSize="11" Margin="0,0,4,0"/>
+                            <TextBlock Text="Chọn file Excel" FontSize="11.5" Foreground="#005a9e"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" DockPanel.Dock="Right">
+                    <Button x:Name="BtnTaiFileMau" Margin="4,0" Padding="8,2" Background="#ffffff" BorderBrush="#28a745" Cursor="Hand" Click="BtnTaiFileMau_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📥" FontSize="11" Margin="0,0,4,0"/>
+                            <TextBlock Text="Tải file mẫu Excel" FontSize="11.5" Foreground="#28a745" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 3. Content: DataGrid danh sách dòng xem trước -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="3">
+            <DataGrid x:Name="DgDuLieu" AutoGenerateColumns="False" CanUserAddRows="True" CanUserDeleteRows="True"
+                      HeadersVisibility="All" GridLinesVisibility="All"
+                      HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                      RowHeight="25" SelectionMode="Extended" SelectionUnit="FullRow"
+                      Background="White" RowBackground="White" AlternatingRowBackground="#f9fbff">
+
+                <DataGrid.RowHeaderStyle>
+                    <Style TargetType="{x:Type DataGridRowHeader}">
+                        <Setter Property="Width" Value="36"/>
+                        <Setter Property="Background" Value="#dfe9f5"/>
+                        <Setter Property="BorderBrush" Value="#b6cadf"/>
+                        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        <Setter Property="Content" Value="{Binding Stt}"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="FontSize" Value="11"/>
+                    </Style>
+                </DataGrid.RowHeaderStyle>
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Mã hàng" Binding="{Binding MaHang, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                    <DataGridTextColumn Header="Tên mặt hàng (*)" Binding="{Binding TenHang, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    <DataGridTextColumn Header="ĐVT" Binding="{Binding TenDonViTinh, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
+                    
+                    <DataGridTextColumn Header="Số lượng (*)" Binding="{Binding SoLuong, StringFormat={}{0:N2}, UpdateSourceTrigger=PropertyChanged}" Width="90">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Margin" Value="0,0,4,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0}, UpdateSourceTrigger=PropertyChanged}" Width="100">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Margin" Value="0,0,4,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Giảm giá %" Binding="{Binding TiLeGiamGia, StringFormat={}{0:N1}, UpdateSourceTrigger=PropertyChanged}" Width="85">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Margin" Value="0,0,4,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien, StringFormat={}{0:N0}}" Width="110" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Margin" Value="0,0,4,0"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- 4. Footer -->
+        <DockPanel Grid.Row="3" Margin="0,10,0,0" LastChildFill="True">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                <TextBlock x:Name="TxtTongSoDong" Text="Tổng: 0 dòng" FontWeight="SemiBold" Foreground="#333"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                <Button x:Name="BtnDongY" Content="💾 Thực hiện nhập" Width="140" Height="30" Margin="0,0,8,0"
+                        Background="#0078d7" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="BtnDongY_Click"/>
+                <Button x:Name="BtnHuyBo" Content="❌ Đóng" Width="90" Height="30"
+                        Background="#ffffff" BorderBrush="#b6cadf" Cursor="Hand" Click="BtnHuyBo_Click"/>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

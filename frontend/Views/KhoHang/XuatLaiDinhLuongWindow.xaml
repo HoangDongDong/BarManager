@@ -1,0 +1,132 @@
+<Window x:Class="QuanLyBar.Client.Views.KhoHang.XuatLaiDinhLuongWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="XUẤT LẠI ĐỊNH LƯỢNG" 
+        Height="240" Width="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        FontFamily="Segoe UI"
+        Background="#c5d8ea">
+    <Grid Margin="20,16,20,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. Text giải thích chức năng -->
+        <TextBlock Grid.Row="0"
+                   Text="Chức năng xuất lại định lượng sử dụng khi bạn thiết lập định lượng sau và muốn xuất lại định lượng của các phiếu cũ theo cấu hình định lượng mới."
+                   TextWrapping="Wrap"
+                   FontSize="12"
+                   LineHeight="18"
+                   Foreground="#111111"
+                   Margin="0,0,0,16"/>
+
+        <!-- 2. Hàng chọn ngày Từ ... Đến ... -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Từ:" VerticalAlignment="Center" FontSize="12" Margin="0,0,8,0"/>
+            <DatePicker Grid.Column="1" x:Name="DpTuNgay" Height="24" FontSize="11.5"/>
+
+            <TextBlock Grid.Column="2" Text="Đến" VerticalAlignment="Center" FontSize="12" Margin="10,0,8,0"/>
+            <DatePicker Grid.Column="3" x:Name="DpDenNgay" Height="24" FontSize="11.5"/>
+
+            <!-- Nút chọn nhanh (Menu tam giác xanh) -->
+            <Button Grid.Column="4" x:Name="BtnQuickDate" Width="22" Height="24" Margin="4,0,0,0"
+                    Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnQuickDate_Click">
+                <Path Data="M 0,0 L 8,0 L 4,5 Z" Fill="#0078d7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Hôm nay" Click="QuickDate_Click" Tag="Today"/>
+                        <MenuItem Header="Hôm qua" Click="QuickDate_Click" Tag="Yesterday"/>
+                        <MenuItem Header="Tuần này" Click="QuickDate_Click" Tag="ThisWeek"/>
+                        <MenuItem Header="Tháng này" Click="QuickDate_Click" Tag="ThisMonth"/>
+                        <MenuItem Header="Tháng trước" Click="QuickDate_Click" Tag="LastMonth"/>
+                        <MenuItem Header="Tất cả" Click="QuickDate_Click" Tag="All"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </Grid>
+
+        <!-- 3. Hàng Mật khẩu -->
+        <Grid Grid.Row="2" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="65"/>
+                <ColumnDefinition Width="220"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Mật khẩu:" VerticalAlignment="Center" FontSize="12"/>
+            <PasswordBox Grid.Column="1" x:Name="TxtMatKhau" Height="24" Background="White" BorderBrush="#7092be" BorderThickness="1" VerticalContentAlignment="Center" Padding="4,0"/>
+        </Grid>
+
+        <!-- 4. Nút bấm Thực hiện & Hủy bỏ -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
+            <Button x:Name="BtnThucHien" Content="Thực hiện" Width="85" Height="26" Margin="0,0,14,0"
+                    Background="White" BorderBrush="#0078d7" BorderThickness="1.5" FontSize="12"
+                    Cursor="Hand" Click="BtnThucHien_Click">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#e5f1fb"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#cce4f7"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <Button x:Name="BtnHuyBo" Content="Hủy bỏ" Width="85" Height="26"
+                    Background="White" BorderBrush="#7092be" BorderThickness="1" FontSize="12"
+                    Cursor="Hand" Click="BtnHuyBo_Click">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#e5f1fb"/>
+                                <Setter Property="BorderBrush" Value="#0078d7"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#cce4f7"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

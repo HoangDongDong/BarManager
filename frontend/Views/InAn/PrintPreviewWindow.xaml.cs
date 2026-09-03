@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
 using QuanLyBar.Client.Models;
+using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client.Views
 {
@@ -226,6 +227,46 @@ namespace QuanLyBar.Client.Views
                 if (hNorm.Contains("ghichu") || hNorm == "note") return kh.Note ?? "";
                 if (hNorm.Contains("diem")) return kh.Diemtichluy.ToString("N0");
                 if (hNorm.Contains("ngaysinh") || hNorm.Contains("thanhlap") || hNorm.Contains("sinhnhat")) return kh.Ngaysinh?.ToString("dd/MM/yyyy") ?? "";
+            }
+
+            if (obj is NhaCungCapItem ncc)
+            {
+                if (hNorm.Contains("manhacungcap") || hNorm == "ma" || hNorm.Contains("mancc")) return ncc.MaNhaCungCap ?? "";
+                if (hNorm.Contains("tennhacungcap") || hNorm.Contains("nhacungcap") || hNorm == "ten") return ncc.Name ?? "";
+                if (hNorm.Contains("diachi")) return ncc.DiaChi ?? "";
+                if (hNorm.Contains("dienthoai") || hNorm.Contains("sdt") || hNorm.Contains("phone")) return ncc.DienThoai ?? "";
+                if (hNorm.Contains("email")) return ncc.Email ?? "";
+                if (hNorm.Contains("website") || hNorm == "web") return ncc.Website ?? "";
+                if (hNorm.Contains("nhom")) return ncc.TenNhom ?? "";
+                if (hNorm.Contains("ghichu") || hNorm == "note") return ncc.Note ?? "";
+            }
+
+            if (obj is PhieuNhapItem pn)
+            {
+                if (hNorm.Contains("sophieu") || hNorm == "ma") return pn.SoPhieu ?? "";
+                if (hNorm.Contains("ngay")) return pn.NgayHienThi ?? "";
+                if (hNorm.Contains("nhacungcap") || hNorm.Contains("ncc")) return pn.TenNhaCungCap ?? "";
+                if (hNorm.Contains("kho")) return pn.TenKhoNhap ?? "";
+                if (hNorm.Contains("nhanvien") || hNorm.Contains("nv")) return pn.TenNhanVienNhap ?? "";
+                if (hNorm.Contains("tienhang")) return pn.TienHang.ToString("N0");
+                if (hNorm.Contains("tiengiamgia") || (hNorm.Contains("giamgia") && !hNorm.Contains("ti"))) return pn.TienGiamGia.ToString("N0");
+                if (hNorm.Contains("tilegiamgia") || hNorm.Contains("tile") || hNorm.Contains("%")) return pn.TiLeGiamGia.ToString("N1") + "%";
+                if (hNorm.Contains("taikhoan") || hNorm.Contains("nganhang")) return pn.TenTaiKhoanNganHang ?? "";
+                if (hNorm.Contains("tongcong") || hNorm.Contains("tong")) return pn.TongCong.ToString("N0");
+                if (hNorm.Contains("cuahang")) return pn.TenCuaHang ?? "";
+                if (hNorm.Contains("ghichu") || hNorm == "note") return pn.Note ?? "";
+            }
+
+            if (obj is PhieuNhapChiTietItem pndt)
+            {
+                if (hNorm.Contains("mahang") || hNorm == "ma") return pndt.MaHang ?? "";
+                if (hNorm.Contains("tenhang") || hNorm == "ten") return pndt.TenHang ?? "";
+                if (hNorm.Contains("donvitinh") || hNorm == "dvt") return pndt.TenDonViTinh ?? "";
+                if (hNorm.Contains("soluong") || hNorm == "sl") return pndt.SlNhap.ToString("N2");
+                if (hNorm.Contains("dongia") || hNorm == "gia") return pndt.DonGia.ToString("N0");
+                if (hNorm.Contains("giamgia")) return pndt.TienGiamGia.ToString("N0");
+                if (hNorm.Contains("thanhtien")) return pndt.ThanhTien.ToString("N0");
+                if (hNorm.Contains("ghichu") || hNorm == "note") return pndt.Note ?? "";
             }
 
             // Reflection fallback

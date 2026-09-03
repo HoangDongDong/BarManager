@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
@@ -19,6 +20,10 @@ namespace QuanLyBar.Client.Views.KhoHang
 
         public event Action OnSaved;
 
+        private List<SImageViewModel> _images = new List<SImageViewModel>();
+        private List<KhoHangCuaHangItem> _stores = new List<KhoHangCuaHangItem>();
+        private string _selectedStoreId;
+
         public ThemKhoHangWindow(KhoHangTreeItem item = null)
         {
             InitializeComponent();
@@ -27,10 +32,12 @@ namespace QuanLyBar.Client.Views.KhoHang
             _isNew = (item == null);
 
             Loaded += ThemKhoHangWindow_Loaded;
+            UpdateButtonsState();
         }
 
         private async void ThemKhoHangWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            await LoadImagesAsync();
             await LoadCuaHangListAsync();
             await LoadWarehouseListAsync();
 
@@ -44,17 +51,42 @@ namespace QuanLyBar.Client.Views.KhoHang
             }
         }
 
+        private async Task LoadImagesAsync()
+        {
+            try
+            {
+                _images = await LocalKhoHangService.GetSImagesAsync();
+                CboAnh.ItemsSource = _images;
+                if (_images.Count > 0)
+                {
+                    var defaultImg = _images.FirstOrDefault(x => x.Id == "a38e42b9-aeda-4a67-8761-a5f4dc3571c1") ?? _images[0];
+                    CboAnh.SelectedItem = defaultImg;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error LoadImagesAsync: " + ex.Message);
+            }
+        }
+
         private async Task LoadCuaHangListAsync()
         {
             try
             {
-                var stores = await LocalKhoHangService.GetCuaHangListAsync();
-                CboCuaHang.ItemsSource = stores;
-                CboCuaHang.SelectedValuePath = "Id";
+                _stores = await LocalKhoHangService.GetCuaHangListAsync();
+                LstCuaHang.ItemsSource = _stores;
 
-                if (stores.Count > 0)
+                if (_stores.Count > 0)
                 {
-                    CboCuaHang.SelectedIndex = 0;
+                    if (string.IsNullOrEmpty(_selectedStoreId) || !_stores.Any(x => x.Id == _selectedStoreId))
+                    {
+                        SelectStore(_stores[0]);
+                    }
+                    else
+                    {
+                        var cur = _stores.FirstOrDefault(x => x.Id == _selectedStoreId);
+                        if (cur != null) SelectStore(cur);
+                    }
                 }
             }
             catch (Exception ex)
@@ -62,6 +94,66 @@ namespace QuanLyBar.Client.Views.KhoHang
                 Console.WriteLine("Error LoadCuaHangListAsync: " + ex.Message);
             }
         }
+
+        private void SelectStore(KhoHangCuaHangItem store)
+        {
+            if (store == null) return;
+            _selectedStoreId = store.Id;
+            TxtSelectedCuaHang.Text = store.Name;
+            LstCuaHang.SelectedItem = store;
+        }
+
+        private void TxtSelectedCuaHang_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            PopupCuaHang.IsOpen = !PopupCuaHang.IsOpen;
+        }
+
+        private void LstCuaHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LstCuaHang.SelectedItem is KhoHangCuaHangItem store)
+            {
+                SelectStore(store);
+                PopupCuaHang.IsOpen = false;
+                BtnToggleCuaHang.IsChecked = false;
+            }
+        }
+
+        private void BtnThemCuaHang_Click(object sender, RoutedEventArgs e)
+        {
+            PopupCuaHang.IsOpen = false;
+            BtnToggleCuaHang.IsChecked = false;
+
+            var win = new ThemCuaHangWindow();
+            win.Owner = this;
+            win.OnSaved += async () =>
+            {
+                await LoadCuaHangListAsync();
+            };
+            win.ShowDialog();
+        }
+
+        private async void BtnTaiCuaHang_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadCuaHangListAsync();
+        }
+
+        private void BtnDanhMucCuaHang_Click(object sender, RoutedEventArgs e)
+        {
+            PopupCuaHang.IsOpen = false;
+            BtnToggleCuaHang.IsChecked = false;
+            // Mở thêm cửa hàng hoặc reload
+            BtnThemCuaHang_Click(sender, e);
+        }
+
+        private void UpdateButtonsState()
+        {
+            bool hasValidName = !string.IsNullOrWhiteSpace(TxtTenKho?.Text);
+            if (BtnLuu != null) BtnLuu.IsEnabled = hasValidName;
+            if (BtnLuuVaMoi != null) BtnLuuVaMoi.IsEnabled = hasValidName;
+            if (BtnLuuVaThoat != null) BtnLuuVaThoat.IsEnabled = hasValidName;
+        }
+
+        private void TxtTenKho_TextChanged(object sender, TextChangedEventArgs e) => UpdateButtonsState();
 
         private async Task LoadWarehouseListAsync()
         {
@@ -99,13 +191,19 @@ namespace QuanLyBar.Client.Views.KhoHang
             ChkChoPhepAmKho.IsChecked = item.Chophepamkho;
             TxtGhiChu.Text = item.Note ?? "";
 
-            if (item.DcuahangId.HasValue)
+            if (!string.IsNullOrEmpty(item.SimageId) && _images.Count > 0)
             {
-                CboCuaHang.SelectedValue = item.DcuahangId.Value;
+                CboAnh.SelectedValue = item.SimageId;
             }
-            else if (CboCuaHang.Items.Count > 0)
+
+            if (!string.IsNullOrEmpty(item.DcuahangId))
             {
-                CboCuaHang.SelectedIndex = 0;
+                var st = _stores.FirstOrDefault(x => x.Id == item.DcuahangId);
+                if (st != null) SelectStore(st);
+            }
+            else if (_stores.Count > 0)
+            {
+                SelectStore(_stores[0]);
             }
 
             TxtTenKho.Focus();
@@ -129,9 +227,15 @@ namespace QuanLyBar.Client.Views.KhoHang
             ChkChoPhepAmKho.IsChecked = false;
             TxtGhiChu.Text = "";
 
-            if (CboCuaHang.Items.Count > 0)
+            if (_images.Count > 0)
             {
-                CboCuaHang.SelectedIndex = 0;
+                var defaultImg = _images.FirstOrDefault(x => x.Id == "a38e42b9-aeda-4a67-8761-a5f4dc3571c1") ?? _images[0];
+                CboAnh.SelectedItem = defaultImg;
+            }
+
+            if (_stores.Count > 0)
+            {
+                SelectStore(_stores[0]);
             }
 
             TxtTenKho.Focus();
@@ -147,20 +251,17 @@ namespace QuanLyBar.Client.Views.KhoHang
                 return false;
             }
 
-            int? cuahangId = null;
-            if (CboCuaHang.SelectedValue != null && int.TryParse(CboCuaHang.SelectedValue.ToString(), out int chId))
-            {
-                cuahangId = chId;
-            }
+            string selectedImageId = (CboAnh.SelectedItem as SImageViewModel)?.Id ?? "a38e42b9-aeda-4a67-8761-a5f4dc3571c1";
 
             var item = new KhoHangTreeItem
             {
-                Id = _isNew ? 0 : (_currentItem?.Id ?? _editItem?.Id ?? 0),
+                Id = _isNew ? "" : (_currentItem?.Id ?? _editItem?.Id ?? ""),
                 Name = tenKho,
                 Chophepamkho = ChkChoPhepAmKho.IsChecked == true,
-                DcuahangId = cuahangId,
+                DcuahangId = _selectedStoreId,
+                SimageId = selectedImageId,
                 Note = TxtGhiChu.Text?.Trim() ?? "",
-                ItemType = "ITEM"
+                ItemType = "0"
             };
 
             var (success, errorMsg, newId) = await LocalKhoHangService.SaveKhoHangAsync(item, _isNew);

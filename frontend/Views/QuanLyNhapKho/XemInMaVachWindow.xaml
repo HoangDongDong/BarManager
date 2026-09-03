@@ -1,0 +1,66 @@
+<Window x:Class="QuanLyBar.Client.Views.QuanLyNhapKho.XemInMaVachWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thiết kế mẫu in mã vạch" 
+        Height="700" Width="1100" 
+        WindowStartupLocation="CenterScreen" 
+        WindowState="Maximized"
+        Background="#8cb2dc"
+        FontFamily="Segoe UI" FontSize="12">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="36"/> <!-- Preview Toolbar -->
+            <RowDefinition Height="*"/>  <!-- Preview Workspace -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Preview Toolbar (FastReport / Crystal style) -->
+        <Border Grid.Row="0" Background="#dbe8f6" BorderBrush="#9cb2c8" BorderThickness="0,0,0,1" Padding="8,2">
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Left">
+                    <Button x:Name="BtnPrint" Margin="2,0" Padding="6,2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnPrint_Click" ToolTip="In mã vạch (Print)">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🖨️" FontSize="13" Margin="0,0,4,0"/>
+                            <TextBlock Text="Print" FontSize="11.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="BtnSave" Margin="2,0" Padding="6,2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnSave_Click" ToolTip="Lưu file (PDF / Hình ảnh)">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾" FontSize="13" Margin="0,0,4,0"/>
+                            <TextBlock Text="Save" FontSize="11.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="4,2"/>
+
+                    <!-- Page Navigation -->
+                    <Button x:Name="BtnFirstPage" Content="⏮" Width="24" Height="22" Margin="2,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnFirstPage_Click"/>
+                    <Button x:Name="BtnPrevPage" Content="◀" Width="24" Height="22" Margin="2,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnPrevPage_Click"/>
+
+                    <TextBox x:Name="TxtCurrentPage" Width="30" Height="20" Text="1" TextAlignment="Center" VerticalContentAlignment="Center" Margin="2,0"/>
+                    <TextBlock x:Name="TxtTotalPages" Text="of 2" VerticalAlignment="Center" Margin="4,0,4,0" FontSize="11"/>
+
+                    <Button x:Name="BtnNextPage" Content="▶" Width="24" Height="22" Margin="2,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnNextPage_Click"/>
+                    <Button x:Name="BtnLastPage" Content="⏭" Width="24" Height="22" Margin="2,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnLastPage_Click"/>
+
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="4,2"/>
+
+                    <Button x:Name="BtnZoomIn" Content="🔍+" Width="32" Height="22" Margin="2,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnZoomIn_Click" ToolTip="Phóng to"/>
+                    <Button x:Name="BtnZoomOut" Content="🔍-" Width="32" Height="22" Margin="2,0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnZoomOut_Click" ToolTip="Thu nhỏ"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" DockPanel.Dock="Right">
+                    <Button x:Name="BtnClose" Content="Close" Margin="2,0" Padding="12,2" Background="#ffffff" BorderBrush="#9cb2c8" Cursor="Hand" Click="BtnClose_Click"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 2. Workspace showing rendered sheets / strips -->
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="20">
+            <WrapPanel x:Name="WpPagesContainer" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10">
+                <!-- Pages / Strips are generated dynamically in code -->
+            </WrapPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

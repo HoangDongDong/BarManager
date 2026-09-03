@@ -2,14 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Dapper;
-using QuanLyBar.Client.Models;
-
-using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Dapper;
+using QuanLyBar.Client.Models;
 
 namespace QuanLyBar.Client.Services
 {
@@ -33,37 +35,66 @@ namespace QuanLyBar.Client.Services
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
     }
 
+    public class NullToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value == null ? Visibility.Visible : Visibility.Collapsed;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
+    public class NotNullToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value != null ? Visibility.Visible : Visibility.Collapsed;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
     public static class KhoHangVisibilityConverters
     {
         public static IValueConverter BooleanToVisibilityConverter { get; } = new BooleanToVisibilityConverter();
         public static IValueConverter InverseBooleanToVisibilityConverter { get; } = new InverseBooleanToVisibilityConverter();
+        public static IValueConverter NullToVisibilityConverter { get; } = new NullToVisibilityConverter();
+        public static IValueConverter NotNullToVisibilityConverter { get; } = new NotNullToVisibilityConverter();
     }
 
     public class KhoHangTreeItem
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Note { get; set; }
-        public int? ParentId { get; set; }
+        public string ParentId { get; set; }
         public string ParentDir { get; set; }
-        public string ItemType { get; set; } // FOLDER, ITEM, SEPARATOR
+        public string ItemType { get; set; } = "0"; // "0" or "ITEM" = Warehouse, "1" or "FOLDER" = Folder, "2" or "SEPARATOR" = Separator
         public bool Chophepamkho { get; set; }
-        public int? DcuahangId { get; set; }
+        public string DcuahangId { get; set; }
         public string TenCuaHang { get; set; }
-        public int? SortOrder { get; set; }
+        public string SortOrder { get; set; }
         public bool Status { get; set; } = true;
+        public string SimageId { get; set; }
+        public byte[] ImageBytes { get; set; }
+        public ImageSource ImageSource { get; set; }
 
-        public bool IsFolder => ItemType == "FOLDER";
-        public bool IsSeparator => ItemType == "SEPARATOR";
+        public bool IsFolder => ItemType == "FOLDER" || ItemType == "1";
+        public bool IsSeparator => ItemType == "SEPARATOR" || ItemType == "2";
         public bool IsWarehouse => !IsFolder && !IsSeparator;
+
+        public string CustomIcon { get; set; }
 
         public string Icon
         {
             get
             {
+                if (!string.IsNullOrEmpty(CustomIcon)) return CustomIcon;
+                if (Id == "ALL") return "🌐";
+                if (Id == "UNASSIGNED") return "✳️";
+                if (Id == "TRASH") return "🗑️";
                 if (IsSeparator) return "—";
                 if (IsFolder) return "📁";
-                return "🔍";
+                return "🏢";
             }
         }
 
@@ -72,8 +103,69 @@ namespace QuanLyBar.Client.Services
         public ObservableCollection<KhoHangTreeItem> Children { get; set; } = new ObservableCollection<KhoHangTreeItem>();
     }
 
+    public class KhoHangCuaHangItem
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Note { get; set; }
+        public string SimageId { get; set; }
+        public byte[] ImageBytes { get; set; }
+        public ImageSource ImageSource { get; set; }
+    }
+
     public static class LocalKhoHangService
     {
+        public static BitmapImage BytesToBitmapImage(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0) return null;
+            try
+            {
+                using (var ms = new MemoryStream(bytes))
+                {
+                    var img = new BitmapImage();
+                    img.BeginInit();
+                    img.CacheOption = BitmapCacheOption.OnLoad;
+                    img.StreamSource = ms;
+                    img.EndInit();
+                    img.Freeze();
+                    return img;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static async Task<List<SImageViewModel>> GetSImagesAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+                    string sql = "SELECT ID, NAME, IMAGE, SORTORDER FROM SIMAGE WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY SORTORDER, NAME";
+                    var rows = await conn.QueryAsync(sql);
+                    var list = new List<SImageViewModel>();
+                    foreach (var r in rows)
+                    {
+                        byte[] bytes = r.IMAGE as byte[];
+                        var img = BytesToBitmapImage(bytes);
+                        list.Add(new SImageViewModel
+                        {
+                            Id = r.ID?.ToString(),
+                            ImageBytes = bytes,
+                            ImageSource = img
+                        });
+                    }
+                    return list;
+                }
+            }
+            catch
+            {
+                return new List<SImageViewModel>();
+            }
+        }
         public static async Task<ObservableCollection<KhoHangTreeItem>> GetKhoHangTreeAsync(bool showTrash = false)
         {
             try
@@ -97,10 +189,13 @@ namespace QuanLyBar.Client.Services
                             k.DCUAHANGID,
                             c.NAME as TenCuaHang,
                             k.SORTORDER,
-                            k.STATUS
+                            k.STATUS,
+                            k.SIMAGEID,
+                            sim.IMAGE as ImageBytes
                         FROM DKHOHANG k
-                        LEFT JOIN DCUAHANG c ON k.DCUAHANGID = c.ID
-                        ORDER BY k.SORTORDER, k.ID";
+                        LEFT JOIN DCUAHANG c ON CAST(k.DCUAHANGID AS VARCHAR(50)) = CAST(c.ID AS VARCHAR(50))
+                        LEFT JOIN SIMAGE sim ON CAST(k.SIMAGEID AS VARCHAR(50)) = CAST(sim.ID AS VARCHAR(50))
+                        ORDER BY k.SORTORDER, k.NAME";
 
                     var rows = (await conn.QueryAsync(sql)).ToList();
 
@@ -108,15 +203,18 @@ namespace QuanLyBar.Client.Services
 
                     foreach (var r in rows)
                     {
-                        bool status = true;
+                        bool isDeleted = false;
                         if (r.STATUS != null)
                         {
-                            if (r.STATUS is bool b) status = b;
-                            else if (int.TryParse(r.STATUS.ToString(), out int sInt)) status = (sInt == 1);
+                            string sVal = r.STATUS.ToString().Trim();
+                            if (sVal == "0" || sVal.Equals("false", StringComparison.OrdinalIgnoreCase))
+                            {
+                                isDeleted = true;
+                            }
                         }
 
-                        if (!showTrash && !status) continue;
-                        if (showTrash && status) continue;
+                        if (!showTrash && isDeleted) continue;
+                        if (showTrash && !isDeleted) continue;
 
                         bool allowAmKho = false;
                         if (r.CHOPHEPAMKHO != null)
@@ -125,19 +223,24 @@ namespace QuanLyBar.Client.Services
                             allowAmKho = (s == "1" || s == "true");
                         }
 
+                        byte[] imgBytes = r.IMAGEBYTES as byte[];
+
                         flatList.Add(new KhoHangTreeItem
                         {
-                            Id = Convert.ToInt32(r.ID),
+                            Id = r.ID?.ToString() ?? "",
                             Name = r.NAME?.ToString() ?? "",
                             Note = r.NOTE?.ToString() ?? "",
-                            ParentId = r.PARENTID != null ? Convert.ToInt32(r.PARENTID) : (int?)null,
+                            ParentId = r.PARENTID?.ToString(),
                             ParentDir = r.PARENTDIR?.ToString() ?? "",
-                            ItemType = r.ITEMTYPE?.ToString() ?? "ITEM",
+                            ItemType = r.ITEMTYPE?.ToString() ?? "0",
                             Chophepamkho = allowAmKho,
-                            DcuahangId = r.DCUAHANGID != null ? Convert.ToInt32(r.DCUAHANGID) : (int?)null,
+                            DcuahangId = r.DCUAHANGID?.ToString(),
                             TenCuaHang = r.TENCUAHANG?.ToString() ?? "",
-                            SortOrder = r.SORTORDER != null ? Convert.ToInt32(r.SORTORDER) : 0,
-                            Status = status
+                            SortOrder = r.SORTORDER?.ToString() ?? "",
+                            Status = !isDeleted,
+                            SimageId = r.SIMAGEID?.ToString(),
+                            ImageBytes = imgBytes,
+                            ImageSource = BytesToBitmapImage(imgBytes)
                         });
                     }
 
@@ -158,19 +261,51 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        private static async Task<string> GetCurrentUserIdAsync(IDbConnection conn)
+        {
+            if (SessionContext.CurrentUser != null && !string.IsNullOrEmpty(SessionContext.CurrentUser.Id))
+            {
+                return SessionContext.CurrentUser.Id;
+            }
+
+            try
+            {
+                var userId = await conn.ExecuteScalarAsync<object>("SELECT FIRST 1 ID FROM SUSER WHERE STATUS IS NULL OR STATUS <> 0");
+                if (userId != null) return userId.ToString();
+            }
+            catch { }
+
+            return "4f1466a0-0756-4ba9-afa8-053b96ca7569";
+        }
+
         private static async Task EnsureDefaultKhoHangAsync(IDbConnection conn)
         {
             try
             {
-                int count = await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM DKHOHANG");
+                int count = await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM DKHOHANG WHERE (STATUS IS NULL OR STATUS <> 0)");
                 if (count == 0)
                 {
-                    int? cuahangId = await conn.ExecuteScalarAsync<int?>("SELECT FIRST 1 ID FROM DCUAHANG");
+                    string cuahangId = null;
+                    try
+                    {
+                        cuahangId = (await conn.ExecuteScalarAsync<object>("SELECT FIRST 1 ID FROM DCUAHANG WHERE STATUS IS NULL OR STATUS <> 0"))?.ToString();
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            cuahangId = (await conn.ExecuteScalarAsync<object>("SELECT TOP 1 ID FROM DCUAHANG WHERE STATUS IS NULL OR STATUS <> 0"))?.ToString();
+                        }
+                        catch { }
+                    }
+
+                    string newId = Guid.NewGuid().ToString();
+                    string userId = await GetCurrentUserIdAsync(conn);
 
                     string insertSql = @"
-                        INSERT INTO DKHOHANG (ID, NAME, NOTE, STATUS, ITEMTYPE, CHOPHEPAMKHO, DCUAHANGID, SORTORDER)
-                        VALUES (1, 'KHO BÁN HÀNG', 'Kho bán hàng mặc định', 1, 'ITEM', '0', @CuaHangId, 1)";
-                    await conn.ExecuteAsync(insertSql, new { CuaHangId = cuahangId });
+                        INSERT INTO DKHOHANG (ID, NAME, NOTE, STATUS, ITEMTYPE, CHOPHEPAMKHO, DCUAHANGID, SORTORDER, USERCREATEDID, TIMECREATED)
+                        VALUES (@Id, 'KHO BÁN HÀNG', 'Kho bán hàng mặc định', 30, '0', '0', @CuaHangId, 'ZZZZ', @UserCreatedId, CURRENT_TIMESTAMP)";
+                    await conn.ExecuteAsync(insertSql, new { Id = newId, CuaHangId = cuahangId, UserCreatedId = userId });
                 }
             }
             catch (Exception ex)
@@ -182,13 +317,21 @@ namespace QuanLyBar.Client.Services
         private static ObservableCollection<KhoHangTreeItem> BuildTree(List<KhoHangTreeItem> flatList)
         {
             var tree = new ObservableCollection<KhoHangTreeItem>();
-            var lookup = flatList.ToDictionary(x => x.Id);
+            var lookup = new Dictionary<string, KhoHangTreeItem>();
 
             foreach (var item in flatList)
             {
-                if (item.ParentId.HasValue && lookup.ContainsKey(item.ParentId.Value))
+                if (!string.IsNullOrEmpty(item.Id))
                 {
-                    lookup[item.ParentId.Value].Children.Add(item);
+                    lookup[item.Id] = item;
+                }
+            }
+
+            foreach (var item in flatList)
+            {
+                if (!string.IsNullOrEmpty(item.ParentId) && lookup.TryGetValue(item.ParentId, out var parent))
+                {
+                    parent.Children.Add(item);
                 }
                 else
                 {
@@ -222,11 +365,14 @@ namespace QuanLyBar.Client.Services
                             k.DCUAHANGID,
                             c.NAME as TenCuaHang,
                             k.SORTORDER,
-                            k.STATUS
+                            k.STATUS,
+                            k.SIMAGEID,
+                            sim.IMAGE as ImageBytes
                         FROM DKHOHANG k
-                        LEFT JOIN DCUAHANG c ON k.DCUAHANGID = c.ID
-                        WHERE (k.STATUS = 1 OR k.STATUS IS NULL)
-                          AND (k.ITEMTYPE IS NULL OR k.ITEMTYPE = 'ITEM')
+                        LEFT JOIN DCUAHANG c ON CAST(k.DCUAHANGID AS VARCHAR(50)) = CAST(c.ID AS VARCHAR(50))
+                        LEFT JOIN SIMAGE sim ON CAST(k.SIMAGEID AS VARCHAR(50)) = CAST(sim.ID AS VARCHAR(50))
+                        WHERE (k.STATUS IS NULL OR k.STATUS <> 0)
+                          AND (k.ITEMTYPE IS NULL OR CAST(k.ITEMTYPE AS VARCHAR(10)) = '0')
                         ORDER BY k.SORTORDER, k.NAME";
 
                     var rows = (await conn.QueryAsync(sql)).ToList();
@@ -234,15 +380,42 @@ namespace QuanLyBar.Client.Services
 
                     foreach (var r in rows)
                     {
+                        byte[] imgBytes = r.IMAGEBYTES as byte[];
                         list.Add(new KhoHangTreeItem
                         {
-                            Id = Convert.ToInt32(r.ID),
+                            Id = r.ID?.ToString() ?? "",
                             Name = r.NAME?.ToString() ?? "",
                             Note = r.NOTE?.ToString() ?? "",
-                            DcuahangId = r.DCUAHANGID != null ? Convert.ToInt32(r.DCUAHANGID) : (int?)null,
+                            DcuahangId = r.DCUAHANGID?.ToString(),
                             TenCuaHang = r.TENCUAHANG?.ToString() ?? "",
-                            ItemType = "ITEM"
+                            ItemType = "0",
+                            SimageId = r.SIMAGEID?.ToString(),
+                            ImageBytes = imgBytes,
+                            ImageSource = BytesToBitmapImage(imgBytes)
                         });
+                    }
+
+                    if (list.Count == 0)
+                    {
+                        await EnsureDefaultKhoHangAsync(conn);
+                        // Query lại
+                        var reRows = (await conn.QueryAsync(sql)).ToList();
+                        foreach (var r in reRows)
+                        {
+                            byte[] imgBytes = r.IMAGEBYTES as byte[];
+                            list.Add(new KhoHangTreeItem
+                            {
+                                Id = r.ID?.ToString() ?? "",
+                                Name = r.NAME?.ToString() ?? "",
+                                Note = r.NOTE?.ToString() ?? "",
+                                DcuahangId = r.DCUAHANGID?.ToString(),
+                                TenCuaHang = r.TENCUAHANG?.ToString() ?? "",
+                                ItemType = "0",
+                                SimageId = r.SIMAGEID?.ToString(),
+                                ImageBytes = imgBytes,
+                                ImageSource = BytesToBitmapImage(imgBytes)
+                            });
+                        }
                     }
 
                     return list;
@@ -255,7 +428,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public static async Task<List<DCUAHANG>> GetCuaHangListAsync()
+        public static async Task<List<KhoHangCuaHangItem>> GetCuaHangListAsync()
         {
             try
             {
@@ -266,12 +439,37 @@ namespace QuanLyBar.Client.Services
                         await conn.OpenAsync();
                     }
 
-                    string sql = "SELECT ID, NAME, NOTE FROM DCUAHANG WHERE STATUS = 1 OR STATUS IS NULL ORDER BY NAME";
-                    var list = (await conn.QueryAsync<DCUAHANG>(sql)).ToList();
+                    string sql = @"
+                        SELECT 
+                            c.ID, 
+                            c.NAME, 
+                            c.NOTE, 
+                            c.SIMAGEID, 
+                            sim.IMAGE as ImageBytes 
+                        FROM DCUAHANG c
+                        LEFT JOIN SIMAGE sim ON CAST(c.SIMAGEID AS VARCHAR(50)) = CAST(sim.ID AS VARCHAR(50))
+                        WHERE (c.STATUS IS NULL OR c.STATUS <> 0) 
+                        ORDER BY c.SORTORDER, c.NAME";
+                    var rows = (await conn.QueryAsync(sql)).ToList();
+                    var list = new List<KhoHangCuaHangItem>();
+
+                    foreach (var r in rows)
+                    {
+                        byte[] imgBytes = r.IMAGEBYTES as byte[];
+                        list.Add(new KhoHangCuaHangItem
+                        {
+                            Id = r.ID?.ToString() ?? "",
+                            Name = r.NAME?.ToString() ?? "",
+                            Note = r.NOTE?.ToString() ?? "",
+                            SimageId = r.SIMAGEID?.ToString(),
+                            ImageBytes = imgBytes,
+                            ImageSource = BytesToBitmapImage(imgBytes)
+                        });
+                    }
 
                     if (list.Count == 0)
                     {
-                        list.Add(new DCUAHANG { Id = 1, Name = "TRỤ SỞ CHÍNH" });
+                        list.Add(new KhoHangCuaHangItem { Id = "1", Name = "TRỤ SỞ CHÍNH" });
                     }
 
                     return list;
@@ -280,11 +478,11 @@ namespace QuanLyBar.Client.Services
             catch (Exception ex)
             {
                 Console.WriteLine("Error GetCuaHangListAsync: " + ex.Message);
-                return new List<DCUAHANG> { new DCUAHANG { Id = 1, Name = "TRỤ SỞ CHÍNH" } };
+                return new List<KhoHangCuaHangItem> { new KhoHangCuaHangItem { Id = "1", Name = "TRỤ SỞ CHÍNH" } };
             }
         }
 
-        public static async Task<(bool Success, string ErrorMsg, int NewId)> SaveKhoHangAsync(KhoHangTreeItem item, bool isNew)
+        public static async Task<(bool Success, string ErrorMsg, string NewId)> SaveKhoHangAsync(KhoHangTreeItem item, bool isNew)
         {
             try
             {
@@ -296,34 +494,49 @@ namespace QuanLyBar.Client.Services
                     }
 
                     string chophepAmKho = item.Chophepamkho ? "1" : "0";
+                    string itemType = item.ItemType;
+                    if (string.IsNullOrEmpty(itemType) || itemType == "ITEM") itemType = "0";
+                    else if (itemType == "FOLDER") itemType = "1";
+                    else if (itemType == "SEPARATOR") itemType = "2";
 
-                    if (isNew)
+                    string userId = await GetCurrentUserIdAsync(conn);
+
+                    // Mặc định icon kính lúp / kho nếu trống
+                    string simageId = item.SimageId;
+                    if (string.IsNullOrEmpty(simageId))
                     {
-                        int nextId = await conn.ExecuteScalarAsync<int>("SELECT COALESCE(MAX(ID), 0) + 1 FROM DKHOHANG");
+                        simageId = "a38e42b9-aeda-4a67-8761-a5f4dc3571c1";
+                    }
+
+                    if (isNew || string.IsNullOrEmpty(item.Id))
+                    {
+                        string newId = Guid.NewGuid().ToString();
 
                         string insertSql = @"
                             INSERT INTO DKHOHANG (
                                 ID, NAME, NOTE, STATUS, PARENTID, PARENTDIR, ITEMTYPE, 
-                                CHOPHEPAMKHO, DCUAHANGID, SORTORDER, TIMECREATED
+                                CHOPHEPAMKHO, DCUAHANGID, SORTORDER, SIMAGEID, USERCREATEDID, TIMECREATED
                             ) VALUES (
-                                @Id, @Name, @Note, 1, @ParentId, @ParentDir, @ItemType,
-                                @Chophepamkho, @DcuahangId, @SortOrder, CURRENT_TIMESTAMP
+                                @Id, @Name, @Note, 30, @ParentId, @ParentDir, @ItemType,
+                                @Chophepamkho, @DcuahangId, @SortOrder, @SimageId, @UserCreatedId, CURRENT_TIMESTAMP
                             )";
 
                         await conn.ExecuteAsync(insertSql, new
                         {
-                            Id = nextId,
+                            Id = newId,
                             Name = item.Name,
                             Note = item.Note ?? "",
-                            ParentId = item.ParentId,
+                            ParentId = string.IsNullOrEmpty(item.ParentId) ? null : item.ParentId,
                             ParentDir = item.ParentDir ?? "",
-                            ItemType = item.ItemType ?? "ITEM",
+                            ItemType = itemType,
                             Chophepamkho = chophepAmKho,
-                            DcuahangId = item.DcuahangId,
-                            SortOrder = item.SortOrder ?? nextId
+                            DcuahangId = string.IsNullOrEmpty(item.DcuahangId) ? null : item.DcuahangId,
+                            SortOrder = string.IsNullOrEmpty(item.SortOrder) ? "ZZZZ" : item.SortOrder,
+                            SimageId = simageId,
+                            UserCreatedId = userId
                         });
 
-                        return (true, "", nextId);
+                        return (true, "", newId);
                     }
                     else
                     {
@@ -334,17 +547,21 @@ namespace QuanLyBar.Client.Services
                                 PARENTID = @ParentId,
                                 CHOPHEPAMKHO = @Chophepamkho,
                                 DCUAHANGID = @DcuahangId,
+                                SIMAGEID = @SimageId,
+                                USERMODIFIEDID = @UserModifiedId,
                                 TIMEMODIFIED = CURRENT_TIMESTAMP
-                            WHERE ID = @Id";
+                            WHERE CAST(ID AS VARCHAR(50)) = @Id";
 
                         await conn.ExecuteAsync(updateSql, new
                         {
                             Id = item.Id,
                             Name = item.Name,
                             Note = item.Note ?? "",
-                            ParentId = item.ParentId,
+                            ParentId = string.IsNullOrEmpty(item.ParentId) ? null : item.ParentId,
                             Chophepamkho = chophepAmKho,
-                            DcuahangId = item.DcuahangId
+                            DcuahangId = string.IsNullOrEmpty(item.DcuahangId) ? null : item.DcuahangId,
+                            SimageId = simageId,
+                            UserModifiedId = userId
                         });
 
                         return (true, "", item.Id);
@@ -353,11 +570,11 @@ namespace QuanLyBar.Client.Services
             }
             catch (Exception ex)
             {
-                return (false, ex.Message, 0);
+                return (false, ex.Message, "");
             }
         }
 
-        public static async Task<bool> DeleteKhoHangAsync(int id, bool permanent = false)
+        public static async Task<bool> DeleteKhoHangAsync(string id, bool permanent = false)
         {
             try
             {
@@ -370,11 +587,11 @@ namespace QuanLyBar.Client.Services
 
                     if (permanent)
                     {
-                        await conn.ExecuteAsync("DELETE FROM DKHOHANG WHERE ID = @Id OR PARENTID = @Id", new { Id = id });
+                        await conn.ExecuteAsync("DELETE FROM DKHOHANG WHERE CAST(ID AS VARCHAR(50)) = @Id OR CAST(PARENTID AS VARCHAR(50)) = @Id", new { Id = id });
                     }
                     else
                     {
-                        await conn.ExecuteAsync("UPDATE DKHOHANG SET STATUS = 0 WHERE ID = @Id OR PARENTID = @Id", new { Id = id });
+                        await conn.ExecuteAsync("UPDATE DKHOHANG SET STATUS = 0 WHERE CAST(ID AS VARCHAR(50)) = @Id OR CAST(PARENTID AS VARCHAR(50)) = @Id", new { Id = id });
                     }
                     return true;
                 }
@@ -386,7 +603,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public static async Task<bool> RestoreKhoHangAsync(int id)
+        public static async Task<bool> RestoreKhoHangAsync(string id)
         {
             try
             {
@@ -397,7 +614,7 @@ namespace QuanLyBar.Client.Services
                         await conn.OpenAsync();
                     }
 
-                    await conn.ExecuteAsync("UPDATE DKHOHANG SET STATUS = 1 WHERE ID = @Id", new { Id = id });
+                    await conn.ExecuteAsync("UPDATE DKHOHANG SET STATUS = 30 WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = id });
                     return true;
                 }
             }

@@ -1,0 +1,398 @@
+<Window x:Class="QuanLyBar.Client.Views.QuanLyNhapKho.ThietKeMauInMaVachWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thiết kế mẫu in mã vạch"
+        Height="800" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="#b0c8e8"
+        FontFamily="Segoe UI" FontSize="12">
+
+    <Window.Resources>
+        <!-- Windows Classic / DevExpress style brushes -->
+        <LinearGradientBrush x:Key="RibbonBg" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#dfeaf7" Offset="0"/>
+            <GradientStop Color="#c6d9ef" Offset="0.5"/>
+            <GradientStop Color="#b6cde8" Offset="0.51"/>
+            <GradientStop Color="#c7daf0" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="MenuBg" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#eef4fb" Offset="0"/>
+            <GradientStop Color="#d7e5f5" Offset="1"/>
+        </LinearGradientBrush>
+
+        <Style x:Key="ToolBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="2" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#fce1a2"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#f5a623"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#f8ca76"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#e08e0b"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="LeftToolBtn" TargetType="Button">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#fce1a2"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#f5a623"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#f8ca76"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#e08e0b"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Top App Bar -->
+            <RowDefinition Height="Auto"/> <!-- Top Action Menu -->
+            <RowDefinition Height="Auto"/> <!-- Main Menu Bar -->
+            <RowDefinition Height="Auto"/> <!-- Formatting Toolbar -->
+            <RowDefinition Height="*"/>    <!-- Main Working Area -->
+            <RowDefinition Height="Auto"/> <!-- Bottom Status Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. TOP TAB BAR -->
+        <Border Grid.Row="0" Background="#336699" Height="26">
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Border Background="#254d77" Padding="12,4" Margin="2,2,1,0" CornerRadius="3,3,0,0">
+                        <TextBlock Text="Sử dụng dịch vụ" Foreground="#b8d1ea" FontSize="11"/>
+                    </Border>
+                    <Border Background="#254d77" Padding="12,4" Margin="1,2,1,0" CornerRadius="3,3,0,0">
+                        <TextBlock Text="Danh mục nhà cung cấp" Foreground="#b8d1ea" FontSize="11"/>
+                    </Border>
+                    <Border Background="#254d77" Padding="12,4" Margin="1,2,1,0" CornerRadius="3,3,0,0">
+                        <TextBlock Text="Quản lý nhập kho" Foreground="#b8d1ea" FontSize="11"/>
+                    </Border>
+                    <Border Background="#ffffff" Padding="12,4" Margin="1,2,1,0" CornerRadius="3,3,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Thiết kế mẫu in mã vạch" Foreground="#003366" FontWeight="Bold" FontSize="11"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0">
+                    <TextBlock Text="🗕" Foreground="#ffffff" Margin="4,0" Cursor="Hand"/>
+                    <TextBlock Text="🗖" Foreground="#ffffff" Margin="4,0" Cursor="Hand"/>
+                    <TextBlock Text="✕" Foreground="#ffffff" Margin="4,0" Cursor="Hand" MouseDown="BtnClose_Click"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 2. ACTION SHORTCUT BAR -->
+        <Border Grid.Row="1" Background="{StaticResource RibbonBg}" BorderBrush="#9bb5d4" BorderThickness="0,0,0,1" Padding="6,3">
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button Style="{StaticResource ToolBtn}" Content="Báo cáo" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource ToolBtn}" Content="Bảng biểu" Margin="0,0,4,0"/>
+                    <Border Width="1" Background="#a0b8d8" Margin="4,2"/>
+                    <Button Style="{StaticResource ToolBtn}" Content="Format" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource ToolBtn}" Content="n0" Click="BtnFormatN0_Click" Margin="0,0,2,0"/>
+                    <Button Style="{StaticResource ToolBtn}" Content="n2" Click="BtnFormatN2_Click" Margin="0,0,2,0"/>
+                    <Button Style="{StaticResource ToolBtn}" Content="dd/MM/yyyy" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource ToolBtn}" Content="Sinh total" Margin="0,0,4,0"/>
+                    <Border Width="1" Background="#a0b8d8" Margin="4,2"/>
+                    <Button Style="{StaticResource ToolBtn}" Click="BtnPreview_Click" Padding="6,2">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔍" Margin="0,0,4,0"/>
+                            <TextBlock Text="Preview" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource ToolBtn}" Background="#e3f0fb" BorderBrush="#719fd1" Click="BtnSaveDatabase_Click" Padding="8,3">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾" Margin="0,0,4,0"/>
+                            <TextBlock Text="Cập nhật vào cơ sở dữ liệu" FontWeight="Bold" Foreground="#0b457e"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 3. SECONDARY MENU BAR (File, Edit, View, Insert...) -->
+        <Border Grid.Row="2" Background="{StaticResource MenuBg}" BorderBrush="#b6cae2" BorderThickness="0,0,0,1" Padding="4,1">
+            <StackPanel Orientation="Horizontal">
+                <Menu Background="Transparent">
+                    <MenuItem Header="_File">
+                        <MenuItem Header="💾 Lưu mẫu" Click="BtnSaveDatabase_Click"/>
+                        <MenuItem Header="🔍 Xem trước" Click="BtnPreview_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Đóng" Click="BtnClose_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="_Edit">
+                        <MenuItem Header="Cắt (Cut)"/>
+                        <MenuItem Header="Sao chép (Copy)"/>
+                        <MenuItem Header="Dán (Paste)"/>
+                        <Separator/>
+                        <MenuItem Header="Xóa (Delete)" Click="BtnDeleteSelected_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="_View">
+                        <MenuItem Header="Thước đo (Rulers)" IsCheckable="True" IsChecked="True"/>
+                        <MenuItem Header="Lưới chấm (Grid)" IsCheckable="True" IsChecked="True"/>
+                    </MenuItem>
+                    <MenuItem Header="_Insert">
+                        <MenuItem Header="Nhãn chữ (Text)" Click="BtnAddText_Click"/>
+                        <MenuItem Header="Mã vạch (Barcode)" Click="BtnAddBarcode_Click"/>
+                        <MenuItem Header="Khung viền (Box)"/>
+                    </MenuItem>
+                    <MenuItem Header="_Report">
+                        <MenuItem Header="Thiết lập trang in (Page Setup)..." Click="BtnPageSetup_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="_Data">
+                        <MenuItem Header="Hiển thị cây dữ liệu" IsCheckable="True" IsChecked="True"/>
+                    </MenuItem>
+                    <MenuItem Header="_Help">
+                        <MenuItem Header="Hướng dẫn thiết kế mã vạch"/>
+                    </MenuItem>
+                </Menu>
+            </StackPanel>
+        </Border>
+
+        <!-- 4. FORMATTING TOOLBAR -->
+        <Border Grid.Row="3" Background="{StaticResource RibbonBg}" BorderBrush="#9bb5d4" BorderThickness="0,0,0,1" Padding="4,2">
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Style="{StaticResource ToolBtn}" Content="💾" ToolTip="Lưu mẫu" Click="BtnSaveDatabase_Click"/>
+                <Button Style="{StaticResource ToolBtn}" Content="✂️" ToolTip="Cut"/>
+                <Button Style="{StaticResource ToolBtn}" Content="📄" ToolTip="Copy"/>
+                <Button Style="{StaticResource ToolBtn}" Content="📋" ToolTip="Paste"/>
+                <Button Style="{StaticResource ToolBtn}" Content="↩️" ToolTip="Undo"/>
+                <Button Style="{StaticResource ToolBtn}" Content="↪️" ToolTip="Redo"/>
+                <Border Width="1" Background="#a0b8d8" Margin="4,2"/>
+
+                <!-- Font Family -->
+                <ComboBox x:Name="CboFontFamily" Width="110" Height="22" Margin="2,0" SelectedIndex="0" SelectionChanged="CboFontFamily_SelectionChanged">
+                    <ComboBoxItem Content="Segoe UI"/>
+                    <ComboBoxItem Content="Arial"/>
+                    <ComboBoxItem Content="Times New Roman"/>
+                    <ComboBoxItem Content="Tahoma"/>
+                    <ComboBoxItem Content="Courier New"/>
+                </ComboBox>
+
+                <!-- Font Size -->
+                <ComboBox x:Name="CboFontSize" Width="55" Height="22" Margin="2,0" SelectedIndex="2" SelectionChanged="CboFontSize_SelectionChanged">
+                    <ComboBoxItem Content="7"/>
+                    <ComboBoxItem Content="8"/>
+                    <ComboBoxItem Content="9"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="11"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="14"/>
+                </ComboBox>
+
+                <Button Style="{StaticResource ToolBtn}" Content="B" FontWeight="Bold" Width="22" Click="BtnBold_Click" ToolTip="Đậm"/>
+                <Button Style="{StaticResource ToolBtn}" Content="I" FontStyle="Italic" Width="22" Click="BtnItalic_Click" ToolTip="Nghiêng"/>
+                <Button Style="{StaticResource ToolBtn}" Content="U" Width="22" Click="BtnUnderline_Click" ToolTip="Gạch chân"/>
+                <Border Width="1" Background="#a0b8d8" Margin="4,2"/>
+
+                <Button Style="{StaticResource ToolBtn}" Content="⬅️" Width="22" Click="BtnAlignLeft_Click" ToolTip="Căn trái"/>
+                <Button Style="{StaticResource ToolBtn}" Content="↔️" Width="22" Click="BtnAlignCenter_Click" ToolTip="Căn giữa"/>
+                <Button Style="{StaticResource ToolBtn}" Content="➡️" Width="22" Click="BtnAlignRight_Click" ToolTip="Căn phải"/>
+                <Border Width="1" Background="#a0b8d8" Margin="4,2"/>
+
+                <Button Style="{StaticResource ToolBtn}" Content="🎨" ToolTip="Màu chữ"/>
+                <Button Style="{StaticResource ToolBtn}" Content="🔲" ToolTip="Đường viền"/>
+                <Button Style="{StaticResource ToolBtn}" Content="➕ Thêm chữ" Click="BtnAddText_Click" Margin="4,0,2,0"/>
+                <Button Style="{StaticResource ToolBtn}" Content="|||| Thêm mã vạch" Click="BtnAddBarcode_Click" Margin="2,0"/>
+            </WrapPanel>
+        </Border>
+
+        <!-- 5. MAIN WORK AREA (Left Toolbox + Center Canvas + Right Panels) -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="28"/>  <!-- Left Toolbox -->
+                <ColumnDefinition Width="*"/>   <!-- Center Canvas with Rulers -->
+                <ColumnDefinition Width="280"/> <!-- Right Panels (Data + Properties) -->
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT TOOLBOX -->
+            <Border Grid.Column="0" Background="{StaticResource RibbonBg}" BorderBrush="#9bb5d4" BorderThickness="0,0,1,0" Padding="2">
+                <StackPanel Orientation="Vertical">
+                    <Button Style="{StaticResource LeftToolBtn}" Content="↖️" ToolTip="Chọn (Pointer)" Click="ToolSelect_Click"/>
+                    <Button Style="{StaticResource LeftToolBtn}" Content="A" FontWeight="Bold" ToolTip="Nhãn chữ (Text)" Click="BtnAddText_Click"/>
+                    <Button Style="{StaticResource LeftToolBtn}" Content="🖼️" ToolTip="Hình ảnh (Picture)"/>
+                    <Button Style="{StaticResource LeftToolBtn}" Content="||||" ToolTip="Mã vạch (Barcode)" Click="BtnAddBarcode_Click"/>
+                    <Button Style="{StaticResource LeftToolBtn}" Content="📋" ToolTip="Bảng / Băng dải (Band)"/>
+                    <Button Style="{StaticResource LeftToolBtn}" Content="☑️" ToolTip="Checkbox"/>
+                    <Button Style="{StaticResource LeftToolBtn}" Content="➖" ToolTip="Đường thẳng"/>
+                    <Button Style="{StaticResource LeftToolBtn}" Content="⬜" ToolTip="Hình khối (Shape)"/>
+                </StackPanel>
+            </Border>
+
+            <!-- CENTER CANVAS WITH RULERS -->
+            <Grid Grid.Column="1" Background="#82a5ca">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20"/> <!-- Top Horizontal Ruler -->
+                    <RowDefinition Height="*"/>  <!-- Left Ruler & Canvas Scroll -->
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="20"/> <!-- Left Vertical Ruler -->
+                    <ColumnDefinition Width="*"/>  <!-- Canvas Area -->
+                </Grid.ColumnDefinitions>
+
+                <!-- TOP RULER -->
+                <Border Grid.Row="0" Grid.Column="1" Background="#ffffff" BorderBrush="#a0b8d8" BorderThickness="0,0,0,1">
+                    <Canvas x:Name="CanvasTopRuler" Height="20" ClipToBounds="True"/>
+                </Border>
+
+                <!-- LEFT RULER -->
+                <Border Grid.Row="1" Grid.Column="0" Background="#ffffff" BorderBrush="#a0b8d8" BorderThickness="0,0,1,0">
+                    <Canvas x:Name="CanvasLeftRuler" Width="20" ClipToBounds="True"/>
+                </Border>
+
+                <!-- TOP-LEFT CORNER -->
+                <Border Grid.Row="0" Grid.Column="0" Background="#e0e8f0" BorderBrush="#a0b8d8" BorderThickness="0,0,1,1"/>
+
+                <!-- CANVAS SCROLL VIEWER -->
+                <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#7e9fc2">
+                    <Grid Margin="30,20,50,50" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/> <!-- Band Yellow Header -->
+                            <ColumnDefinition Width="*"/>   <!-- White Paper Canvas -->
+                        </Grid.ColumnDefinitions>
+
+                        <!-- LEFT YELLOW BAND BAR -->
+                        <Border Grid.Column="0" Background="#f7b731" BorderBrush="#d48a12" BorderThickness="1,1,0,1" Width="100" VerticalAlignment="Stretch">
+                            <StackPanel Orientation="Vertical" Margin="4,8">
+                                <TextBlock Text="Configure bands..." FontSize="10" Foreground="#2d3436" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                <TextBlock Text="Data: Table0" FontSize="11" Foreground="#1e272e" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- WHITE DESIGN PAPER / CANVAS -->
+                        <Border Grid.Column="1" x:Name="PaperContainer" Background="#ffffff" BorderBrush="#4b6584" BorderThickness="1" Width="480" Height="240">
+                            <!-- Canvas with dotted grid -->
+                            <Canvas x:Name="DesignCanvas" Background="#ffffff" MouseDown="DesignCanvas_MouseDown" ClipToBounds="True">
+                                <!-- Background grid dots simulated via drawing brush in code/XAML -->
+                            </Canvas>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- RIGHT PANELS (Data Tree & Properties) -->
+            <Grid Grid.Column="2" Background="#f0f4f9">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/> <!-- Data Tree -->
+                    <RowDefinition Height="3*"/> <!-- Properties Grid -->
+                </Grid.RowDefinitions>
+
+                <!-- TOP RIGHT: DATA PANEL -->
+                <Border Grid.Row="0" BorderBrush="#9bb5d4" BorderThickness="1,0,0,1">
+                    <DockPanel LastChildFill="True">
+                        <Border DockPanel.Dock="Top" Background="{StaticResource RibbonBg}" Padding="6,4" BorderBrush="#9bb5d4" BorderThickness="0,0,0,1">
+                            <DockPanel>
+                                <TextBlock Text="Data" FontWeight="Bold" Foreground="#0b457e"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <TextBlock Text="Actions ▾" FontSize="11" Foreground="#336699" Margin="0,0,8,0" Cursor="Hand"/>
+                                    <TextBlock Text="⚙️" Margin="0,0,4,0" Cursor="Hand"/>
+                                    <TextBlock Text="✕" Cursor="Hand"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <TreeView x:Name="TvDataSources" BorderThickness="0" Background="#ffffff" MouseDoubleClick="TvDataSources_MouseDoubleClick">
+                            <!-- Dynamically loaded Data tree -->
+                        </TreeView>
+                    </DockPanel>
+                </Border>
+
+                <!-- BOTTOM RIGHT: PROPERTIES PANEL -->
+                <Border Grid.Row="1" BorderBrush="#9bb5d4" BorderThickness="1,0,0,0">
+                    <DockPanel LastChildFill="True">
+                        <Border DockPanel.Dock="Top" Background="{StaticResource RibbonBg}" Padding="6,4" BorderBrush="#9bb5d4" BorderThickness="0,0,0,1">
+                            <DockPanel>
+                                <TextBlock Text="Properties" FontWeight="Bold" Foreground="#0b457e"/>
+                                <TextBlock Text="✕" HorizontalAlignment="Right" Cursor="Hand"/>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Object Selector Dropdown -->
+                        <Border DockPanel.Dock="Top" Background="#ffffff" Padding="4,3" BorderBrush="#d5e2f0" BorderThickness="0,0,0,1">
+                            <ComboBox x:Name="CboSelectedObject" Height="22" SelectionChanged="CboSelectedObject_SelectionChanged"/>
+                        </Border>
+
+                        <!-- Properties Description Box (Bottom) -->
+                        <Border DockPanel.Dock="Bottom" Background="#eaf2fa" BorderBrush="#9bb5d4" BorderThickness="0,1,0,0" Padding="6,4" Height="50">
+                            <StackPanel>
+                                <TextBlock x:Name="TxtPropName" Text="(Name)" FontWeight="Bold" FontSize="11" Foreground="#0b457e"/>
+                                <TextBlock x:Name="TxtPropDesc" Text="Gets or sets the name of the object." FontSize="10.5" Foreground="#555555" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Property Grid Table -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid x:Name="GridProperties" Background="#ffffff" Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- Dynamic properties rows generated in code behind -->
+                            </Grid>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- 6. BOTTOM STATUS BAR -->
+        <Border Grid.Row="5" Background="{StaticResource MenuBg}" BorderBrush="#9bb5d4" BorderThickness="0,1,0,0" Height="24" Padding="6,0">
+            <DockPanel LastChildFill="True">
+                <!-- Tabs: Code / Page1 -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Border Background="#ffffff" BorderBrush="#9bb5d4" BorderThickness="1,1,1,0" Padding="8,2" Margin="0,0,2,0">
+                        <TextBlock Text="📃 Page1" FontSize="11" FontWeight="SemiBold" Foreground="#0b457e"/>
+                    </Border>
+                    <Border Background="Transparent" Padding="8,2">
+                        <TextBlock Text="💻 Code" FontSize="11" Foreground="#555555"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right Status Info -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Zoom: 100%" FontSize="11" Foreground="#333333" Margin="0,0,8,0"/>
+                    <Slider x:Name="SliderZoom" Width="80" Minimum="50" Maximum="200" Value="100" ValueChanged="SliderZoom_ValueChanged" Margin="0,0,12,0"/>
+                    <TextBlock Text="🗄️ CSDL: Firebird" FontSize="11" Foreground="#0b457e" Margin="0,0,10,0"/>
+                    <TextBlock Text="👤 Tài khoản: Admin" FontSize="11" Foreground="#0b457e" Margin="0,0,6,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

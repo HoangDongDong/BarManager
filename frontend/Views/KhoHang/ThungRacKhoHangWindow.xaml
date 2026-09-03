@@ -1,0 +1,171 @@
+<Window x:Class="QuanLyBar.Client.Views.KhoHang.ThungRacKhoHangWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:services="clr-namespace:QuanLyBar.Client.Services"
+        Title="Thùng rác" Height="480" Width="470"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip"
+        Background="#dbe6f3" WindowStyle="SingleBorderWindow"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <!-- Style Toolbar Button -->
+        <Style x:Key="RibbonBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#fff0b3"/>
+                    <Setter Property="BorderBrush" Value="#f5a623"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style Footer Button -->
+        <Style x:Key="FooterBtnStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="78"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#a0b8d4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e6f0fa"/>
+                    <Setter Property="BorderBrush" Value="#6495ed"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 0. Banner -->
+            <RowDefinition Height="Auto"/> <!-- 1. Toolbar -->
+            <RowDefinition Height="*"/>    <!-- 2. TreeView rác -->
+            <RowDefinition Height="Auto"/> <!-- 3. Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 0. BANNER -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="14,10">
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Left" Text="🗑️" FontSize="28" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <TextBlock DockPanel.Dock="Right" Text="📝" FontSize="26" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Dữ liệu Kho hàng bị xóa hoặc không dùng tới."
+                           FontWeight="Bold" FontSize="13" Foreground="#111" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- 1. TOOLBAR -->
+        <Border Grid.Row="1" Background="#dbe6f3" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="4,3">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="BtnKhoiPhuc" Style="{StaticResource RibbonBtnStyle}" Click="BtnKhoiPhuc_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="↩ " Foreground="Green" FontWeight="Bold"/>
+                        <TextBlock Text="Khôi phục"/>
+                    </StackPanel>
+                </Button>
+
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="2,2"/>
+
+                <Button x:Name="BtnChiTiet" Style="{StaticResource RibbonBtnStyle}" Click="BtnChiTiet_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="✏ " Foreground="#d35400"/>
+                        <TextBlock Text="Xem chi tiết"/>
+                    </StackPanel>
+                </Button>
+
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="2,2"/>
+
+                <Button x:Name="BtnXoaVinhVien" Style="{StaticResource RibbonBtnStyle}" Click="BtnXoaVinhVien_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❌ " Foreground="#c0392b" FontWeight="Bold"/>
+                        <TextBlock Text="Xóa vĩnh viễn"/>
+                    </StackPanel>
+                </Button>
+
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="2,2"/>
+
+                <Button x:Name="BtnThuocTinh" Style="{StaticResource RibbonBtnStyle}" Click="BtnThuocTinh_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙ " Foreground="#555"/>
+                        <TextBlock Text="Thuộc tính"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. TREEVIEW RÁC -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#9ab5cf" BorderThickness="1" Margin="10,8,10,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="18"/> <!-- Dải vàng đáy -->
+                </Grid.RowDefinitions>
+
+                <TreeView x:Name="TvTrashKhoHang" Grid.Row="0" BorderThickness="0" Background="White"
+                          SelectedItemChanged="TvTrashKhoHang_SelectedItemChanged"
+                          MouseDoubleClick="TvTrashKhoHang_MouseDoubleClick">
+                    <TreeView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="↩  Khôi phục" Click="BtnKhoiPhuc_Click"/>
+                            <MenuItem Header="✏  Xem chi tiết" Click="BtnChiTiet_Click"/>
+                            <Separator/>
+                            <MenuItem Header="❌  Xóa vĩnh viễn" Click="BtnXoaVinhVien_Click"/>
+                            <MenuItem Header="⚙  Thuộc tính" Click="BtnThuocTinh_Click"/>
+                        </ContextMenu>
+                    </TreeView.ContextMenu>
+
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type services:KhoHangTreeItem}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal" Margin="1,2">
+                                <TextBlock Text="...... " Foreground="#a0a0a0" VerticalAlignment="Center" Margin="0,0,2,0" FontSize="11"/>
+                                <Image Source="{Binding ImageSource}" Width="16" Height="16" Margin="0,0,4,0" VerticalAlignment="Center"
+                                       Visibility="{Binding ImageSource, Converter={x:Static services:KhoHangVisibilityConverters.NotNullToVisibilityConverter}}"/>
+                                <Border Width="16" Height="16" Margin="0,0,4,0" VerticalAlignment="Center"
+                                        Visibility="{Binding ImageSource, Converter={x:Static services:KhoHangVisibilityConverters.NullToVisibilityConverter}}">
+                                    <TextBlock Text="{Binding Icon}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{Binding Name}" FontSize="11.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="True"/>
+                            <Setter Property="Padding" Value="2,2"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#fff2b3"/>
+                                    <Setter Property="BorderBrush" Value="#f1a93b"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="Foreground" Value="#000000"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
+
+                <!-- Dải màu kem đáy -->
+                <Border Grid.Row="1" Background="#fffde6" BorderBrush="#f5f0bb" BorderThickness="0,1,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- 3. FOOTER -->
+        <Border Grid.Row="3" Background="#dbe6f3" BorderBrush="#b6cadf" BorderThickness="0,1,0,0" Padding="10,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnThoat" Content="Thoát" Style="{StaticResource FooterBtnStyle}" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

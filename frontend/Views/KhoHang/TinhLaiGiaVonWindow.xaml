@@ -1,0 +1,103 @@
+<Window x:Class="QuanLyBar.Client.Views.KhoHang.TinhLaiGiaVonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="TÍNH LẠI GIÁ VỐN" 
+        Height="210" Width="430"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        FontFamily="Segoe UI"
+        Background="#d2e0ee">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. Header trắng với Icon và Tiêu đề -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="14,0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Icon thẻ giá màu xanh $ -->
+                <Grid Width="28" Height="22" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <Path Data="M 0,4 L 14,4 L 26,11 L 14,18 L 0,18 Z" Fill="#3498db" Stretch="Fill"/>
+                    <Ellipse Width="4" Height="4" Fill="White" HorizontalAlignment="Left" Margin="4,0,0,0"/>
+                    <TextBlock Text="$" Foreground="White" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3,0,0,0"/>
+                </Grid>
+                <TextBlock Text="Tính lại giá vốn hàng bán" FontWeight="Bold" FontSize="13" Foreground="#111111" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. Nội dung giải thích chức năng -->
+        <Grid Grid.Row="1" Margin="16,14,16,10">
+            <TextBlock Text="Chức năng này sử dụng để đánh giá lại hàng giá trị tồn kho của bạn và cho bạn biết một cách tương đối thực tế nhất lợi nhuận của mình."
+                       TextWrapping="Wrap"
+                       FontSize="12"
+                       LineHeight="18"
+                       Foreground="#1a202c"
+                       VerticalAlignment="Top"/>
+        </Grid>
+
+        <!-- 3. Nút bấm Thực hiện & Thoát -->
+        <Border Grid.Row="2" Padding="16,0,16,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="BtnThucHien" Content="Thực hiện" Width="85" Height="25" Margin="0,0,14,0"
+                        Background="White" BorderBrush="#7092be" BorderThickness="1" FontSize="12"
+                        Cursor="Hand" Click="BtnThucHien_Click">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#e5f1fb"/>
+                                    <Setter Property="BorderBrush" Value="#0078d7"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#cce4f7"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button x:Name="BtnThoat" Content="Thoát" Width="85" Height="25"
+                        Background="White" BorderBrush="#7092be" BorderThickness="1" FontSize="12"
+                        Cursor="Hand" Click="BtnThoat_Click">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#e5f1fb"/>
+                                    <Setter Property="BorderBrush" Value="#0078d7"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#cce4f7"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
