@@ -231,6 +231,16 @@ namespace QuanLyBar.Client
                         tabName = "Tồn nhiều kho";
                         content = new QuanLyBar.Client.Views.TonKho.TonNhieuKhoControl();
                     }
+                    else if (tabName == "Công nợ khách hàng" || tabName == "Quản lý công nợ khách hàng")
+                    {
+                        tabName = "Công nợ khách hàng";
+                        content = new QuanLyBar.Client.Views.CongNo.CongNoKhachHangControl();
+                    }
+                    else if (tabName == "Công nợ nhà cung cấp" || tabName == "Quản lý công nợ nhà cung cấp")
+                    {
+                        tabName = "Công nợ nhà cung cấp";
+                        content = new QuanLyBar.Client.Views.CongNo.CongNoNhaCungCapControl();
+                    }
                     else
                     {
                         content = new System.Windows.Controls.TextBlock

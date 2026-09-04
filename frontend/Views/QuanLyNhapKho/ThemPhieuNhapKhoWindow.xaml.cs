@@ -23,6 +23,7 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         private ObservableCollection<PhieuNhapChiTietItem> _details = new();
         private List<MatHangNhapKhoItem> _allMatHang = new();
         private bool _isUpdatingTotals = false;
+        private bool _isUserEditedThanhToan = false;
         private bool _isLoaded = false;
 
         private List<NhapKhoLookupItem> _allNccLookup = new();
@@ -337,6 +338,7 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         private async Task CreateNewPhieuNhapAsync()
         {
             _phieuNhapId = null;
+            _isUserEditedThanhToan = false;
             DpNgay.SelectedDate = DateTime.Now;
             TxtSoPhieu.Text = await LocalNhapKhoService.GetNextSoPhieuNhapAsync();
             TxtDienGiai.Text = "Nhập mua hàng";
@@ -375,7 +377,9 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             _details.Clear();
             foreach (var d in details) _details.Add(d);
 
+            _isUserEditedThanhToan = true;
             CalculateTotals();
+            TxtTienThanhToan.Text = item.ThanhToan.ToString("N0");
             UpdateNavigationButtonsState();
         }
 
@@ -434,11 +438,42 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
                 if (tongCong < 0) tongCong = 0;
 
                 TxtTongCong.Text = tongCong.ToString("N0");
-                TxtTienThanhToan.Text = tongCong.ToString("N0");
+                if (!_isUserEditedThanhToan)
+                {
+                    TxtTienThanhToan.Text = tongCong.ToString("N0");
+                }
             }
             finally
             {
                 _isUpdatingTotals = false;
+            }
+        }
+
+        private void TxtTienThanhToan_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingTotals || TxtTienThanhToan == null) return;
+
+            _isUserEditedThanhToan = true;
+            string text = TxtTienThanhToan.Text.Replace(",", "").Replace(".", "").Trim();
+            if (decimal.TryParse(text, out decimal val))
+            {
+                _isUpdatingTotals = true;
+                try
+                {
+                    int caret = TxtTienThanhToan.CaretIndex;
+                    int oldLength = TxtTienThanhToan.Text.Length;
+                    string formatted = val.ToString("N0", System.Globalization.CultureInfo.InvariantCulture).Replace(",", ".");
+                    if (TxtTienThanhToan.Text != formatted)
+                    {
+                        TxtTienThanhToan.Text = formatted;
+                        int newLength = TxtTienThanhToan.Text.Length;
+                        TxtTienThanhToan.CaretIndex = Math.Max(0, Math.Min(newLength, caret + (newLength - oldLength)));
+                    }
+                }
+                finally
+                {
+                    _isUpdatingTotals = false;
+                }
             }
         }
 
@@ -602,6 +637,8 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             decimal.TryParse(TxtTienGiamGia.Text.Replace(",", "").Replace(".", ""), out decimal tienGiam);
             decimal.TryParse(TxtTiLeGiamGia.Text, out decimal tiLeGiam);
             decimal.TryParse(TxtTongCong.Text.Replace(",", "").Replace(".", ""), out decimal tongCong);
+            decimal.TryParse(TxtTienThanhToan.Text.Replace(",", "").Replace(".", ""), out decimal thanhToan);
+            decimal conLai = tongCong - thanhToan;
 
             bool isNew = string.IsNullOrEmpty(_phieuNhapId);
             var item = new PhieuNhapItem
@@ -616,6 +653,8 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
                 TienGiamGia = tienGiam,
                 TiLeGiamGia = tiLeGiam,
                 TongCong = tongCong,
+                ThanhToan = thanhToan,
+                ConLai = conLai,
                 Note = TxtGhiChu.Text.Trim(),
                 Status = 30
             };

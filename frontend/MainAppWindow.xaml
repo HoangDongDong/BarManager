@@ -180,8 +180,8 @@
             </MenuItem>
             
             <MenuItem Header="CÔNG NỢ" Foreground="#1e3f66">
-                <MenuItem Header="Công nợ khách hàng"/>
-                <MenuItem Header="Công nợ nhà cung cấp"/>
+                <MenuItem Header="Công nợ khách hàng" Click="MenuBtn_Click"/>
+                <MenuItem Header="Công nợ nhà cung cấp" Click="MenuBtn_Click"/>
             </MenuItem>
             
             <MenuItem Header="QUỸ" Foreground="#1e3f66">

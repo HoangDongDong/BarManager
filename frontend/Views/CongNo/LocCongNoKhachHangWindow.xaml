@@ -1,0 +1,79 @@
+<Window x:Class="QuanLyBar.Client.Views.CongNo.LocCongNoKhachHangWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Lọc Dữ Liệu Công Nợ (F3)" Height="380" Width="480"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#eef3f9" Loaded="Window_Loaded">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#2e75b6" CornerRadius="4" Padding="10,8" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="🔍" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock Text="LỌC DỮ LIỆU CÔNG NỢ KHÁCH HÀNG" FontWeight="Bold" FontSize="13" Foreground="White" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#b6cadf" BorderThickness="1" CornerRadius="4" Padding="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Thời gian -->
+                <GroupBox Grid.Row="0" Header="Khoảng thời gian phát sinh" FontWeight="SemiBold">
+                    <Grid Margin="5,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Từ ngày:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <DatePicker x:Name="DpTuNgay" Grid.Column="1" Height="25"/>
+                        <TextBlock Grid.Column="2" Text="Đến ngày:" VerticalAlignment="Center" Margin="12,0,8,0"/>
+                        <DatePicker x:Name="DpDenNgay" Grid.Column="3" Height="25"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Trạng thái công nợ -->
+                <GroupBox Grid.Row="2" Header="Trạng thái công nợ" FontWeight="SemiBold">
+                    <StackPanel Margin="5,8">
+                        <RadioButton x:Name="RbTatCa" Content="Tất cả khách hàng (kể cả không có nợ)" Margin="0,3"/>
+                        <RadioButton x:Name="RbChiConNo" Content="Chỉ hiển thị khách hàng còn nợ (> 0 đ)" IsChecked="True" Margin="0,3" FontWeight="Bold" Foreground="#1e3f66"/>
+                        <RadioButton x:Name="RbPhatSinh" Content="Chỉ khách hàng có phát sinh giao dịch trong kỳ" Margin="0,3"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Từ khóa -->
+                <GroupBox Grid.Row="4" Header="Tìm kiếm nhanh" FontWeight="SemiBold">
+                    <Grid Margin="5,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Từ khóa:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox x:Name="TxtKeyword" Grid.Column="1" Height="25" VerticalContentAlignment="Center" BorderBrush="#b6cadf"/>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </Border>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button x:Name="BtnDongY" Content="🔍 Lọc dữ liệu" Padding="14,6" Margin="0,0,8,0" 
+                    Background="#27ae60" Foreground="White" FontWeight="Bold" Cursor="Hand" Click="BtnDongY_Click"/>
+            <Button x:Name="BtnBoQua" Content="✕ Đóng" Padding="14,6" Background="#95a5a6" Foreground="White" Cursor="Hand" Click="BtnBoQua_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

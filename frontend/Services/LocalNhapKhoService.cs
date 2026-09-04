@@ -1012,13 +1012,13 @@ namespace QuanLyBar.Client.Services
                                 ID, NAME, NGAY, LOAI, STATUS,
                                 DNHACUNGCAPID, DKHONHAPID, DNHANVIENNHAPID,
                                 TIENHANG, TIENGIAMGIA, TILEGIAMGIA,
-                                DTAIKHOANNGANHANGID, TONGCONG, DCUAHANGID, NOTE,
+                                DTAIKHOANNGANHANGID, TONGCONG, THANHTOAN, CONLAI, CONNO, DCUAHANGID, NOTE,
                                 USERCREATEDID, TIMECREATED
                             ) VALUES (
                                 @Id, @SoPhieu, @Ngay, 1, 30,
                                 @DnhacungcapId, @DkhoNhapId, @DnhanVienNhapId,
                                 @TienHang, @TienGiamGia, @TiLeGiamGia,
-                                @DtaiKhoanNganHangId, @TongCong, @DcuaHangId, @Note,
+                                @DtaiKhoanNganHangId, @TongCong, @ThanhToan, @ConLai, @ConLai, @DcuaHangId, @Note,
                                 @UserCreatedId, CURRENT_TIMESTAMP
                             )";
 
@@ -1035,6 +1035,8 @@ namespace QuanLyBar.Client.Services
                             TiLeGiamGia = item.TiLeGiamGia,
                             DtaiKhoanNganHangId = string.IsNullOrEmpty(item.DtaiKhoanNganHangId) ? null : item.DtaiKhoanNganHangId,
                             TongCong = item.TongCong,
+                            ThanhToan = item.ThanhToan,
+                            ConLai = item.ConLai,
                             DcuaHangId = string.IsNullOrEmpty(item.DcuaHangId) ? null : item.DcuaHangId,
                             Note = item.Note?.Trim() ?? "",
                             UserCreatedId = userId
@@ -1054,6 +1056,9 @@ namespace QuanLyBar.Client.Services
                                 TILEGIAMGIA = @TiLeGiamGia,
                                 DTAIKHOANNGANHANGID = @DtaiKhoanNganHangId,
                                 TONGCONG = @TongCong,
+                                THANHTOAN = @ThanhToan,
+                                CONLAI = @ConLai,
+                                CONNO = @ConLai,
                                 DCUAHANGID = @DcuaHangId,
                                 NOTE = @Note,
                                 USERMODIFIEDID = @UserModifiedId,
@@ -1073,6 +1078,8 @@ namespace QuanLyBar.Client.Services
                             TiLeGiamGia = item.TiLeGiamGia,
                             DtaiKhoanNganHangId = string.IsNullOrEmpty(item.DtaiKhoanNganHangId) ? null : item.DtaiKhoanNganHangId,
                             TongCong = item.TongCong,
+                            ThanhToan = item.ThanhToan,
+                            ConLai = item.ConLai,
                             DcuaHangId = string.IsNullOrEmpty(item.DcuaHangId) ? null : item.DcuaHangId,
                             Note = item.Note?.Trim() ?? "",
                             UserModifiedId = userId

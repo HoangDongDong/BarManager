@@ -485,8 +485,9 @@
 
                         <!-- Tiền thanh toán -->
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Tiền thanh toán" VerticalAlignment="Center" Margin="0,2"/>
-                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtTienThanhToan" Text="0" IsReadOnly="True" Height="23" Margin="0,2"
-                                 TextAlignment="Right" VerticalContentAlignment="Center" Padding="0,0,6,0"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtTienThanhToan" Text="0" Height="23" Margin="0,2"
+                                 FontWeight="Bold" TextAlignment="Right" VerticalContentAlignment="Center" Padding="0,0,6,0"
+                                 TextChanged="TxtTienThanhToan_TextChanged"/>
                     </Grid>
                 </GroupBox>
             </Grid>
