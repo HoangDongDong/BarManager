@@ -46,6 +46,7 @@ namespace QuanLyBar.Client.Views.CongNo
                 CboNhanVien.ItemsSource = _nhanVienList;
 
                 _lyDoList = await LocalCongNoNhaCungCapService.GetLyDoChiLookupAsync();
+                CboPhanLoai.ItemsSource = _lyDoList;
                 CboLyDoChi.ItemsSource = _lyDoList;
                 if (_lyDoList.Count > 0)
                 {
@@ -53,14 +54,15 @@ namespace QuanLyBar.Client.Views.CongNo
                     for (int i = 0; i < _lyDoList.Count; i++)
                     {
                         string name = _lyDoList[i].NAME?.ToString() ?? "";
-                        if (name.Contains("công nợ", StringComparison.OrdinalIgnoreCase) ||
-                            name.Contains("nhà cung cấp", StringComparison.OrdinalIgnoreCase) ||
+                        if (name.Contains("Thanh toán công nợ", StringComparison.OrdinalIgnoreCase) ||
+                            name.Contains("công nợ", StringComparison.OrdinalIgnoreCase) ||
                             name.Contains("mua hàng", StringComparison.OrdinalIgnoreCase))
                         {
                             selectedIdx = i;
                             break;
                         }
                     }
+                    CboPhanLoai.SelectedIndex = selectedIdx;
                     CboLyDoChi.SelectedIndex = selectedIdx;
                 }
 
@@ -78,13 +80,6 @@ namespace QuanLyBar.Client.Views.CongNo
                     CboTaiKhoanNganHang.SelectedIndex = 0;
                 }
 
-                // Phân loại
-                CboPhanLoai.Items.Add("Chi trả nợ nhà cung cấp");
-                CboPhanLoai.Items.Add("Chi tiền mua hàng");
-                CboPhanLoai.Items.Add("Chi tiền dịch vụ");
-                CboPhanLoai.Items.Add("Chi khác");
-                CboPhanLoai.SelectedIndex = 0;
-
                 // Điền thông tin nhà cung cấp nếu đã chọn trước
                 if (_ncc != null)
                 {
@@ -93,13 +88,28 @@ namespace QuanLyBar.Client.Views.CongNo
                     TxtSoTien.Text = _ncc.ConNo > 0 ? _ncc.ConNo.ToString("N0", new CultureInfo("en-US")) : "0";
 
                     // Chọn trong ComboBox Nhà cung cấp
+                    int matchedIndex = -1;
                     for (int i = 0; i < _nhaCungCapList.Count; i++)
                     {
-                        if (_nhaCungCapList[i].ID?.ToString() == _ncc.Id)
+                        string nccId = _nhaCungCapList[i].ID?.ToString()?.Trim() ?? "";
+                        string targetId = _ncc.Id?.Trim() ?? "";
+                        string nccMa = _nhaCungCapList[i].MANHACUNGCAP?.ToString()?.Trim() ?? "";
+                        string targetMa = _ncc.MaNhaCungCap?.Trim() ?? "";
+                        string nccName = _nhaCungCapList[i].NAME?.ToString()?.Trim() ?? "";
+                        string targetName = _ncc.Name?.Trim() ?? "";
+
+                        if ((!string.IsNullOrEmpty(nccId) && string.Equals(nccId, targetId, StringComparison.OrdinalIgnoreCase)) ||
+                            (!string.IsNullOrEmpty(nccMa) && string.Equals(nccMa, targetMa, StringComparison.OrdinalIgnoreCase)) ||
+                            (!string.IsNullOrEmpty(nccName) && string.Equals(nccName, targetName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            CboNhaCungCap.SelectedIndex = i;
+                            matchedIndex = i;
                             break;
                         }
+                    }
+
+                    if (matchedIndex >= 0)
+                    {
+                        CboNhaCungCap.SelectedIndex = matchedIndex;
                     }
                 }
                 else
@@ -113,6 +123,63 @@ namespace QuanLyBar.Client.Views.CongNo
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi khởi tạo phiếu chi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CboPhanLoai_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CboPhanLoai.SelectedItem != null)
+            {
+                dynamic selected = CboPhanLoai.SelectedItem;
+                string name = selected.NAME?.ToString() ?? "";
+
+                // Đồng bộ sang CboLyDoChi
+                if (CboLyDoChi != null && _lyDoList != null)
+                {
+                    for (int i = 0; i < _lyDoList.Count; i++)
+                    {
+                        if (string.Equals(_lyDoList[i].ID?.ToString()?.Trim(), selected.ID?.ToString()?.Trim(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            CboLyDoChi.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                // Gợi ý Loại đối tượng phù hợp
+                if (CboLoaiDoiTuong != null)
+                {
+                    if (name.Contains("công nợ", StringComparison.OrdinalIgnoreCase) || 
+                        name.Contains("nhà cung cấp", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("mua hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        SetLoaiDoiTuong("Nhà cung cấp");
+                    }
+                    else if (name.Contains("lương", StringComparison.OrdinalIgnoreCase) ||
+                             name.Contains("tạm ứng", StringComparison.OrdinalIgnoreCase) ||
+                             name.Contains("thưởng", StringComparison.OrdinalIgnoreCase) ||
+                             name.Contains("nhân viên", StringComparison.OrdinalIgnoreCase))
+                    {
+                        SetLoaiDoiTuong("Nhân viên");
+                    }
+                    else if (name.Contains("khách hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        SetLoaiDoiTuong("Khách hàng");
+                    }
+                }
+            }
+        }
+
+        private void SetLoaiDoiTuong(string targetLoai)
+        {
+            if (CboLoaiDoiTuong == null) return;
+            for (int i = 0; i < CboLoaiDoiTuong.Items.Count; i++)
+            {
+                if (CboLoaiDoiTuong.Items[i] is ComboBoxItem cbi && cbi.Content?.ToString() == targetLoai)
+                {
+                    CboLoaiDoiTuong.SelectedIndex = i;
+                    break;
+                }
             }
         }
 
@@ -215,13 +282,13 @@ namespace QuanLyBar.Client.Views.CongNo
             string nccId = CboNhaCungCap.SelectedValue?.ToString() ?? (_ncc?.Id ?? "");
             string khachId = CboKhachHang.SelectedValue?.ToString() ?? "";
             string nhanVienId = CboNhanVien.SelectedValue?.ToString() ?? "";
-            string lyDoId = CboLyDoChi.SelectedValue?.ToString() ?? "";
+            string lyDoId = CboPhanLoai.SelectedValue?.ToString() ?? (CboLyDoChi.SelectedValue?.ToString() ?? "");
             string cuaHangId = CboCuaHang.SelectedValue?.ToString() ?? "";
             string taiKhoanId = CboTaiKhoanNganHang.SelectedValue?.ToString() ?? "";
             bool isChuyenKhoan = ChkChuyenKhoan.IsChecked == true;
             bool khongThayDoiCongNo = ChkKhongThayDoiCongNo.IsChecked == true;
 
-            string dienGiai = !string.IsNullOrEmpty(ghiChu) ? ghiChu : (CboPhanLoai.Text ?? "Chi tiền nhà cung cấp");
+            string dienGiai = !string.IsNullOrEmpty(ghiChu) ? ghiChu : (!string.IsNullOrEmpty(CboLyDoChi.Text) ? CboLyDoChi.Text : (CboPhanLoai.Text ?? "Chi tiền nhà cung cấp"));
 
             try
             {

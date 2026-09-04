@@ -185,15 +185,43 @@
             </MenuItem>
             
             <MenuItem Header="QUỸ" Foreground="#1e3f66">
-                <MenuItem Header="Danh mục lý do thu chi"/>
-                <MenuItem Header="Danh mục tài khoản ngân hàng"/>
+                <MenuItem Header="Danh mục lý do thu chi" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🏷️" FontSize="13" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục tài khoản ngân hàng" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🏛️" FontSize="13" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="Tạo phiếu thu" InputGestureText="Ctrl+Shift+T"/>
-                <MenuItem Header="Tạo phiếu chi" InputGestureText="Ctrl+Shift+C"/>
-                <MenuItem Header="Danh mục phiếu thu"/>
-                <MenuItem Header="Danh mục phiếu chi"/>
+                <MenuItem Header="Tạo phiếu thu" InputGestureText="Ctrl+Shift+T" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📥" FontSize="13" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Tạo phiếu chi" InputGestureText="Ctrl+Shift+C" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📤" FontSize="13" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục phiếu thu" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💳" FontSize="13" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục phiếu chi" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="⌛" FontSize="13" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="Tồn quỹ"/>
+                <MenuItem Header="Tồn quỹ" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💵" FontSize="13" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             
             <MenuItem Header="NHÂN SỰ" Foreground="#1e3f66">
@@ -331,61 +359,90 @@
         </ToolBarTray>
 
         <!-- Content Area -->
-        <TabControl Grid.Row="2" Name="MainTabControl" Background="#eef3f9" BorderThickness="0,1,0,0" BorderBrush="#a4bce3" Margin="0,2,0,0">
-            <TabControl.Resources>
-                <Style TargetType="TabItem">
-                    <Setter Property="AllowDrop" Value="True"/>
-                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TabItem_PreviewMouseLeftButtonDown"/>
-                    <EventSetter Event="PreviewMouseMove" Handler="TabItem_PreviewMouseMove"/>
-                    <EventSetter Event="DragOver" Handler="TabItem_DragOver"/>
-                    <EventSetter Event="Drop" Handler="TabItem_Drop"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TabItem">
-                                <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="#94afcd" CornerRadius="3,3,0,0" Margin="1,0,1,0" Padding="4,2" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal" Margin="4,2">
-                                        <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="2,0,6,0"/>
-                                        <Button Name="CloseButton" Content="✕" Width="14" Height="14" FontSize="9" FontWeight="Bold" Padding="0" 
-                                                Background="Transparent" BorderThickness="0" Foreground="#666" VerticalAlignment="Center"
-                                                Click="CloseTab_Click" ToolTip="Đóng tab này" Cursor="Hand"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Border" Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                    <GradientStop Color="#ffeaa7" Offset="0"/>
-                                                    <GradientStop Color="#fdbb2d" Offset="0.5"/>
-                                                    <GradientStop Color="#f39c12" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Setter TargetName="Border" Property="BorderBrush" Value="#b87200"/>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="Foreground" Value="#000000"/>
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="False">
-                                        <Setter TargetName="Border" Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                    <GradientStop Color="#f4f8fc" Offset="0"/>
-                                                    <GradientStop Color="#d7e5f3" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Setter TargetName="Border" Property="BorderBrush" Value="#a9bfd6"/>
-                                        <Setter Property="Foreground" Value="#223b59"/>
-                                    </Trigger>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="CloseButton" Property="Foreground" Value="Red" />
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </TabControl.Resources>
-        </TabControl>
+        <Grid Grid.Row="2">
+            <TabControl Name="MainTabControl" Background="#eef3f9" BorderThickness="0,1,0,0" BorderBrush="#a4bce3" Margin="0,2,0,0"
+                        SelectionChanged="MainTabControl_SelectionChanged">
+                <TabControl.Resources>
+                    <!-- ContextMenu for TabItem -->
+                    <ContextMenu x:Key="TabItemContextMenu">
+                        <MenuItem x:Name="CtxPinItem" Header="📌 Ghim tab này" Click="MenuPinTab_Click"/>
+                        <Separator/>
+                        <MenuItem Header="✕ Đóng tab này" Click="MenuCloseCurrentTab_Click"/>
+                        <MenuItem Header="✕ Đóng các tab khác" Click="MenuCloseOtherTabs_Click"/>
+                        <MenuItem Header="✕ Đóng tất cả các tab" Click="MenuCloseAllTabs_Click"/>
+                    </ContextMenu>
+
+                    <Style TargetType="TabItem">
+                        <Setter Property="ContextMenu" Value="{StaticResource TabItemContextMenu}"/>
+                        <EventSetter Event="ContextMenuOpening" Handler="TabItem_ContextMenuOpening"/>
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TabItem_PreviewMouseLeftButtonDown"/>
+                        <EventSetter Event="PreviewMouseMove" Handler="TabItem_PreviewMouseMove"/>
+                        <EventSetter Event="PreviewMouseLeftButtonUp" Handler="TabItem_PreviewMouseLeftButtonUp"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TabItem">
+                                    <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="#94afcd" CornerRadius="3,3,0,0" Margin="1,0,1,0" Padding="4,2" Cursor="Hand">
+                                        <StackPanel Orientation="Horizontal" Margin="4,2">
+                                            <TextBlock x:Name="PinBadge" Text="📌" FontSize="11" Margin="0,0,3,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                            <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="2,0,6,0"/>
+                                            <Button Name="CloseButton" Content="✕" Width="14" Height="14" FontSize="9" FontWeight="Bold" Padding="0" 
+                                                    Background="Transparent" BorderThickness="0" Foreground="#666" VerticalAlignment="Center"
+                                                    Click="CloseTab_Click" ToolTip="Đóng tab này" Cursor="Hand"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Pinned">
+                                            <Setter TargetName="PinBadge" Property="Visibility" Value="Visible"/>
+                                            <Setter TargetName="CloseButton" Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Border" Property="Background">
+                                                <Setter.Value>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#ffeaa7" Offset="0"/>
+                                                        <GradientStop Color="#fdbb2d" Offset="0.5"/>
+                                                        <GradientStop Color="#f39c12" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter TargetName="Border" Property="BorderBrush" Value="#b87200"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="Foreground" Value="#000000"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="False">
+                                            <Setter TargetName="Border" Property="Background">
+                                                <Setter.Value>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#f4f8fc" Offset="0"/>
+                                                        <GradientStop Color="#d7e5f3" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter TargetName="Border" Property="BorderBrush" Value="#a9bfd6"/>
+                                            <Setter Property="Foreground" Value="#223b59"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="CloseButton" Property="Foreground" Value="Red" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.Resources>
+            </TabControl>
+
+            <!-- Top Right Action Buttons (Nút Ghim và Nút Đóng Tất Cả) -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,3,6,0" Panel.ZIndex="1000">
+                <Button x:Name="BtnPinCurrentTab" Width="26" Height="22" Background="#f0f4fa" BorderBrush="#94afcd" BorderThickness="1"
+                        Click="BtnPinTab_Click" ToolTip="Ghim tab này" Cursor="Hand" Margin="0,0,4,0">
+                    <TextBlock x:Name="TxtPinBtnIcon" Text="📌" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+                <Button x:Name="BtnCloseAllTabs" Width="26" Height="22" Background="#fde8e8" BorderBrush="#fca5a5" BorderThickness="1"
+                        Click="BtnCloseAllTabs_Click" ToolTip="Đóng tất cả các tab" Cursor="Hand">
+                    <TextBlock Text="✕" FontSize="12" FontWeight="Bold" Foreground="#dc2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

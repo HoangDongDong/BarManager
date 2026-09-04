@@ -490,7 +490,7 @@ namespace QuanLyBar.Client.Services
                 using (var conn = GetConnection())
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
-                    string sql = "SELECT ID, NAME FROM DLYDOTHUCHI WHERE STATUS > 0 OR STATUS IS NULL ORDER BY NAME";
+                    string sql = "SELECT ID, NAME, LALYDOTHU, LOAILYDO, NOTE FROM DLYDOTHUCHI WHERE (STATUS IS NULL OR STATUS <> 0) AND (LALYDOTHU IS NOT NULL AND LALYDOTHU <> 0) ORDER BY NAME";
                     return (await conn.QueryAsync(sql)).ToList();
                 }
             }

@@ -317,6 +317,26 @@ namespace QuanLyBar.Client.Views.CongNo
 
         private void DgCongNoNhaCungCap_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (e.OriginalSource is DependencyObject dep)
+            {
+                // Bỏ qua nếu double click vào header hoặc scrollbar
+                var header = FindVisualParent<System.Windows.Controls.Primitives.DataGridColumnHeader>(dep);
+                if (header != null) return;
+
+                var scrollBar = FindVisualParent<System.Windows.Controls.Primitives.ScrollBar>(dep);
+                if (scrollBar != null) return;
+
+                var row = FindVisualParent<DataGridRow>(dep);
+                if (row != null && row.Item is CongNoNhaCungCapViewModel item)
+                {
+                    _selectedNcc = item;
+                    DgCongNoNhaCungCap.SelectedItem = item;
+                    e.Handled = true;
+                    BtnChiNo_Click(null, null);
+                    return;
+                }
+            }
+
             if (_selectedNcc != null)
             {
                 BtnChiNo_Click(null, null);
@@ -325,6 +345,15 @@ namespace QuanLyBar.Client.Views.CongNo
 
         private void DgChiTietCongNo_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (e.OriginalSource is DependencyObject dep)
+            {
+                var header = FindVisualParent<System.Windows.Controls.Primitives.DataGridColumnHeader>(dep);
+                if (header != null) return;
+
+                var scrollBar = FindVisualParent<System.Windows.Controls.Primitives.ScrollBar>(dep);
+                if (scrollBar != null) return;
+            }
+
             if (_selectedNcc != null)
             {
                 BtnChiNo_Click(null, null);
@@ -499,6 +528,16 @@ namespace QuanLyBar.Client.Views.CongNo
             var parent = Window.GetWindow(this);
             if (parent != null) win.Owner = parent;
             win.ShowDialog();
+        }
+        private static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parent = System.Windows.Media.VisualTreeHelper.GetParent(child);
+            while (parent != null)
+            {
+                if (parent is T typed) return typed;
+                parent = System.Windows.Media.VisualTreeHelper.GetParent(parent);
+            }
+            return null;
         }
         #endregion
     }

@@ -1,0 +1,252 @@
+<Window x:Class="QuanLyBar.Client.Views.PhieuThuChi.TaoPhieuThuWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PHIẾU THU - THÊM MỚI" Height="585" Width="510"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#d2e1f2" WindowStyle="SingleBorderWindow">
+
+    <Window.Resources>
+        <Style x:Key="SubToolbarBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Margin" Value="1,0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#fff0b3"/>
+                    <Setter Property="BorderBrush" Value="#f5a623"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActionBtnStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="68"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Padding" Value="5,1"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#a0b8d4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e6f0fa"/>
+                    <Setter Property="BorderBrush" Value="#6495ed"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 0. Header -->
+            <RowDefinition Height="Auto"/> <!-- 1. Sub Toolbar -->
+            <RowDefinition Height="*"/>    <!-- 2. Form content -->
+            <RowDefinition Height="Auto"/> <!-- 3. Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 0. HEADER -->
+        <Border Grid.Row="0" Background="#f8fafc" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="12,7">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#3bafda" CornerRadius="3" Width="26" Height="24" Margin="0,0,8,0">
+                    <TextBlock Text="↩️" FontSize="14" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Phiếu thu" FontWeight="Bold" FontSize="13.5" Foreground="#0f172a" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 1. SUB TOOLBAR -->
+        <Border Grid.Row="1" Background="#e2ecf8" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="4,2">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource SubToolbarBtnStyle}" Margin="2,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="↗️" FontSize="10" Foreground="#2980b9" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Phím tắt ▾" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Separator Width="1" Background="#b0c4de" Margin="3,2"/>
+                <Button x:Name="BtnPrevious" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnPrevious_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⬅️" FontSize="10" Foreground="#2980b9" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Trước (F10)" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnNext" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnNext_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➡️" FontSize="10" Foreground="#2980b9" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Sau (F11)" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Separator Width="1" Background="#b0c4de" Margin="3,2"/>
+                <Button x:Name="BtnTaoMoi" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnTaoMoi_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➕" FontSize="10" Foreground="#27ae60" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Tạo mới" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnSaoChep" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnSaoChep_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📑" FontSize="10" Foreground="#2980b9" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Sao chép" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. FORM CONTENT -->
+        <Border Grid.Row="2" Background="#dbe6f3" Margin="8,6,8,4" Padding="6,2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="26"/> <!-- 0. Ngày / Số phiếu -->
+                    <RowDefinition Height="26"/> <!-- 1. Phân loại -->
+                    <RowDefinition Height="26"/> <!-- 2. Lý do thu -->
+                    <RowDefinition Height="26"/> <!-- 3. Chứng từ gốc / Loại đối tượng -->
+                    <RowDefinition Height="26"/> <!-- 4. Tên đối tượng -->
+                    <RowDefinition Height="26"/> <!-- 5. Địa chỉ -->
+                    <RowDefinition Height="26"/> <!-- 6. Nhân viên -->
+                    <RowDefinition Height="26"/> <!-- 7. Khách hàng -->
+                    <RowDefinition Height="26"/> <!-- 8. Nhà cung cấp -->
+                    <RowDefinition Height="26"/> <!-- 9. Số tiền -->
+                    <RowDefinition Height="26"/> <!-- 10. Chuyển vào TK -->
+                    <RowDefinition Height="26"/> <!-- 11. Cửa hàng -->
+                    <RowDefinition Height="24"/> <!-- 12. Không thay đổi công nợ -->
+                    <RowDefinition Height="26"/> <!-- 13. Ghi chú -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Ngày & Số phiếu -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Ngày" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <Grid Grid.Row="0" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <DatePicker x:Name="DpNgay" Grid.Column="0" Height="22" Background="White" BorderBrush="#a4bce3" VerticalContentAlignment="Center" FontSize="11.5"/>
+                    <TextBlock Grid.Column="1" Text="Số phiếu" VerticalAlignment="Center" Margin="12,0,8,0" FontSize="11.5" Foreground="#1e293b"/>
+                    <TextBox x:Name="TxtSoPhieu" Grid.Column="2" Height="22" Background="#eaf5ff" BorderBrush="#a4bce3" VerticalContentAlignment="Center" Padding="4,1" FontSize="11.5"/>
+                </Grid>
+
+                <!-- Row 1: Phân loại -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Phân loại" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboPhanLoai" Grid.Row="1" Grid.Column="1" Height="22" Background="#ffffcc" BorderBrush="#a4bce3"
+                          VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" IsEditable="True" FontSize="11.5"
+                          SelectionChanged="CboPhanLoai_SelectionChanged"/>
+
+                <!-- Row 2: Lý do thu -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Lý do thu" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboLyDoThu" Grid.Row="2" Grid.Column="1" Height="22" Background="#ffffcc" BorderBrush="#a4bce3"
+                          VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" IsEditable="True" FontSize="11.5"/>
+
+                <!-- Row 3: Chứng từ gốc & Loại đối tượng -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Chứng từ gốc" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <Grid Grid.Row="3" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="135"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="TxtChungTuGoc" Grid.Column="0" Height="22" Background="White" BorderBrush="#a4bce3" VerticalContentAlignment="Center" Padding="4,1" FontSize="11.5"/>
+                    <TextBlock Grid.Column="1" Text="Loại đối tượng" VerticalAlignment="Center" Margin="10,0,6,0" FontSize="11.5" Foreground="#1e293b"/>
+                    <ComboBox x:Name="CboLoaiDoiTuong" Grid.Column="2" Height="22" Background="White" BorderBrush="#a4bce3" VerticalContentAlignment="Center" FontSize="11.5"
+                              SelectionChanged="CboLoaiDoiTuong_SelectionChanged">
+                        <ComboBoxItem Content="Đối tượng khác" IsSelected="True"/>
+                        <ComboBoxItem Content="Khách hàng"/>
+                        <ComboBoxItem Content="Nhà cung cấp"/>
+                        <ComboBoxItem Content="Nhân viên"/>
+                    </ComboBox>
+                </Grid>
+
+                <!-- Row 4: Tên đối tượng -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Tên đối tượng" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <TextBox x:Name="TxtTenDoiTuong" Grid.Row="4" Grid.Column="1" Height="22" Background="#ffffcc" BorderBrush="#a4bce3" VerticalContentAlignment="Center" Padding="4,1" FontSize="11.5"/>
+
+                <!-- Row 5: Địa chỉ -->
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Địa chỉ" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <TextBox x:Name="TxtDiaChi" Grid.Row="5" Grid.Column="1" Height="22" Background="White" BorderBrush="#a4bce3" VerticalContentAlignment="Center" Padding="4,1" FontSize="11.5"/>
+
+                <!-- Row 6: Nhân viên -->
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Nhân viên" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboNhanVien" Grid.Row="6" Grid.Column="1" Height="22" Background="White" BorderBrush="#a4bce3"
+                          VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" IsEditable="True" FontSize="11.5"
+                          SelectionChanged="CboNhanVien_SelectionChanged"/>
+
+                <!-- Row 7: Khách hàng -->
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Khách hàng" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboKhachHang" Grid.Row="7" Grid.Column="1" Height="22" Background="White" BorderBrush="#a4bce3"
+                          VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" IsEditable="True" FontSize="11.5"
+                          SelectionChanged="CboKhachHang_SelectionChanged"/>
+
+                <!-- Row 8: Nhà cung cấp -->
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Nhà cung cấp" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboNhaCungCap" Grid.Row="8" Grid.Column="1" Height="22" Background="White" BorderBrush="#a4bce3"
+                          VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" IsEditable="True" FontSize="11.5"
+                          SelectionChanged="CboNhaCungCap_SelectionChanged"/>
+
+                <!-- Row 9: Số tiền -->
+                <TextBlock Grid.Row="9" Grid.Column="0" Text="Số tiền:" VerticalAlignment="Center" FontSize="11.5" FontWeight="SemiBold" Foreground="#1e293b"/>
+                <TextBox x:Name="TxtSoTien" Grid.Row="9" Grid.Column="1" Width="130" HorizontalAlignment="Left" Height="22"
+                         Background="#ffffcc" BorderBrush="#a4bce3" VerticalContentAlignment="Center" Padding="4,1"
+                         FontWeight="Bold" FontSize="11.5" Text="0" TextChanged="TxtSoTien_TextChanged"/>
+
+                <!-- Row 10: Chuyển vào tài khoản -->
+                <Grid Grid.Row="10" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox x:Name="ChkChuyenKhoan" Content="Chuyển vào tài khoản" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11.5"
+                              Checked="ChkChuyenKhoan_CheckedChanged" Unchecked="ChkChuyenKhoan_CheckedChanged"/>
+                    <ComboBox x:Name="CboTaiKhoanNganHang" Grid.Column="1" Height="22" Background="White" BorderBrush="#a4bce3"
+                              VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" IsEnabled="False" FontSize="11.5"/>
+                </Grid>
+
+                <!-- Row 11: Cửa hàng -->
+                <TextBlock Grid.Row="11" Grid.Column="0" Text="Cửa hàng" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboCuaHang" Grid.Row="11" Grid.Column="1" Height="22" Background="#ffffcc" BorderBrush="#a4bce3"
+                          VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" FontSize="11.5"/>
+
+                <!-- Row 12: Không thay đổi công nợ -->
+                <CheckBox x:Name="ChkKhongThayDoiCongNo" Grid.Row="12" Grid.Column="1" Content="Không thay đổi công nợ" VerticalAlignment="Center" FontSize="11.5"/>
+
+                <!-- Row 13: Ghi chú -->
+                <TextBlock Grid.Row="13" Grid.Column="0" Text="Ghi chú" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <TextBox x:Name="TxtGhiChu" Grid.Row="13" Grid.Column="1" Height="22" Background="White" BorderBrush="#a4bce3"
+                         VerticalContentAlignment="Center" Padding="4,1" FontSize="11.5"/>
+            </Grid>
+        </Border>
+
+        <!-- 3. FOOTER -->
+        <Border Grid.Row="3" Background="#dbe6f3" Padding="6,5,8,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="BtnLuuVaIn" Style="{StaticResource ActionBtnStyle}" Click="BtnLuuVaIn_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🖨️" FontSize="10" Margin="0,0,2,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Lưu &amp; In" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnLuuVaXemIn" Style="{StaticResource ActionBtnStyle}" Click="BtnLuuVaXemIn_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📄" FontSize="10" Margin="0,0,2,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Lưu &amp; Xem in" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnLuu" Style="{StaticResource ActionBtnStyle}" Click="BtnLuu_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="💾" FontSize="10" Margin="0,0,2,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Lưu" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnLuuVaMoi" Content="Lưu &amp; Mới" Style="{StaticResource ActionBtnStyle}" Click="BtnLuuVaMoi_Click"/>
+                <Button x:Name="BtnLuuVaThoat" Content="Lưu &amp; thoát" Style="{StaticResource ActionBtnStyle}" BorderBrush="#0078d7" BorderThickness="1.5" FontWeight="SemiBold" Click="BtnLuuVaThoat_Click"/>
+                <Button Content="Thoát" Style="{StaticResource ActionBtnStyle}" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

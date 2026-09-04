@@ -4,36 +4,36 @@ namespace QuanLyBar.Client.Models
 {
     public class TTHUCHI
     {
+        public string Id { get; set; }
         public string Note { get; set; }
         public string Name { get; set; }
         public DateTime? Ngay { get; set; }
         public string Tendoituong { get; set; }
-        public decimal? Diachi { get; set; }
+        public string Diachi { get; set; }
         public string Loai { get; set; }
         public string Loaidoituong { get; set; }
-        public decimal? Diengiai { get; set; }
+        public string Diengiai { get; set; }
         public string Chungtugoc { get; set; }
         public decimal? Thu { get; set; }
         public decimal? Chi { get; set; }
-        public int? Id { get; set; }
-        public bool? Status { get; set; }
-        public int? UsermodifiedId { get; set; }
+        public object Status { get; set; }
+        public object UsermodifiedId { get; set; }
         public DateTime? Timemodified { get; set; }
         public DateTime? Timecreated { get; set; }
-        public int? UsercreatedId { get; set; }
-        public int? DnhacungcapId { get; set; }
+        public object UsercreatedId { get; set; }
+        public string DnhacungcapId { get; set; }
         public string Chuyenkhoan { get; set; }
         public string Latamung { get; set; }
-        public int? TbangluongId { get; set; }
-        public int? TdathangId { get; set; }
-        public int? DcuahangId { get; set; }
-        public decimal? Laphieuthucongno { get; set; }
+        public string TbangluongId { get; set; }
+        public string TdathangId { get; set; }
+        public string DcuahangId { get; set; }
+        public string Laphieuthucongno { get; set; }
         public string Khongthaydoicongno { get; set; }
-        public int? DnhanvienId { get; set; }
-        public int? DkhachhangId { get; set; }
-        public int? DlydothuchiId { get; set; }
-        public int? DtaikhoannganhangId { get; set; }
-        public int? DthetratruocId { get; set; }
-        public int? TdonhangId { get; set; }
+        public string DnhanvienId { get; set; }
+        public string DkhachhangId { get; set; }
+        public string DlydothuchiId { get; set; }
+        public string DtaikhoannganhangId { get; set; }
+        public string DthetratruocId { get; set; }
+        public string TdonhangId { get; set; }
     }
 }

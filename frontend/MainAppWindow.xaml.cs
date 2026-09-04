@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace QuanLyBar.Client
 {
@@ -12,6 +14,27 @@ namespace QuanLyBar.Client
         {
             InitializeComponent();
             LoadUserInfo();
+
+            PreviewKeyDown += (s, e) =>
+            {
+                if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                {
+                    if (e.Key == Key.T)
+                    {
+                        var win = new QuanLyBar.Client.Views.PhieuThuChi.TaoPhieuThuWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.C)
+                    {
+                        var win = new QuanLyBar.Client.Views.PhieuThuChi.TaoPhieuChiWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        e.Handled = true;
+                    }
+                }
+            };
         }
 
         private void LoadUserInfo()
@@ -239,6 +262,44 @@ namespace QuanLyBar.Client
                         tabName = "Công nợ khách hàng";
                         content = new QuanLyBar.Client.Views.CongNo.CongNoKhachHangControl();
                     }
+                    else if (tabName == "Danh mục lý do thu chi" || tabName == "Lý do thu chi")
+                    {
+                        var win = new QuanLyBar.Client.Views.DanhMucLyDoThuChi.DanhMucLyDoThuChiWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Danh mục tài khoản ngân hàng" || tabName == "Tài khoản ngân hàng")
+                    {
+                        var win = new QuanLyBar.Client.Views.DanhMucTaiKhoanNganHang.DanhMucTaiKhoanNganHangWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Tạo phiếu thu" || tabName == "Phiếu thu")
+                    {
+                        var win = new QuanLyBar.Client.Views.PhieuThuChi.TaoPhieuThuWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Tạo phiếu chi" || tabName == "Phiếu chi")
+                    {
+                        var win = new QuanLyBar.Client.Views.PhieuThuChi.TaoPhieuChiWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Danh mục phiếu thu" || tabName == "Quản lý phiếu thu")
+                    {
+                        tabName = "Danh mục phiếu thu";
+                        content = new QuanLyBar.Client.Views.PhieuThuChi.DanhMucPhieuThuControl();
+                    }
+                    else if (tabName == "Danh mục phiếu chi" || tabName == "Quản lý phiếu chi")
+                    {
+                        tabName = "Danh mục phiếu chi";
+                        content = new QuanLyBar.Client.Views.PhieuThuChi.DanhMucPhieuChiControl();
+                    }
                     else if (tabName == "Công nợ nhà cung cấp" || tabName == "Quản lý công nợ nhà cung cấp")
                     {
                         tabName = "Công nợ nhà cung cấp";
@@ -265,8 +326,159 @@ namespace QuanLyBar.Client
             }
         }
 
+        #region Tab Management (Pin & Close)
+        private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdatePinButtonState();
+        }
+
+        private void UpdatePinButtonState()
+        {
+            if (BtnPinCurrentTab == null) return;
+
+            if (MainTabControl.SelectedItem is TabItem currentTab && currentTab.Tag?.ToString() == "Pinned")
+            {
+                BtnPinCurrentTab.ToolTip = "Bỏ ghim tab này";
+                BtnPinCurrentTab.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#fed7aa"));
+            }
+            else
+            {
+                BtnPinCurrentTab.ToolTip = "Ghim tab này";
+                BtnPinCurrentTab.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f0f4fa"));
+            }
+        }
+
+        private void BtnPinTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (MainTabControl.SelectedItem is TabItem currentTab)
+            {
+                TogglePinTab(currentTab);
+            }
+        }
+
+        private void TogglePinTab(TabItem tab)
+        {
+            if (tab == null) return;
+
+            if (tab.Tag?.ToString() == "Pinned")
+            {
+                tab.Tag = null;
+            }
+            else
+            {
+                tab.Tag = "Pinned";
+            }
+            UpdatePinButtonState();
+        }
+
+        private void BtnCloseAllTabs_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllTabs(onlyUnpinned: true);
+        }
+
+        private void CloseAllTabs(bool onlyUnpinned = true)
+        {
+            for (int i = MainTabControl.Items.Count - 1; i >= 0; i--)
+            {
+                if (MainTabControl.Items[i] is TabItem tab)
+                {
+                    if (!onlyUnpinned || tab.Tag?.ToString() != "Pinned")
+                    {
+                        MainTabControl.Items.RemoveAt(i);
+                    }
+                }
+            }
+
+            if (MainTabControl.Items.Count > 0 && MainTabControl.SelectedItem == null)
+            {
+                MainTabControl.SelectedIndex = 0;
+            }
+            UpdatePinButtonState();
+        }
+
+        private void TabItem_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (sender is TabItem tab)
+            {
+                tab.IsSelected = true;
+                MainTabControl.SelectedItem = tab;
+                if (tab.ContextMenu != null)
+                {
+                    foreach (var item in tab.ContextMenu.Items)
+                    {
+                        if (item is MenuItem mi && (mi.Name == "CtxPinItem" || mi.Header?.ToString().Contains("Ghim tab") == true || mi.Header?.ToString().Contains("Bỏ ghim tab") == true))
+                        {
+                            mi.Header = (tab.Tag?.ToString() == "Pinned") ? "📌 Bỏ ghim tab này" : "📌 Ghim tab này";
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MenuPinTab_Click(object sender, RoutedEventArgs e)
+        {
+            TabItem tab = GetContextMenuTabItem(sender);
+            if (tab != null)
+            {
+                TogglePinTab(tab);
+            }
+            else if (MainTabControl.SelectedItem is TabItem currentTab)
+            {
+                TogglePinTab(currentTab);
+            }
+        }
+
+        private void MenuCloseCurrentTab_Click(object sender, RoutedEventArgs e)
+        {
+            TabItem targetTab = GetContextMenuTabItem(sender) ?? (MainTabControl.SelectedItem as TabItem);
+            if (targetTab != null)
+            {
+                MainTabControl.Items.Remove(targetTab);
+                UpdatePinButtonState();
+            }
+        }
+
+        private void MenuCloseOtherTabs_Click(object sender, RoutedEventArgs e)
+        {
+            TabItem currentTab = GetContextMenuTabItem(sender) ?? (MainTabControl.SelectedItem as TabItem);
+            if (currentTab == null) return;
+
+            for (int i = MainTabControl.Items.Count - 1; i >= 0; i--)
+            {
+                if (MainTabControl.Items[i] is TabItem t && t != currentTab)
+                {
+                    if (t.Tag?.ToString() != "Pinned")
+                    {
+                        MainTabControl.Items.RemoveAt(i);
+                    }
+                }
+            }
+            currentTab.IsSelected = true;
+            UpdatePinButtonState();
+        }
+
+        private void MenuCloseAllTabs_Click(object sender, RoutedEventArgs e)
+        {
+            CloseAllTabs(onlyUnpinned: true);
+        }
+
+        private TabItem GetContextMenuTabItem(object sender)
+        {
+            if (sender is MenuItem mi)
+            {
+                var cm = FindVisualParent<ContextMenu>(mi) ?? mi.Parent as ContextMenu;
+                if (cm != null && cm.PlacementTarget is TabItem t)
+                {
+                    return t;
+                }
+            }
+            return MainTabControl.SelectedItem as TabItem;
+        }
+
         private void CloseTab_Click(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
             var button = sender as System.Windows.Controls.Button;
             if (button != null)
             {
@@ -279,9 +491,11 @@ namespace QuanLyBar.Client
                 if (parent is System.Windows.Controls.TabItem tabItem)
                 {
                     MainTabControl.Items.Remove(tabItem);
+                    UpdatePinButtonState();
                 }
             }
         }
+        #endregion
 
         private void MenuTaoMoiCsdl_Click(object sender, RoutedEventArgs e)
         {
@@ -441,84 +655,233 @@ namespace QuanLyBar.Client
             }
         }
 
-        #region Tab Drag & Drop Reordering (Trượt / Đổi vị trí tab như trình duyệt Web)
-        private Point _dragStartPoint;
+        #region Chrome-Style Dynamic Animated Tab Dragging & Sliding
+        private TabItem _draggedTab = null;
+        private Point _dragStartScreenPos;
+        private double _startMouseTabControlX;
         private bool _isDraggingTab = false;
+        private int _initialTabIndex = -1;
+        private int _currentTargetIndex = -1;
+        private List<double> _initialTabLefts = new List<double>();
+        private List<double> _initialTabWidths = new List<double>();
 
         private void TabItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.ChangedButton != MouseButton.Left) return;
+
+            // Không kích hoạt kéo nếu bấm vào nút đóng tab ✕
             if (e.OriginalSource is DependencyObject dep && FindVisualParent<System.Windows.Controls.Button>(dep) != null)
             {
                 return;
             }
-            _dragStartPoint = e.GetPosition(null);
+
+            if (sender is TabItem tabItem)
+            {
+                _draggedTab = tabItem;
+                _dragStartScreenPos = e.GetPosition(this);
+                _startMouseTabControlX = e.GetPosition(MainTabControl).X;
+                _isDraggingTab = false;
+                _initialTabIndex = MainTabControl.Items.IndexOf(tabItem);
+                _currentTargetIndex = _initialTabIndex;
+            }
         }
 
         private void TabItem_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed && !_isDraggingTab)
+            if (_draggedTab != null && e.LeftButton == MouseButtonState.Pressed)
             {
-                Point currentPos = e.GetPosition(null);
-                Vector diff = _dragStartPoint - currentPos;
+                Point currentScreenPos = e.GetPosition(this);
+                double diffX = currentScreenPos.X - _dragStartScreenPos.X;
+                double diffY = currentScreenPos.Y - _dragStartScreenPos.Y;
 
-                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                if (!_isDraggingTab && (Math.Abs(diffX) > 8 || Math.Abs(diffY) > 8))
                 {
-                    if (sender is System.Windows.Controls.TabItem tabItem)
-                    {
-                        if (e.OriginalSource is DependencyObject dep && FindVisualParent<System.Windows.Controls.Button>(dep) != null)
-                            return;
+                    _isDraggingTab = true;
 
-                        _isDraggingTab = true;
-                        tabItem.Opacity = 0.72; // Hiệu ứng tab nổi / mờ nhẹ trong lúc trượt
-                        try
+                    _initialTabLefts.Clear();
+                    _initialTabWidths.Clear();
+                    foreach (TabItem t in MainTabControl.Items)
+                    {
+                        if (!(t.RenderTransform is TranslateTransform))
                         {
-                            DragDrop.DoDragDrop(tabItem, tabItem, DragDropEffects.Move);
+                            t.RenderTransform = new TranslateTransform();
                         }
-                        catch { }
-                        finally
+                        var pt = t.TranslatePoint(new Point(0, 0), MainTabControl);
+                        _initialTabLefts.Add(pt.X);
+                        _initialTabWidths.Add(t.ActualWidth);
+                    }
+
+                    Panel.SetZIndex(_draggedTab, 999);
+                    _draggedTab.Opacity = 0.88;
+                    _draggedTab.CaptureMouse();
+                }
+
+                if (_isDraggingTab)
+                {
+                    double currentMouseX = e.GetPosition(MainTabControl).X;
+                    double deltaX = currentMouseX - _startMouseTabControlX;
+
+                    // Tab đang kéo di chuyển trơn tru theo con trỏ chuột
+                    if (_draggedTab.RenderTransform is TranslateTransform draggedTransform)
+                    {
+                        draggedTransform.BeginAnimation(TranslateTransform.XProperty, null);
+                        draggedTransform.X = deltaX;
+                    }
+
+                    // Tính toán vị trí tâm hiện tại của tab đang kéo
+                    if (_initialTabIndex >= 0 && _initialTabIndex < _initialTabLefts.Count)
+                    {
+                        double draggedOriginalCenter = _initialTabLefts[_initialTabIndex] + _initialTabWidths[_initialTabIndex] / 2.0;
+                        double draggedCurrentCenter = draggedOriginalCenter + deltaX;
+
+                        int newTargetIndex = _initialTabIndex;
+                        for (int i = 0; i < MainTabControl.Items.Count; i++)
                         {
-                            tabItem.Opacity = 1.0;
-                            _isDraggingTab = false;
+                            if (i == _initialTabIndex) continue;
+
+                            double slotCenter = _initialTabLefts[i] + _initialTabWidths[i] / 2.0;
+                            if (i < _initialTabIndex && draggedCurrentCenter < slotCenter)
+                            {
+                                if (i < newTargetIndex) newTargetIndex = i;
+                            }
+                            else if (i > _initialTabIndex && draggedCurrentCenter > slotCenter)
+                            {
+                                if (i > newTargetIndex) newTargetIndex = i;
+                            }
+                        }
+
+                        if (newTargetIndex != _currentTargetIndex)
+                        {
+                            _currentTargetIndex = newTargetIndex;
+                            AnimateNeighborTabs();
                         }
                     }
                 }
             }
         }
 
-        private void TabItem_DragOver(object sender, DragEventArgs e)
+        private void AnimateNeighborTabs()
         {
-            if (e.Data.GetData(typeof(System.Windows.Controls.TabItem)) is System.Windows.Controls.TabItem sourceTab &&
-                sender is System.Windows.Controls.TabItem targetTab)
+            double draggedWidth = (_initialTabIndex >= 0 && _initialTabIndex < _initialTabWidths.Count)
+                ? _initialTabWidths[_initialTabIndex]
+                : 100;
+
+            for (int i = 0; i < MainTabControl.Items.Count; i++)
             {
-                e.Effects = DragDropEffects.Move;
-                e.Handled = true;
+                if (i == _initialTabIndex) continue;
 
-                // Hoán đổi vị trí trực tiếp ngay trong khi đang di chuyển chuột (Live Reordering như Chrome)
-                if (sourceTab != targetTab)
+                if (MainTabControl.Items[i] is TabItem neighbor && neighbor.RenderTransform is TranslateTransform trans)
                 {
-                    int sourceIndex = MainTabControl.Items.IndexOf(sourceTab);
-                    int targetIndex = MainTabControl.Items.IndexOf(targetTab);
+                    double targetOffset = 0;
 
-                    if (sourceIndex >= 0 && targetIndex >= 0 && sourceIndex != targetIndex)
+                    if (_currentTargetIndex > _initialTabIndex)
                     {
-                        MainTabControl.Items.RemoveAt(sourceIndex);
-                        MainTabControl.Items.Insert(targetIndex, sourceTab);
-                        sourceTab.IsSelected = true;
-                        MainTabControl.SelectedItem = sourceTab;
+                        // Kéo sang phải -> các tab ở giữa trượt mượt mà sang TRÁI
+                        if (i > _initialTabIndex && i <= _currentTargetIndex)
+                        {
+                            targetOffset = -draggedWidth;
+                        }
                     }
+                    else if (_currentTargetIndex < _initialTabIndex)
+                    {
+                        // Kéo sang trái -> các tab ở giữa trượt mượt mà sang PHẢI
+                        if (i >= _currentTargetIndex && i < _initialTabIndex)
+                        {
+                            targetOffset = draggedWidth;
+                        }
+                    }
+
+                    var anim = new DoubleAnimation
+                    {
+                        To = targetOffset,
+                        Duration = TimeSpan.FromMilliseconds(140),
+                        EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                    };
+                    trans.BeginAnimation(TranslateTransform.XProperty, anim);
                 }
             }
         }
 
-        private void TabItem_Drop(object sender, DragEventArgs e)
+        private void TabItem_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (e.Data.GetData(typeof(System.Windows.Controls.TabItem)) is System.Windows.Controls.TabItem sourceTab)
+            FinishTabDrag();
+        }
+
+        private void FinishTabDrag()
+        {
+            if (_draggedTab == null) return;
+
+            var tabToFinish = _draggedTab;
+            int initialIdx = _initialTabIndex;
+            int targetIdx = _currentTargetIndex;
+            bool wasDragging = _isDraggingTab;
+            if (tabToFinish.IsMouseCaptured)
             {
-                sourceTab.Opacity = 1.0;
-                sourceTab.IsSelected = true;
-                MainTabControl.SelectedItem = sourceTab;
-                e.Handled = true;
+                tabToFinish.ReleaseMouseCapture();
+            }
+            _draggedTab = null;
+            _isDraggingTab = false;
+
+            if (wasDragging && initialIdx != targetIdx && initialIdx >= 0 && targetIdx >= 0 &&
+                initialIdx < MainTabControl.Items.Count && targetIdx < MainTabControl.Items.Count)
+            {
+                double targetSnapX = (_initialTabLefts.Count > targetIdx && _initialTabLefts.Count > initialIdx)
+                    ? (_initialTabLefts[targetIdx] - _initialTabLefts[initialIdx])
+                    : 0;
+                if (targetIdx > initialIdx && _initialTabWidths.Count > targetIdx && _initialTabWidths.Count > initialIdx)
+                {
+                    targetSnapX = _initialTabLefts[targetIdx] + _initialTabWidths[targetIdx] - _initialTabWidths[initialIdx] - _initialTabLefts[initialIdx];
+                }
+
+                if (tabToFinish.RenderTransform is TranslateTransform draggedTrans)
+                {
+                    var snapAnim = new DoubleAnimation
+                    {
+                        To = targetSnapX,
+                        Duration = TimeSpan.FromMilliseconds(130),
+                        EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                    };
+
+                    snapAnim.Completed += (s, ev) =>
+                    {
+                        foreach (TabItem t in MainTabControl.Items)
+                        {
+                            if (t.RenderTransform is TranslateTransform tr)
+                            {
+                                tr.BeginAnimation(TranslateTransform.XProperty, null);
+                                tr.X = 0;
+                            }
+                        }
+
+                        MainTabControl.Items.RemoveAt(initialIdx);
+                        MainTabControl.Items.Insert(targetIdx, tabToFinish);
+                        tabToFinish.IsSelected = true;
+                        MainTabControl.SelectedItem = tabToFinish;
+
+                        Panel.SetZIndex(tabToFinish, 0);
+                        tabToFinish.Opacity = 1.0;
+                    };
+
+                    draggedTrans.BeginAnimation(TranslateTransform.XProperty, snapAnim);
+                    return;
+                }
+            }
+
+            foreach (TabItem t in MainTabControl.Items)
+            {
+                if (t.RenderTransform is TranslateTransform tr)
+                {
+                    tr.BeginAnimation(TranslateTransform.XProperty, null);
+                    tr.X = 0;
+                }
+            }
+            Panel.SetZIndex(tabToFinish, 0);
+            tabToFinish.Opacity = 1.0;
+
+            if (!wasDragging)
+            {
+                tabToFinish.IsSelected = true;
+                MainTabControl.SelectedItem = tabToFinish;
             }
         }
 

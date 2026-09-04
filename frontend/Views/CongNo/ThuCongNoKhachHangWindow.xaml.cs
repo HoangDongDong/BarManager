@@ -46,7 +46,24 @@ namespace QuanLyBar.Client.Views.CongNo
                 CboNhanVien.ItemsSource = _nhanVienList;
 
                 _lyDoList = await LocalCongNoKhachHangService.GetLyDoThuLookupAsync();
+                CboPhanLoai.ItemsSource = _lyDoList;
                 CboLyDoThu.ItemsSource = _lyDoList;
+                if (_lyDoList.Count > 0)
+                {
+                    int selectedIdx = 0;
+                    for (int i = 0; i < _lyDoList.Count; i++)
+                    {
+                        string name = _lyDoList[i].NAME?.ToString() ?? "";
+                        if (name.Contains("Thu công nợ", StringComparison.OrdinalIgnoreCase) ||
+                            name.Contains("công nợ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            selectedIdx = i;
+                            break;
+                        }
+                    }
+                    CboPhanLoai.SelectedIndex = selectedIdx;
+                    CboLyDoThu.SelectedIndex = selectedIdx;
+                }
 
                 _cuaHangList = await LocalCongNoKhachHangService.GetCuaHangLookupAsync();
                 CboCuaHang.ItemsSource = _cuaHangList;
@@ -61,13 +78,6 @@ namespace QuanLyBar.Client.Views.CongNo
                 {
                     CboTaiKhoanNganHang.SelectedIndex = 0;
                 }
-
-                // Phân loại
-                CboPhanLoai.Items.Add("Thu tiền công nợ");
-                CboPhanLoai.Items.Add("Thu tiền bán hàng");
-                CboPhanLoai.Items.Add("Thu đặt cọc");
-                CboPhanLoai.Items.Add("Thu khác");
-                CboPhanLoai.SelectedIndex = 0;
 
                 // Điền thông tin khách hàng nếu đã chọn trước
                 if (_khach != null)
@@ -97,6 +107,27 @@ namespace QuanLyBar.Client.Views.CongNo
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi khởi tạo phiếu thu: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CboPhanLoai_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CboPhanLoai.SelectedItem != null)
+            {
+                dynamic selected = CboPhanLoai.SelectedItem;
+                string name = selected.NAME?.ToString() ?? "";
+
+                if (CboLyDoThu != null && _lyDoList != null)
+                {
+                    for (int i = 0; i < _lyDoList.Count; i++)
+                    {
+                        if (string.Equals(_lyDoList[i].ID?.ToString()?.Trim(), selected.ID?.ToString()?.Trim(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            CboLyDoThu.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -179,7 +210,7 @@ namespace QuanLyBar.Client.Views.CongNo
             }
 
             string phanLoai = CboPhanLoai.Text?.Trim() ?? "Thu tiền công nợ";
-            string lyDoId = CboLyDoThu.SelectedValue?.ToString();
+            string lyDoId = CboPhanLoai.SelectedValue?.ToString() ?? (CboLyDoThu.SelectedValue?.ToString());
             string chungTuGoc = TxtChungTuGoc.Text.Trim();
             string loaiDoiTuong = (CboLoaiDoiTuong.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Khách hàng";
             string tenDoiTuong = TxtTenDoiTuong.Text.Trim();

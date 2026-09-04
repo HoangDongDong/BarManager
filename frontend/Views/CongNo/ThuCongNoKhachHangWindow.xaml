@@ -91,7 +91,8 @@
                 <!-- Row 1: Phân loại -->
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Phân loại" VerticalAlignment="Center" FontSize="12"/>
                 <ComboBox x:Name="CboPhanLoai" Grid.Row="1" Grid.Column="1" Height="23" Background="#ffffcc" BorderBrush="#a4bce3"
-                          VerticalContentAlignment="Center" IsEditable="True"/>
+                          VerticalContentAlignment="Center" DisplayMemberPath="NAME" SelectedValuePath="ID" IsEditable="True"
+                          SelectionChanged="CboPhanLoai_SelectionChanged"/>
 
                 <!-- Row 2: Lý do thu -->
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Lý do thu" VerticalAlignment="Center" FontSize="12"/>

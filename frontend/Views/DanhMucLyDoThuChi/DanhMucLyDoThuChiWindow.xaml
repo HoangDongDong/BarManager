@@ -1,0 +1,428 @@
+<Window x:Class="QuanLyBar.Client.Views.DanhMucLyDoThuChi.DanhMucLyDoThuChiWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:services="clr-namespace:QuanLyBar.Client.Services"
+        Title="Lý do thu chi" Height="580" Width="470"
+        WindowStartupLocation="CenterOwner"
+        Background="#dbe6f3" WindowStyle="SingleBorderWindow">
+
+    <Window.Resources>
+        <!-- Style Toolbar Button -->
+        <Style x:Key="ToolbarBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#fff0b3"/>
+                    <Setter Property="BorderBrush" Value="#f5a623"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style Footer Button -->
+        <Style x:Key="FooterBtnStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="78"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#a0b8d4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e6f0fa"/>
+                    <Setter Property="BorderBrush" Value="#6495ed"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 0. Banner -->
+            <RowDefinition Height="Auto"/> <!-- 1. Toolbar -->
+            <RowDefinition Height="Auto"/> <!-- 2. Sub-bar Giá trị mặc định -->
+            <RowDefinition Height="*"/>    <!-- 3. TreeView Lý do thu chi -->
+            <RowDefinition Height="Auto"/> <!-- 4. Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 0. BANNER -->
+        <!-- 0A. Banner Main -->
+        <Border x:Name="BannerMain" Grid.Row="0" Background="White" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="14,10">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Custom Form/Pencil Icon -->
+                <Viewbox Width="36" Height="36" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Canvas Width="48" Height="48">
+                        <Border Width="38" Height="38" Canvas.Left="4" Canvas.Top="4" Background="#ffffff" BorderBrush="#5d9cec" BorderThickness="2" CornerRadius="3">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="10"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Border Grid.Row="0" Background="#70a3e8"/>
+                                <Grid Grid.Row="1" Margin="3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <Rectangle Height="2" Fill="#a0b8d4" Margin="0,1"/>
+                                        <Rectangle Height="2" Fill="#a0b8d4" Margin="0,1"/>
+                                        <Rectangle Height="2" Fill="#a0b8d4" Margin="0,1"/>
+                                        <Rectangle Height="2" Fill="#a0b8d4" Margin="0,1"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Margin="3,1,1,1" BorderBrush="#c2d5ec" BorderThickness="1" Background="#f4f8fc"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <Canvas Canvas.Left="10" Canvas.Top="12">
+                            <Polygon Points="6,34 32,8 36,12 10,38" Fill="#f7b731" Stroke="#d69213" StrokeThickness="1"/>
+                            <Polygon Points="6,34 10,38 2,42" Fill="#fed330"/>
+                            <Polygon Points="2,42 4,40 3,37" Fill="#4b6584"/>
+                            <Polygon Points="32,8 36,12 39,9 35,5" Fill="#d1d8e0" Stroke="#a5b1c2" StrokeThickness="0.8"/>
+                            <Polygon Points="35,5 39,9 43,5 39,1" Fill="#fc5c65" Stroke="#eb3b5a" StrokeThickness="0.8"/>
+                        </Canvas>
+                    </Canvas>
+                </Viewbox>
+
+                <TextBlock Text="Cho phép bạn quản lý và chỉnh sửa danh mục lý do thu chi"
+                           FontWeight="Bold" FontSize="12.5" Foreground="#0f172a"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 0B. Banner Trash -->
+        <Border x:Name="BannerTrash" Grid.Row="0" Background="White" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="14,10" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <!-- Trash Bin Icon -->
+                <TextBlock Grid.Column="0" Text="🗑️" FontSize="28" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="Dữ liệu Lý do thu chi bị xóa hoặc không dùng tới."
+                           FontWeight="Bold" FontSize="12.5" Foreground="#0f172a"
+                           VerticalAlignment="Center"/>
+                <!-- Note/Pencil Icon -->
+                <TextBlock Grid.Column="2" Text="📝" FontSize="20" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            </Grid>
+        </Border>
+
+        <!-- 1. TOOLBAR -->
+        <!-- 1A. Toolbar Main -->
+        <Border x:Name="ToolbarMain" Grid.Row="1" Background="#dbe6f3" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="6,3">
+            <StackPanel Orientation="Horizontal">
+                <!-- Dropdown Thêm mới -->
+                <Button x:Name="BtnThemMoi" Style="{StaticResource ToolbarBtnStyle}" Click="BtnThemMoi_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➕" FontSize="12" Foreground="#27ae60" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Thêm mới" VerticalAlignment="Center"/>
+                        <TextBlock Text=" ▾" FontSize="10" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button.ContextMenu>
+                        <ContextMenu x:Name="CmThemMoi">
+                            <MenuItem Header="Thêm lý do thu chi" Click="MenuThemLyDo_Click"/>
+                            <MenuItem Header="📁 Thêm thư mục" Click="MenuThemThuMuc_Click"/>
+                            <MenuItem Header="Thêm thư mục con" Click="MenuThemThuMucCon_Click"/>
+                            <Separator/>
+                            <MenuItem Header="➖ Thêm phân cách" Click="MenuThemPhanCach_Click"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+
+                <!-- Xóa -->
+                <Button x:Name="BtnXoa" Style="{StaticResource ToolbarBtnStyle}" Click="BtnXoa_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❌" FontSize="11" Foreground="#e74c3c" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xóa" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Chỉnh sửa -->
+                <Button x:Name="BtnChinhSua" Style="{StaticResource ToolbarBtnStyle}" Click="BtnChinhSua_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="✏️" FontSize="11" Foreground="#f39c12" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Chỉnh sửa" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Toggle Tree / Flat View -->
+                <Button x:Name="BtnToggleView" Style="{StaticResource ToolbarBtnStyle}" Click="BtnToggleView_Click" ToolTip="Chuyển chế độ xem Cây / Danh sách phẳng">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🗂️" FontSize="11" Foreground="#2980b9" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Thùng rác -->
+                <Button x:Name="BtnThungRac" Style="{StaticResource ToolbarBtnStyle}" Click="BtnThungRac_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🗑️" FontSize="11" Foreground="#27ae60" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtThungRac" Text="Thùng rác" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- 1B. Toolbar Trash -->
+        <Border x:Name="ToolbarTrash" Grid.Row="1" Background="#dbe6f3" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="6,3" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal">
+                <!-- Khôi phục -->
+                <Button x:Name="BtnKhoiPhuc" Style="{StaticResource ToolbarBtnStyle}" Click="BtnKhoiPhuc_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔄" FontSize="11" Foreground="#27ae60" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Khôi phục" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Xem chi tiết -->
+                <Button x:Name="BtnXemChiTiet" Style="{StaticResource ToolbarBtnStyle}" Click="BtnXemChiTiet_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="✏️" FontSize="11" Foreground="#f39c12" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xem chi tiết" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Xóa vĩnh viễn -->
+                <Button x:Name="BtnXoaVinhVien" Style="{StaticResource ToolbarBtnStyle}" Click="BtnXoaVinhVien_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❌" FontSize="11" Foreground="#e74c3c" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xóa vĩnh viễn" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Thuộc tính -->
+                <Button x:Name="BtnThuocTinh" Style="{StaticResource ToolbarBtnStyle}" Click="BtnThuocTinh_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙️" FontSize="11" Foreground="#64748b" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Thuộc tính" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. SUB-BAR: GIÁ TRỊ MẶC ĐỊNH -->
+        <Border x:Name="BorderSubBarDefault" Grid.Row="2" Background="#dbe6f3" Padding="12,5" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Giá trị mặc định:" VerticalAlignment="Center" FontSize="11.5" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboDefaultLyDo" Grid.Column="1" Height="22" Background="White" BorderBrush="#a0b8d4"
+                          DisplayMemberPath="Name" SelectedValuePath="Id" VerticalContentAlignment="Center"
+                          SelectionChanged="CboDefaultLyDo_SelectionChanged"/>
+            </Grid>
+        </Border>
+
+        <!-- 3. TREEVIEW LÝ DO THU CHI -->
+        <Border Grid.Row="3" Background="White" Margin="8,8,8,6" BorderBrush="#a0b8d4" BorderThickness="1">
+            <TreeView x:Name="TvLyDoThuChi" BorderThickness="0" Background="White"
+                      SelectedItemChanged="TvLyDoThuChi_SelectedItemChanged"
+                      MouseDoubleClick="TvLyDoThuChi_MouseDoubleClick">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                        <Setter Property="FontWeight" Value="Normal"/>
+                        <Setter Property="Padding" Value="3,1"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition MinWidth="16" Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Dotted Vertical Line -->
+                                        <Rectangle Grid.Column="0" Grid.RowSpan="2" HorizontalAlignment="Left" Margin="7,0,0,0"
+                                                   Width="1" Stroke="#a0a0a0" StrokeThickness="1" StrokeDashArray="1 2"/>
+
+                                        <!-- Dotted Horizontal Line -->
+                                        <Rectangle Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="7,0,0,0"
+                                                   Height="1" Stroke="#a0a0a0" StrokeThickness="1" StrokeDashArray="1 2"/>
+
+                                        <!-- Toggle Button (if has children) -->
+                                        <ToggleButton x:Name="Expander" Grid.Column="0" Grid.Row="0"
+                                                      IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                      ClickMode="Press" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      Visibility="Hidden">
+                                            <ToggleButton.Style>
+                                                <Style TargetType="ToggleButton">
+                                                    <Setter Property="Focusable" Value="False"/>
+                                                    <Setter Property="Width" Value="9"/>
+                                                    <Setter Property="Height" Value="9"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border Width="9" Height="9" Background="White" BorderBrush="#888888" BorderThickness="1">
+                                                                    <Path x:Name="ExpandPath" Fill="#333333" Margin="1" Data="M 0 2 L 0 3 L 5 3 L 5 2 Z M 2 0 L 3 0 L 3 5 L 2 5 Z"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsChecked" Value="True">
+                                                                        <Setter Property="Data" TargetName="ExpandPath" Value="M 0 2 L 0 3 L 5 3 L 5 2 Z"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </ToggleButton.Style>
+                                        </ToggleButton>
+
+                                        <!-- Header content -->
+                                        <Border x:Name="Bd" Grid.Column="1" Grid.Row="0" Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                                Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true" CornerRadius="1">
+                                            <ContentPresenter x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                        </Border>
+
+                                        <!-- Items Host for Children -->
+                                        <ItemsPresenter x:Name="ItemsHost" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"/>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="HasItems" Value="True">
+                                            <Setter TargetName="Expander" Property="Visibility" Value="Visible"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#0078d7"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="IsSelected" Value="True"/>
+                                                <Condition Property="IsSelectionActive" Value="False"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter TargetName="Bd" Property="Background" Value="#0078d7"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </MultiTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type services:LyDoThuChiTreeItem}" ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal" Margin="2,1">
+                            <!-- Icon -->
+                            <TextBlock Text="{Binding IconText}" FontSize="12" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <!-- Name -->
+                            <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+
+                <!-- Context Menu trên TreeView chuẩn theo ảnh thực tế -->
+                <TreeView.ContextMenu>
+                    <ContextMenu>
+                        <!-- 1. Thêm mới -->
+                        <MenuItem Header="Thêm mới">
+                            <MenuItem Header="Thêm lý do thu chi" Click="MenuThemLyDo_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="➕" Foreground="#27ae60" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Thêm nhanh" Click="MenuThemNhanh_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Thêm phân cách" Click="MenuThemPhanCach_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="➖" Foreground="#888888" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Thêm thư mục" Click="MenuThemThuMuc_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📁" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </MenuItem>
+
+                        <!-- 2. Thêm con -->
+                        <MenuItem Header="Thêm con">
+                            <MenuItem Header="Thêm lý do thu chi con" Click="MenuThemLyDoCon_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="➕" Foreground="#27ae60" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Thêm thư mục con" Click="MenuThemThuMucCon_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📁" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </MenuItem>
+
+                        <!-- 3. Chỉnh sửa -->
+                        <MenuItem Header="Chỉnh sửa" Click="BtnChinhSua_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="✏️" Foreground="#f39c12" FontSize="11" VerticalAlignment="Center"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+
+                        <!-- 4. Sắp xếp theo -->
+                        <MenuItem Header="Sắp xếp theo">
+                            <MenuItem x:Name="MenuSortByName" Header="Tên" IsCheckable="True" IsChecked="True" Click="MenuSapXepTen_Click"/>
+                            <MenuItem x:Name="MenuSortByCustom" Header="Thứ tự tùy chọn" IsCheckable="True" IsChecked="False" Click="MenuSapXepThuTu_Click"/>
+                        </MenuItem>
+
+                        <!-- 5. Refresh -->
+                        <MenuItem Header="Refresh" Click="MenuRefresh_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="🔄" Foreground="#27ae60" FontSize="11" VerticalAlignment="Center"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+
+                        <Separator/>
+
+                        <!-- 6. Sao chép -->
+                        <MenuItem Header="Sao chép" Click="MenuSaoChep_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="📑" Foreground="#2980b9" FontSize="11" VerticalAlignment="Center"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+
+                        <!-- 7. Mở rộng & Thu gọn -->
+                        <MenuItem Header="Mở rộng" Click="MenuMoRong_Click"/>
+                        <MenuItem Header="Thu gọn" Click="MenuThuGon_Click"/>
+
+                        <Separator/>
+
+                        <!-- 8. Xóa, Đổi tên, Thùng rác -->
+                        <MenuItem Header="Xóa" Click="BtnXoa_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="❌" Foreground="#e74c3c" FontSize="11" VerticalAlignment="Center"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Đổi tên" Click="MenuDoiTen_Click"/>
+                        <MenuItem Header="Thùng rác" Click="BtnThungRac_Click"/>
+
+                        <Separator/>
+
+                        <!-- 9. Biểu tượng & Thuộc tính -->
+                        <MenuItem Header="Biểu tượng" Click="MenuBieuTuong_Click"/>
+                        <MenuItem Header="Thuộc tính" Click="BtnThuocTinh_Click"/>
+                    </ContextMenu>
+                </TreeView.ContextMenu>
+            </TreeView>
+        </Border>
+
+        <!-- 4. FOOTER -->
+        <Border Grid.Row="4" Background="#dbe6f3" Padding="10,6,12,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Thoát" Style="{StaticResource FooterBtnStyle}" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

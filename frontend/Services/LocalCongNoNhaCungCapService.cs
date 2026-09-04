@@ -492,7 +492,7 @@ namespace QuanLyBar.Client.Services
                 using (var conn = GetConnection())
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
-                    string sql = "SELECT ID, NAME FROM DLYDOTHUCHI WHERE (STATUS IS NULL OR STATUS <> 0) AND (LOAI = 2 OR LOAI = 'chi' OR LOAI = 'Chi' OR LOAI IS NULL) ORDER BY SORTORDER, NAME";
+                    string sql = "SELECT ID, NAME, LALYDOTHU, LOAILYDO, NOTE FROM DLYDOTHUCHI WHERE (STATUS IS NULL OR STATUS <> 0) AND (LALYDOTHU IS NULL OR LALYDOTHU = 0) ORDER BY NAME";
                     return (await conn.QueryAsync(sql)).ToList();
                 }
             }
@@ -543,7 +543,7 @@ namespace QuanLyBar.Client.Services
                 using (var conn = GetConnection())
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
-                    string sql = "SELECT ID, NAME, DIACHI, DIENTHOAI FROM DNHACUNGCAP WHERE STATUS IS NULL OR STATUS <> 0 ORDER BY MANHACUNGCAP, NAME";
+                    string sql = "SELECT ID, MANHACUNGCAP, NAME, DIACHI, DIENTHOAI FROM DNHACUNGCAP WHERE STATUS IS NULL OR STATUS <> 0 ORDER BY MANHACUNGCAP, NAME";
                     return (await conn.QueryAsync(sql)).ToList();
                 }
             }
