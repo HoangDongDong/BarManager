@@ -470,6 +470,7 @@ namespace QuanLyBar.Client
                             return;
 
                         _isDraggingTab = true;
+                        tabItem.Opacity = 0.72; // Hiệu ứng tab nổi / mờ nhẹ trong lúc trượt
                         try
                         {
                             DragDrop.DoDragDrop(tabItem, tabItem, DragDropEffects.Move);
@@ -477,6 +478,7 @@ namespace QuanLyBar.Client
                         catch { }
                         finally
                         {
+                            tabItem.Opacity = 1.0;
                             _isDraggingTab = false;
                         }
                     }
@@ -486,24 +488,19 @@ namespace QuanLyBar.Client
 
         private void TabItem_DragOver(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(System.Windows.Controls.TabItem)))
-            {
-                e.Effects = DragDropEffects.Move;
-                e.Handled = true;
-            }
-        }
-
-        private void TabItem_Drop(object sender, DragEventArgs e)
-        {
             if (e.Data.GetData(typeof(System.Windows.Controls.TabItem)) is System.Windows.Controls.TabItem sourceTab &&
                 sender is System.Windows.Controls.TabItem targetTab)
             {
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+
+                // Hoán đổi vị trí trực tiếp ngay trong khi đang di chuyển chuột (Live Reordering như Chrome)
                 if (sourceTab != targetTab)
                 {
                     int sourceIndex = MainTabControl.Items.IndexOf(sourceTab);
                     int targetIndex = MainTabControl.Items.IndexOf(targetTab);
 
-                    if (sourceIndex >= 0 && targetIndex >= 0)
+                    if (sourceIndex >= 0 && targetIndex >= 0 && sourceIndex != targetIndex)
                     {
                         MainTabControl.Items.RemoveAt(sourceIndex);
                         MainTabControl.Items.Insert(targetIndex, sourceTab);
@@ -511,6 +508,16 @@ namespace QuanLyBar.Client
                         MainTabControl.SelectedItem = sourceTab;
                     }
                 }
+            }
+        }
+
+        private void TabItem_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetData(typeof(System.Windows.Controls.TabItem)) is System.Windows.Controls.TabItem sourceTab)
+            {
+                sourceTab.Opacity = 1.0;
+                sourceTab.IsSelected = true;
+                MainTabControl.SelectedItem = sourceTab;
                 e.Handled = true;
             }
         }
