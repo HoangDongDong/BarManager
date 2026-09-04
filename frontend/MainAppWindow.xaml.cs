@@ -1,5 +1,8 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace QuanLyBar.Client
 {
@@ -437,5 +440,91 @@ namespace QuanLyBar.Client
                 this.Close();
             }
         }
+
+        #region Tab Drag & Drop Reordering (Trượt / Đổi vị trí tab như trình duyệt Web)
+        private Point _dragStartPoint;
+        private bool _isDraggingTab = false;
+
+        private void TabItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource is DependencyObject dep && FindVisualParent<System.Windows.Controls.Button>(dep) != null)
+            {
+                return;
+            }
+            _dragStartPoint = e.GetPosition(null);
+        }
+
+        private void TabItem_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && !_isDraggingTab)
+            {
+                Point currentPos = e.GetPosition(null);
+                Vector diff = _dragStartPoint - currentPos;
+
+                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    if (sender is System.Windows.Controls.TabItem tabItem)
+                    {
+                        if (e.OriginalSource is DependencyObject dep && FindVisualParent<System.Windows.Controls.Button>(dep) != null)
+                            return;
+
+                        _isDraggingTab = true;
+                        try
+                        {
+                            DragDrop.DoDragDrop(tabItem, tabItem, DragDropEffects.Move);
+                        }
+                        catch { }
+                        finally
+                        {
+                            _isDraggingTab = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void TabItem_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(System.Windows.Controls.TabItem)))
+            {
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+            }
+        }
+
+        private void TabItem_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetData(typeof(System.Windows.Controls.TabItem)) is System.Windows.Controls.TabItem sourceTab &&
+                sender is System.Windows.Controls.TabItem targetTab)
+            {
+                if (sourceTab != targetTab)
+                {
+                    int sourceIndex = MainTabControl.Items.IndexOf(sourceTab);
+                    int targetIndex = MainTabControl.Items.IndexOf(targetTab);
+
+                    if (sourceIndex >= 0 && targetIndex >= 0)
+                    {
+                        MainTabControl.Items.RemoveAt(sourceIndex);
+                        MainTabControl.Items.Insert(targetIndex, sourceTab);
+                        sourceTab.IsSelected = true;
+                        MainTabControl.SelectedItem = sourceTab;
+                    }
+                }
+                e.Handled = true;
+            }
+        }
+
+        private static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parent = VisualTreeHelper.GetParent(child);
+            while (parent != null)
+            {
+                if (parent is T typed) return typed;
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+            return null;
+        }
+        #endregion
     }
 }
