@@ -135,6 +135,10 @@ namespace QuanLyBar.Client.Services
 
         public string PassWifi { get; set; } = "";
 
+        public string DienGiai { get; set; } = "Nhập mua hàng";
+        public decimal TiLeThue { get; set; }
+        public decimal TienThue { get; set; }
+
         public string Note { get; set; } = "";
         public int Status { get; set; } = 30;
 
@@ -716,10 +720,76 @@ namespace QuanLyBar.Client.Services
             return list;
         }
 
-        public static async Task<List<PhieuNhapChiTietItem>> GetPhieuNhapChiTietAsync(string phieuNhapId)
+        public static async Task<PhieuNhapItem?> GetPhieuNhapByIdAsync(string idOrSoPhieu)
+        {
+            if (string.IsNullOrWhiteSpace(idOrSoPhieu)) return null;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+                    string sql = @"
+                        SELECT 
+                            CAST(d.ID AS VARCHAR(50)) as Id,
+                            d.NAME as SoPhieu,
+                            d.NGAY as Ngay,
+                            CAST(d.DNHACUNGCAPID AS VARCHAR(50)) as DnhacungcapId,
+                            ncc.NAME as TenNhaCungCap,
+                            CAST(d.DKHONHAPID AS VARCHAR(50)) as DkhoNhapId,
+                            k.NAME as TenKhoNhap,
+                            CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) as DnhanVienNhapId,
+                            nv.NAME as TenNhanVienNhap,
+                            d.TIENHANG as TienHang,
+                            d.TIENGIAMGIA as TienGiamGia,
+                            d.TILEGIAMGIA as TiLeGiamGia,
+                            CAST(d.DTAIKHOANNGANHANGID AS VARCHAR(50)) as DtaiKhoanNganHangId,
+                            tk.NAME as TenTaiKhoanNganHang,
+                            d.TONGCONG as TongCong,
+                            CAST(d.DCUAHANGID AS VARCHAR(50)) as DcuaHangId,
+                            ch.NAME as TenCuaHang,
+                            d.THANHTOAN as ThanhToan,
+                            d.CONLAI as ConLai,
+                            d.NOTE as Note,
+                            d.TIENMAT as TienMat,
+                            d.CHUYENKHOAN as ChuyenKhoan,
+                            d.THE as The
+                        FROM TDONHANG d
+                        LEFT JOIN DNHACUNGCAP ncc ON CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(ncc.ID AS VARCHAR(50))
+                        LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN nv ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        LEFT JOIN DTAIKHOANNGANHANG tk ON CAST(d.DTAIKHOANNGANHANGID AS VARCHAR(50)) = CAST(tk.ID AS VARCHAR(50))
+                        LEFT JOIN DCUAHANG ch ON CAST(d.DCUAHANGID AS VARCHAR(50)) = CAST(ch.ID AS VARCHAR(50))
+                        WHERE CAST(d.ID AS VARCHAR(50)) = @IdOrSoPhieu 
+                           OR d.NAME = @IdOrSoPhieu 
+                           OR d.SOHD = @IdOrSoPhieu";
+
+                    var result = await conn.QueryFirstOrDefaultAsync<PhieuNhapItem>(sql, new { IdOrSoPhieu = idOrSoPhieu.Trim() });
+                    if (result != null) return result;
+                }
+
+                // Fallback via GetPhieuNhapListAsync
+                var all = await GetPhieuNhapListAsync();
+                return all.FirstOrDefault(x => x.Id == idOrSoPhieu.Trim() || x.SoPhieu?.Trim() == idOrSoPhieu.Trim());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetPhieuNhapByIdAsync error: " + ex.Message);
+                try
+                {
+                    var all = await GetPhieuNhapListAsync();
+                    return all.FirstOrDefault(x => x.Id == idOrSoPhieu.Trim() || x.SoPhieu?.Trim() == idOrSoPhieu.Trim());
+                }
+                catch { return null; }
+            }
+        }
+
+        public static async Task<List<PhieuNhapChiTietItem>> GetPhieuNhapChiTietAsync(string phieuNhapId, string soPhieu = null)
         {
             var list = new List<PhieuNhapChiTietItem>();
-            if (string.IsNullOrEmpty(phieuNhapId)) return list;
+            if (string.IsNullOrWhiteSpace(phieuNhapId) && string.IsNullOrWhiteSpace(soPhieu)) return list;
+
+            string pId = (phieuNhapId ?? "").Trim();
+            string sPhieu = (soPhieu ?? "").Trim();
 
             try
             {
@@ -727,49 +797,151 @@ namespace QuanLyBar.Client.Services
                 {
                     if (conn.State != ConnectionState.Open) await conn.OpenAsync();
 
+                    string actualOrderId = pId;
+                    try
+                    {
+                        var rowId = await conn.QueryFirstOrDefaultAsync<string>(
+                            "SELECT FIRST 1 CAST(ID AS VARCHAR(50)) FROM TDONHANG WHERE CAST(ID AS VARCHAR(50)) = @P1 OR NAME = @P1 OR SOHD = @P1 OR NAME = @P2 OR SOHD = @P2",
+                            new { P1 = pId, P2 = sPhieu });
+                        if (!string.IsNullOrEmpty(rowId))
+                        {
+                            actualOrderId = rowId;
+                        }
+                    }
+                    catch { }
+
                     string sql = @"
                         SELECT 
                             CAST(d.ID AS VARCHAR(50)) as Id,
                             CAST(d.TDONHANGID AS VARCHAR(50)) as TdonhangId,
                             CAST(d.DMATHANGID AS VARCHAR(50)) as DmathangId,
-                            m.CODE as MaHang,
-                            COALESCE(d.TENHANG, m.NAME) as TenHang,
-                            CAST(d.DDONVITINHID AS VARCHAR(50)) as DdonvitinhId,
-                            dvt.NAME as TenDonViTinh,
+                            m.CODE as MaHangCode,
+                            COALESCE(d.TENHANG, m.NAME) as MatHangName,
+                            CAST(COALESCE(d.DDONVITINHID, m.DDONVITINHID) AS VARCHAR(50)) as DdonvitinhId,
+                            dvt.NAME as DvtName,
                             d.SLNHAP as SlNhap,
+                            d.SLNHAPCHUAQUYDOI as SlNhapChuaQuyDoi,
+                            d.SLXUAT as SlXuat,
                             d.DONGIA as DonGia,
                             d.TILEGIAMGIA as TiLeGiamGia,
                             d.TIENGIAMGIA as TienGiamGia,
                             d.THANHTIEN as ThanhTien,
-                            d.NOTE as Note,
-                            COALESCE(m.GIABAN, 0) as GiaBan
+                            m.GIABAN as MhGiaBan,
+                            m.GIANHAP as MhGiaNhap,
+                            d.NOTE as Note
                         FROM TDONHANGCHITIET d
                         LEFT JOIN DMATHANG m ON CAST(d.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
-                        LEFT JOIN DDONVITINH dvt ON CAST(d.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
-                        WHERE CAST(d.TDONHANGID AS VARCHAR(50)) = @PhieuNhapId
-                        ORDER BY d.TIMECREATED";
+                        LEFT JOIN DDONVITINH dvt ON CAST(COALESCE(d.DDONVITINHID, m.DDONVITINHID) AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        WHERE CAST(d.TDONHANGID AS VARCHAR(50)) = @ActualOrderId
+                           OR CAST(d.TDONHANGID AS VARCHAR(50)) = @PId
+                           OR CAST(d.TDONHANGID AS VARCHAR(50)) = @SPhieu
+                        ORDER BY d.ID";
 
-                    var rows = (await conn.QueryAsync(sql, new { PhieuNhapId = phieuNhapId })).ToList();
+                    var rows = (await conn.QueryAsync(sql, new { ActualOrderId = actualOrderId, PId = pId, SPhieu = sPhieu })).ToList();
+
+                    if (rows.Count == 0 && !string.IsNullOrEmpty(sPhieu))
+                    {
+                        try
+                        {
+                            string fallbackSql = @"
+                                SELECT 
+                                    CAST(d.ID AS VARCHAR(50)) as Id,
+                                    CAST(d.TDONHANGID AS VARCHAR(50)) as TdonhangId,
+                                    CAST(d.DMATHANGID AS VARCHAR(50)) as DmathangId,
+                                    m.CODE as MaHangCode,
+                                    COALESCE(d.TENHANG, m.NAME) as MatHangName,
+                                    CAST(COALESCE(d.DDONVITINHID, m.DDONVITINHID) AS VARCHAR(50)) as DdonvitinhId,
+                                    dvt.NAME as DvtName,
+                                    d.SLNHAP as SlNhap,
+                                    d.SLNHAPCHUAQUYDOI as SlNhapChuaQuyDoi,
+                                    d.SLXUAT as SlXuat,
+                                    d.DONGIA as DonGia,
+                                    d.TILEGIAMGIA as TiLeGiamGia,
+                                    d.TIENGIAMGIA as TienGiamGia,
+                                    d.THANHTIEN as ThanhTien,
+                                    m.GIABAN as MhGiaBan,
+                                    m.GIANHAP as MhGiaNhap,
+                                    d.NOTE as Note
+                                FROM TDONHANGCHITIET d
+                                LEFT JOIN DMATHANG m ON CAST(d.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                                LEFT JOIN DDONVITINH dvt ON CAST(COALESCE(d.DDONVITINHID, m.DDONVITINHID) AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                                WHERE CAST(d.TDONHANGID AS VARCHAR(50)) IN (
+                                    SELECT CAST(ID AS VARCHAR(50)) FROM TDONHANG WHERE NAME = @SPhieu OR SOHD = @SPhieu
+                                )
+                                ORDER BY d.ID";
+                            rows = (await conn.QueryAsync(fallbackSql, new { SPhieu = sPhieu })).ToList();
+                        }
+                        catch { }
+                    }
+
                     int stt = 1;
                     foreach (var r in rows)
                     {
+                        var dict = r as IDictionary<string, object>;
+                        object? GetDictVal(params string[] keys)
+                        {
+                            if (dict == null) return null;
+                            foreach (var k in keys)
+                            {
+                                if (dict.TryGetValue(k, out var v) && v != null && v != DBNull.Value && !string.IsNullOrEmpty(v.ToString())) return v;
+                                var found = dict.FirstOrDefault(x => string.Equals(x.Key, k, StringComparison.OrdinalIgnoreCase));
+                                if (found.Value != null && found.Value != DBNull.Value && !string.IsNullOrEmpty(found.Value.ToString())) return found.Value;
+                            }
+                            return null;
+                        }
+
+                        decimal ToDec(params string[] keys)
+                        {
+                            var val = GetDictVal(keys);
+                            if (val == null || val == DBNull.Value) return 0m;
+                            if (decimal.TryParse(val.ToString(), out decimal d)) return d;
+                            return 0m;
+                        }
+
+                        string ToStr(params string[] keys)
+                        {
+                            var val = GetDictVal(keys);
+                            return val?.ToString() ?? "";
+                        }
+
+                        decimal sl = ToDec("SLNHAP", "SLNHAPCHUAQUYDOI", "SOLUONG", "SLXUAT", "SL", "QUANTITY", "COUNT");
+                        if (sl <= 0) sl = 1;
+
+                        decimal donGia = ToDec("DONGIA", "GIANHAP", "MhGiaNhap", "GIABAN", "PRICE");
+                        decimal tiLeGiam = ToDec("TILEGIAMGIA", "PHANTRAMGIAMGIA", "DISCOUNT");
+                        decimal tienGiam = ToDec("TIENGIAMGIA", "GIAMGIA");
+                        if (tienGiam <= 0 && tiLeGiam > 0)
+                        {
+                            tienGiam = sl * donGia * (tiLeGiam / 100m);
+                        }
+
+                        decimal thanhTien = ToDec("THANHTIEN", "TIENHANG", "TOTAL", "AMOUNT");
+                        if (thanhTien <= 0 && donGia > 0)
+                        {
+                            thanhTien = (sl * donGia) - tienGiam;
+                        }
+
+                        string tenHang = ToStr("MatHangName", "TENHANG", "NAME");
+                        string maHang = ToStr("MaHangCode", "MaHang", "CODE");
+                        string tenDvt = ToStr("DvtName", "TenDonViTinh", "DVT");
+
                         list.Add(new PhieuNhapChiTietItem
                         {
                             Stt = stt++,
-                            Id = r.ID?.ToString(),
-                            TdonhangId = r.TDONHANGID?.ToString(),
-                            DmathangId = r.DMATHANGID?.ToString(),
-                            MaHang = r.MAHANG?.ToString() ?? "",
-                            TenHang = r.TENHANG?.ToString() ?? "",
-                            DdonvitinhId = r.DDONVITINHID?.ToString(),
-                            TenDonViTinh = r.TENDONVITINH?.ToString() ?? "",
-                            SlNhap = r.SLNHAP != null ? Convert.ToDecimal(r.SLNHAP) : 0,
-                            DonGia = r.DONGIA != null ? Convert.ToDecimal(r.DONGIA) : 0,
-                            TiLeGiamGia = r.TILEGIAMGIA != null ? Convert.ToDecimal(r.TILEGIAMGIA) : 0,
-                            TienGiamGia = r.TIENGIAMGIA != null ? Convert.ToDecimal(r.TIENGIAMGIA) : 0,
-                            ThanhTien = r.THANHTIEN != null ? Convert.ToDecimal(r.THANHTIEN) : 0,
-                            GiaBan = r.GIABAN != null ? Convert.ToDecimal(r.GIABAN) : 0,
-                            Note = r.NOTE?.ToString() ?? ""
+                            Id = ToStr("ID", "Id"),
+                            TdonhangId = ToStr("TDONHANGID", "TdonhangId"),
+                            DmathangId = ToStr("DMATHANGID", "DmathangId"),
+                            MaHang = maHang,
+                            TenHang = tenHang,
+                            DdonvitinhId = ToStr("DDONVITINHID", "DdonvitinhId"),
+                            TenDonViTinh = tenDvt,
+                            SlNhap = sl,
+                            DonGia = donGia,
+                            TiLeGiamGia = tiLeGiam,
+                            TienGiamGia = tienGiam,
+                            ThanhTien = thanhTien,
+                            GiaBan = ToDec("MhGiaBan", "GiaBan", "GIABAN"),
+                            Note = ToStr("NOTE", "Note")
                         });
                     }
                 }

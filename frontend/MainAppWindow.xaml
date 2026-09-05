@@ -225,13 +225,13 @@
             </MenuItem>
             
             <MenuItem Header="NHÂN SỰ" Foreground="#1e3f66">
-                <MenuItem Header="Danh mục nhân viên"/>
-                <MenuItem Header="Danh mục ca làm việc"/>
+                <MenuItem Header="Danh mục nhân viên" Click="MenuBtn_Click"/>
+                <MenuItem Header="Danh mục ca làm việc" Click="MenuBtn_Click"/>
                 <Separator/>
-                <MenuItem Header="Tạm ứng lương"/>
-                <MenuItem Header="Thưởng phạt"/>
-                <MenuItem Header="Chấm công"/>
-                <MenuItem Header="Tính lương"/>
+                <MenuItem Header="Tạm ứng lương" Click="MenuBtn_Click"/>
+                <MenuItem Header="Thưởng phạt" Click="MenuBtn_Click"/>
+                <MenuItem Header="Chấm công" Click="MenuBtn_Click"/>
+                <MenuItem Header="Tính lương" Click="MenuBtn_Click"/>
             </MenuItem>
             
             <MenuItem Header="QUẢN TRỊ" Foreground="#1e3f66">
@@ -258,7 +258,7 @@
                     <MenuItem Header="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI"/>
                     <MenuItem Header="TỔNG HỢP THU CHI THEO NGÀY"/>
                     <MenuItem Header="TỔNG HỢP THU CHI THEO LÝ DO"/>
-                    <MenuItem Header="BÁO CÁO TỒN QUỸ"/>
+                    <MenuItem Header="BÁO CÁO TỒN QUỸ" Click="MenuBtn_Click"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO DANH MỤC">
                     <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÓM"/>

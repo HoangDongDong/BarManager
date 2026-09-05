@@ -1,0 +1,207 @@
+<Window x:Class="QuanLyBar.Client.Views.PhieuThuChi.ThemPhieuThuChiExcelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="THÊM NHANH TỪ EXCEL" Height="650" Width="1080"
+        WindowStartupLocation="CenterOwner"
+        Background="#d2e1f2" WindowStyle="SingleBorderWindow">
+
+    <Window.Resources>
+        <Style x:Key="SubToolbarBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#fff0b3"/>
+                    <Setter Property="BorderBrush" Value="#f5a623"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActionBtnStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Margin" Value="3,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#a0b8d4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e6f0fa"/>
+                    <Setter Property="BorderBrush" Value="#6495ed"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Global Options / Fast setup -->
+            <RowDefinition Height="Auto"/> <!-- Sub Toolbar -->
+            <RowDefinition Height="*"/>    <!-- DataGrid -->
+            <RowDefinition Height="Auto"/> <!-- Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 0. HEADER -->
+        <Border Grid.Row="0" Background="#f8fafc" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="14,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#2b6cb0" CornerRadius="4" Width="26" Height="24" Margin="0,0,10,0">
+                    <TextBlock Text="📊" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock x:Name="TxtHeaderTitle" Text="Thêm nhanh danh mục từ Excel" FontWeight="Bold" FontSize="14" Foreground="#0f172a" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 1. GLOBAL OPTIONS / FAST SETUP -->
+        <Border Grid.Row="1" Background="#eaf1fb" Margin="6,4,6,2" Padding="8,6" BorderBrush="#b6cde4" BorderThickness="1" CornerRadius="2">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="28"/>
+                    <RowDefinition Height="28"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1.4*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1.4*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Row 0: Lý do, Cửa hàng, Ngày mặc định -->
+                <CheckBox x:Name="ChkLyDo" Grid.Row="0" Grid.Column="0" Content="Lý do:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                <ComboBox x:Name="CboLyDo" Grid.Row="0" Grid.Column="1" Height="23" DisplayMemberPath="NAME" SelectedValuePath="ID"/>
+
+                <CheckBox x:Name="ChkCuaHang" Grid.Row="0" Grid.Column="3" Content="Cửa hàng:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                <ComboBox x:Name="CboCuaHang" Grid.Row="0" Grid.Column="4" Height="23" DisplayMemberPath="NAME" SelectedValuePath="ID"/>
+
+                <CheckBox x:Name="ChkNgay" Grid.Row="0" Grid.Column="6" Content="Ngày:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                <DatePicker x:Name="DpNgay" Grid.Row="0" Grid.Column="7" Height="23"/>
+
+                <!-- Row 1: Tài khoản NH, Nhân viên, Không thay đổi công nợ -->
+                <CheckBox x:Name="ChkTaiKhoan" Grid.Row="1" Grid.Column="0" Content="Tài khoản:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                <ComboBox x:Name="CboTaiKhoan" Grid.Row="1" Grid.Column="1" Height="23" DisplayMemberPath="NAME" SelectedValuePath="ID"/>
+
+                <CheckBox x:Name="ChkNhanVien" Grid.Row="1" Grid.Column="3" Content="Nhân viên:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                <ComboBox x:Name="CboNhanVien" Grid.Row="1" Grid.Column="4" Height="23" DisplayMemberPath="NAME" SelectedValuePath="ID"/>
+
+                <CheckBox x:Name="ChkKhongThayDoiCongNo" Grid.Row="1" Grid.Column="6" Grid.ColumnSpan="2" Content="Không thay đổi công nợ" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+
+        <!-- 2. SUB TOOLBAR -->
+        <Border Grid.Row="2" Background="#e2ecf8" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="6,3">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button x:Name="BtnChonFile" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnChonFile_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📂" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Chọn file Excel" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnXuatMau" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnXuatMau_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📥" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Xuất file mẫu Excel" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Separator Width="1" Background="#b0c4de" Margin="4,2"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0">
+                        <TextBlock Text="Số dòng:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11"/>
+                        <TextBox x:Name="TxtSoDong" Width="45" Height="22" Text="5" TextAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,4,0"/>
+                        <Button Content="➕ Thêm dòng" Height="22" Padding="6,1" Background="White" BorderBrush="#a4c2e0" Cursor="Hand" Click="BtnThemDong_Click"/>
+                    </StackPanel>
+                    <Button x:Name="BtnXoaDong" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnXoaDong_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="❌" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Xóa dòng chọn" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnXoaTatCa" Style="{StaticResource SubToolbarBtnStyle}" Click="BtnXoaTatCa_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🧹" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Xóa tất cả" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 3. DATAGRID THÊM NHANH -->
+        <Border Grid.Row="3" Background="White" Margin="6,3,6,3" BorderBrush="#a4c2e0" BorderThickness="1">
+            <DataGrid x:Name="DgThemNhanh" AutoGenerateColumns="False" CanUserAddRows="True"
+                      GridLinesVisibility="All" AlternatingRowBackground="#f8fafc" Background="White"
+                      HeadersVisibility="All" RowHeight="23" FontSize="11.5" SelectionMode="Extended">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                    
+                    <DataGridTemplateColumn Header="Ngày" Width="105">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Ngay, StringFormat=dd/MM/yyyy}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <DatePicker SelectedDate="{Binding Ngay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Số tiền" Binding="{Binding SoTien, StringFormat={}{0:N0}, UpdateSourceTrigger=PropertyChanged}" Width="110">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Foreground" Value="#0055aa"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Tên đối tượng (Người nộp/nhận)" Binding="{Binding TenDoiTuong, UpdateSourceTrigger=PropertyChanged}" Width="1.5*"/>
+                    <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi, UpdateSourceTrigger=PropertyChanged}" Width="1*"/>
+                    <DataGridTextColumn Header="Lý do thu chi" Binding="{Binding LyDo, UpdateSourceTrigger=PropertyChanged}" Width="1.2*"/>
+                    <DataGridTextColumn Header="Diễn giải" Binding="{Binding DienGiai, UpdateSourceTrigger=PropertyChanged}" Width="1.2*"/>
+                    <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien, UpdateSourceTrigger=PropertyChanged}" Width="1*"/>
+                    <DataGridTextColumn Header="Tài khoản NH" Binding="{Binding TaiKhoan, UpdateSourceTrigger=PropertyChanged}" Width="1*"/>
+                    <DataGridTextColumn Header="Cửa hàng" Binding="{Binding CuaHang, UpdateSourceTrigger=PropertyChanged}" Width="1*"/>
+                    <DataGridTextColumn Header="Chứng từ gốc" Binding="{Binding ChungTuGoc, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                    <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu, UpdateSourceTrigger=PropertyChanged}" Width="1*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- 4. FOOTER -->
+        <Border Grid.Row="4" Background="#e2ecf8" BorderBrush="#cbd5e1" BorderThickness="0,1,0,0" Padding="10,6">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <TextBlock x:Name="TxtSummary" Text="Tổng số dòng: 0 | Tổng tiền: 0 VNĐ" FontWeight="Bold" Foreground="#0f172a" FontSize="12"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <Button x:Name="BtnChapNhan" Style="{StaticResource ActionBtnStyle}" Width="130" Background="#dcfce7" BorderBrush="#86efac" Click="BtnChapNhan_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="✅" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Chấp nhận (Lưu)" FontWeight="Bold" Foreground="#166534" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnHuyBo" Style="{StaticResource ActionBtnStyle}" Width="90" Click="BtnHuyBo_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="❌" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Đóng (Esc)" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

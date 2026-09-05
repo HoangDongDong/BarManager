@@ -418,40 +418,62 @@
                           AlternatingRowBackground="#f8fafc" RowHeight="23" FontSize="11.5"
                           SelectionChanged="DgPhieuChi_SelectionChanged"
                           MouseDoubleClick="DgPhieuChi_MouseDoubleClick">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <EventSetter Event="PreviewMouseRightButtonDown" Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                        </Style>
+                    </DataGrid.RowStyle>
                     <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Thêm mới phiếu chi (Insert)" Click="BtnThemMoi_Click">
+                        <ContextMenu Opened="GridContextMenu_Opened">
+                            <MenuItem x:Name="MenuThemPhieu" Header="Thêm Phiếu chi" Click="BtnThemMoi_Click">
                                 <MenuItem.Icon>
                                     <TextBlock Text="➕" Foreground="Green" FontSize="11" VerticalAlignment="Center"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Header="Chỉnh sửa phiếu chi (F4)" Click="BtnChinhSua_Click">
+                            <MenuItem x:Name="MenuThemNhanhExcel" Header="Thêm nhanh (excel)" Click="BtnThemExcel_Click"/>
+                            <MenuItem x:Name="MenuCapNhatNhanhExcel" Header="Cập nhật nhanh (excel)" Click="BtnThemExcel_Click"/>
+                            <MenuItem x:Name="MenuChinhSua" Header="Chỉnh sửa" Click="BtnChinhSua_Click">
                                 <MenuItem.Icon>
                                     <TextBlock Text="✏️" Foreground="#f39c12" FontSize="11" VerticalAlignment="Center"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Header="Xóa phiếu chi (Del)" Click="BtnXoa_Click">
+                            <MenuItem x:Name="MenuLocCot" Header="Lọc Số phiếu" Click="MenuLocCot_Click"/>
+                            <MenuItem x:Name="MenuSapXep" Header="Sắp xếp theo">
+                                <MenuItem Header="Sắp xếp tăng dần" Click="MenuItem_SortAsc_Click"/>
+                                <MenuItem Header="Sắp xếp giảm dần" Click="MenuItem_SortDesc_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Số phiếu" Click="MenuItem_SortBySoPhieu_Click"/>
+                                <MenuItem Header="Ngày" Click="MenuItem_SortByNgay_Click"/>
+                                <MenuItem Header="Tên đối tượng" Click="MenuItem_SortByDoiTuong_Click"/>
+                                <MenuItem Header="Lý do thu chi" Click="MenuItem_SortByLyDo_Click"/>
+                                <MenuItem Header="Số tiền" Click="MenuItem_SortBySoTien_Click"/>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuRefresh" Header="Refresh" Click="BtnTaiLai_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="🔄" Foreground="#27ae60" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuInDanhSach" Header="In danh sách" Click="BtnIn_Click"/>
+                            <Separator/>
+                            <MenuItem x:Name="MenuSaoChepO" Header="Sao chép ô" Click="MenuItem_SaoChepO_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📄" Foreground="Navy" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuSaoChepVungChon" Header="Sao chép vùng chọn" Click="MenuItem_SaoChepVungChon_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📑" Foreground="Navy" FontSize="11" VerticalAlignment="Center"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="MenuXoa" Header="Xóa" Click="BtnXoa_Click">
                                 <MenuItem.Icon>
                                     <TextBlock Text="❌" Foreground="#e74c3c" FontSize="11" VerticalAlignment="Center"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator/>
-                            <MenuItem Header="In phiếu chi" Click="BtnIn_Click">
-                                <MenuItem.Icon>
-                                    <TextBlock Text="🖨️" FontSize="11" VerticalAlignment="Center"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem Header="Xuất ra Excel" Click="BtnXuatExcel_Click">
-                                <MenuItem.Icon>
-                                    <TextBlock Text="📥" FontSize="11" VerticalAlignment="Center"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem Header="Tải lại danh sách" Click="BtnTaiLai_Click">
-                                <MenuItem.Icon>
-                                    <TextBlock Text="🔄" Foreground="#27ae60" FontSize="11" VerticalAlignment="Center"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
+                            <MenuItem x:Name="MenuTuDongGianCot" Header="Tự động giãn cột" Click="MenuItem_TuDongGianCot_Click"/>
+                            <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" Click="MenuCotHienThi_Click"/>
+                            <MenuItem x:Name="MenuThuocTinh" Header="Thuộc tính" Click="MenuItem_ThuocTinh_Click"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                     <DataGrid.ColumnHeaderStyle>

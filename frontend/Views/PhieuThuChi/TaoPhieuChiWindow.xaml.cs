@@ -13,6 +13,7 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
     public partial class TaoPhieuChiWindow : Window
     {
         private string _id = null;
+        private bool _isTamUng = false;
         private List<TTHUCHI> _allPhieuList = new List<TTHUCHI>();
         private int _currentIndex = -1;
 
@@ -24,11 +25,14 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
         private List<dynamic> _taiKhoanList = new List<dynamic>();
 
         public string SavedId { get; private set; }
+        public bool IsSaved { get; private set; } = false;
+        public Action OnSaved;
 
-        public TaoPhieuChiWindow(string id = null)
+        public TaoPhieuChiWindow(string id = null, bool isTamUng = false)
         {
             InitializeComponent();
             _id = id;
+            _isTamUng = isTamUng;
 
             Loaded += async (s, e) =>
             {
@@ -74,8 +78,25 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
                 CboLyDoChi.ItemsSource = _lyDoList;
                 if (_lyDoList.Count > 0)
                 {
-                    CboPhanLoai.SelectedIndex = 0;
-                    CboLyDoChi.SelectedIndex = 0;
+                    if (_isTamUng)
+                    {
+                        var matched = _lyDoList.FirstOrDefault(x => ((string)x.NAME)?.ToLower().Contains("ứng") == true || ((string)x.NAME)?.ToLower().Contains("lương") == true);
+                        if (matched != null)
+                        {
+                            CboPhanLoai.SelectedItem = matched;
+                            CboLyDoChi.SelectedItem = matched;
+                        }
+                        else
+                        {
+                            CboPhanLoai.SelectedIndex = 0;
+                            CboLyDoChi.SelectedIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        CboPhanLoai.SelectedIndex = 0;
+                        CboLyDoChi.SelectedIndex = 0;
+                    }
                 }
 
                 _nhanVienList = await LocalPhieuThuChiService.GetNhanVienLookupAsync();
@@ -120,11 +141,11 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
         private async Task ResetFormAsync()
         {
             _id = null;
-            Title = "PHIẾU CHI - THÊM MỚI";
+            Title = _isTamUng ? "PHIẾU CHI - THÊM MỚI" : "PHIẾU CHI - THÊM MỚI";
             DpNgay.SelectedDate = DateTime.Today;
             TxtSoPhieu.Text = await LocalPhieuThuChiService.GetNextSoPhieuAsync(isThu: false);
             TxtChungTuGoc.Text = "";
-            CboLoaiDoiTuong.SelectedIndex = 0;
+            CboLoaiDoiTuong.SelectedIndex = _isTamUng ? 3 : 0; // 3 là "Nhân viên"
             TxtTenDoiTuong.Text = "";
             TxtDiaChi.Text = "";
             CboNhanVien.SelectedIndex = -1;
@@ -134,8 +155,25 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
             ChkChuyenKhoan.IsChecked = false;
             CboTaiKhoanNganHang.IsEnabled = false;
             ChkKhongThayDoiCongNo.IsChecked = false;
-            TxtGhiChu.Text = "";
-            TxtTenDoiTuong.Focus();
+            TxtGhiChu.Text = _isTamUng ? "Tạm ứng lương" : "";
+
+            if (_isTamUng)
+            {
+                if (_lyDoList != null && _lyDoList.Count > 0)
+                {
+                    var matched = _lyDoList.FirstOrDefault(x => ((string)x.NAME)?.ToLower().Contains("ứng") == true || ((string)x.NAME)?.ToLower().Contains("lương") == true);
+                    if (matched != null)
+                    {
+                        CboPhanLoai.SelectedItem = matched;
+                        CboLyDoChi.SelectedItem = matched;
+                    }
+                }
+                CboNhanVien.Focus();
+            }
+            else
+            {
+                TxtTenDoiTuong.Focus();
+            }
         }
 
         private async Task LoadPhieuDetailAsync(string id)
@@ -146,7 +184,7 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
                 if (p != null)
                 {
                     _id = p.Id;
-                    Title = "PHIẾU CHI - CHỈNH SỬA";
+                    Title = "PHIẾU CHI - SỬA";
                     DpNgay.SelectedDate = p.Ngay ?? DateTime.Today;
                     TxtSoPhieu.Text = p.Name ?? "";
                     TxtChungTuGoc.Text = p.Chungtugoc ?? "";
@@ -154,6 +192,23 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
                     TxtDiaChi.Text = p.Diachi ?? "";
                     TxtGhiChu.Text = p.Note ?? "";
                     TxtSoTien.Text = p.Chi.HasValue ? p.Chi.Value.ToString("N0", CultureInfo.InvariantCulture) : "0";
+
+                    if (!string.IsNullOrEmpty(p.DnhanvienId) || p.Loaidoituong == "Nhân viên" || _isTamUng)
+                    {
+                        CboLoaiDoiTuong.SelectedIndex = 3; // Nhân viên
+                    }
+                    else if (!string.IsNullOrEmpty(p.DnhacungcapId) || p.Loaidoituong == "Nhà cung cấp")
+                    {
+                        CboLoaiDoiTuong.SelectedIndex = 1; // Nhà cung cấp
+                    }
+                    else if (!string.IsNullOrEmpty(p.DkhachhangId) || p.Loaidoituong == "Khách hàng")
+                    {
+                        CboLoaiDoiTuong.SelectedIndex = 2; // Khách hàng
+                    }
+                    else
+                    {
+                        CboLoaiDoiTuong.SelectedIndex = 0; // Đối tượng khác
+                    }
 
                     ChkChuyenKhoan.IsChecked = p.Chuyenkhoan == "1" || !string.IsNullOrEmpty(p.DtaikhoannganhangId);
                     CboTaiKhoanNganHang.IsEnabled = ChkChuyenKhoan.IsChecked == true;
@@ -244,10 +299,8 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
             if (CboNhanVien.SelectedItem != null)
             {
                 dynamic nv = CboNhanVien.SelectedItem;
-                if (string.IsNullOrEmpty(TxtTenDoiTuong.Text))
-                {
-                    TxtTenDoiTuong.Text = nv.NAME?.ToString() ?? "";
-                }
+                TxtTenDoiTuong.Text = nv.NAME?.ToString() ?? "";
+                TxtDiaChi.Text = nv.DIACHI?.ToString() ?? "";
             }
         }
 
@@ -309,6 +362,8 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
             bool chuyenKhoan = ChkChuyenKhoan.IsChecked == true;
             bool khongThayDoiCongNo = ChkKhongThayDoiCongNo.IsChecked == true;
 
+            bool isTamUng = _isTamUng || (loaiDoiTuong == "Nhân viên" && (ghiChu.ToLower().Contains("ứng") || (CboLyDoChi.Text ?? "").ToLower().Contains("ứng")));
+
             var (success, error, savedId) = await LocalPhieuThuChiService.SavePhieuThuChiAsync(
                 _id,
                 soPhieu,
@@ -327,13 +382,16 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
                 taiKhoanNganHangId,
                 cuaHangId,
                 chuyenKhoan,
-                khongThayDoiCongNo
+                khongThayDoiCongNo,
+                isTamUng: isTamUng
             );
 
             if (success)
             {
                 SavedId = savedId;
                 _id = savedId;
+                IsSaved = true;
+                OnSaved?.Invoke();
                 return true;
             }
             else

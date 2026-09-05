@@ -62,6 +62,59 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        public async Task<HoaDonViewModel> GetHoaDonByIdOrSoPhieuAsync(string idOrSoPhieu)
+        {
+            if (string.IsNullOrWhiteSpace(idOrSoPhieu)) return null;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT FIRST 1
+                            CAST(h.ID AS VARCHAR(50)) as Id, 
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(20))) as SoPhieu, 
+                            h.NGAY as Ngay, 
+                            b.NAME as Ban, 
+                            h.BATDAU as BatDau, 
+                            h.KETTHUC as KetThuc,
+                            h.GIOTHANHTOAN as GioThanhToan, 
+                            CAST(COALESCE(h.TONGCONG, '0') AS DECIMAL(18,0)) as TongCong, 
+                            k.NAME as KhachHang, 
+                            CAST(k.DIACHI AS VARCHAR(255)) as DiaChi,
+                            k.MAKHACH as MaKhach,
+                            h.TIENGIAMGIA as TienGiamGia, 
+                            h.TILEGIAMGIA as TiLeGiamGia, 
+                            h.TIENHANG as TienHang, 
+                            CAST(COALESCE(h.KHACHDUA, '0') AS DECIMAL(18,0)) as KhachDua, 
+                            CAST(COALESCE(h.TRALAI, '0') AS DECIMAL(18,0)) as TraLai, 
+                            CAST(COALESCE(h.THE, '0') AS DECIMAL(18,0)) as TheThanhToan, 
+                            h.TIENMAT as TienMat, 
+                            CAST(COALESCE(h.SOKHACH, '0') AS INTEGER) as SoKhach, 
+                            CAST(COALESCE(h.TILEGIAMGIAGIO, '0') AS DECIMAL(18,2)) as TiLeGiamGiaGio,
+                            h.SOORDER as SoOrder, 
+                            h.TIENGIAMGIAGIO as TienGiamGiaGio,
+                            h.NOTE as GhiChu,
+                            COALESCE(u.NAME, u.USERNAME, 'Administrator') as ThanhToanBoi,
+                            h.DIENGIAI as DienGiai
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON h.DBANID = b.ID
+                        LEFT JOIN DKHACHHANG k ON h.DKHACHHANGID = k.ID
+                        LEFT JOIN SUSER u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        WHERE CAST(h.ID AS VARCHAR(50)) = @Query 
+                           OR UPPER(h.NAME) = UPPER(@Query)
+                           OR UPPER(CAST(h.SOHD AS VARCHAR(50))) = UPPER(@Query)
+                    ";
+
+                    return await conn.QueryFirstOrDefaultAsync<HoaDonViewModel>(sql, new { Query = idOrSoPhieu.Trim() });
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public async Task<List<HoaDonHuyViewModel>> GetHoaDonHuyListAsync(DateTime tuNgay, DateTime denNgay, string keyword = null)
         {
             try

@@ -79,6 +79,23 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        public static async Task<List<dynamic>> GetLyDoChiLookupAsync()
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    var list = (await conn.QueryAsync("SELECT ID, NAME, LALYDOTHU, LOAILYDO FROM DLYDOTHUCHI WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY SORTORDER, NAME")).ToList();
+                    return list;
+                }
+            }
+            catch
+            {
+                return new List<dynamic>();
+            }
+        }
+
         public static async Task<List<dynamic>> GetCuaHangLookupAsync()
         {
             try
@@ -186,7 +203,8 @@ namespace QuanLyBar.Client.Services
             string taiKhoanNganHangId,
             string cuaHangId,
             bool chuyenKhoan,
-            bool khongThayDoiCongNo)
+            bool khongThayDoiCongNo,
+            bool isTamUng = false)
         {
             try
             {
@@ -197,6 +215,7 @@ namespace QuanLyBar.Client.Services
                     decimal thu = isThu ? soTien : 0;
                     decimal chi = isThu ? 0 : soTien;
                     string loai = isThu ? "1" : "-1";
+                    string laTamUng = isTamUng ? "1" : "0";
 
                     if (string.IsNullOrEmpty(id))
                     {
@@ -208,12 +227,12 @@ namespace QuanLyBar.Client.Services
                         {
                             string sql = @"
                                 INSERT INTO TTHUCHI (
-                                    ID, NAME, NGAY, THU, CHI, LOAI, TENDOITUONG, DIACHI, LOAIDOITUONG, 
+                                    ID, NAME, NGAY, THU, CHI, LOAI, LATAMUNG, TENDOITUONG, DIACHI, LOAIDOITUONG, 
                                     CHUNGTUGOC, NOTE, DLYDOTHUCHIID, DNHANVIENID, DKHACHHANGID, DNHACUNGCAPID, 
                                     DTAIKHOANNGANHANGID, DCUAHANGID, CHUYENKHOAN, KHONGTHAYDOICONGNO, 
                                     STATUS, USERCREATEDID, TIMECREATED
                                 ) VALUES (
-                                    @ID, @NAME, @NGAY, @THU, @CHI, @LOAI, @TENDOITUONG, @DIACHI, @LOAIDOITUONG,
+                                    @ID, @NAME, @NGAY, @THU, @CHI, @LOAI, @LATAMUNG, @TENDOITUONG, @DIACHI, @LOAIDOITUONG,
                                     @CHUNGTUGOC, @NOTE, @DLYDOTHUCHIID, @DNHANVIENID, @DKHACHHANGID, @DNHACUNGCAPID,
                                     @DTAIKHOANNGANHANGID, @DCUAHANGID, @CHUYENKHOAN, @KHONGTHAYDOICONGNO,
                                     30, 1, CURRENT_TIMESTAMP
@@ -227,6 +246,7 @@ namespace QuanLyBar.Client.Services
                                 THU = thu,
                                 CHI = chi,
                                 LOAI = loai,
+                                LATAMUNG = laTamUng,
                                 TENDOITUONG = tenDoiTuong ?? "",
                                 DIACHI = diaChi ?? "",
                                 LOAIDOITUONG = loaiDoiTuong ?? "",
@@ -251,10 +271,10 @@ namespace QuanLyBar.Client.Services
                             {
                                 string fallbackSql = @"
                                     INSERT INTO TTHUCHI (
-                                        ID, NAME, NGAY, THU, CHI, LOAI, TENDOITUONG, NOTE, 
+                                        ID, NAME, NGAY, THU, CHI, LOAI, LATAMUNG, TENDOITUONG, NOTE, 
                                         STATUS, USERCREATEDID, TIMECREATED
                                     ) VALUES (
-                                        @ID, @NAME, @NGAY, @THU, @CHI, @LOAI, @TENDOITUONG, @NOTE,
+                                        @ID, @NAME, @NGAY, @THU, @CHI, @LOAI, @LATAMUNG, @TENDOITUONG, @NOTE,
                                         30, 1, CURRENT_TIMESTAMP
                                     )";
 
@@ -266,6 +286,7 @@ namespace QuanLyBar.Client.Services
                                     THU = thu,
                                     CHI = chi,
                                     LOAI = loai,
+                                    LATAMUNG = laTamUng,
                                     TENDOITUONG = tenDoiTuong ?? "",
                                     NOTE = ghiChu ?? ""
                                 });
@@ -290,6 +311,7 @@ namespace QuanLyBar.Client.Services
                                     THU = @THU,
                                     CHI = @CHI,
                                     LOAI = @LOAI,
+                                    LATAMUNG = @LATAMUNG,
                                     TENDOITUONG = @TENDOITUONG,
                                     DIACHI = @DIACHI,
                                     LOAIDOITUONG = @LOAIDOITUONG,
@@ -315,6 +337,7 @@ namespace QuanLyBar.Client.Services
                                 THU = thu,
                                 CHI = chi,
                                 LOAI = loai,
+                                LATAMUNG = laTamUng,
                                 TENDOITUONG = tenDoiTuong ?? "",
                                 DIACHI = diaChi ?? "",
                                 LOAIDOITUONG = loaiDoiTuong ?? "",
@@ -352,7 +375,7 @@ namespace QuanLyBar.Client.Services
                 using (var conn = GetConnection())
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
-                    var item = await conn.QueryFirstOrDefaultAsync<TTHUCHI>("SELECT * FROM TTHUCHI WHERE ID = @ID", new { ID = id });
+                    var item = await conn.QueryFirstOrDefaultAsync<TTHUCHI>("SELECT * FROM TTHUCHI WHERE ID = @ID OR NAME = @ID", new { ID = id?.Trim() });
                     return item;
                 }
             }
@@ -501,18 +524,6 @@ namespace QuanLyBar.Client.Services
                         p.Add("TaiKhoanId", taiKhoanNganHangId);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(searchText))
-                    {
-                        conditions.Add(@"(
-                            UPPER(NAME) LIKE @Search OR 
-                            UPPER(TENDOITUONG) LIKE @Search OR 
-                            UPPER(DIACHI) LIKE @Search OR 
-                            UPPER(NOTE) LIKE @Search OR 
-                            UPPER(CHUNGTUGOC) LIKE @Search
-                        )");
-                        p.Add("Search", $"%{searchText.Trim().ToUpper()}%");
-                    }
-
                     string whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
 
                     string sql = $@"
@@ -654,6 +665,28 @@ namespace QuanLyBar.Client.Services
             {
                 Console.WriteLine("Error GetDanhSachPhieuThuChiAsync: " + ex.Message);
             }
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                string kw = searchText.Trim().ToLower();
+                result = result.Where(x =>
+                    (!string.IsNullOrEmpty(x.SoPhieu) && x.SoPhieu.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.TenDoiTuong) && x.TenDoiTuong.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.DiaChi) && x.DiaChi.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.LyDoThuChi) && x.LyDoThuChi.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.DienGiai) && x.DienGiai.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.ChungTuGoc) && x.ChungTuGoc.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.GhiChu) && x.GhiChu.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.CuaHang) && x.CuaHang.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.ChuyenKhoan) && x.ChuyenKhoan.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.UserCreated) && x.UserCreated.ToLower().Contains(kw)) ||
+                    (!string.IsNullOrEmpty(x.UserModified) && x.UserModified.ToLower().Contains(kw)) ||
+                    (x.Ngay.HasValue && (x.Ngay.Value.ToString("dd/MM/yyyy").Contains(kw) || x.Ngay.Value.ToString("d/M/yyyy").Contains(kw) || x.Ngay.Value.ToString("yyyy-MM-dd").Contains(kw))) ||
+                    x.SoTien.ToString("N0").ToLower().Contains(kw) ||
+                    x.SoTien.ToString().Contains(kw)
+                ).ToList();
+            }
+
             return result;
         }
 

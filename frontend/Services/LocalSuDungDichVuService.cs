@@ -806,7 +806,7 @@ namespace QuanLyBar.Client.Services
                     }
 
                     var rootItems = new ObservableCollection<PosNhomMatHangViewModel>();
-                    var rootAll = new PosNhomMatHangViewModel { Id = string.Empty, Name = "Tất cả", ParentId = null };
+                    var rootAll = new PosNhomMatHangViewModel { Id = string.Empty, Name = "Tất cả", ParentId = null, Icon = "🌐", IsExpanded = true };
                     rootItems.Add(rootAll);
 
                     var lookup = flatList.ToDictionary(g => g.Id);

@@ -24,6 +24,9 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
         private bool _isLoaded = false;
 
         private List<PhieuThuChiGridItem> _allList = new List<PhieuThuChiGridItem>();
+        private DataGridCell _clickedCell;
+        private DataGridColumn _clickedColumn;
+        private string _clickedCellValue = "";
 
         public DanhMucPhieuChiControl()
         {
@@ -261,6 +264,14 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
             }
         }
 
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isLoaded)
+            {
+                _ = LoadDataGridAsync();
+            }
+        }
+
         private void TvFilter_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (TvFilter.SelectedItem is TreeViewItem tvi && tvi.Tag != null)
@@ -342,9 +353,224 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
             TxtChiTietThanhToan.Text = "Chưa có dữ liệu thanh toán chi tiết.";
         }
 
-        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        private static T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
         {
-            _ = LoadDataGridAsync();
+            if (obj == null) return null;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child is T t) return t;
+                T childItem = FindVisualChild<T>(child);
+                if (childItem != null) return childItem;
+            }
+            return null;
+        }
+
+        private void DataGridRow_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row)
+            {
+                if (!row.IsSelected)
+                {
+                    DgPhieuChi.SelectedItems.Clear();
+                    row.IsSelected = true;
+                }
+                row.Focus();
+
+                var hit = VisualTreeHelper.HitTest(row, e.GetPosition(row));
+                if (hit != null)
+                {
+                    DependencyObject dep = hit.VisualHit;
+                    while (dep != null && !(dep is DataGridCell))
+                    {
+                        dep = VisualTreeHelper.GetParent(dep);
+                    }
+                    if (dep is DataGridCell cell)
+                    {
+                        _clickedCell = cell;
+                        _clickedColumn = cell.Column;
+                        if (cell.Content is TextBlock tb)
+                        {
+                            _clickedCellValue = tb.Text?.Trim() ?? "";
+                        }
+                        else if (cell.Content is FrameworkElement fe)
+                        {
+                            var innerTb = FindVisualChild<TextBlock>(fe);
+                            _clickedCellValue = innerTb?.Text?.Trim() ?? "";
+                        }
+                        else
+                        {
+                            _clickedCellValue = "";
+                        }
+                    }
+                }
+            }
+        }
+
+        private void GridContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            string colHeader = _clickedColumn?.Header?.ToString() ?? "Số phiếu";
+            if (MenuLocCot != null)
+            {
+                MenuLocCot.Header = $"Lọc {colHeader}";
+            }
+        }
+
+        private void MenuLocCot_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_clickedCellValue))
+            {
+                TxtSearch.Text = _clickedCellValue;
+                TxtSearch.Focus();
+                TxtSearch.SelectAll();
+            }
+        }
+
+        private void MenuItem_SortAsc_Click(object sender, RoutedEventArgs e)
+        {
+            if (_allList != null && _allList.Count > 0)
+            {
+                string colHeader = _clickedColumn?.Header?.ToString() ?? "";
+                if (colHeader == "Ngày")
+                    _allList = _allList.OrderBy(x => x.Ngay).ToList();
+                else if (colHeader == "Tên đối tượng")
+                    _allList = _allList.OrderBy(x => x.TenDoiTuong).ToList();
+                else if (colHeader == "Lý do thu chi")
+                    _allList = _allList.OrderBy(x => x.LyDoThuChi).ToList();
+                else if (colHeader == "Số tiền")
+                    _allList = _allList.OrderBy(x => x.SoTien).ToList();
+                else
+                    _allList = _allList.OrderBy(x => x.SoPhieu).ToList();
+
+                DgPhieuChi.ItemsSource = null;
+                DgPhieuChi.ItemsSource = _allList;
+            }
+        }
+
+        private void MenuItem_SortDesc_Click(object sender, RoutedEventArgs e)
+        {
+            if (_allList != null && _allList.Count > 0)
+            {
+                string colHeader = _clickedColumn?.Header?.ToString() ?? "";
+                if (colHeader == "Ngày")
+                    _allList = _allList.OrderByDescending(x => x.Ngay).ToList();
+                else if (colHeader == "Tên đối tượng")
+                    _allList = _allList.OrderByDescending(x => x.TenDoiTuong).ToList();
+                else if (colHeader == "Lý do thu chi")
+                    _allList = _allList.OrderByDescending(x => x.LyDoThuChi).ToList();
+                else if (colHeader == "Số tiền")
+                    _allList = _allList.OrderByDescending(x => x.SoTien).ToList();
+                else
+                    _allList = _allList.OrderByDescending(x => x.SoPhieu).ToList();
+
+                DgPhieuChi.ItemsSource = null;
+                DgPhieuChi.ItemsSource = _allList;
+            }
+        }
+
+        private void MenuItem_SortBySoPhieu_Click(object sender, RoutedEventArgs e)
+        {
+            if (_allList != null)
+            {
+                _allList = _allList.OrderBy(x => x.SoPhieu).ToList();
+                DgPhieuChi.ItemsSource = null;
+                DgPhieuChi.ItemsSource = _allList;
+            }
+        }
+
+        private void MenuItem_SortByNgay_Click(object sender, RoutedEventArgs e)
+        {
+            if (_allList != null)
+            {
+                _allList = _allList.OrderBy(x => x.Ngay).ToList();
+                DgPhieuChi.ItemsSource = null;
+                DgPhieuChi.ItemsSource = _allList;
+            }
+        }
+
+        private void MenuItem_SortByDoiTuong_Click(object sender, RoutedEventArgs e)
+        {
+            if (_allList != null)
+            {
+                _allList = _allList.OrderBy(x => x.TenDoiTuong).ToList();
+                DgPhieuChi.ItemsSource = null;
+                DgPhieuChi.ItemsSource = _allList;
+            }
+        }
+
+        private void MenuItem_SortByLyDo_Click(object sender, RoutedEventArgs e)
+        {
+            if (_allList != null)
+            {
+                _allList = _allList.OrderBy(x => x.LyDoThuChi).ToList();
+                DgPhieuChi.ItemsSource = null;
+                DgPhieuChi.ItemsSource = _allList;
+            }
+        }
+
+        private void MenuItem_SortBySoTien_Click(object sender, RoutedEventArgs e)
+        {
+            if (_allList != null)
+            {
+                _allList = _allList.OrderBy(x => x.SoTien).ToList();
+                DgPhieuChi.ItemsSource = null;
+                DgPhieuChi.ItemsSource = _allList;
+            }
+        }
+
+        private void MenuItem_SaoChepO_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_clickedCellValue))
+            {
+                Clipboard.SetText(_clickedCellValue);
+            }
+        }
+
+        private void MenuItem_SaoChepVungChon_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgPhieuChi.SelectedItem is PhieuThuChiGridItem item)
+            {
+                string text = $"{item.SoPhieu}\t{item.Ngay:dd/MM/yyyy}\t{item.TenDoiTuong}\t{item.DiaChi}\t{item.LyDoThuChi}\t{item.DienGiai}\t{item.ChungTuGoc}\t{item.SoTien:N0}\t{item.GhiChu}\t{item.ChuyenKhoan}\t{item.DatHang}\t{item.CuaHang}\t{item.LaPhieuThuCongNo}";
+                Clipboard.SetText(text);
+            }
+        }
+
+        private void MenuItem_TuDongGianCot_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var col in DgPhieuChi.Columns)
+            {
+                col.Width = DataGridLength.SizeToCells;
+                col.Width = DataGridLength.Auto;
+            }
+        }
+
+        private void MenuCotHienThi_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ChonCotHienThiWindow(DgPhieuChi);
+            var parent = Window.GetWindow(this);
+            if (parent != null) win.Owner = parent;
+            win.ShowDialog();
+        }
+
+        private void MenuItem_ThuocTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (DgPhieuChi.SelectedItem is PhieuThuChiGridItem item)
+            {
+                string info = $"Mã phiếu: {item.Id}\n" +
+                              $"Số phiếu: {item.SoPhieu}\n" +
+                              $"Ngày: {item.Ngay:dd/MM/yyyy}\n" +
+                              $"Đối tượng: {item.TenDoiTuong}\n" +
+                              $"Lý do: {item.LyDoThuChi}\n" +
+                              $"Số tiền: {item.SoTien:N0} VNĐ\n" +
+                              $"Cửa hàng: {item.CuaHang}\n" +
+                              $"Người tạo: {item.UserCreated}\n" +
+                              $"Thời gian tạo: {item.TimeCreated:dd/MM/yyyy HH:mm}";
+                MessageBox.Show(info, $"Thuộc tính: {item.SoPhieu}", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một phiếu để xem thuộc tính!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private async void BtnThemMoi_Click(object sender, RoutedEventArgs e)
@@ -413,7 +639,7 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
 
         private void BtnThemExcel_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Tính năng nhập từ Excel đang được chuẩn bị.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Không thể thực hiện import/cập nhật dữ liệu từ excel với dữ liệu này", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
@@ -453,14 +679,9 @@ namespace QuanLyBar.Client.Views.PhieuThuChi
 
         private void BtnIn_Click(object sender, RoutedEventArgs e)
         {
-            if (DgPhieuChi.SelectedItem is PhieuThuChiGridItem item)
-            {
-                MessageBox.Show($"Đang gửi lệnh in phiếu chi '{item.SoPhieu}'...", "In phiếu chi", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                MessageBox.Show($"Đang gửi lệnh in danh sách gồm {_allList.Count} phiếu chi...", "In danh sách phiếu chi", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            var win = new InLuoiWindow(DgPhieuChi, "Phiếu chi");
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
         }
 
         private void BtnTong_Click(object sender, RoutedEventArgs e)

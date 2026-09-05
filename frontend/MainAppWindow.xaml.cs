@@ -50,6 +50,8 @@ namespace QuanLyBar.Client
                 AddTab("Quản lý xuất kho", new QuanLyBar.Client.Views.QuanLyXuatKho.QuanLyXuatKhoControl());
                 AddTab("Quản lý chuyển kho", new QuanLyBar.Client.Views.QuanLyChuyenKho.QuanLyChuyenKhoControl());
                 AddTab("Quản lý kiểm kê", new QuanLyBar.Client.Views.QuanLyKiemKe.QuanLyKiemKeControl());
+                AddTab("Thưởng phạt", new QuanLyBar.Client.Views.NhanSu.ThuongPhatControl());
+                AddTab("Chấm công", new QuanLyBar.Client.Views.NhanSu.ChamCongControl());
                 MainTabControl.SelectedIndex = MainTabControl.Items.Count - 1;
             }
         }
@@ -269,6 +271,20 @@ namespace QuanLyBar.Client
                         win.ShowDialog();
                         return;
                     }
+                    else if (tabName == "Danh mục nhân viên" || tabName == "Nhân viên")
+                    {
+                        var win = new QuanLyBar.Client.Views.DanhMucNhanVien.DanhMucNhanVienWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Danh mục ca làm việc" || tabName == "Ca làm việc")
+                    {
+                        var win = new QuanLyBar.Client.Views.DanhMucCaLamViec.DanhMucCaLamViecWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
                     else if (tabName == "Danh mục tài khoản ngân hàng" || tabName == "Tài khoản ngân hàng")
                     {
                         var win = new QuanLyBar.Client.Views.DanhMucTaiKhoanNganHang.DanhMucTaiKhoanNganHangWindow();
@@ -304,6 +320,31 @@ namespace QuanLyBar.Client
                     {
                         tabName = "Công nợ nhà cung cấp";
                         content = new QuanLyBar.Client.Views.CongNo.CongNoNhaCungCapControl();
+                    }
+                    else if (tabName == "Tồn quỹ" || tabName == "Báo cáo tồn quỹ" || tabName == "BÁO CÁO TỒN QUỸ")
+                    {
+                        tabName = "Tồn quỹ";
+                        content = new QuanLyBar.Client.Views.TonQuy.TonQuyControl();
+                    }
+                    else if (tabName == "Tạm ứng lương" || tabName == "Tạm ứng")
+                    {
+                        tabName = "Tạm ứng lương";
+                        content = new QuanLyBar.Client.Views.NhanSu.TamUngLuongControl();
+                    }
+                    else if (tabName == "Thưởng phạt" || tabName == "Quản lý thưởng phạt")
+                    {
+                        tabName = "Thưởng phạt";
+                        content = new QuanLyBar.Client.Views.NhanSu.ThuongPhatControl();
+                    }
+                    else if (tabName == "Chấm công" || tabName == "Quản lý chấm công")
+                    {
+                        tabName = "Chấm công";
+                        content = new QuanLyBar.Client.Views.NhanSu.ChamCongControl();
+                    }
+                    else if (tabName == "Tính lương" || tabName == "Bảng tính lương" || tabName == "Bảng lương")
+                    {
+                        tabName = "Tính lương";
+                        content = new QuanLyBar.Client.Views.NhanSu.TinhLuongControl();
                     }
                     else
                     {
@@ -669,14 +710,39 @@ namespace QuanLyBar.Client
         {
             if (e.ChangedButton != MouseButton.Left) return;
 
-            // Không kích hoạt kéo nếu bấm vào nút đóng tab ✕
-            if (e.OriginalSource is DependencyObject dep && FindVisualParent<System.Windows.Controls.Button>(dep) != null)
+            if (sender is TabItem tabItem && e.OriginalSource is DependencyObject dep)
             {
-                return;
-            }
+                // 1. Không kích hoạt kéo nếu bấm vào nút đóng tab ✕
+                if (FindVisualParent<System.Windows.Controls.Button>(dep) != null)
+                {
+                    return;
+                }
 
-            if (sender is TabItem tabItem)
-            {
+                // 2. Không kích hoạt nếu bấm vào nội dung bên trong Tab (Content / DataGrid / ScrollBar)
+                if (tabItem.Content is DependencyObject contentDep && (dep == contentDep || IsDescendantOf(dep, contentDep)))
+                {
+                    return;
+                }
+
+                // 3. Chỉ kích hoạt khi click vào phần Header của TabItem
+                var headerBorder = tabItem.Template?.FindName("Border", tabItem) as FrameworkElement;
+                if (headerBorder != null)
+                {
+                    if (dep != headerBorder && !IsDescendantOf(dep, headerBorder))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    // Fallback: nếu click không nằm trong TabItem Header
+                    var parentTab = FindVisualParent<TabItem>(dep);
+                    if (parentTab == null || parentTab != tabItem)
+                    {
+                        return;
+                    }
+                }
+
                 _draggedTab = tabItem;
                 _dragStartScreenPos = e.GetPosition(this);
                 _startMouseTabControlX = e.GetPosition(MainTabControl).X;
@@ -894,6 +960,18 @@ namespace QuanLyBar.Client
                 parent = VisualTreeHelper.GetParent(parent);
             }
             return null;
+        }
+
+        private static bool IsDescendantOf(DependencyObject child, DependencyObject ancestor)
+        {
+            if (child == null || ancestor == null) return false;
+            DependencyObject current = child;
+            while (current != null)
+            {
+                if (current == ancestor) return true;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return false;
         }
         #endregion
     }

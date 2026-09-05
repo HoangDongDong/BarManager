@@ -71,11 +71,13 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
 
                 if (!string.IsNullOrEmpty(_phieuNhapId))
                 {
-                    _currentIndex = _allPhieuNhap.FindIndex(x => x.Id == _phieuNhapId);
+                    Title = "PHIẾU NHẬP KHO - SỬA";
+                    _currentIndex = _allPhieuNhap.FindIndex(x => x.Id == _phieuNhapId || x.SoPhieu == _phieuNhapId);
                     await LoadPhieuNhapDetailAsync(_phieuNhapId);
                 }
                 else
                 {
+                    Title = "PHIẾU NHẬP KHO - THÊM MỚI";
                     await CreateNewPhieuNhapAsync();
                 }
 
@@ -112,9 +114,16 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         private void SetSelectedKho(string khoId)
         {
             _selectedKhoNhapId = khoId ?? "";
-            var item = _allKhoLookup.FirstOrDefault(x => x.Id == _selectedKhoNhapId);
-            TxtSelectedKho.Text = item?.Name ?? "";
-            LstKho.SelectedItem = item;
+            var item = _allKhoLookup.FirstOrDefault(x => x.Id == _selectedKhoNhapId || x.Name == _selectedKhoNhapId);
+            if (item != null)
+            {
+                TxtSelectedKho.Text = item.Name ?? "";
+                LstKho.SelectedItem = item;
+            }
+            else
+            {
+                TxtSelectedKho.Text = _selectedKhoNhapId;
+            }
         }
 
         private async Task LoadNvListAsync(string selectId = null)
@@ -134,9 +143,16 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         private void SetSelectedNhanVien(string nvId)
         {
             _selectedNhanVienNhapId = nvId ?? "";
-            var item = _allNvLookup.FirstOrDefault(x => x.Id == _selectedNhanVienNhapId);
-            TxtSelectedNhanVien.Text = item?.Name ?? "";
-            LstNhanVien.SelectedItem = item;
+            var item = _allNvLookup.FirstOrDefault(x => x.Id == _selectedNhanVienNhapId || x.Name == _selectedNhanVienNhapId);
+            if (item != null)
+            {
+                TxtSelectedNhanVien.Text = item.Name ?? "";
+                LstNhanVien.SelectedItem = item;
+            }
+            else
+            {
+                TxtSelectedNhanVien.Text = _selectedNhanVienNhapId;
+            }
         }
 
         private void ApplyNvFilter()
@@ -169,9 +185,16 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         private void SetSelectedNhaCungCap(string nccId)
         {
             _selectedNhaCungCapId = nccId ?? "";
-            var item = _allNccLookup.FirstOrDefault(x => x.Id == _selectedNhaCungCapId);
-            TxtSelectedNhaCungCap.Text = item?.Name ?? "";
-            DgNccPopup.SelectedItem = item;
+            var item = _allNccLookup.FirstOrDefault(x => x.Id == _selectedNhaCungCapId || x.Name == _selectedNhaCungCapId);
+            if (item != null)
+            {
+                TxtSelectedNhaCungCap.Text = item.Name ?? "";
+                DgNccPopup.SelectedItem = item;
+            }
+            else
+            {
+                TxtSelectedNhaCungCap.Text = _selectedNhaCungCapId;
+            }
         }
 
         private void ApplyNccFilter()
@@ -356,26 +379,46 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
 
         private async Task LoadPhieuNhapDetailAsync(string id)
         {
-            var item = _allPhieuNhap.FirstOrDefault(x => x.Id == id);
+            var item = _allPhieuNhap.FirstOrDefault(x => x.Id == id || x.SoPhieu == id);
+            if (item == null)
+            {
+                item = await LocalNhapKhoService.GetPhieuNhapByIdAsync(id);
+                if (item != null && !_allPhieuNhap.Any(x => x.Id == item.Id))
+                {
+                    _allPhieuNhap.Add(item);
+                    _currentIndex = _allPhieuNhap.Count - 1;
+                }
+            }
             if (item == null) return;
 
             _phieuNhapId = item.Id;
+            Title = "PHIẾU NHẬP KHO - SỬA";
             DpNgay.SelectedDate = item.Ngay ?? DateTime.Now;
             TxtSoPhieu.Text = item.SoPhieu;
             SetSelectedNhaCungCap(item.DnhacungcapId);
             SetSelectedKho(item.DkhoNhapId);
             SetSelectedNhanVien(item.DnhanVienNhapId);
-            TxtDienGiai.Text = "Nhập mua hàng";
+            TxtDienGiai.Text = !string.IsNullOrEmpty(item.DienGiai) ? item.DienGiai : "Nhập mua hàng";
             TxtGhiChu.Text = item.Note;
 
             _isUpdatingTotals = true;
             TxtTiLeGiamGia.Text = item.TiLeGiamGia.ToString("N1");
             TxtTienGiamGia.Text = item.TienGiamGia.ToString("N0");
+            TxtTiLeThue.Text = item.TiLeThue.ToString("N1");
+            TxtTienThue.Text = item.TienThue.ToString("N0");
             _isUpdatingTotals = false;
 
-            var details = await LocalNhapKhoService.GetPhieuNhapChiTietAsync(id);
+            var details = await LocalNhapKhoService.GetPhieuNhapChiTietAsync(_phieuNhapId, item.SoPhieu);
             _details.Clear();
-            foreach (var d in details) _details.Add(d);
+            foreach (var d in details)
+            {
+                d.PropertyChanged -= DetailItem_PropertyChanged;
+                d.PropertyChanged += DetailItem_PropertyChanged;
+                _details.Add(d);
+            }
+
+            DgChiTiet.ItemsSource = null;
+            DgChiTiet.ItemsSource = _details;
 
             _isUserEditedThanhToan = true;
             CalculateTotals();
@@ -1203,6 +1246,10 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
 
         private async void BtnDanhMucNv_Click(object sender, RoutedEventArgs e)
         {
+            if (PopupNhanVien != null) PopupNhanVien.IsOpen = false;
+            var win = new QuanLyBar.Client.Views.DanhMucNhanVien.DanhMucNhanVienWindow();
+            win.Owner = this;
+            win.ShowDialog();
             await LoadNvListAsync(_selectedNhanVienNhapId);
         }
         #endregion

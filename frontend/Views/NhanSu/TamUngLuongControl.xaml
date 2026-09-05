@@ -1,0 +1,281 @@
+<UserControl x:Class="QuanLyBar.Client.Views.NhanSu.TamUngLuongControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#f0f4fa" FontFamily="Segoe UI" FontSize="12">
+
+    <UserControl.Resources>
+        <!-- Style Toolbar Action Button -->
+        <Style x:Key="ToolbarActionBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#fff0b3"/>
+                    <Setter Property="BorderBrush" Value="#f5a623"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style DataGrid -->
+        <Style x:Key="DataGridRowStyle" TargetType="DataGridRow">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e0f2fe"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#0078d7"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#f0f4fa">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 0. Filter Bar -->
+            <RowDefinition Height="Auto"/> <!-- 1. Toolbar -->
+            <RowDefinition Height="*"/>    <!-- 2. DataGrid -->
+            <RowDefinition Height="Auto"/> <!-- 3. Status/Summary Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- 0. FILTER BAR -->
+        <Border Grid.Row="0" Background="#eaf1fa" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="8,4">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Từ ngày -->
+                    <TextBlock Text="Từ:" VerticalAlignment="Center" Margin="4,0,4,0" Foreground="#1e3f66" FontSize="11.5"/>
+                    <DatePicker x:Name="DpTuNgay" Width="105" Height="22" Background="White" BorderBrush="#a4bce3"
+                                VerticalContentAlignment="Center" FontSize="11" SelectedDateChanged="Filter_Changed"/>
+
+                    <!-- Đến ngày -->
+                    <TextBlock Text="Đến" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="#1e3f66" FontSize="11.5"/>
+                    <DatePicker x:Name="DpDenNgay" Width="105" Height="22" Background="White" BorderBrush="#a4bce3"
+                                VerticalContentAlignment="Center" FontSize="11" SelectedDateChanged="Filter_Changed"/>
+
+                    <!-- Nút dropdown bộ lọc kỳ ngày tháng -->
+                    <Button x:Name="BtnDateFilter" Width="24" Height="22" Margin="3,0,0,0" Background="#fff2a8" BorderBrush="#e0a800" BorderThickness="1"
+                            Cursor="Hand" ToolTip="Chọn khoảng thời gian" Click="BtnDateFilter_Click">
+                        <Polygon Points="0,0 8,0 4,5" Fill="#0055aa" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Ô tìm kiếm -->
+                    <TextBlock Text="Tìm:" VerticalAlignment="Center" Margin="12,0,4,0" Foreground="#1e3f66" FontSize="11.5"/>
+                    <TextBox x:Name="TxtSearch" Width="150" Height="22" Background="White" BorderBrush="#a4bce3"
+                             VerticalContentAlignment="Center" Padding="4,0" FontSize="11" TextChanged="TxtSearch_TextChanged"/>
+
+                    <!-- Nút Tải lại -->
+                    <Button x:Name="BtnReload" ToolTip="Tải lại dữ liệu (F5)" Margin="6,0,0,0" Padding="6,2" Background="#f4f7fb" BorderBrush="#c2d5ea" Cursor="Hand" Click="BtnReload_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔄" FontSize="11" Margin="0,0,3,0"/>
+                            <TextBlock Text="Tải lại" FontSize="11"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 1. TOOLBAR -->
+        <Border Grid.Row="1" Background="#dfe9f5" BorderBrush="#b6cadf" BorderThickness="0,0,0,1" Padding="6,3">
+            <StackPanel Orientation="Horizontal">
+                <!-- Tạo mới -->
+                <Button x:Name="BtnTaoMoi" Style="{StaticResource ToolbarActionBtnStyle}" Click="BtnTaoMoi_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="➕" FontSize="12" Foreground="#27ae60" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Tạo mới" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Chỉnh sửa -->
+                <Button x:Name="BtnChinhSua" Style="{StaticResource ToolbarActionBtnStyle}" Click="BtnChinhSua_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="✏️" FontSize="11" Foreground="#f39c12" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Chỉnh sửa" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Xóa -->
+                <Button x:Name="BtnXoa" Style="{StaticResource ToolbarActionBtnStyle}" Click="BtnXoa_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❌" FontSize="11" Foreground="#e74c3c" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xóa" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. DATAGRID DANH SÁCH TẠM ỨNG -->
+        <DataGrid x:Name="DgTamUngLuong" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
+                  IsReadOnly="True" SelectionMode="Single" GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="#e2e8f0" HeadersVisibility="Column"
+                  Background="White" BorderThickness="0"
+                  MouseDoubleClick="DgTamUngLuong_MouseDoubleClick">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <EventSetter Event="PreviewMouseRightButtonDown" Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#e0f2fe"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#0078d7"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.ContextMenu>
+                <ContextMenu Opened="GridContextMenu_Opened">
+                    <MenuItem x:Name="MenuThemPhieu" Header="Thêm Thu chi" Click="BtnTaoMoi_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="➕" Foreground="Green" FontSize="11" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuThemNhanhExcel" Header="Thêm nhanh (excel)" Click="BtnThemExcel_Click"/>
+                    <MenuItem x:Name="MenuCapNhatNhanhExcel" Header="Cập nhật nhanh (excel)" Click="BtnThemExcel_Click"/>
+                    <MenuItem x:Name="MenuChinhSua" Header="Chỉnh sửa" Click="BtnChinhSua_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="✏️" Foreground="#f39c12" FontSize="11" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuDatCot" Header="Đặt Số phiếu" Click="MenuDatCot_Click"/>
+                    <MenuItem x:Name="MenuSapXep" Header="Sắp xếp theo">
+                        <MenuItem Header="Sắp xếp tăng dần" Click="MenuItem_SortAsc_Click"/>
+                        <MenuItem Header="Sắp xếp giảm dần" Click="MenuItem_SortDesc_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Số phiếu" Click="MenuItem_SortBySoPhieu_Click"/>
+                        <MenuItem Header="Ngày" Click="MenuItem_SortByNgay_Click"/>
+                        <MenuItem Header="Người nhận" Click="MenuItem_SortByNguoiNhan_Click"/>
+                        <MenuItem Header="Số tiền" Click="MenuItem_SortBySoTien_Click"/>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuRefresh" Header="Refresh" Click="BtnReload_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="🔄" Foreground="#27ae60" FontSize="11" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuInDanhSach" Header="In danh sách" Click="BtnIn_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="MenuSaoChepO" Header="Sao chép ô" Click="MenuItem_SaoChepO_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📄" Foreground="Navy" FontSize="11" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuSaoChepVungChon" Header="Sao chép vùng chọn" Click="MenuItem_SaoChepVungChon_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📑" Foreground="Navy" FontSize="11" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuXoa" Header="Xóa" Click="BtnXoa_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="❌" Foreground="#e74c3c" FontSize="11" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem x:Name="MenuTuDongGianCot" Header="Tự động giãn cột" Click="MenuItem_TuDongGianCot_Click"/>
+                    <MenuItem x:Name="MenuCotHienThi" Header="Cột hiển thị" Click="MenuCotHienThi_Click"/>
+                    <MenuItem x:Name="MenuThuocTinh" Header="Thuộc tính" Click="MenuItem_ThuocTinh_Click"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#eaf1fa"/>
+                    <Setter Property="Foreground" Value="#1e3f66"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="BorderBrush" Value="#cbd5e1"/>
+                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                    <Setter Property="Padding" Value="8,5"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <DataGrid.Columns>
+                <!-- Số phiếu -->
+                <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="8,2"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Foreground" Value="#0284c7"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <!-- Ngày -->
+                <DataGridTextColumn Header="Ngày" Binding="{Binding NgayStr}" Width="110">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="6,2"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <!-- Người nhận -->
+                <DataGridTextColumn Header="Người nhận" Binding="{Binding NguoiNhan}" Width="200">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="8,2"/>
+                            <Setter Property="FontWeight" Value="Medium"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <!-- Số tiền -->
+                <DataGridTextColumn Header="Số tiền" Binding="{Binding SoTienStr}" Width="140">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="Padding" Value="8,2"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Foreground" Value="#b91c1c"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <!-- Diễn giải -->
+                <DataGridTextColumn Header="Diễn giải" Binding="{Binding DienGiai}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="8,2"/>
+                            <Setter Property="Foreground" Value="#334155"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 3. FOOTER STATUS / SUMMARY -->
+        <Border Grid.Row="3" Background="#dfe9f5" BorderBrush="#cbd5e1" BorderThickness="0,1,0,0" Padding="12,5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <!-- Tổng số phiếu -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Tổng số phiếu: " Foreground="#475569" FontSize="11.5"/>
+                    <TextBlock x:Name="TxtTotalCount" Text="0" FontWeight="Bold" Foreground="#0f172a" FontSize="11.5"/>
+                </StackPanel>
+
+                <!-- Tổng tiền tạm ứng -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Tổng tiền tạm ứng: " Foreground="#475569" FontSize="11.5"/>
+                    <TextBlock x:Name="TxtTotalAmount" Text="0 VNĐ" FontWeight="Bold" Foreground="#b91c1c" FontSize="12.5"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

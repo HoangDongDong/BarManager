@@ -509,9 +509,13 @@ namespace QuanLyBar.Client.Views.QuanLyXuatKho
             await LoadLookupsAsync();
         }
 
-        private void BtnDanhMucNv_Click(object sender, RoutedEventArgs e)
+        private async void BtnDanhMucNv_Click(object sender, RoutedEventArgs e)
         {
             if (PopupNhanVien != null) PopupNhanVien.IsOpen = false;
+            var win = new QuanLyBar.Client.Views.DanhMucNhanVien.DanhMucNhanVienWindow();
+            win.Owner = this;
+            win.ShowDialog();
+            await LoadLookupsAsync();
         }
 
         private void SelectNcc(NhapKhoLookupItem item)
