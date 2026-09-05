@@ -15,3 +15,6 @@ dist/
 # Temp & Scratch
 scratch/
 *_wpftmp.csproj
+~$*
+MauTonKho_*_*.xlsx
+MauCongNo_*_*.xlsx

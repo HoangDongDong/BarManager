@@ -238,7 +238,7 @@ namespace QuanLyBar.Client.Services
                         FROM TTHUCHI
                         WHERE (STATUS IS NULL OR STATUS > 0)
                           AND DKHACHHANGID IS NOT NULL
-                          AND (LAPHIEUTHUCONGNO > 0 OR LOAI = '1' OR LOAI = 'thu' OR LOAI = 'Thu')";
+                          AND (COALESCE(LAPHIEUTHUCONGNO, 0) > 0 OR LOAI = 1 OR CAST(LOAI AS VARCHAR(20)) = '1' OR COALESCE(THU, 0) > 0)";
 
                     if (tuNgay.HasValue)
                     {
@@ -361,8 +361,8 @@ namespace QuanLyBar.Client.Services
                             ID, NAME AS SOPHIEU, NGAY, THU AS SOTIEN, DIENGIAI, LAPHIEUTHUCONGNO
                         FROM TTHUCHI
                         WHERE (STATUS IS NULL OR STATUS > 0)
-                          AND CAST(DKHACHHANGID AS VARCHAR(50)) = @KhachId
-                          AND (LAPHIEUTHUCONGNO > 0 OR LOAI = '1' OR LOAI = 'thu' OR LOAI = 'Thu')";
+                          AND (TRIM(CAST(DKHACHHANGID AS VARCHAR(50))) = @KhachId OR UPPER(TRIM(CAST(DKHACHHANGID AS VARCHAR(50)))) = UPPER(@KhachId))
+                          AND (COALESCE(LAPHIEUTHUCONGNO, 0) > 0 OR LOAI = 1 OR CAST(LOAI AS VARCHAR(20)) = '1' OR COALESCE(THU, 0) > 0)";
 
                     if (tuNgay.HasValue) sqlThuChi += " AND NGAY >= @TuNgay";
                     if (denNgay.HasValue) sqlThuChi += " AND NGAY <= @DenNgay";

@@ -98,25 +98,21 @@ namespace QuanLyBar.Client.Views.CongNo
                 TxtTongNo.Text = tongNo.ToString("N0");
 
                 // Chọn lại khách hàng nếu trước đó đã chọn
+                CongNoKhachHangViewModel toSelect = null;
                 if (_selectedCustomer != null)
                 {
-                    var found = _customerList.FirstOrDefault(x => x.Id == _selectedCustomer.Id);
-                    if (found != null)
-                    {
-                        DgCongNoKhachHang.SelectedItem = found;
-                    }
-                    else if (_customerList.Count > 0)
-                    {
-                        DgCongNoKhachHang.SelectedIndex = 0;
-                    }
-                    else
-                    {
-                        ClearDetails();
-                    }
+                    toSelect = _customerList.FirstOrDefault(x => x.Id == _selectedCustomer.Id);
                 }
-                else if (_customerList.Count > 0)
+                if (toSelect == null && _customerList.Count > 0)
                 {
-                    DgCongNoKhachHang.SelectedIndex = 0;
+                    toSelect = _customerList[0];
+                }
+
+                if (toSelect != null)
+                {
+                    _selectedCustomer = toSelect;
+                    DgCongNoKhachHang.SelectedItem = toSelect;
+                    await LoadChiTietForKhachHangAsync(toSelect);
                 }
                 else
                 {
@@ -136,24 +132,32 @@ namespace QuanLyBar.Client.Views.CongNo
             DgChiTietCongNo.ItemsSource = null;
         }
 
+        private async Task LoadChiTietForKhachHangAsync(CongNoKhachHangViewModel item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.Id))
+            {
+                ClearDetails();
+                return;
+            }
+
+            try
+            {
+                _currentDetails = await LocalCongNoKhachHangService.GetChiTietCongNoKhachHangAsync(item.Id, _tuNgay, _denNgay);
+                DgChiTietCongNo.ItemsSource = null;
+                DgChiTietCongNo.ItemsSource = _currentDetails;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error loading customer debt details: " + ex.Message);
+            }
+        }
+
         private async void DgCongNoKhachHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DgCongNoKhachHang.SelectedItem is CongNoKhachHangViewModel item)
             {
                 _selectedCustomer = item;
-                try
-                {
-                    _currentDetails = await LocalCongNoKhachHangService.GetChiTietCongNoKhachHangAsync(item.Id, _tuNgay, _denNgay);
-                    DgChiTietCongNo.ItemsSource = _currentDetails;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error loading customer debt details: " + ex.Message);
-                }
-            }
-            else
-            {
-                ClearDetails();
+                await LoadChiTietForKhachHangAsync(item);
             }
         }
 

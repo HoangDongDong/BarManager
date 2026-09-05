@@ -217,6 +217,7 @@
                               GridLinesVisibility="All" HorizontalGridLinesBrush="#e0e6ed" VerticalGridLinesBrush="#e0e6ed"
                               RowHeaderWidth="35" AlternatingRowBackground="#f9fbfe"
                               SelectionChanged="DgCongNoNhaCungCap_SelectionChanged"
+                              PreviewMouseLeftButtonUp="DgCongNoNhaCungCap_PreviewMouseLeftButtonUp"
                               MouseDoubleClick="DgCongNoNhaCungCap_MouseDoubleClick"
                               LoadingRow="DgCongNoNhaCungCap_LoadingRow">
                         <DataGrid.ContextMenu>

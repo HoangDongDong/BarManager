@@ -1,0 +1,178 @@
+<Window x:Class="QuanLyBar.Client.Views.DuLieuBanDau.CongNoKhachHangBanDauWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="CÔNG NỢ BAN ĐẦU" Height="520" Width="780"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI" FontSize="12"
+        Background="#dce8f5">
+
+    <Window.Resources>
+        <!-- Action Button Style -->
+        <Style x:Key="ToolBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="#f4f8fc"/>
+            <Setter Property="BorderBrush" Value="#a0b8d4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#112233"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e0edfc"/>
+                    <Setter Property="BorderBrush" Value="#0078d7"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#cfe2f8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="BottomBtnStyle" TargetType="Button" BasedOn="{StaticResource ToolBtnStyle}">
+            <Setter Property="Width" Value="85"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56"/> <!-- 1. Top Header Banner -->
+            <RowDefinition Height="38"/> <!-- 2. Toolbar (Date, Filter, Import, Export) -->
+            <RowDefinition Height="*"/>  <!-- 3. Main DataGrid -->
+            <RowDefinition Height="46"/> <!-- 4. Bottom Action Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- ==================== 1. TOP HEADER BANNER ==================== -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#b6cadf" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                <!-- Cash Icon Badge -->
+                <Border Width="42" Height="36" Background="#fffdf7" BorderBrush="#d4af37" BorderThickness="1" CornerRadius="3" Margin="0,0,12,0" Padding="2">
+                    <Grid>
+                        <Border CornerRadius="2">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#ffe082" Offset="0.0"/>
+                                    <GradientStop Color="#ffb300" Offset="0.5"/>
+                                    <GradientStop Color="#e65100" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Text="💵" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Header Title -->
+                <TextBlock Text="Cập nhật thông tin công nợ ban đầu khi sử dụng phần mềm" FontSize="13.5" FontWeight="Bold" Foreground="#112233" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== 2. TOOLBAR ==================== -->
+        <Grid Grid.Row="1" Background="#dce8f5" Margin="10,0,10,0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Ngày chốt công nợ -->
+                <TextBlock Text="Ngày chốt công nợ:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#112233"/>
+                <DatePicker x:Name="DpNgayChot" Width="110" Height="24" SelectedDateFormat="Short" Margin="0,0,16,0" VerticalContentAlignment="Center"/>
+
+                <!-- Lọc (F3) -->
+                <TextBlock Text="Lọc (F3)" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#112233"/>
+                <TextBox x:Name="TxtTimKiem" Width="140" Height="24" VerticalContentAlignment="Center" Padding="4,0" Margin="0,0,12,0" TextChanged="TxtTimKiem_TextChanged"/>
+
+                <!-- Import từ excel -->
+                <Button x:Name="BtnImportExcel" Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0" Click="BtnImportExcel_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📊" Margin="0,0,5,0" FontSize="12"/>
+                        <TextBlock Text="Import từ excel"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Export file mẫu -->
+                <Button x:Name="BtnExportMau" Style="{StaticResource ToolBtnStyle}" Click="BtnExportMau_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📑" Margin="0,0,5,0" FontSize="12"/>
+                        <TextBlock Text="Export file mẫu"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ==================== 3. MAIN DATAGRID ==================== -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#a4bce3" BorderThickness="1" Margin="10,0,10,6">
+            <DataGrid x:Name="DgCongNo"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      GridLinesVisibility="All"
+                      HorizontalGridLinesBrush="#c8d8ea"
+                      VerticalGridLinesBrush="#c8d8ea"
+                      HeadersVisibility="All"
+                      RowHeaderWidth="30"
+                      FontSize="12"
+                      RowHeight="24"
+                      Background="White"
+                      SelectionUnit="FullRow"
+                      SelectionMode="Single"
+                      LoadingRow="DgCongNo_LoadingRow"
+                      CellEditEnding="DgCongNo_CellEditEnding">
+
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#f2f6fb"/>
+                        <Setter Property="Foreground" Value="#15428b"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="BorderBrush" Value="#b6cadf"/>
+                        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        <Setter Property="Padding" Value="6,4"/>
+                        <Setter Property="Height" Value="26"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+
+                <DataGrid.Columns>
+                    <!-- Mã khách -->
+                    <DataGridTextColumn Header="Mã khách" Binding="{Binding MaKhach}" Width="100" IsReadOnly="True"/>
+
+                    <!-- Tên khách -->
+                    <DataGridTextColumn Header="Tên khách" Binding="{Binding TenKhach}" Width="160" IsReadOnly="True"/>
+
+                    <!-- Địa chỉ -->
+                    <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi}" Width="*" MinWidth="180" IsReadOnly="True"/>
+
+                    <!-- Điện thoại -->
+                    <DataGridTextColumn Header="Điện thoại" Binding="{Binding DienThoai}" Width="120" IsReadOnly="True"/>
+
+                    <!-- Số tiền -->
+                    <DataGridTextColumn Header="Số tiền"
+                                        Binding="{Binding SoTien, StringFormat='{}{0:N0}', UpdateSourceTrigger=PropertyChanged}"
+                                        Width="110"
+                                        IsReadOnly="False">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="Padding" Value="0,0,6,0"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                        <DataGridTextColumn.EditingElementStyle>
+                            <Style TargetType="TextBox">
+                                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="0,0,4,0"/>
+                            </Style>
+                        </DataGridTextColumn.EditingElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- ==================== 4. BOTTOM ACTION BAR ==================== -->
+        <Border Grid.Row="3" Background="#dfe9f5" BorderBrush="#b6cadf" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0">
+                <Button x:Name="BtnGhiDuLieu" Content="Ghi dữ liệu" Style="{StaticResource BottomBtnStyle}" Margin="0,0,8,0" IsDefault="True" Click="BtnGhiDuLieu_Click"/>
+                <Button x:Name="BtnThoat" Content="Thoát" Style="{StaticResource BottomBtnStyle}" IsCancel="True" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

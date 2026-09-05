@@ -346,6 +346,39 @@ namespace QuanLyBar.Client
                         tabName = "Tính lương";
                         content = new QuanLyBar.Client.Views.NhanSu.TinhLuongControl();
                     }
+                    else if (tabName == "Thư viện ảnh..." || tabName == "Thư viện ảnh" || tabName == "Quản lý thư viện ảnh")
+                    {
+                        var win = new QuanLyBar.Client.Views.ThuVienAnh.ThuVienAnhWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Công nợ khách hàng ban đầu" || tabName == "CÔNG NỢ BAN ĐẦU" || tabName == "Công nợ ban đầu")
+                    {
+                        var win = new QuanLyBar.Client.Views.DuLieuBanDau.CongNoKhachHangBanDauWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Công nợ nhà cung cấp ban đầu")
+                    {
+                        var win = new QuanLyBar.Client.Views.DuLieuBanDau.CongNoNhaCungCapBanDauWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Tồn kho ban đầu")
+                    {
+                        var chonKhoWin = new QuanLyBar.Client.Views.DuLieuBanDau.ChonKhoTonBanDauWindow();
+                        chonKhoWin.Owner = this;
+                        if (chonKhoWin.ShowDialog() == true && chonKhoWin.SelectedKho != null)
+                        {
+                            var win = new QuanLyBar.Client.Views.DuLieuBanDau.TonKhoBanDauWindow(chonKhoWin.SelectedKho.Id);
+                            win.Owner = this;
+                            win.ShowDialog();
+                        }
+                        return;
+                    }
                     else
                     {
                         content = new System.Windows.Controls.TextBlock

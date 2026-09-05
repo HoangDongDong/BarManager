@@ -1,0 +1,122 @@
+<Window x:Class="QuanLyBar.Client.Views.ThuVienAnh.ThemAnhVaoThuVienWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Thêm ảnh vào thư viện" Height="260" Width="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        FontFamily="Segoe UI" FontSize="12"
+        Background="#dce8f5">
+
+    <Window.Resources>
+        <Style x:Key="DlgBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="#f4f8fc"/>
+            <Setter Property="BorderBrush" Value="#a0b8d4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#112233"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Width" Value="80"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e0edfc"/>
+                    <Setter Property="BorderBrush" Value="#0078d7"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="46"/> <!-- Header -->
+            <RowDefinition Height="*"/>  <!-- Content -->
+            <RowDefinition Height="46"/> <!-- Bottom Actions -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Header -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#b6cadf" BorderThickness="0,0,0,1">
+            <TextBlock Text="Thêm ảnh vào thư viện" FontSize="13.5" FontWeight="Bold" Foreground="#112233"
+                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+        </Border>
+
+        <!-- 2. Content -->
+        <Grid Grid.Row="1" Margin="16,14,16,6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Phân nhóm ảnh -->
+                <RowDefinition Height="Auto"/> <!-- Ảnh (16x16) -->
+            </Grid.RowDefinitions>
+
+            <!-- Row 1: Phân nhóm ảnh -->
+            <Grid Grid.Row="0" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="105"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Phân nhóm ảnh:" VerticalAlignment="Center" Foreground="#112233"/>
+                <ComboBox x:Name="CboNhomAnh" Grid.Column="1" Height="24" IsEditable="True" Background="White"
+                          VerticalContentAlignment="Center" BorderBrush="#9fb6d0">
+                    <ComboBoxItem Content="Biểu tượng"/>
+                    <ComboBoxItem Content="Cờ"/>
+                    <ComboBoxItem Content="Giới tính"/>
+                    <ComboBoxItem Content="Nguồn thông tin"/>
+                    <ComboBoxItem Content="Ngành hàng"/>
+                    <ComboBoxItem Content="Người"/>
+                    <ComboBoxItem Content="Sao"/>
+                    <ComboBoxItem Content="Số"/>
+                    <ComboBoxItem Content="Thành viên"/>
+                    <ComboBoxItem Content="Trạng thái"/>
+                    <ComboBoxItem Content="Tập hợp"/>
+                    <ComboBoxItem Content="Đối tượng"/>
+                    <ComboBoxItem Content="Ưu tiên"/>
+                    <ComboBoxItem Content="Khác"/>
+                </ComboBox>
+            </Grid>
+
+            <!-- Row 2: Ảnh (16x16) -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="105"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Ảnh (16x16):" VerticalAlignment="Center" Foreground="#112233"/>
+
+                <!-- Preview + Path Box -->
+                <Border Grid.Column="1" Background="White" BorderBrush="#9fb6d0" BorderThickness="1" Height="30" Margin="0,0,6,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Image Preview -->
+                        <Border Grid.Column="0" Background="#f8fafc" BorderBrush="#e2e8f0" BorderThickness="0,0,1,0">
+                            <Image x:Name="ImgPreview" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- File Name / Path -->
+                        <TextBlock x:Name="TxtFileName" Grid.Column="1" Text="Chưa chọn tệp..." VerticalAlignment="Center"
+                                   Padding="6,0" Foreground="#556677" TextTrimming="CharacterEllipsis"/>
+                    </Grid>
+                </Border>
+
+                <!-- Browse button -->
+                <Button x:Name="BtnBrowse" Grid.Column="2" Content="..." Width="30" Height="30" Style="{StaticResource DlgBtnStyle}"
+                        FontWeight="Bold" ToolTip="Chọn tệp hình ảnh từ máy tính" Click="BtnBrowse_Click"/>
+            </Grid>
+        </Grid>
+
+        <!-- 3. Bottom Actions -->
+        <Border Grid.Row="2" Background="#dfe9f5" BorderBrush="#b6cadf" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
+                <Button x:Name="BtnDongY" Content="Đồng ý" Style="{StaticResource DlgBtnStyle}" Margin="0,0,8,0" IsDefault="True" Click="BtnDongY_Click"/>
+                <Button x:Name="BtnBoQua" Content="Bỏ qua" Style="{StaticResource DlgBtnStyle}" IsCancel="True" Click="BtnBoQua_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

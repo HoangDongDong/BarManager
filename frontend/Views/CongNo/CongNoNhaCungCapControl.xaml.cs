@@ -138,25 +138,21 @@ namespace QuanLyBar.Client.Views.CongNo
                 TxtTongNo.Text = tongNo.ToString("N0");
 
                 // Chọn lại nhà cung cấp nếu trước đó đã chọn
+                CongNoNhaCungCapViewModel toSelect = null;
                 if (_selectedNcc != null)
                 {
-                    var found = _nccList.FirstOrDefault(x => x.Id == _selectedNcc.Id);
-                    if (found != null)
-                    {
-                        DgCongNoNhaCungCap.SelectedItem = found;
-                    }
-                    else if (_nccList.Count > 0)
-                    {
-                        DgCongNoNhaCungCap.SelectedIndex = 0;
-                    }
-                    else
-                    {
-                        ClearDetails();
-                    }
+                    toSelect = _nccList.FirstOrDefault(x => x.Id == _selectedNcc.Id);
                 }
-                else if (_nccList.Count > 0)
+                if (toSelect == null && _nccList.Count > 0)
                 {
-                    DgCongNoNhaCungCap.SelectedIndex = 0;
+                    toSelect = _nccList[0];
+                }
+
+                if (toSelect != null)
+                {
+                    _selectedNcc = toSelect;
+                    DgCongNoNhaCungCap.SelectedItem = toSelect;
+                    await LoadChiTietForNccAsync(toSelect);
                 }
                 else
                 {
@@ -176,28 +172,48 @@ namespace QuanLyBar.Client.Views.CongNo
             DgChiTietCongNo.ItemsSource = null;
         }
 
+        private async Task LoadChiTietForNccAsync(CongNoNhaCungCapViewModel item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.Id))
+            {
+                ClearDetails();
+                return;
+            }
+
+            try
+            {
+                _currentDetails = await LocalCongNoNhaCungCapService.GetChiTietCongNoNhaCungCapAsync(
+                    item.Id,
+                    _tuNgay,
+                    _denNgay
+                );
+                DgChiTietCongNo.ItemsSource = null;
+                DgChiTietCongNo.ItemsSource = _currentDetails;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error loading supplier debt details: " + ex.Message);
+            }
+        }
+
         private async void DgCongNoNhaCungCap_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DgCongNoNhaCungCap.SelectedItem is CongNoNhaCungCapViewModel item)
             {
                 _selectedNcc = item;
-                try
-                {
-                    _currentDetails = await LocalCongNoNhaCungCapService.GetChiTietCongNoNhaCungCapAsync(
-                        item.Id,
-                        _tuNgay,
-                        _denNgay
-                    );
-                    DgChiTietCongNo.ItemsSource = _currentDetails;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error loading supplier debt details: " + ex.Message);
-                }
+                await LoadChiTietForNccAsync(item);
             }
-            else
+        }
+
+        private async void DgCongNoNhaCungCap_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (DgCongNoNhaCungCap.SelectedItem is CongNoNhaCungCapViewModel item)
             {
-                ClearDetails();
+                if (_selectedNcc?.Id != item.Id || _currentDetails == null || _currentDetails.Count == 0)
+                {
+                    _selectedNcc = item;
+                    await LoadChiTietForNccAsync(item);
+                }
             }
         }
 

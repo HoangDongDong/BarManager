@@ -235,13 +235,13 @@
             </MenuItem>
             
             <MenuItem Header="QUẢN TRỊ" Foreground="#1e3f66">
-                <MenuItem Header="Thư viện ảnh..."/>
+                <MenuItem Header="Thư viện ảnh..." Click="MenuBtn_Click"/>
                 <Separator/>
                 <MenuItem Header="Dữ liệu ban đầu">
                     <MenuItem Header="Nhập dữ liệu từ hệ thống cũ"/>
-                    <MenuItem Header="Công nợ khách hàng ban đầu"/>
-                    <MenuItem Header="Công nợ nhà cung cấp ban đầu"/>
-                    <MenuItem Header="Tồn kho ban đầu"/>
+                    <MenuItem Header="Công nợ khách hàng ban đầu" Click="MenuBtn_Click"/>
+                    <MenuItem Header="Công nợ nhà cung cấp ban đầu" Click="MenuBtn_Click"/>
+                    <MenuItem Header="Tồn kho ban đầu" Click="MenuBtn_Click"/>
                 </MenuItem>
                 <MenuItem Header="Thiết kế giao diện màn cảm ứng"/>
                 <MenuItem Header="Xóa dữ liệu"/>

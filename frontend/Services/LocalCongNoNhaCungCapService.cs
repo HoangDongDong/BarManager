@@ -46,6 +46,7 @@ namespace QuanLyBar.Client.Services
         public string Id { get; set; } = "";
         public string SoPhieu { get; set; } = "";
         public DateTime? Ngay { get; set; }
+        public DateTime? TimeCreated { get; set; }
         public string LoaiPhieu { get; set; } = "";
         public decimal TongCong { get; set; }
         public string DienGiai { get; set; } = "";
@@ -201,7 +202,7 @@ namespace QuanLyBar.Client.Services
                         FROM TDONHANG
                         WHERE (STATUS IS NULL OR STATUS <> 0)
                           AND DNHACUNGCAPID IS NOT NULL
-                          AND (LOAI = 1 OR LOAI IS NULL)";
+                          AND (LOAI = 1 OR LOAI IS NULL OR NOTE = 'Công nợ ban đầu' OR NAME LIKE 'CNBD_NCC_%')";
 
                     if (tuNgay.HasValue)
                     {
@@ -230,7 +231,7 @@ namespace QuanLyBar.Client.Services
                         WHERE (STATUS IS NULL OR STATUS <> 0)
                           AND DNHACUNGCAPID IS NOT NULL
                           AND (KHONGTHAYDOICONGNO IS NULL OR KHONGTHAYDOICONGNO = 0)
-                          AND (LOAI = '2' OR LOAI = 'chi' OR LOAI = 'Chi' OR COALESCE(CHI, 0) > 0)";
+                          AND (LOAI = 2 OR CAST(LOAI AS VARCHAR(20)) = '2' OR COALESCE(CHI, 0) > 0)";
 
                     if (tuNgay.HasValue)
                     {
@@ -244,12 +245,12 @@ namespace QuanLyBar.Client.Services
                     sqlThuChi += " GROUP BY DNHACUNGCAPID";
 
                     var thuChiSummaries = (await conn.QueryAsync(sqlThuChi, new { TuNgay = tuNgay, DenNgay = denNgay?.Date.AddDays(1).AddSeconds(-1) }))
-                        .ToDictionary(x => (string)x.NCCID?.ToString(), x => (decimal)(x.TONGCHI ?? 0));
+                        .ToDictionary(x => (string)x.NCCID?.ToString()?.Trim(), x => (decimal)(x.TONGCHI ?? 0));
 
                     int stt = 1;
                     foreach (var c in nccs)
                     {
-                        string nccId = c.ID?.ToString() ?? "";
+                        string nccId = (c.ID?.ToString() ?? "").Trim();
                         decimal tongPhatSinh = 0;
                         decimal daThanhToan = 0;
 
@@ -328,30 +329,36 @@ namespace QuanLyBar.Client.Services
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
 
-                    // 1. Lấy tất cả phiếu nhập hàng (TDONHANG)
+                    // 1. Lấy tất cả phiếu nhập hàng / công nợ ban đầu (TDONHANG)
                     string sqlDonHang = @"
                         SELECT 
-                            CAST(ID AS VARCHAR(50)) AS ID,
+                            ID,
                             NAME AS SOPHIEU,
                             NGAY,
                             TIMECREATED,
                             COALESCE(TONGCONG, 0) AS TONGCONG,
                             COALESCE(THANHTOAN, 0) AS THANHTOAN,
-                            NOTE AS DIENGIAI
+                            COALESCE(TIENHANG, 0) AS TIENHANG,
+                            NOTE AS DIENGIAI,
+                            LOAI
                         FROM TDONHANG
                         WHERE (STATUS IS NULL OR STATUS <> 0)
-                          AND CAST(DNHACUNGCAPID AS VARCHAR(50)) = @NccId
-                          AND (LOAI = 1 OR LOAI IS NULL)";
+                          AND (TRIM(CAST(DNHACUNGCAPID AS VARCHAR(50))) = @NccId OR UPPER(TRIM(CAST(DNHACUNGCAPID AS VARCHAR(50)))) = UPPER(@NccId))
+                          AND (LOAI = 1 OR LOAI IS NULL OR NOTE = 'Công nợ ban đầu' OR NAME LIKE 'CNBD_NCC_%')";
 
                     if (tuNgay.HasValue) sqlDonHang += " AND NGAY >= @TuNgay";
                     if (denNgay.HasValue) sqlDonHang += " AND NGAY <= @DenNgay";
 
-                    var donHangs = (await conn.QueryAsync(sqlDonHang, new { NccId = nccId, TuNgay = tuNgay, DenNgay = denNgay?.Date.AddDays(1).AddSeconds(-1) })).ToList();
+                    var donHangs = (await conn.QueryAsync(sqlDonHang, new { 
+                        NccId = nccId.Trim(), 
+                        TuNgay = tuNgay, 
+                        DenNgay = denNgay?.Date.AddDays(1).AddSeconds(-1) 
+                    })).ToList();
 
                     // 2. Lấy tất cả phiếu chi (TTHUCHI)
                     string sqlThuChi = @"
                         SELECT 
-                            CAST(ID AS VARCHAR(50)) AS ID,
+                            ID,
                             NAME AS SOPHIEU,
                             NGAY,
                             TIMECREATED,
@@ -359,52 +366,102 @@ namespace QuanLyBar.Client.Services
                             DIENGIAI
                         FROM TTHUCHI
                         WHERE (STATUS IS NULL OR STATUS <> 0)
-                          AND CAST(DNHACUNGCAPID AS VARCHAR(50)) = @NccId
+                          AND (TRIM(CAST(DNHACUNGCAPID AS VARCHAR(50))) = @NccId OR UPPER(TRIM(CAST(DNHACUNGCAPID AS VARCHAR(50)))) = UPPER(@NccId))
                           AND (KHONGTHAYDOICONGNO IS NULL OR KHONGTHAYDOICONGNO = 0)
-                          AND (LOAI = '2' OR LOAI = 'chi' OR LOAI = 'Chi' OR COALESCE(CHI, 0) > 0)";
+                          AND (LOAI = 2 OR CAST(LOAI AS VARCHAR(20)) = '2' OR COALESCE(CHI, 0) > 0)";
 
                     if (tuNgay.HasValue) sqlThuChi += " AND NGAY >= @TuNgay";
                     if (denNgay.HasValue) sqlThuChi += " AND NGAY <= @DenNgay";
 
-                    var thuChis = (await conn.QueryAsync(sqlThuChi, new { NccId = nccId, TuNgay = tuNgay, DenNgay = denNgay?.Date.AddDays(1).AddSeconds(-1) })).ToList();
+                    var thuChis = (await conn.QueryAsync(sqlThuChi, new { 
+                        NccId = nccId.Trim(), 
+                        TuNgay = tuNgay, 
+                        DenNgay = denNgay?.Date.AddDays(1).AddSeconds(-1) 
+                    })).ToList();
 
                     // 3. Gộp và sắp xếp theo ngày/thời gian tăng dần
-                    var rawTransactions = new List<dynamic>();
+                    var rawTransactions = new List<ChiTietCongNoNccItemViewModel>();
 
                     foreach (var dh in donHangs)
                     {
-                        rawTransactions.Add(new
+                        DateTime? dt = null;
+                        if (dh.NGAY != null)
                         {
-                            Id = dh.ID?.ToString(),
-                            SoPhieu = dh.SOPHIEU?.ToString() ?? "",
-                            Ngay = (DateTime?)dh.NGAY,
-                            TimeCreated = (DateTime?)dh.TIMECREATED,
-                            LoaiPhieu = "PN",
-                            TongCong = (decimal)(dh.TONGCONG ?? 0),
-                            TienThanhToan = (decimal)(dh.THANHTOAN ?? 0),
-                            DienGiai = !string.IsNullOrWhiteSpace(dh.DIENGIAI?.ToString()) ? dh.DIENGIAI.ToString() : "Nhập mua hàng"
+                            if (dh.NGAY is DateTime dVal) dt = dVal;
+                            else if (DateTime.TryParse(dh.NGAY.ToString(), out DateTime pVal)) dt = pVal;
+                        }
+
+                        DateTime? timeCreated = null;
+                        if (dh.TIMECREATED != null)
+                        {
+                            if (dh.TIMECREATED is DateTime tcVal) timeCreated = tcVal;
+                            else if (DateTime.TryParse(dh.TIMECREATED.ToString(), out DateTime tcParsed)) timeCreated = tcParsed;
+                        }
+
+                        decimal tong = 0;
+                        if (dh.TONGCONG != null) decimal.TryParse(dh.TONGCONG.ToString(), out tong);
+                        if (tong == 0 && dh.TIENHANG != null) decimal.TryParse(dh.TIENHANG.ToString(), out tong);
+
+                        decimal tt = 0;
+                        if (dh.THANHTOAN != null) decimal.TryParse(dh.THANHTOAN.ToString(), out tt);
+
+                        string note = dh.DIENGIAI?.ToString() ?? "";
+                        string soPhieu = dh.SOPHIEU?.ToString() ?? "";
+                        string loaiPhieu = (note == "Công nợ ban đầu" || soPhieu.StartsWith("CNBD_")) ? "Công nợ ban đầu" : "PN";
+                        string dienGiai = !string.IsNullOrWhiteSpace(note) ? note : "Nhập mua hàng";
+
+                        rawTransactions.Add(new ChiTietCongNoNccItemViewModel
+                        {
+                            Id = dh.ID?.ToString() ?? "",
+                            SoPhieu = soPhieu,
+                            Ngay = dt,
+                            TimeCreated = timeCreated,
+                            LoaiPhieu = loaiPhieu,
+                            TongCong = tong,
+                            TienThanhToan = tt,
+                            DienGiai = dienGiai
                         });
                     }
 
                     foreach (var tc in thuChis)
                     {
-                        rawTransactions.Add(new
+                        DateTime? dt = null;
+                        if (tc.NGAY != null)
                         {
-                            Id = tc.ID?.ToString(),
-                            SoPhieu = tc.SOPHIEU?.ToString() ?? "",
-                            Ngay = (DateTime?)tc.NGAY,
-                            TimeCreated = (DateTime?)tc.TIMECREATED,
+                            if (tc.NGAY is DateTime dVal) dt = dVal;
+                            else if (DateTime.TryParse(tc.NGAY.ToString(), out DateTime pVal)) dt = pVal;
+                        }
+
+                        DateTime? timeCreated = null;
+                        if (tc.TIMECREATED != null)
+                        {
+                            if (tc.TIMECREATED is DateTime tcVal) timeCreated = tcVal;
+                            else if (DateTime.TryParse(tc.TIMECREATED.ToString(), out DateTime tcParsed)) timeCreated = tcParsed;
+                        }
+
+                        decimal tienChi = 0;
+                        if (tc.CHI != null) decimal.TryParse(tc.CHI.ToString(), out tienChi);
+
+                        string note = tc.DIENGIAI?.ToString() ?? "";
+                        string soPhieu = tc.SOPHIEU?.ToString() ?? "";
+
+                        rawTransactions.Add(new ChiTietCongNoNccItemViewModel
+                        {
+                            Id = tc.ID?.ToString() ?? "",
+                            SoPhieu = soPhieu,
+                            Ngay = dt,
+                            TimeCreated = timeCreated,
                             LoaiPhieu = "PC",
-                            TongCong = 0m,
-                            TienThanhToan = (decimal)(tc.CHI ?? 0),
-                            DienGiai = !string.IsNullOrWhiteSpace(tc.DIENGIAI?.ToString()) ? tc.DIENGIAI.ToString() : "Thanh toán tiền hàng..."
+                            TongCong = 0,
+                            TienThanhToan = tienChi,
+                            DienGiai = !string.IsNullOrWhiteSpace(note) ? note : "Thanh toán tiền hàng..."
                         });
                     }
 
                     var sorted = rawTransactions
-                        .OrderBy(x => ((DateTime)(x.Ngay ?? DateTime.MinValue)).Date)
-                        .ThenBy(x => (string)x.LoaiPhieu == "PN" ? 0 : 1)
-                        .ThenBy(x => (string)x.SoPhieu)
+                        .OrderBy(x => (x.Ngay ?? DateTime.MinValue).Date)
+                        .ThenBy(x => x.TimeCreated ?? x.Ngay ?? DateTime.MinValue)
+                        .ThenBy(x => x.SoPhieu)
                         .ToList();
 
                     decimal runningBalance = 0;
@@ -412,31 +469,18 @@ namespace QuanLyBar.Client.Services
 
                     foreach (var tx in sorted)
                     {
-                        decimal tc = (decimal)tx.TongCong;
-                        decimal tt = (decimal)tx.TienThanhToan;
-                        string loai = (string)tx.LoaiPhieu;
-
-                        if (loai == "PN")
+                        if (tx.LoaiPhieu != "PC")
                         {
-                            runningBalance += (tc - tt);
+                            runningBalance += (tx.TongCong - tx.TienThanhToan);
                         }
-                        else // PC
+                        else
                         {
-                            runningBalance -= tt;
+                            runningBalance -= tx.TienThanhToan;
                         }
 
-                        list.Add(new ChiTietCongNoNccItemViewModel
-                        {
-                            Stt = stt++,
-                            Id = tx.Id,
-                            SoPhieu = tx.SoPhieu,
-                            Ngay = tx.Ngay,
-                            LoaiPhieu = loai,
-                            TongCong = tc,
-                            DienGiai = tx.DienGiai,
-                            TienThanhToan = tt,
-                            LuyKe = runningBalance
-                        });
+                        tx.Stt = stt++;
+                        tx.LuyKe = runningBalance;
+                        list.Add(tx);
                     }
                 }
             }
