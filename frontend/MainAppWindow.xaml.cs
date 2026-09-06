@@ -379,6 +379,13 @@ namespace QuanLyBar.Client
                         }
                         return;
                     }
+                    else if (tabName == "Người dùng và phân quyền" || tabName == "Quản lý người dùng" || tabName == "Phân quyền")
+                    {
+                        var win = new QuanLyBar.Client.Views.NguoiDungPhanQuyen.NguoiDungPhanQuyenWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
                     else
                     {
                         content = new System.Windows.Controls.TextBlock

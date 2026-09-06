@@ -246,7 +246,7 @@
                 <MenuItem Header="Thiết kế giao diện màn cảm ứng"/>
                 <MenuItem Header="Xóa dữ liệu"/>
                 <MenuItem Header="Công cụ nhà phát triển"/>
-                <MenuItem Header="Người dùng và phân quyền"/>
+                <MenuItem Header="Người dùng và phân quyền" Click="MenuBtn_Click"/>
                 <Separator/>
                 <MenuItem Header="Cấu hình toàn hệ thống"/>
             </MenuItem>
