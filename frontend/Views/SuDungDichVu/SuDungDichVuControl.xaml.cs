@@ -139,7 +139,23 @@ namespace QuanLyBar.Client.Views
                         string h = mi.Header?.ToString() ?? "";
                         if (h.Contains("Mở bàn từ đặt trước") || h.Contains("Mở bàn"))
                         {
-                            mi.IsEnabled = !isOccupied;
+                            mi.IsEnabled = !isOccupied && LocalPhanQuyenService.HasFunctionPermission("Hóa đơn bán hàng", "View");
+                        }
+                        else if (h.Contains("Hủy hóa đơn"))
+                        {
+                            mi.IsEnabled = isOccupied && LocalPhanQuyenService.HasFunctionPermission("Hủy hóa đơn", "View");
+                        }
+                        else if (h.Contains("Chuyển bàn"))
+                        {
+                            mi.IsEnabled = isOccupied && LocalPhanQuyenService.HasFunctionPermission("Chuyển bàn", "View");
+                        }
+                        else if (h.Contains("Gộp bàn"))
+                        {
+                            mi.IsEnabled = isOccupied && LocalPhanQuyenService.HasFunctionPermission("Gộp bàn", "View");
+                        }
+                        else if (h.Contains("Thanh toán"))
+                        {
+                            mi.IsEnabled = isOccupied && LocalPhanQuyenService.HasFunctionPermission("Thanh toán", "View");
                         }
                         else if (h.Contains("Refresh"))
                         {
@@ -198,6 +214,8 @@ namespace QuanLyBar.Client.Views
 
         private async void MnuHuyHoaDon_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Hủy hóa đơn", "View")) return;
+
             if (_currentBan == null || !_currentBan.IsOccupied || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
             {
                 MessageBox.Show("Bàn hiện tại không có đơn hàng để hủy!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -322,24 +340,37 @@ namespace QuanLyBar.Client.Views
 
             if (BorderOrderToolbar != null) BorderOrderToolbar.IsEnabled = isStarted;
             
-            if (BtnChuyenBan != null) BtnChuyenBan.IsEnabled = isStarted;
-            if (BtnGopBan != null) BtnGopBan.IsEnabled = isStarted;
+            if (BtnDoiGia != null) BtnDoiGia.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Sửa đơn giá", "View");
+            if (BtnChietKhau != null) BtnChietKhau.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Giảm giá mặt hàng", "View");
+            if (BtnGiamGiaTheoNhom != null) BtnGiamGiaTheoNhom.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Giảm giá mặt hàng", "View");
+            
+            if (BtnChuyenBan != null) BtnChuyenBan.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Chuyển bàn", "View");
+            if (BtnGopBan != null) BtnGopBan.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Gộp bàn", "View");
+            if (BtnThanhToan != null) BtnThanhToan.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Thanh toán", "View");
+            if (BtnThongKe != null) BtnThongKe.IsEnabled = LocalPhanQuyenService.HasFunctionPermission("Thống kê trong sử dụng dịch vụ", "View") || LocalPhanQuyenService.HasFunctionPermission("Thống kê doanh thu", "View");
+
             if (BtnDatSl != null) BtnDatSl.IsEnabled = isStarted;
             if (BtnThemMon != null) BtnThemMon.IsEnabled = isStarted;
             if (BtnGiamSoLuong != null) BtnGiamSoLuong.IsEnabled = isStarted;
             if (BtnXoaMon != null) BtnXoaMon.IsEnabled = isStarted;
-            if (BtnGiamGiaTheoNhom != null) BtnGiamGiaTheoNhom.IsEnabled = isStarted;
             if (BtnInCheBien != null) BtnInCheBien.IsEnabled = isStarted;
-            if (BtnThanhToan != null) BtnThanhToan.IsEnabled = isStarted;
-            if (BtnThongKe != null) BtnThongKe.IsEnabled = true;
 
             if (DgChiTiet != null) DgChiTiet.IsEnabled = isStarted;
-            if (TxtGiamGiaPt != null) TxtGiamGiaPt.IsEnabled = isStarted;
-            if (TxtGiamGia != null) TxtGiamGia.IsEnabled = isStarted;
+            if (TxtGiamGiaPt != null) TxtGiamGiaPt.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Thay đổi giảm giá tổng hóa đơn", "View");
+            if (TxtGiamGia != null) TxtGiamGia.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Thay đổi giảm giá tổng hóa đơn", "View");
             if (TxtOrderGhiChu != null) TxtOrderGhiChu.IsEnabled = isStarted;
             if (TxtKhachHang != null) TxtKhachHang.IsEnabled = isStarted;
             if (TxtSoKhach != null) TxtSoKhach.IsEnabled = isStarted;
             if (TxtSoPhieu != null) TxtSoPhieu.IsEnabled = isStarted;
+
+            if (BtnBatDau != null && !isStarted)
+            {
+                BtnBatDau.IsEnabled = LocalPhanQuyenService.HasFunctionPermission("Hóa đơn bán hàng", "View");
+            }
+            else if (BtnBatDau != null)
+            {
+                BtnBatDau.IsEnabled = true;
+            }
         }
 
         private async void BtnBatDau_Click(object sender, RoutedEventArgs e)
@@ -361,6 +392,9 @@ namespace QuanLyBar.Client.Views
                 }
                 return;
             }
+
+            // Kiểm tra phân quyền Mở bàn ("Hóa đơn bán hàng")
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Hóa đơn bán hàng", "View")) return;
 
             // Bắt đầu mở bàn mới
             DateTime startTime = DateTime.Now;
@@ -692,6 +726,8 @@ namespace QuanLyBar.Client.Views
         {
             if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item && !item.IsHangTang)
             {
+                if (item.DaInCheBien && !LocalPhanQuyenService.CheckPermissionAndAlert("Xóa giảm món sau khi in chế biến", "View")) return;
+
                 if (item.SoLuong > 1)
                 {
                     item.SoLuong -= 1;
@@ -714,6 +750,8 @@ namespace QuanLyBar.Client.Views
         {
             if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item && _currentBan?.OrderItems != null)
             {
+                if (item.DaInCheBien && !LocalPhanQuyenService.CheckPermissionAndAlert("Xóa giảm món sau khi in chế biến", "View")) return;
+
                 decimal sl = item.SoLuong;
                 decimal gia = item.DonGia;
                 string ten = item.MatHangName;
@@ -736,6 +774,8 @@ namespace QuanLyBar.Client.Views
                 var win = new InputWindow("Đặt số lượng", $"Nhập số lượng cho '{item.MatHangName}':", item.SoLuong.ToString("0"));
                 if (win.ShowDialog() == true && decimal.TryParse(win.InputText?.Trim(), out decimal sl) && sl > 0)
                 {
+                    if (sl < item.SoLuong && item.DaInCheBien && !LocalPhanQuyenService.CheckPermissionAndAlert("Xóa giảm món sau khi in chế biến", "View")) return;
+
                     item.SoLuong = sl;
                     await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
                     await AutoSaveOrderAsync();
@@ -750,6 +790,8 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnDoiGia_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Sửa đơn giá", "View")) return;
+
             if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item)
             {
                 var win = new InputWindow("Đổi đơn giá", $"Nhập đơn giá mới cho '{item.MatHangName}':", item.DonGia.ToString("0"));
@@ -788,6 +830,8 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnChietKhau_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Giảm giá mặt hàng", "View")) return;
+
             if (DgChiTiet?.SelectedItem is PosDonHangChiTietViewModel item)
             {
                 var win = new InputWindow("Chiết khấu %", $"Nhập tỷ lệ chiết khấu % cho '{item.MatHangName}':", item.ChietKhauPhanTram.ToString("0"));
@@ -901,6 +945,8 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnThanhToan_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Thanh toán", "View")) return;
+
             if (_currentBan == null || !_currentBan.IsOccupied || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
             {
                 MessageBox.Show("Bàn hiện tại không có đơn hàng đang hoạt động!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -957,6 +1003,8 @@ namespace QuanLyBar.Client.Views
 
         private void BtnThongKe_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Thống kê trong sử dụng dịch vụ", "View") && !LocalPhanQuyenService.CheckPermissionAndAlert("Thống kê doanh thu", "View")) return;
+
             string banId = _currentBan?.Id;
             string banName = _currentBan?.Name;
             var win = new ThongKeCaLamViecWindow(banId, banName);
@@ -966,6 +1014,8 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnChuyenBan_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Chuyển bàn", "View")) return;
+
             if (_currentBan == null || !_currentBan.IsOccupied || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
             {
                 MessageBox.Show("Bàn hiện tại chưa mở hoặc không có đơn hàng để chuyển!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -1017,6 +1067,8 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnGopBan_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Gộp bàn", "View")) return;
+
             if (_currentBan == null || !_currentBan.IsOccupied || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
             {
                 MessageBox.Show("Bàn hiện tại chưa mở hoặc không có đơn hàng để gộp!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -1114,6 +1166,8 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnGiamGiaTheoNhom_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Giảm giá mặt hàng", "View")) return;
+
             if (_currentBan == null || _currentBan.OrderItems == null || _currentBan.OrderItems.Count == 0)
             {
                 MessageBox.Show("Bàn hiện tại chưa có món ăn nào để giảm giá theo nhóm!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);

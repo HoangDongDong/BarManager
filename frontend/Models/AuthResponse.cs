@@ -4,6 +4,10 @@ namespace QuanLyBar.Client.Models
     {
         public string Id { get; set; }
         public string TenDangNhap { get; set; }
+        public string TenHienThi { get; set; }
+        public string GroupId { get; set; }
+        public string GroupName { get; set; }
+        public bool IsAdmin { get; set; }
         public string VaiTro { get; set; }
     }
 

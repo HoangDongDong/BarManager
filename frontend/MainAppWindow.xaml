@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
 
         <!-- Menu Header -->
-        <Menu Grid.Row="0" Background="#d1def0" FontSize="13" Padding="2,4" BorderBrush="#a4bce3" BorderThickness="0,0,0,1">
+        <Menu x:Name="MainMenu" Grid.Row="0" Background="#d1def0" FontSize="13" Padding="2,4" BorderBrush="#a4bce3" BorderThickness="0,0,0,1">
             <MenuItem Header="HỆ THỐNG" Foreground="#1e3f66">
                 <MenuItem Header="Cơ sở dữ liệu...">
                     <MenuItem Header="Tạo mới cơ sở dữ liệu" Click="MenuTaoMoiCsdl_Click"/>
@@ -248,7 +248,7 @@
                 <MenuItem Header="Công cụ nhà phát triển"/>
                 <MenuItem Header="Người dùng và phân quyền" Click="MenuBtn_Click"/>
                 <Separator/>
-                <MenuItem Header="Cấu hình toàn hệ thống"/>
+                <MenuItem Header="Cấu hình toàn hệ thống" Click="MenuBtn_Click"/>
             </MenuItem>
             <MenuItem Header="BÁO CÁO" Foreground="#1e3f66">
                 <MenuItem Header="BÁO CÁO QUỸ">
@@ -278,17 +278,19 @@
                     <MenuItem Header="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY"/>
                     <MenuItem Header="TỔNG HỢP DOANH THU CHƯA THANH TOÁN"/>
                     <MenuItem Header="BÁO CÁO BÁN HÀNG THEO NGÀY"/>
-                    <MenuItem Header="THEO NHÂN VIÊN PHỤC VỤ"/>
-                    <MenuItem Header="THEO KHU VỰC"/>
-                    <MenuItem Header="THEO THU NGÂN"/>
-                    <MenuItem Header="THEO KHÁCH HÀNG"/>
-                    <MenuItem Header="BÁO CÁO BÁN HÀNG KHÁC">
-                        <MenuItem Header="TỔNG HỢP HOA HỒNG THEO NVKD"/>
-                        <MenuItem Header="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN"/>
-                        <MenuItem Header="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI"/>
-                        <MenuItem Header="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG"/>
-                        <MenuItem Header="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG"/>
-                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO THU NGÂN"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG"/>
+                    <MenuItem Header="TỔNG HỢP BÁN THEO NHÂN VIÊN"/>
+                    <MenuItem Header="TỔNG HỢP BÁN THEO THU NGÂN"/>
+                    <MenuItem Header="TỔNG HỢP BÁN THEO KHÁCH HÀNG"/>
+                    <MenuItem Header="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO GIỜ"/>
+                    <MenuItem Header="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI"/>
+                    <MenuItem Header="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN"/>
+                    <MenuItem Header="TỔNG HỢP HOA HỒNG THEO NVKD"/>
+                    <MenuItem Header="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG"/>
+                    <MenuItem Header="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO ĐẶT HÀNG">
                     <MenuItem Header="DANH SÁCH ĐẶT HÀNG THEO NGÀY"/>
@@ -296,9 +298,41 @@
                     <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO NGÀY"/>
                     <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG"/>
                     <MenuItem Header="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO KHO HÀNG">
-                    <MenuItem Header="..."/>
+                    <MenuItem Header="DANH SÁCH PHIẾU NHẬP KHO THEO NGÀY"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU NHẬP KHO THEO NHÀ CUNG CẤP"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU NHẬP KHO THEO NHÂN VIÊN NHẬP"/>
+                    <MenuItem Header="TỔNG HỢP NHẬP THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP NHẬP THEO NHÀ CUNG CẤP"/>
+                    <MenuItem Header="TỔNG HỢP NHẬP THEO NHÂN VIÊN NHẬP"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU NHẬP THEO NHÀ CUNG CẤP"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU NHẬP THEO NHÂN VIÊN NHẬP"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG NHẬP KHO THEO NGÀY"/>
+                    <Separator/>
+                    <MenuItem Header="DANH SÁCH PHIẾU XUẤT KHO THEO NGÀY"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU XUẤT KHO THEO NHÂN VIÊN XUẤT"/>
+                    <MenuItem Header="TỔNG HỢP XUẤT KHÁC THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN XUẤT"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG XUẤT THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG XUẤT THEO NHÂN VIÊN XUẤT"/>
+                    <Separator/>
+                    <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN"/>
+                    <Separator/>
+                    <MenuItem Header="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU KIỂM KÊ THEO NGÀY"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU KIỂM KÊ THEO NHÂN VIÊN"/>
+                    <Separator/>
+                    <MenuItem Header="BÁO CÁO HÀNG TỒN KHO"/>
+                    <MenuItem Header="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN"/>
+                    <MenuItem Header="THẺ KHO"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO CÔNG NỢ">
                     <MenuItem Header="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP"/>
@@ -335,7 +369,7 @@
 
         <!-- Toolbar -->
         <ToolBarTray Grid.Row="1" Background="#e3eaf5">
-            <ToolBar Background="#e3eaf5" Band="1" BandIndex="1" BorderThickness="0,0,0,1" BorderBrush="#a4bce3" Padding="2">
+            <ToolBar x:Name="MainToolBar" Background="#e3eaf5" Band="1" BandIndex="1" BorderThickness="0,0,0,1" BorderBrush="#a4bce3" Padding="2">
                 <Button Content="Sử dụng dịch vụ" Foreground="#1e3f66" Margin="2,0" FontWeight="SemiBold" Click="MenuBtn_Click"/>
                 <Separator/>
                 <Button Content="Quản lý bán hàng" Foreground="#1e3f66" Margin="2,0" Click="MenuBtn_Click"/>

@@ -301,6 +301,7 @@ namespace QuanLyBar.Client.Views
 
         private void BtnThemMoi_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Add", Window.GetWindow(this))) return;
             var currentList = (DgDatHang.ItemsSource as List<DatHangViewModel>) ?? _allDatHangList;
             var win = new ThemMoiDatHangWindow(null, currentList);
             win.Owner = Window.GetWindow(this);
@@ -335,6 +336,7 @@ namespace QuanLyBar.Client.Views
 
         private void OpenEditOrderWindow(string orderId)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Edit", Window.GetWindow(this))) return;
             var currentList = (DgDatHang.ItemsSource as List<DatHangViewModel>) ?? _allDatHangList;
             var win = new ThemMoiDatHangWindow(orderId, currentList);
             win.Owner = Window.GetWindow(this);
@@ -348,6 +350,7 @@ namespace QuanLyBar.Client.Views
 
         private async void BtnToolbarXoa_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Delete", Window.GetWindow(this))) return;
             bool isTrash = _currentCategoryId == "-1";
             if (DgDatHang.SelectedItem is DatHangViewModel selectedOrder)
             {

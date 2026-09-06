@@ -1,0 +1,967 @@
+<Window x:Class="QuanLyBar.Client.Views.CauHinhHeThong.CauHinhToanHeThongWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="CẤU HÌNH TOÀN HỆ THỐNG" Height="640" Width="820"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" FontSize="12" Background="#ECEFF4"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#222222"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="BorderBrush" Value="#A0A0A0"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4"/>
+            <Setter Property="Foreground" Value="#222222"/>
+        </Style>
+        <Style x:Key="CategoryItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="1,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderThickness="0" CornerRadius="2" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#0078D7"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bd" Property="Background" Value="#D9EBF9"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Banner -->
+        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="3" Padding="10,8" Margin="0,0,0,6">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="🛠️" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Thông tin cấu hình toàn bộ hệ thống" FontWeight="Bold" FontSize="14" Foreground="#1E293B"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Workspace -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Category Navigation -->
+            <Border Grid.Column="0" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="3" Margin="0,0,6,0">
+                <ListBox x:Name="CategoryListBox" BorderThickness="0" Background="Transparent" ItemContainerStyle="{StaticResource CategoryItemStyle}" SelectionChanged="CategoryListBox_SelectionChanged">
+                    <ListBoxItem Tag="0" IsSelected="True">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🏠" Margin="0,0,8,0"/>
+                            <TextBlock Text="Thông tin chung"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🖨️" Margin="0,0,8,0"/>
+                            <TextBlock Text="In HĐ và in chế biến"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="2">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📄" Margin="0,0,8,0"/>
+                            <TextBlock Text="Mẫu hóa đơn"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="3">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔢" Margin="0,0,8,0"/>
+                            <TextBlock Text="Số phiếu"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="4">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🛒" Margin="0,0,8,0"/>
+                            <TextBlock Text="Bán hàng"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="5">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💰" Margin="0,0,8,0"/>
+                            <TextBlock Text="Thanh toán"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="6">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💳" Margin="0,0,8,0"/>
+                            <TextBlock Text="Tích điểm"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="7">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📦" Margin="0,0,8,0"/>
+                            <TextBlock Text="Kho hàng"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🏷️" Margin="0,0,8,0"/>
+                            <TextBlock Text="Mặt hàng"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="9">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🖨️" Margin="0,0,8,0"/>
+                            <TextBlock Text="Thiết bị khác"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="10">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔔" Margin="0,0,8,0"/>
+                            <TextBlock Text="Cảnh báo"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="11">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🛡️" Margin="0,0,8,0"/>
+                            <TextBlock Text="Quản trị"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📱" Margin="0,0,8,0"/>
+                            <TextBlock Text="Cảm ứng"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="13">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔧" Margin="0,0,8,0"/>
+                            <TextBlock Text="Tùy chọn khác"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+            </Border>
+
+            <!-- Right Detail Content Panel -->
+            <Border Grid.Column="1" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="3" Padding="14">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid>
+                        <!-- TAB 0: THÔNG TIN CHUNG -->
+                        <Grid x:Name="TabThongTinChung" Visibility="Visible">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Tên công ty:" Margin="0,6"/>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,4,12,4">
+                                <TextBox x:Name="TxtCompanyName" FontWeight="Bold"/>
+                                <TextBlock Text="(Tên công ty sẽ hiển thị dưới báo cáo)" FontStyle="Italic" Foreground="#64748B" FontSize="11" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <!-- Logo area -->
+                            <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Center">
+                                <TextBlock Text="Logo:" Margin="0,0,0,4"/>
+                                <Border Width="90" Height="90" BorderBrush="#CBD5E1" BorderThickness="1" Background="#F8FAFC" CornerRadius="2">
+                                    <Image x:Name="ImgLogo" Stretch="Uniform" Margin="2"/>
+                                </Border>
+                                <Button x:Name="BtnChonLogo" Content="Chọn" Width="80" Height="24" Margin="0,6,0,0" Click="BtnChonLogo_Click"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Địa chỉ:" VerticalAlignment="Top" Margin="0,8,0,0"/>
+                            <TextBox x:Name="TxtCompanyAddress" Grid.Row="1" Grid.Column="1" Height="70" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,4,12,4"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Số điện thoại:" Margin="0,6"/>
+                            <TextBox x:Name="TxtCompanyPhone" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Email:" Margin="0,6"/>
+                            <TextBox x:Name="TxtCompanyEmail" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Lời cảm ơn:" Margin="0,6"/>
+                            <TextBox x:Name="TxtLoiCamOn" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Fax:" Margin="0,6"/>
+                            <TextBox x:Name="TxtCompanyFax" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4"/>
+                        </Grid>
+
+                        <!-- TAB 1: IN HĐ VÀ IN CHẾ BIẾN -->
+                        <StackPanel x:Name="TabInHoaDon" Visibility="Collapsed">
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkLuaChonMauKhiIn" Grid.Column="0" Content="Lựa chọn mẫu khi in"/>
+                                <CheckBox x:Name="ChkHienThiTruocKhiIn" Grid.Column="1" Content="Hiển thị trước khi in"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Mẫu hóa đơn:"/>
+                                <ComboBox x:Name="CboMauHoaDon" Grid.Column="1" Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="2" Text="Số lần in:"/>
+                                <TextBox x:Name="TxtSoLanIn" Grid.Column="3" Text="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkSuDungChucNangInXuongBep" Content="Sử dụng chức năng in xuống bếp" FontWeight="SemiBold" Margin="0,6,0,2"/>
+                            <WrapPanel Margin="24,2,0,6">
+                                <CheckBox x:Name="ChkInDoAn" Content="In đồ ăn" Margin="0,0,20,0"/>
+                                <CheckBox x:Name="ChkInDoUong" Content="In đồ uống" Margin="0,0,20,0"/>
+                                <CheckBox x:Name="ChkInDichVu" Content="In dịch vụ" Margin="0,0,20,0"/>
+                                <CheckBox x:Name="ChkInDoKhac" Content="In đồ khác"/>
+                            </WrapPanel>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Mẫu in chế biến:"/>
+                                <ComboBox x:Name="CboMauInCheBien" Grid.Column="1" Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="2" Text="Số liên in chế biến:"/>
+                                <TextBox x:Name="TxtSoLienInCheBien" Grid.Column="3" Text="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkInThem1LienTaiQuay" Content="In thêm 1 liên tại quầy (ra máy in mặc định)"/>
+                            <CheckBox x:Name="ChkInMoiDoRa1To" Content="In mỗi đồ ra 1 tờ (In xong từng món cắt giấy ngay)"/>
+                            <CheckBox x:Name="ChkInRiengDoAnUong" Content="In riêng đồ ăn/đồ uống/đồ khác nếu chung máy in"/>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="260"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkTuDongInPhaCheSauKhiGoiMon" Grid.Column="0" Content="Tự động in pha chế sau khi gọi món"/>
+                                <TextBlock Grid.Column="1" Text="Thời gian chờ tự động in (giây):" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                                <TextBox x:Name="TxtThoiGianTuDongIn" Grid.Column="2" Text="10"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkInPhaCheTheoKhuVuc" Content="In pha chế theo khu vực"/>
+                            <CheckBox x:Name="ChkInThongBaoKhiChuyenBan" Content="In thông báo khi chuyển bàn"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Mẫu in chuyển bàn:"/>
+                                <ComboBox x:Name="CboMauInChuyenBan" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="In hóa đơn theo khu vực:"/>
+                                <ComboBox x:Name="CboInHoaDonTheoKhuVuc" Grid.Column="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkInMatKhauWifiTrenBill" Content="In mật khẩu wifi trên bill"/>
+                        </StackPanel>
+
+                        <!-- TAB 2: MẪU HÓA ĐƠN (DEVELOPER UNLOCK) -->
+                        <StackPanel x:Name="TabMauHoaDon" Visibility="Collapsed">
+                            <TextBlock Text="Phần này dành cho nhà phát triển, mời bạn nhập mật khẩu:" Margin="0,10,0,10"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <PasswordBox x:Name="TxtDevPassword" Width="150" Height="24" Margin="0,0,8,0"/>
+                                <Button x:Name="BtnUnlockDev" Content="Mở khóa" Width="80" Height="24" Click="BtnUnlockDev_Click"/>
+                            </StackPanel>
+                            <Border x:Name="PnlDevUnlocked" Visibility="Collapsed" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="4" Padding="12">
+                                <StackPanel>
+                                    <TextBlock Text="🔓 Bạn đã mở khóa chế độ Nhà Phát Triển thành công!" FontWeight="Bold" Foreground="#15803D" Margin="0,0,0,8"/>
+                                    <TextBlock Text="• Tùy chỉnh mẫu in hóa đơn FastReport / CrystalReports." Margin="0,2"/>
+                                    <TextBlock Text="• Cấu hình các tham số hệ thống nội bộ." Margin="0,2"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- TAB 3: SỐ PHIẾU -->
+                        <Grid x:Name="TabSoPhieu" Visibility="Collapsed">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Báo giá:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatBaoGia" Grid.Row="0" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="0" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Hóa đơn nhà hàng:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatHoaDon" Grid.Row="1" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="1" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Phiếu nhập kho:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatNhapKho" Grid.Row="2" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="2" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Phiếu xuất kho:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatXuatKho" Grid.Row="3" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="3" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Phiếu chuyển kho:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatChuyenKho" Grid.Row="4" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="4" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Phiếu kiểm kê:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatKiemKe" Grid.Row="5" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="5" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Đặt hàng:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatDatHang" Grid.Row="6" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="6" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Phiếu thu:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatPhieuThu" Grid.Row="7" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="7" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="8" Grid.Column="0" Text="Phiếu chi:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatPhieuChi" Grid.Row="8" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="8" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="9" Grid.Column="0" Text="Phiếu thu công nợ:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatThuCongNo" Grid.Row="9" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="9" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+
+                            <TextBlock Grid.Row="10" Grid.Column="0" Text="Bảng lương:" Margin="0,4"/>
+                            <TextBox x:Name="TxtFormatBangLuong" Grid.Row="10" Grid.Column="1" Margin="0,2"/>
+                            <Button Grid.Row="10" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                        </Grid>
+
+                        <!-- TAB 4: BÁN HÀNG -->
+                        <StackPanel x:Name="TabBanHang" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkChoPhepNhapGiamGia" Content="Cho phép nhập giảm giá" FontWeight="SemiBold"/>
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Mặc định giảm giá đồ ăn (%):"/>
+                                <TextBox x:Name="TxtMacDinhGiamGia" Grid.Column="1" Text="0"/>
+                                <TextBlock Grid.Column="3" Text="Mặc định giảm giá tiền giờ (%):"/>
+                                <TextBox x:Name="TxtMacDinhGiamGiaTienGio" Grid.Column="4" Text="0"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkCoThueSuat" Grid.Column="0" Content="Có thuế suất"/>
+                                <TextBox x:Name="TxtMacDinhThueSuat" Grid.Column="4" Text="0"/>
+                                <TextBlock Grid.Column="3" Text="Mặc định thuế suất (%):"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkCoPhiDichVu" Grid.Column="0" Content="Có phí dịch vụ"/>
+                                <TextBox x:Name="TxtMacDinhPhiDichVu" Grid.Column="4" Text="0"/>
+                                <TextBlock Grid.Column="3" Text="Mặc định phí dịch vụ (%):"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkNhapSoLuongSauKhiChon" Grid.Column="0" Content="Nhập số lượng sau khi chọn"/>
+                                <CheckBox x:Name="ChkChoPhepThayDoiNgayTrenHoaDon" Grid.Column="1" Content="Cho phép thay đổi ngày trên hóa đơn"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkBatBuocNhapNhanVienBanHang" Grid.Column="0" Content="Bắt buộc nhập nhân viên bán hàng"/>
+                                <CheckBox x:Name="ChkChoPhepInTamTinh" Grid.Column="1" Content="Cho phép in tạm tính"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkKichHoatKhuyenMaiTuDong" Grid.Column="0" Content="Kích hoạt khuyến mại tự động"/>
+                                <CheckBox x:Name="ChkChoPhepTrungTenKhachHang" Grid.Column="1" Content="Cho phép trùng tên khách hàng"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkHienThi3NhomOGiaoDienBanHang" Grid.Column="0" Content="Hiển thị 3 nhóm ở giao diện bán hàng"/>
+                                <CheckBox x:Name="ChkToiUuDungBanPhim" Grid.Column="1" Content="Tối ưu dùng bàn phím"/>
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkSuDungMatHangMacDinh" Grid.Column="0" Content="Sử dụng mặt hàng mặc định"/>
+                                <CheckBox x:Name="ChkHienThiGhiChuTrenGiaoDienBan" Grid.Column="1" Content="Hiển thị ghi chú trên giao diện bàn"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="130"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkMatHangGiaTheoGioTheoKhuVuc" Grid.Column="0" Content="Mặt hàng giá theo giờ theo khu vực"/>
+                                <TextBlock Grid.Column="1" Text="Cách chọn giờ tính giá:"/>
+                                <ComboBox x:Name="CboCachChonGioTinhGia" Grid.Column="2"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Cách chọn khách hàng:"/>
+                                <ComboBox x:Name="CboCachChonKhachHang" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Cách chọn ngày giao dịch:"/>
+                                <ComboBox x:Name="CboCachChonNgayGiaoDich" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="1" Text="Trước giờ tính vào ngày hôm trước:"/>
+                                <TextBox x:Name="TxtTruocGioTinhVaoNgayHomTruoc" Grid.Column="2" Text="0"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Kích thước hiển thị ở giao diện dịch vụ:"/>
+                                <ComboBox x:Name="CboKichThuocHienThiOGiaoDienDichVu" Grid.Column="1"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- TAB 5: THANH TOÁN -->
+                        <StackPanel x:Name="TabThanhToan" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkChoPhepKhachNo" Content="Cho phép khách nợ" Margin="0,3"/>
+                            <CheckBox x:Name="ChkCoThanhToanVoucher" Content="Có thanh toán voucher" Margin="0,3"/>
+                            <CheckBox x:Name="ChkLuaChonVoucherTuDanhSach" Content="Lựa chọn voucher từ danh sách" Margin="24,2,0,3"/>
+                            <CheckBox x:Name="ChkSuDungTheTraTruoc" Content="Sử dụng thẻ trả trước" Margin="0,3"/>
+                            <CheckBox x:Name="ChkSuDungDiemTichLuyDeThanhToan" Content="Sử dụng điểm tích lũy để thanh toán" Margin="0,3"/>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Quy đổi 1 điểm sang tiền"/>
+                                <TextBox x:Name="TxtQuyDoi1DiemSangTien" Grid.Column="1" Text="1,000"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkCoThanhToanThe" Content="Có thanh toán thẻ" Margin="0,3"/>
+                            <CheckBox x:Name="ChkCoThanhToanChuyenKhoan" Content="Có thanh toán chuyển khoản" Margin="0,3"/>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Làm tròn tiền"/>
+                                <TextBox x:Name="TxtLamTronTien" Grid.Column="1" Text="1,000"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkBatBuocInKhiThanhToan" Content="Bắt buộc in khi thanh toán" Margin="0,3"/>
+                            <CheckBox x:Name="ChkSuDungChucNangTamUngTrongDonHang" Content="Sử dụng chức năng tạm ứng trong đơn hàng" Margin="0,3"/>
+                        </StackPanel>
+
+                        <!-- TAB 6: TÍCH ĐIỂM -->
+                        <StackPanel x:Name="TabTichDiem" Visibility="Collapsed">
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Doanh số tương ứng với 1 điểm"/>
+                                <TextBox x:Name="TxtDoanhSoTuongUngVoi1Diem" Grid.Column="1" Text="20,000"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Cách tính điểm"/>
+                                <ComboBox x:Name="CboCachTinhDiem" Grid.Column="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkTuDongNangCapThanhVienKhiDatHanMuc" Content="Tự động nâng cấp thành viên khi đạt hạn mức" Margin="0,6,0,3"/>
+                            <CheckBox x:Name="ChkHienThiDiemCuaKhachHangTrenHoaDon" Content="Hiển thị điểm của khách hàng trên hóa đơn" Margin="0,3"/>
+                        </StackPanel>
+
+                        <!-- TAB 7: KHO HÀNG -->
+                        <StackPanel x:Name="TabKhoHang" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkNhapMotMatHangNhieuLanTrongPhieu" Content="Cho phép nhập một mặt hàng nhiều lần trong phiếu" Margin="0,3"/>
+                            <CheckBox x:Name="ChkBatBuocChonNhanVienTrongNhapKho" Content="Bắt buộc chọn nhân viên trong nhập kho" Margin="0,3"/>
+                            <CheckBox x:Name="ChkBatBuocChonNhaCungCapTrongNhapKho" Content="Bắt buộc chọn nhà cung cấp trong nhập kho" Margin="0,3"/>
+                            <CheckBox x:Name="ChkSuDung2DonViTinh" Content="Sử dụng 2 đơn vị tính" Margin="0,3"/>
+                            <CheckBox x:Name="ChkTuDongTinhGiaVon" Content="Tự động tính giá vốn" Margin="0,3"/>
+                            <CheckBox x:Name="ChkNhapKhoBangDauDocMaVach" Content="Nhập kho bằng đầu đọc mã vạch" Margin="0,3"/>
+                            <CheckBox x:Name="ChkSuDungNhieuKho" Content="Sử dụng nhiều kho" Margin="0,3"/>
+                            <CheckBox x:Name="ChkTuDongCapNhatGiaNhapCuaMatHangDinhLuong" Content="Tự động cập nhật giá nhập của mặt hàng định lượng" Margin="0,3"/>
+                            <CheckBox x:Name="ChkTuDongCapNhatGiaVonCuaMatHangDinhLuong" Content="Tự động cập nhật giá vốn của mặt hàng định lượng" Margin="0,3"/>
+                        </StackPanel>
+
+                        <!-- TAB 8: MẶT HÀNG -->
+                        <StackPanel x:Name="TabMatHang" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkSuDungMaHang" Content="Sử dụng mã hàng" Margin="0,3"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Tìm theo"/>
+                                <ComboBox x:Name="CboTimTheo" Grid.Column="1" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="2" Text="Cách tìm"/>
+                                <ComboBox x:Name="CboCachTim" Grid.Column="3"/>
+                            </Grid>
+
+                            <TextBlock Text="Cấu hình sử dụng nhiều giá bán trên mặt hàng hay không" Margin="0,8,0,4"/>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkSuDungGia2" Grid.Column="0" Content="Sử dụng giá 2"/>
+                                <TextBlock Grid.Column="1" Text="Diễn giải giá 2"/>
+                                <TextBox x:Name="TxtDienGiaiGia2" Grid.Column="2" Text="Giá 2"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkSuDungGia3" Grid.Column="0" Content="Sử dụng giá 3"/>
+                                <TextBlock Grid.Column="1" Text="Diễn giải giá 3"/>
+                                <TextBox x:Name="TxtDienGiaiGia3" Grid.Column="2" Text="Giá 2"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkSuDungGia4" Grid.Column="0" Content="Sử dụng giá 4"/>
+                                <TextBlock Grid.Column="1" Text="Diễn giải giá 4"/>
+                                <TextBox x:Name="TxtDienGiaiGia4" Grid.Column="2" Text="Giá 4"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Sắp xếp thứ tự theo"/>
+                                <ComboBox x:Name="CboSapXepThuTuTheo" Grid.Column="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkSuDungTenTiengAnh" Content="Sử dụng tên tiếng anh" Margin="0,3"/>
+                            <CheckBox x:Name="ChkGiaBanLeUsd" Content="Giá bán lẻ (USD)" Margin="0,3"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Làm tròn mặt hàng theo giờ (phút)"/>
+                                <TextBox x:Name="TxtLamTronMatHangDichVuTheoGio" Grid.Column="1" Text="0" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="2" Text="Cách làm tròn"/>
+                                <ComboBox x:Name="CboCachLamTron" Grid.Column="3"/>
+                            </Grid>
+                            <TextBlock Text="(0 = không làm tròn)" FontStyle="Italic" Foreground="#64748B" FontSize="11" Margin="180,0,0,0"/>
+                        </StackPanel>
+
+                        <!-- TAB 9: THIẾT BỊ KHÁC -->
+                        <StackPanel x:Name="TabThietBiKhac" Visibility="Collapsed">
+                            <TextBlock Text="Cây hiển thị giá" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                            <Grid Margin="0,2,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkCoCayHienThiGia" Grid.Column="0" Content="Có cây hiển thị giá"/>
+                                <TextBlock Grid.Column="1" Text="Cổng sử dụng"/>
+                                <TextBox x:Name="TxtCongSuDung" Grid.Column="2"/>
+                            </Grid>
+
+                            <TextBlock Text="Cân điện tử" FontWeight="SemiBold" Margin="0,4,0,3"/>
+                            <CheckBox x:Name="ChkKichHoatSuDungCanDienTu" Content="Kích hoạt sử dụng cân điện tử" Margin="0,0,0,4"/>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Cổng com (Ví dụ COM4)"/>
+                                <TextBox x:Name="TxtCongCom" Grid.Column="1" Text="COM4"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Baud rate"/>
+                                <ComboBox x:Name="CboBaudRate" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Databit (8)"/>
+                                <TextBox x:Name="TxtDatabit" Grid.Column="1" Text="8"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Parity"/>
+                                <ComboBox x:Name="CboParity" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Stop bits"/>
+                                <ComboBox x:Name="CboStopBits" Grid.Column="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Timeout"/>
+                                <TextBox x:Name="TxtTimeout" Grid.Column="1" Text="1,000"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Vị trí"/>
+                                <TextBox x:Name="TxtViTri" Grid.Column="1" Text="6"/>
+                            </Grid>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Độ dài"/>
+                                <TextBox x:Name="TxtDoDai" Grid.Column="1" Text="9"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkCoSuDungCongTacDienTu" Content="Có sử dụng công tắc điện tử" Margin="0,6,0,4"/>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="IP máy chấm công"/>
+                                <TextBox x:Name="TxtIpMayChamCong" Grid.Column="1"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- TAB 10: CẢNH BÁO -->
+                        <StackPanel x:Name="TabCanhBao" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkHienThiCanhBao" Content="Hiển thị cảnh báo" Margin="0,3"/>
+                            <CheckBox x:Name="ChkThongBaoHangDuoiMuocAnToan" Content="Thông báo hàng dưới mức an toàn" Margin="0,3"/>
+                            <CheckBox x:Name="ChkThongBaoKhachDenNgaySinhNhat" Content="Thông báo khách đến ngày sinh nhật" Margin="0,3"/>
+                            <CheckBox x:Name="ChkCanhBaoChuongTrinhKhuyenMai" Content="Thông báo chương trình khuyến mại" Margin="0,3"/>
+                        </StackPanel>
+
+                        <!-- TAB 11: QUẢN TRỊ -->
+                        <StackPanel x:Name="TabQuanTri" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkNhapMatKhauGiamDo" Content="Giảm đồ, xóa đồ nhập mật khẩu" Margin="0,3"/>
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Mật khẩu"/>
+                                <PasswordBox x:Name="TxtPasswordGiamDo" Grid.Column="1" Height="24"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkKichHoatLuuVetHoatDong" Content="Kích hoạt lưu vết hoạt động" Margin="0,4,0,3"/>
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Lưu vết trong (ngày)"/>
+                                <TextBox x:Name="TxtLuuVetTrong" Grid.Column="1" Text="20"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkKhongDuocGiamDoSauKhiInPhaChe" Content="Không được giảm đồ sau khi in pha chế" Margin="0,3"/>
+                            <CheckBox x:Name="ChkLuuVetInCheBien" Content="Lưu vết in chế biến" Margin="0,3"/>
+                            <CheckBox x:Name="ChkHeThongChayNhieuMayTram" Content="Hệ thống chạy nhiều máy trạm" Margin="0,3"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Số lần in tối đa"/>
+                                <TextBox x:Name="TxtSoLanInToiDa" Grid.Column="1" Text="0"/>
+                                <TextBlock Grid.Column="3" Text="Số lần in tạm tính tối đa"/>
+                                <TextBox x:Name="TxtSoLanInTamTinhToiDa" Grid.Column="4" Text="0"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="210"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Thời gian cho phép hủy bill (phút)"/>
+                                <TextBox x:Name="TxtThoiGianChoPhepHuyBill" Grid.Column="1" Text="50"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkBatChucNangKiemSoatOrder" Content="Bật chức năng kiểm soát order" Margin="0,3"/>
+                            <CheckBox x:Name="ChkPhanQuyenTruyCapTheoKhuVuc" Content="Phân quyền truy cập theo khu vực" Margin="0,3"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Số hóa đơn quay vòng theo"/>
+                                <ComboBox x:Name="CboSoHoaDonQuayVongTheo" Grid.Column="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkKichHoatChucNangKiemDo" Content="Kích hoạt chức năng kiểm đồ" Margin="0,3"/>
+                            <CheckBox x:Name="ChkNhapLyDoKhiHuyHoaDon" Content="Nhập lý do khi hủy hóa đơn" Margin="0,3"/>
+                        </StackPanel>
+
+                        <!-- TAB 12: CẢM ỨNG -->
+                        <StackPanel x:Name="TabCamUng" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkSuDungGiaoDienThietKe" Content="Sử dụng giao diện thiết kế" Margin="0,3"/>
+                            <CheckBox x:Name="ChkNhapSoLuongKhiChonMatHang" Content="Nhập số lượng khi chọn mặt hàng" Margin="0,3"/>
+                            <CheckBox x:Name="ChkNhapSoKhachKhiMoHoaDon" Content="Nhập số khách khi mở hóa đơn" Margin="0,3"/>
+                            <CheckBox x:Name="ChkCoManHinhPhu" Content="Có màn hình phụ" Margin="0,3"/>
+
+                            <StackPanel Margin="0,10,0,0">
+                                <TextBlock Text="Logo màn hình phụ" Margin="0,0,0,6"/>
+                                <Border Width="90" Height="90" BorderBrush="#CBD5E1" BorderThickness="1" Background="#F8FAFC" CornerRadius="2" HorizontalAlignment="Left">
+                                    <Image x:Name="ImgLogoManHinhPhu" Stretch="Uniform" Margin="2"/>
+                                </Border>
+                                <Button x:Name="BtnChonLogoManHinhPhu" Content="Chọn" Width="80" Height="24" HorizontalAlignment="Left" Margin="5,6,0,0" Click="BtnChonLogoManHinhPhu_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- TAB 13: TÙY CHỌN KHÁC -->
+                        <StackPanel x:Name="TabTuyChonKhac" Visibility="Collapsed">
+                            <CheckBox x:Name="ChkPhieuGanNhatODuoi" Content="Phiếu gần nhất nằm phía dưới" Margin="0,3"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Phím nhập liệu trên lưới"/>
+                                <ComboBox x:Name="CboPhimNhapLieuTrenLuoi" Grid.Column="1"/>
+                            </Grid>
+
+                            <TextBlock Text="Thiết lập tùy chọn tự động sao lưu dữ liệu để đảm bảo an toàn trong tình huống xấu nhất" FontWeight="SemiBold" Margin="0,8,0,3"/>
+                            <CheckBox x:Name="ChkTuDongSaoLuuDuLieu" Content="Tự động sao lưu dữ liệu" Margin="0,2,0,4"/>
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Đường dẫn sao lưu:"/>
+                                <TextBox x:Name="TxtDuongDanSaoLuu" Grid.Column="1"/>
+                                <TextBlock Grid.Column="3" Text="Số ngày:"/>
+                                <TextBox x:Name="TxtSoNgaySaoLuu" Grid.Column="4" Text="1"/>
+                            </Grid>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Chức năng mặc định"/>
+                                <ComboBox x:Name="CboChucNangMacDinh" Grid.Column="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkLocDuLieuBoKhoangTrong" Content="Lọc dữ liệu bỏ khoảng trống" Margin="0,4,0,1"/>
+                            <TextBlock Text="(Ví dụ bạn tìm &quot;cafe da&quot; sẽ ra cả &quot;cafe đá&quot; và &quot;cafeda&quot;)" FontStyle="Italic" Foreground="#64748B" FontSize="11" Margin="24,0,0,4"/>
+
+                            <CheckBox x:Name="ChkHienThiXuongDongNeuDoRongCotNho" Content="Hiển thị xuống dòng nếu độ rộng cột nhỏ" Margin="0,4,0,1"/>
+                            <TextBlock Text="(Tùy chọn này sẽ làm chương trình chạy chậm hơn một chút)" FontStyle="Italic" Foreground="#64748B" FontSize="11" Margin="24,0,0,4"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Độ to chữ hiển thị"/>
+                                <ComboBox x:Name="CboDoToChuHienThi" Grid.Column="1"/>
+                            </Grid>
+                            <TextBlock Text="(Bạn cần thoát chương trình ra vào lại để áp dụng)" FontStyle="Italic" Foreground="#64748B" FontSize="11" Margin="160,0,0,4"/>
+
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Giao diện chương trình"/>
+                                <ComboBox x:Name="CboGiaoDienChuongTrinh" Grid.Column="1"/>
+                            </Grid>
+
+                            <CheckBox x:Name="ChkTuDongTaiLai" Content="Tự động tải lại dữ liệu khi chuyển tab ở giao diện chính" Margin="0,6,0,3"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Bottom Actions Bar -->
+        <Border Grid.Row="2" Background="#E2E8F0" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="3" Padding="8,6" Margin="0,6,0,0">
+            <Grid>
+                <!-- Left: Search Box -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="🔍" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtSearchConfig" Width="200" Height="26" VerticalContentAlignment="Center"
+                             ToolTip="Tìm kiếm cấu hình (Ctrl + F)"
+                             TextChanged="TxtSearchConfig_TextChanged"/>
+                </StackPanel>
+
+                <!-- Right: Action Buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BtnGhiDuLieu" Content="Ghi dữ liệu" Width="100" Height="28" Margin="0,0,8,0" FontWeight="SemiBold" Background="#0284C7" Foreground="White" Click="BtnGhiDuLieu_Click"/>
+                    <Button x:Name="BtnThoat" Content="Thoát" Width="80" Height="28" Background="#F1F5F9" Click="BtnThoat_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

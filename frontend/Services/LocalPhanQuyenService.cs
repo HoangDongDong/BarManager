@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using Dapper;
 using FirebirdSql.Data.FirebirdClient;
@@ -531,9 +532,172 @@ namespace QuanLyBar.Client.Services
             return null;
         }
 
+        #region Runtime Permission Checking
+        private static readonly Dictionary<string, int> _userFunctionPermissions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> _userReportPermissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static bool _isCurrentUserAdmin = false;
+
+        public static async Task LoadCurrentUserPermissionsAsync(string userId, string groupId, bool isAdmin)
+        {
+            _userFunctionPermissions.Clear();
+            _userReportPermissions.Clear();
+            _isCurrentUserAdmin = isAdmin;
+
+            if (isAdmin || string.IsNullOrEmpty(groupId) || groupId == "0")
+            {
+                return;
+            }
+
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+
+                    // Lấy quyền chức năng từ SGROUPROLE + SFUNCTION
+                    var funcRoles = (await conn.QueryAsync(@"
+                        SELECT f.NAME, r.MODE 
+                        FROM SGROUPROLE r 
+                        JOIN SFUNCTION f ON r.SFUNCTIONID = f.ID 
+                        WHERE r.SGROUPUSERID = @GroupId AND (r.STATUS IS NULL OR r.STATUS <> 0) AND (f.STATUS IS NULL OR f.STATUS <> 0)
+                    ", new { GroupId = groupId })).ToList();
+
+                    foreach (object row in funcRoles)
+                    {
+                        var dict = row as IDictionary<string, object>;
+                        string name = GetValue(dict, "NAME")?.ToString()?.Trim() ?? "";
+                        int mode = int.TryParse(GetValue(dict, "MODE")?.ToString(), out int m) ? m : 0;
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            _userFunctionPermissions[name] = mode;
+                        }
+                    }
+
+                    // Lấy quyền xem báo cáo từ SREPORTROLE + SREPORT
+                    var repRoles = (await conn.QueryAsync(@"
+                        SELECT rep.NAME, r.MODE 
+                        FROM SREPORTROLE r 
+                        JOIN SREPORT rep ON r.SREPORTID = rep.ID 
+                        WHERE r.SGROUPUSERID = @GroupId AND (r.STATUS IS NULL OR r.STATUS <> 0) AND (rep.STATUS IS NULL OR rep.STATUS <> 0)
+                    ", new { GroupId = groupId })).ToList();
+
+                    foreach (object row in repRoles)
+                    {
+                        var dict = row as IDictionary<string, object>;
+                        string name = GetValue(dict, "NAME")?.ToString()?.Trim() ?? "";
+                        int mode = int.TryParse(GetValue(dict, "MODE")?.ToString(), out int m) ? m : 0;
+                        if (!string.IsNullOrEmpty(name) && mode == 30)
+                        {
+                            _userReportPermissions.Add(name);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error LoadCurrentUserPermissionsAsync: " + ex.Message);
+            }
+        }
+
+        private static string NormalizeFunctionName(string funcName)
+        {
+            if (string.IsNullOrWhiteSpace(funcName)) return "";
+            string f = funcName.Trim();
+            if (string.Equals(f, "Sử dụng dịch vụ", StringComparison.OrdinalIgnoreCase)) return "Hóa đơn bán hàng";
+            if (string.Equals(f, "Khách đặt hàng", StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(f, "Theo dõi đặt phòng", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(f, "Đặt phòng", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Đặt hàng";
+            }
+            if (string.Equals(f, "Thống kê bán hàng", StringComparison.OrdinalIgnoreCase)) return "Thống kê mặt hàng bán";
+            if (string.Equals(f, "Tổng hợp KQKD", StringComparison.OrdinalIgnoreCase)) return "Tổng hợp kết quả kinh doanh";
+            if (string.Equals(f, "Chi tiết hoạt động", StringComparison.OrdinalIgnoreCase)) return "Chi tiết hoạt động ngày";
+            if (string.Equals(f, "Thưởng phạt", StringComparison.OrdinalIgnoreCase)) return "Quản lý thưởng phạt";
+            if (string.Equals(f, "Quản lý chuyển kho", StringComparison.OrdinalIgnoreCase)) return "Chuyển kho";
+            if (string.Equals(f, "Tạo phiếu thu", StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(f, "Tạo phiếu chi", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(f, "Danh mục phiếu thu", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(f, "Danh mục phiếu chi", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(f, "Phiếu thu", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(f, "Phiếu chi", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Danh mục phiếu thu chi";
+            }
+            return f;
+        }
+
+        public static bool HasFunctionPermission(string funcName, string action = "View")
+        {
+            if (_isCurrentUserAdmin) return true;
+            if (SessionContext.CurrentUser == null) return true; // Standalone / Dev mode
+            if (SessionContext.CurrentUser.IsAdmin || SessionContext.CurrentUser.TenDangNhap?.ToLower() == "admin") return true;
+
+            if (string.IsNullOrWhiteSpace(funcName)) return true;
+
+            string normalized = NormalizeFunctionName(funcName);
+
+            if (!_userFunctionPermissions.TryGetValue(normalized, out int mode) && 
+                !_userFunctionPermissions.TryGetValue(funcName.Trim(), out mode))
+            {
+                // Chưa được phân quyền -> Mặc định khóa
+                return false;
+            }
+
+            if (mode == 0) return false;
+
+            switch (action?.Trim()?.ToLower())
+            {
+                case "add":
+                case "them":
+                    return (mode & 32) != 0;
+                case "edit":
+                case "sua":
+                    return (mode & 64) != 0;
+                case "delete":
+                case "xoa":
+                    return (mode & 128) != 0;
+                case "all":
+                case "tatca":
+                    return (mode & 240) == 240;
+                case "view":
+                case "xem":
+                default:
+                    return (mode & 16) != 0;
+            }
+        }
+
+        public static bool HasReportPermission(string reportName)
+        {
+            if (_isCurrentUserAdmin) return true;
+            if (SessionContext.CurrentUser == null) return true;
+            if (SessionContext.CurrentUser.IsAdmin || SessionContext.CurrentUser.TenDangNhap?.ToLower() == "admin") return true;
+
+            if (string.IsNullOrWhiteSpace(reportName)) return true;
+            return _userReportPermissions.Contains(reportName.Trim());
+        }
+
+        public static bool CheckPermissionAndAlert(string funcName, string action = "View", Window owner = null)
+        {
+            if (!HasFunctionPermission(funcName, action))
+            {
+                string actionDesc = action.ToLower() switch
+                {
+                    "add" or "them" => "thêm mới",
+                    "edit" or "sua" => "chỉnh sửa",
+                    "delete" or "xoa" => "xóa",
+                    _ => "sử dụng"
+                };
+                MessageBox.Show($"Tài khoản của bạn không có quyền {actionDesc} chức năng '{funcName}'!\nVui lòng liên hệ Quản lý để được phân quyền.", "Thông báo phân quyền", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            return true;
+        }
+        #endregion
+
 
         #region Master Function & Report Definitions
-        private static readonly List<(int Id, string Name, string GroupName, bool HasCrud)> MasterFunctions = new List<(int, string, string, bool)>
+        public static readonly List<(int Id, string Name, string GroupName, bool HasCrud)> MasterFunctions = new List<(int, string, string, bool)>
         {
             // Bán hàng
             (1, "Sử dụng dịch vụ", "Bán hàng", false),
@@ -635,7 +799,7 @@ namespace QuanLyBar.Client.Services
             (81, "Xóa dữ liệu", "Quản trị", false)
         };
 
-        private static readonly List<(int Id, string Name, string GroupName)> MasterReports = new List<(int, string, string)>
+        public static readonly List<(int Id, string Name, string GroupName)> MasterReports = new List<(int, string, string)>
         {
             // BÁO CÁO QUỸ
             (1, "DANH SÁCH PHIẾU THU THEO NGÀY", "BÁO CÁO QUỸ"),

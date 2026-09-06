@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client
 {
@@ -21,6 +22,7 @@ namespace QuanLyBar.Client
                 {
                     if (e.Key == Key.T)
                     {
+                        if (!LocalPhanQuyenService.CheckPermissionAndAlert("Tạo phiếu thu", "View", this)) return;
                         var win = new QuanLyBar.Client.Views.PhieuThuChi.TaoPhieuThuWindow();
                         win.Owner = this;
                         win.ShowDialog();
@@ -28,6 +30,7 @@ namespace QuanLyBar.Client
                     }
                     else if (e.Key == Key.C)
                     {
+                        if (!LocalPhanQuyenService.CheckPermissionAndAlert("Tạo phiếu chi", "View", this)) return;
                         var win = new QuanLyBar.Client.Views.PhieuThuChi.TaoPhieuChiWindow();
                         win.Owner = this;
                         win.ShowDialog();
@@ -44,16 +47,252 @@ namespace QuanLyBar.Client
                 var userInfoStr = $"Nhân viên: {SessionContext.CurrentUser.TenDangNhap} | Vai trò: {SessionContext.CurrentUser.VaiTro}";
                 this.Title = $"Phần Mềm Quản Lý Bar, Nhà Hàng - [{userInfoStr}]";
                 
-                AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
-                AddTab("Danh mục nhà cung cấp", new QuanLyBar.Client.Views.DanhMucNhaCungCap.DanhMucNhaCungCapControl());
-                AddTab("Quản lý nhập kho", new QuanLyBar.Client.Views.QuanLyNhapKho.QuanLyNhapKhoControl());
-                AddTab("Quản lý xuất kho", new QuanLyBar.Client.Views.QuanLyXuatKho.QuanLyXuatKhoControl());
-                AddTab("Quản lý chuyển kho", new QuanLyBar.Client.Views.QuanLyChuyenKho.QuanLyChuyenKhoControl());
-                AddTab("Quản lý kiểm kê", new QuanLyBar.Client.Views.QuanLyKiemKe.QuanLyKiemKeControl());
-                AddTab("Thưởng phạt", new QuanLyBar.Client.Views.NhanSu.ThuongPhatControl());
-                AddTab("Chấm công", new QuanLyBar.Client.Views.NhanSu.ChamCongControl());
-                MainTabControl.SelectedIndex = MainTabControl.Items.Count - 1;
+                // 1. Tự động ẩn/hiện Menu bar và Toolbar theo quyền thực tế của tài khoản
+                ApplyPermissionsToUI();
+
+                // 2. Tự động mở các tab mà tài khoản có quyền xem
+                if (LocalPhanQuyenService.HasFunctionPermission("Sử dụng dịch vụ", "View"))
+                    AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
+
+                if (LocalPhanQuyenService.HasFunctionPermission("Danh mục nhà cung cấp", "View"))
+                    AddTab("Danh mục nhà cung cấp", new QuanLyBar.Client.Views.DanhMucNhaCungCap.DanhMucNhaCungCapControl());
+
+                if (LocalPhanQuyenService.HasFunctionPermission("Nhập kho", "View"))
+                    AddTab("Quản lý nhập kho", new QuanLyBar.Client.Views.QuanLyNhapKho.QuanLyNhapKhoControl());
+
+                if (LocalPhanQuyenService.HasFunctionPermission("Xuất kho", "View"))
+                    AddTab("Quản lý xuất kho", new QuanLyBar.Client.Views.QuanLyXuatKho.QuanLyXuatKhoControl());
+
+                if (LocalPhanQuyenService.HasFunctionPermission("Quản lý chuyển kho", "View"))
+                    AddTab("Quản lý chuyển kho", new QuanLyBar.Client.Views.QuanLyChuyenKho.QuanLyChuyenKhoControl());
+
+                if (LocalPhanQuyenService.HasFunctionPermission("Kiểm kê kho", "View"))
+                    AddTab("Quản lý kiểm kê", new QuanLyBar.Client.Views.QuanLyKiemKe.QuanLyKiemKeControl());
+
+                if (LocalPhanQuyenService.HasFunctionPermission("Thưởng phạt", "View"))
+                    AddTab("Thưởng phạt", new QuanLyBar.Client.Views.NhanSu.ThuongPhatControl());
+
+                if (LocalPhanQuyenService.HasFunctionPermission("Chấm công", "View"))
+                    AddTab("Chấm công", new QuanLyBar.Client.Views.NhanSu.ChamCongControl());
+
+                if (MainTabControl.Items.Count > 0)
+                {
+                    MainTabControl.SelectedIndex = 0;
+                }
             }
+        }
+
+        private void ApplyPermissionsToUI()
+        {
+            if (SessionContext.CurrentUser == null) return;
+            bool isAdmin = SessionContext.CurrentUser.IsAdmin || SessionContext.CurrentUser.TenDangNhap?.ToLower() == "admin";
+
+            // 1. Áp dụng phân quyền cho Menu bar
+            if (MainMenu != null)
+            {
+                foreach (var item in MainMenu.Items)
+                {
+                    if (item is MenuItem rootMenu)
+                    {
+                        ApplyPermissionsToMenuItem(rootMenu, isAdmin);
+                    }
+                }
+            }
+
+            // 2. Áp dụng phân quyền cho Toolbar
+            if (MainToolBar != null)
+            {
+                foreach (var child in MainToolBar.Items)
+                {
+                    if (child is Button btn)
+                    {
+                        string text = btn.Content?.ToString()?.Trim() ?? "";
+                        if (text == "Thoát" || text == "Ghi chú")
+                        {
+                            btn.Visibility = Visibility.Visible;
+                        }
+                        else if (text == "Báo cáo")
+                        {
+                            btn.Visibility = isAdmin || LocalPhanQuyenService.MasterReports.Any(r => LocalPhanQuyenService.HasReportPermission(r.Name)) 
+                                ? Visibility.Visible : Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            string funcName = MapTabNameToFunctionName(text);
+                            btn.Visibility = (isAdmin || LocalPhanQuyenService.HasFunctionPermission(funcName, "View"))
+                                ? Visibility.Visible : Visibility.Collapsed;
+                        }
+                    }
+                }
+
+                // Ẩn separator thừa trên Toolbar
+                UIElement lastVisible = null;
+                foreach (UIElement elem in MainToolBar.Items)
+                {
+                    if (elem is Separator sep)
+                    {
+                        if (lastVisible == null || lastVisible is Separator)
+                        {
+                            sep.Visibility = Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            sep.Visibility = Visibility.Visible;
+                            lastVisible = sep;
+                        }
+                    }
+                    else if (elem.Visibility == Visibility.Visible)
+                    {
+                        lastVisible = elem;
+                    }
+                }
+                if (lastVisible is Separator trailingSep)
+                {
+                    trailingSep.Visibility = Visibility.Collapsed;
+                }
+            }
+        }
+
+        private bool ApplyPermissionsToMenuItem(MenuItem mi, bool isAdmin)
+        {
+            if (mi == null) return false;
+
+            string header = mi.Header?.ToString()?.Trim() ?? "";
+            if (header.Contains("Ctrl+"))
+            {
+                header = header.Substring(0, header.IndexOf("Ctrl+")).Trim();
+            }
+
+            // Các menu hệ thống cơ bản luôn cho phép hiển thị
+            if (header == "TRỢ GIÚP" || header == "Đổi mật khẩu đăng nhập" || 
+                header == "Đăng xuất khỏi hệ thống" || header == "Thoát khỏi hệ thống" || 
+                header == "Đăng ký bản quyền..." || header == "Thông tin phần mềm")
+            {
+                mi.Visibility = Visibility.Visible;
+                return true;
+            }
+
+            if (mi.Items.Count > 0)
+            {
+                bool hasVisibleChild = false;
+
+                foreach (var child in mi.Items)
+                {
+                    if (child is MenuItem childMi)
+                    {
+                        bool childVisible = ApplyPermissionsToMenuItem(childMi, isAdmin);
+                        if (childVisible)
+                        {
+                            hasVisibleChild = true;
+                        }
+                    }
+                }
+
+                // Xử lý ẩn các Separator thừa trong submenu
+                UIElement prev = null;
+                foreach (var child in mi.Items)
+                {
+                    if (child is Separator sep)
+                    {
+                        if (prev == null || prev is Separator)
+                        {
+                            sep.Visibility = Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            sep.Visibility = Visibility.Visible;
+                            prev = sep;
+                        }
+                    }
+                    else if (child is UIElement elem && elem.Visibility == Visibility.Visible)
+                    {
+                        prev = elem;
+                    }
+                }
+                if (prev is Separator lastSep)
+                {
+                    lastSep.Visibility = Visibility.Collapsed;
+                }
+
+                mi.Visibility = (isAdmin || hasVisibleChild) ? Visibility.Visible : Visibility.Collapsed;
+                return mi.Visibility == Visibility.Visible;
+            }
+            else
+            {
+                // Leaf MenuItem (mục menu cấp cuối)
+                bool isReport = IsReportMenuItem(mi);
+                
+                bool canView;
+                if (isAdmin)
+                {
+                    canView = true;
+                }
+                else if (isReport)
+                {
+                    canView = LocalPhanQuyenService.HasReportPermission(header);
+                }
+                else
+                {
+                    string funcName = MapTabNameToFunctionName(header);
+                    canView = LocalPhanQuyenService.HasFunctionPermission(funcName, "View");
+                }
+
+                mi.Visibility = canView ? Visibility.Visible : Visibility.Collapsed;
+                return canView;
+            }
+        }
+
+        private bool IsReportMenuItem(MenuItem mi)
+        {
+            if (mi == null) return false;
+            DependencyObject current = mi;
+            while (current != null)
+            {
+                if (current is MenuItem p && p != mi)
+                {
+                    string h = p.Header?.ToString()?.Trim() ?? "";
+                    if (h.IndexOf("BÁO CÁO", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                }
+                current = LogicalTreeHelper.GetParent(current) ?? VisualTreeHelper.GetParent(current);
+            }
+            return false;
+        }
+
+        private string MapTabNameToFunctionName(string tabName)
+        {
+            if (string.IsNullOrWhiteSpace(tabName)) return "";
+            string t = tabName.Trim();
+            if (t == "Sử dụng dịch vụ") return "Hóa đơn bán hàng";
+            if (t == "Khách đặt hàng" || t == "Theo dõi đặt phòng" || t == "Đặt phòng") return "Đặt hàng";
+            if (t == "Thống kê bán hàng") return "Thống kê mặt hàng bán";
+            if (t == "Tổng hợp KQKD") return "Tổng hợp kết quả kinh doanh";
+            if (t == "Chi tiết hoạt động") return "Chi tiết hoạt động ngày";
+            if (t == "Nhập hàng vào kho" || t == "Phiếu nhập kho" || t == "Quản lý nhập kho") return "Nhập kho";
+            if (t == "Xuất khác" || t == "Xuất kho" || t == "Phiếu xuất kho" || t == "Quản lý xuất kho") return "Xuất kho";
+            if (t == "Chuyển kho" || t == "Phiếu chuyển kho" || t == "Quản lý chuyển kho") return "Chuyển kho";
+            if (t == "Kiểm kê kho" || t == "Kiểm kê" || t == "Phiếu kiểm kê" || t == "Quản lý kiểm kê") return "Kiểm kê kho";
+            if (t == "Kho hàng") return "Danh mục kho hàng";
+            if (t == "Nhà cung cấp") return "Danh mục nhà cung cấp";
+            if (t == "Nhân viên") return "Danh mục nhân viên";
+            if (t == "Ca làm việc") return "Danh mục ca làm việc";
+            if (t == "Lý do thu chi") return "Danh mục lý do thu chi";
+            if (t == "Tài khoản ngân hàng") return "Danh mục tài khoản ngân hàng";
+            if (t == "Thẻ trả trước") return "Danh mục thẻ trả trước";
+            if (t == "Đợt khuyến mại") return "Danh mục đợt khuyến mại";
+            if (t == "Quản lý người dùng" || t == "Phân quyền" || t == "Người dùng và phân quyền") return "Quản lý người dùng";
+            if (t == "Báo cáo tồn quỹ" || t == "BÁO CÁO TỒN QUỸ") return "Tồn quỹ";
+            if (t == "Quản lý phiếu thu" || t == "Tạo phiếu thu" || t == "Phiếu thu" || t == "Tạo phiếu chi" || t == "Phiếu chi" || t == "Quản lý phiếu chi") return "Danh mục phiếu thu chi";
+            if (t == "Thưởng phạt" || t == "Quản lý thưởng phạt") return "Quản lý thưởng phạt";
+            if (t == "Quản lý chấm công") return "Chấm công";
+            if (t == "Bảng tính lương" || t == "Bảng lương") return "Tính lương";
+            if (t == "Quản lý công nợ khách hàng") return "Công nợ khách hàng";
+            if (t == "Quản lý công nợ nhà cung cấp") return "Công nợ nhà cung cấp";
+            if (t == "Báo cáo tồn kho" || t == "Quản lý tồn kho" || t == "Tồn nhiều kho" || t == "Báo cáo tồn nhiều kho") return "Tồn kho";
+            if (t == "Gửi tin nhắn khách hàng" || t == "Gửi tin nhắn") return "Gửi tin nhắn tới khách hàng";
+            if (t == "Thư viện ảnh..." || t == "Quản lý thư viện ảnh") return "Thư viện ảnh";
+            if (t == "CÔNG NỢ BAN ĐẦU" || t == "Công nợ ban đầu" || t == "Công nợ khách hàng ban đầu" || t == "Công nợ nhà cung cấp ban đầu" || t == "Tồn kho ban đầu") return "Dữ liệu ban đầu";
+            return t;
         }
 
         private string NormalizeTabName(string name)
@@ -131,6 +370,13 @@ namespace QuanLyBar.Client
                     }
 
                     tabName = NormalizeTabName(tabName);
+
+                    string funcName = MapTabNameToFunctionName(tabName);
+                    if (!LocalPhanQuyenService.CheckPermissionAndAlert(funcName, "View", this))
+                    {
+                        return;
+                    }
+
                     System.Windows.UIElement content;
 
                     if (tabName == "Danh mục mặt hàng")
@@ -382,6 +628,13 @@ namespace QuanLyBar.Client
                     else if (tabName == "Người dùng và phân quyền" || tabName == "Quản lý người dùng" || tabName == "Phân quyền")
                     {
                         var win = new QuanLyBar.Client.Views.NguoiDungPhanQuyen.NguoiDungPhanQuyenWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Cấu hình toàn hệ thống" || tabName == "Cấu hình hệ thống")
+                    {
+                        var win = new QuanLyBar.Client.Views.CauHinhHeThong.CauHinhToanHeThongWindow();
                         win.Owner = this;
                         win.ShowDialog();
                         return;

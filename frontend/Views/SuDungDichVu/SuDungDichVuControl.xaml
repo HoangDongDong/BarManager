@@ -229,14 +229,14 @@
                         <!-- Dòng 4: Toolbar thao tác món -->
                         <Border x:Name="BorderOrderToolbar" Background="#e6f2fa" BorderBrush="#bedbf2" BorderThickness="1" Padding="2" Margin="0,2,0,0">
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="➕" ToolTip="Tăng số lượng" Width="26" Height="22" Margin="0,0,2,0" Background="White" Click="BtnTangSoLuong_Click"/>
-                                <Button Content="➖" ToolTip="Giảm số lượng" Width="26" Height="22" Margin="0,0,2,0" Background="White" Click="BtnGiamSoLuong_Click"/>
-                                <Button Content="🗑️" ToolTip="Xóa món chọn" Width="26" Height="22" Margin="0,0,8,0" Background="White" Click="BtnXoaMon_Click"/>
+                                <Button x:Name="BtnTangSoLuongToolbar" Content="➕" ToolTip="Tăng số lượng" Width="26" Height="22" Margin="0,0,2,0" Background="White" Click="BtnTangSoLuong_Click"/>
+                                <Button x:Name="BtnGiamSoLuongToolbar" Content="➖" ToolTip="Giảm số lượng" Width="26" Height="22" Margin="0,0,2,0" Background="White" Click="BtnGiamSoLuong_Click"/>
+                                <Button x:Name="BtnXoaMonToolbar" Content="🗑️" ToolTip="Xóa món chọn" Width="26" Height="22" Margin="0,0,8,0" Background="White" Click="BtnXoaMon_Click"/>
                                 
-                                <Button Content="Đặt sl" Background="Transparent" BorderThickness="0" Margin="0,0,6,0" Cursor="Hand" Click="BtnDatSl_Click"/>
-                                <Button Content="Đổi giá" Background="Transparent" BorderThickness="0" Margin="0,0,6,0" Cursor="Hand" Click="BtnDoiGia_Click"/>
-                                <Button Content="Ghi chú" Background="Transparent" BorderThickness="0" Margin="0,0,6,0" Cursor="Hand" Click="BtnGhiChu_Click"/>
-                                <Button Content="CK%" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnChietKhau_Click"/>
+                                <Button x:Name="BtnDatSlToolbar" Content="Đặt sl" Background="Transparent" BorderThickness="0" Margin="0,0,6,0" Cursor="Hand" Click="BtnDatSl_Click"/>
+                                <Button x:Name="BtnDoiGia" Content="Đổi giá" Background="Transparent" BorderThickness="0" Margin="0,0,6,0" Cursor="Hand" Click="BtnDoiGia_Click"/>
+                                <Button x:Name="BtnGhiChu" Content="Ghi chú" Background="Transparent" BorderThickness="0" Margin="0,0,6,0" Cursor="Hand" Click="BtnGhiChu_Click"/>
+                                <Button x:Name="BtnChietKhau" Content="CK%" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnChietKhau_Click"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

@@ -410,6 +410,7 @@ namespace QuanLyBar.Client.Views
                             if (cellData.IsBooked && !string.IsNullOrEmpty(cellData.BookingId))
                             {
                                 // Mở xem / sửa đơn đặt phòng đã có
+                                if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Edit", Window.GetWindow(this))) return;
                                 var win = new ThemMoiDatHangWindow(cellData.BookingId);
                                 win.Owner = Window.GetWindow(this);
                                 win.OrderSaved += async () => await LoadData();
@@ -420,6 +421,7 @@ namespace QuanLyBar.Client.Views
                             else
                             {
                                 // Tạo mới đơn đặt hàng cho ngày và phòng này
+                                if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Add", Window.GetWindow(this))) return;
                                 var win = new ThemMoiDatHangWindow();
                                 win.Owner = Window.GetWindow(this);
                                 win.OrderSaved += async () => await LoadData();
@@ -432,6 +434,7 @@ namespace QuanLyBar.Client.Views
                 }
 
                 // Fallback nếu không bấm đúng cell ngày
+                if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Add", Window.GetWindow(this))) return;
                 var defaultWin = new ThemMoiDatHangWindow();
                 defaultWin.Owner = Window.GetWindow(this);
                 defaultWin.OrderSaved += async () => await LoadData();
@@ -442,6 +445,7 @@ namespace QuanLyBar.Client.Views
 
         private void BtnThemDatPhong_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Add", Window.GetWindow(this))) return;
             var win = new ThemMoiDatHangWindow();
             win.Owner = Window.GetWindow(this);
             win.OrderSaved += async () => await LoadData();
@@ -456,6 +460,7 @@ namespace QuanLyBar.Client.Views
                 var firstBooked = selectedRow.Cells.FirstOrDefault(c => c.IsBooked);
                 if (firstBooked != null && !string.IsNullOrEmpty(firstBooked.BookingId))
                 {
+                    if (!LocalPhanQuyenService.CheckPermissionAndAlert("Đặt hàng", "Edit", Window.GetWindow(this))) return;
                     var win = new ThemMoiDatHangWindow(firstBooked.BookingId);
                     win.Owner = Window.GetWindow(this);
                     win.OrderSaved += async () => await LoadData();

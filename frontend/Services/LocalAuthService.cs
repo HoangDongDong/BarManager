@@ -75,7 +75,45 @@ namespace QuanLyBar.Client.Services
                         int isAdminIndex = reader.GetOrdinal("ISADMIN");
 
                         string userId = reader.GetValue(idIndex).ToString();
-                        bool isAdmin = !reader.IsDBNull(isAdminIndex) && (reader.GetInt16(isAdminIndex) == 1 || reader.GetBoolean(isAdminIndex));
+                        bool isAdmin = !reader.IsDBNull(isAdminIndex) && (reader.GetInt16(isAdminIndex) == 1 || reader.GetBoolean(isAdminIndex) || username.Equals("admin", StringComparison.OrdinalIgnoreCase));
+
+                        string groupId = "";
+                        try
+                        {
+                            int gIndex = reader.GetOrdinal("SGROUPUSERID");
+                            if (!reader.IsDBNull(gIndex)) groupId = reader.GetValue(gIndex)?.ToString() ?? "";
+                        }
+                        catch { }
+
+                        string fullName = username;
+                        try
+                        {
+                            int nIndex = reader.GetOrdinal("NAME");
+                            if (!reader.IsDBNull(nIndex)) fullName = reader.GetValue(nIndex)?.ToString() ?? username;
+                        }
+                        catch { }
+
+                        string groupName = "";
+                        if (!string.IsNullOrEmpty(groupId))
+                        {
+                            try
+                            {
+                                using (var gCmd = conn.CreateCommand())
+                                {
+                                    gCmd.CommandText = "SELECT NAME FROM SGROUPUSER WHERE ID = @GId";
+                                    var pGId = gCmd.CreateParameter();
+                                    pGId.ParameterName = "@GId";
+                                    pGId.Value = groupId;
+                                    gCmd.Parameters.Add(pGId);
+                                    var gNameVal = await gCmd.ExecuteScalarAsync();
+                                    if (gNameVal != null) groupName = gNameVal.ToString();
+                                }
+                            }
+                            catch { }
+                        }
+
+                        // Tải phân quyền chức năng và báo cáo vào Session
+                        await LocalPhanQuyenService.LoadCurrentUserPermissionsAsync(userId, groupId, isAdmin);
 
                         // Cập nhật TIMEMODIFIED không bắt buộc (chạy nền)
                         _ = UpdateTimeModifiedAsync(userId);
@@ -85,7 +123,11 @@ namespace QuanLyBar.Client.Services
                         {
                             Id = userId,
                             TenDangNhap = username,
-                            VaiTro = isAdmin ? "1" : "2"
+                            TenHienThi = fullName,
+                            GroupId = groupId,
+                            GroupName = groupName,
+                            IsAdmin = isAdmin,
+                            VaiTro = isAdmin ? "Quản trị viên" : (!string.IsNullOrEmpty(groupName) ? groupName : "Nhân viên")
                         };
                     }
                 }
