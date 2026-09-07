@@ -9,12 +9,16 @@ namespace QuanLyBar.Client.Views
         public decimal SoLuong { get; private set; } = 1;
         private decimal _maxSoLuong = 1;
 
-        public NhapSoLuongChuyenWindow(string tenHang, decimal currentSoLuong)
+        public NhapSoLuongChuyenWindow(string tenHang, decimal currentSoLuong, bool isOrdering = false)
         {
             InitializeComponent();
-            _maxSoLuong = currentSoLuong > 0 ? currentSoLuong : 1;
+            _maxSoLuong = isOrdering ? 999999 : (currentSoLuong > 0 ? currentSoLuong : 1);
             TxtTenMatHang.Text = $"Mặt hàng: {tenHang}";
-            TxtSoLuong.Text = "1";
+            TxtSoLuong.Text = (currentSoLuong > 0 ? currentSoLuong : 1).ToString();
+            if (isOrdering)
+            {
+                Title = "Nhập số lượng gọi món";
+            }
 
             Loaded += (s, e) =>
             {

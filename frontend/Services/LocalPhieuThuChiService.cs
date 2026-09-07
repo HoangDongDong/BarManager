@@ -26,9 +26,9 @@ namespace QuanLyBar.Client.Services
 
         public static async Task<string> GetNextSoPhieuAsync(bool isThu)
         {
-            string prefix = isThu ? "PT" : "PC";
-            string year2Digits = DateTime.Now.ToString("yy");
-            string pattern = $"{prefix}{year2Digits}/";
+            DateTime now = DateTime.Now;
+            string defaultPattern = isThu ? "PT(yy)/(*****)" : "PC(yy)/(*****)";
+            string tableName = isThu ? "TPHIEUTHU" : "TPHIEUCHI";
 
             try
             {
@@ -36,29 +36,50 @@ namespace QuanLyBar.Client.Services
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
 
-                    string colAmount = isThu ? "THU" : "CHI";
-                    string sql = $"SELECT NAME FROM TTHUCHI WHERE {colAmount} > 0 AND NAME LIKE '{pattern}%'";
-                    var names = (await conn.QueryAsync<string>(sql)).ToList();
+                    string pattern = await LocalCauHinhService.GetFormatPatternAsync(tableName, defaultPattern);
+                    var (periodStart, periodEnd) = LocalCauHinhService.GetResetPeriod(pattern, now);
 
+                    string colAmount = isThu ? "THU" : "CHI";
                     int maxNumber = 0;
-                    foreach (var name in names)
+
+                    if (periodStart.HasValue && periodEnd.HasValue)
                     {
-                        if (string.IsNullOrEmpty(name)) continue;
-                        var parts = name.Split('/');
-                        if (parts.Length == 2 && int.TryParse(parts[1], out int num))
+                        var names = (await conn.QueryAsync<string>(
+                            $"SELECT NAME FROM TTHUCHI WHERE {colAmount} > 0 AND CAST(NGAY AS DATE) >= @PStart AND CAST(NGAY AS DATE) <= @PEnd",
+                            new { PStart = periodStart.Value.Date, PEnd = periodEnd.Value.Date })).ToList();
+
+                        foreach (var name in names)
                         {
-                            if (num > maxNumber) maxNumber = num;
+                            if (string.IsNullOrEmpty(name)) continue;
+                            var match = System.Text.RegularExpressions.Regex.Match(name, @"\d+");
+                            if (match.Success && int.TryParse(match.Value, out int num))
+                            {
+                                if (num > maxNumber) maxNumber = num;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var names = (await conn.QueryAsync<string>($"SELECT NAME FROM TTHUCHI WHERE {colAmount} > 0")).ToList();
+                        foreach (var name in names)
+                        {
+                            if (string.IsNullOrEmpty(name)) continue;
+                            var match = System.Text.RegularExpressions.Regex.Match(name, @"\d+");
+                            if (match.Success && int.TryParse(match.Value, out int num))
+                            {
+                                if (num > maxNumber) maxNumber = num;
+                            }
                         }
                     }
 
                     int nextNum = maxNumber + 1;
-                    return $"{pattern}{nextNum:D5}";
+                    return LocalCauHinhService.ApplyPattern(pattern, now, nextNum);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error GetNextSoPhieuAsync: " + ex.Message);
-                return $"{pattern}00001";
+                return LocalCauHinhService.ApplyPattern(defaultPattern, now, 1);
             }
         }
 

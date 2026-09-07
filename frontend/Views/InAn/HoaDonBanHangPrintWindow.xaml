@@ -51,27 +51,34 @@
                     <!-- Header with Logo and Store Info -->
                     <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="65"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Logo Icon / Graphic -->
-                        <Border Grid.Column="0" Width="55" Height="55" HorizontalAlignment="Left" VerticalAlignment="Top"
-                                BorderBrush="#333" BorderThickness="1" CornerRadius="4" Background="#fafafa">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="🍴" FontSize="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="BAR POS" FontSize="7" FontWeight="Bold" Foreground="#666" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
+                        <!-- Logo: Hiển thị Logo ảnh thực tế từ Cấu hình hệ thống hoặc Icon mặc định -->
+                        <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Top">
+                            <Image x:Name="ImgLogo" Width="60" Height="60" Stretch="Uniform" Visibility="Collapsed"/>
+                            <Border x:Name="BorderLogoGraphic" Width="55" Height="55" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                    BorderBrush="#333" BorderThickness="1" CornerRadius="4" Background="#fafafa">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="🍴" FontSize="24" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="BAR POS" FontSize="7" FontWeight="Bold" Foreground="#666" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
 
                         <!-- Restaurant Info -->
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Center" Margin="5,0,0,0">
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                             <TextBlock x:Name="TxtTenQuan" Text="NÀNG HƯƠNG QUÁN" FontWeight="Bold" FontSize="15" 
                                        TextAlignment="Center" TextWrapping="Wrap" Foreground="#000"/>
                             <TextBlock x:Name="TxtDiaChi" Text="ĐC: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" 
-                                       FontSize="10.5" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0" Foreground="#222"/>
+                                       FontSize="10.5" TextAlignment="Center" TextWrapping="Wrap" Margin="0,2,0,0" Foreground="#222"/>
                             <TextBlock x:Name="TxtDienThoai" Text="ĐT: Điện thoại: 0909090880" 
-                                       FontSize="10.5" TextAlignment="Center" Margin="0,2,0,0" Foreground="#222"/>
+                                       FontSize="10.5" TextAlignment="Center" Margin="0,1,0,0" Foreground="#222"/>
+                            <TextBlock x:Name="TxtEmail" Text="Email: " Visibility="Collapsed"
+                                       FontSize="10" TextAlignment="Center" Margin="0,1,0,0" Foreground="#222"/>
+                            <TextBlock x:Name="TxtFax" Text="Fax: " Visibility="Collapsed"
+                                       FontSize="10" TextAlignment="Center" Margin="0,1,0,0" Foreground="#222"/>
                         </StackPanel>
                     </Grid>
 
@@ -169,31 +176,69 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Discount (if any) -->
-                    <Grid x:Name="PanelGiamGia" Visibility="Collapsed" Margin="0,6,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Giảm giá:" FontSize="12" Foreground="#333"/>
-                        <TextBlock x:Name="TxtGiamGia" Grid.Column="1" Text="0" FontSize="12" TextAlignment="Right" Foreground="#333"/>
-                    </Grid>
+                    <!-- Chi tiết tổng tiền, thuế, phí, giảm giá -->
+                    <StackPanel Margin="0,6,0,0">
+                        <!-- Tiền hàng (nếu có thuế hoặc giảm giá hoặc phí) -->
+                        <Grid x:Name="PanelTienHang" Visibility="Collapsed" Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Tiền hàng:" FontSize="12" Foreground="#333"/>
+                            <TextBlock x:Name="TxtTienHang" Grid.Column="1" Text="0" FontSize="12" TextAlignment="Right" Foreground="#333"/>
+                        </Grid>
+
+                        <!-- Giảm giá -->
+                        <Grid x:Name="PanelGiamGia" Visibility="Collapsed" Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="TxtGiamGiaLabel" Text="Giảm giá:" FontSize="12" Foreground="#333"/>
+                            <TextBlock x:Name="TxtGiamGia" Grid.Column="1" Text="0" FontSize="12" TextAlignment="Right" Foreground="#333"/>
+                        </Grid>
+
+                        <!-- Phí dịch vụ (nếu có) -->
+                        <Grid x:Name="PanelPhiDichVu" Visibility="Collapsed" Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="TxtPhiDichVuLabel" Text="Phí dịch vụ:" FontSize="12" Foreground="#333"/>
+                            <TextBlock x:Name="TxtPhiDichVu" Grid.Column="1" Text="0" FontSize="12" TextAlignment="Right" Foreground="#333"/>
+                        </Grid>
+
+                        <!-- Thuế VAT (nếu có) -->
+                        <Grid x:Name="PanelThueVAT" Visibility="Collapsed" Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="TxtThueVATLabel" Text="Thuế VAT:" FontSize="12" Foreground="#333"/>
+                            <TextBlock x:Name="TxtThueVAT" Grid.Column="1" Text="0" FontSize="12" TextAlignment="Right" Foreground="#333"/>
+                        </Grid>
+                    </StackPanel>
 
                     <!-- Total Section -->
-                    <Grid Margin="0,10,0,6">
+                    <Grid Margin="0,8,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Tổng:" FontWeight="Bold" FontSize="18" Foreground="#000" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="TxtTongCong" Grid.Column="1" Text="25,000" FontWeight="Bold" FontSize="20" 
+                        <TextBlock Text="Tổng cộng:" FontWeight="Bold" FontSize="18" Foreground="#000" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtTongCong" Grid.Column="1" Text="0" FontWeight="Bold" FontSize="20" 
                                    TextAlignment="Right" Foreground="#000" VerticalAlignment="Center"/>
                     </Grid>
 
-                    <!-- Footer Message -->
-                    <TextBlock Text="Cảm ơn Quý khách. Hẹn gặp lại.!" 
+                    <!-- Wifi Info (nếu có) -->
+                    <TextBlock x:Name="TxtWifiInfo" Text="Wifi: Quán - Pass: 12345678" 
+                               FontSize="11" TextAlignment="Center" Margin="0,8,0,0" 
+                               Visibility="Collapsed" Foreground="#333"/>
+
+                    <!-- Footer Message / Lời cảm ơn -->
+                    <TextBlock x:Name="TxtLoiCamOn" Text="Cảm ơn Quý khách. Hẹn gặp lại.!" 
                                FontStyle="Italic" FontSize="11.5" TextAlignment="Center" 
-                               Margin="0,14,0,5" Foreground="#333"/>
+                               Margin="0,10,0,5" Foreground="#333"/>
                 </StackPanel>
             </Border>
         </ScrollViewer>

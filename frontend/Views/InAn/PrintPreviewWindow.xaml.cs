@@ -34,7 +34,8 @@ namespace QuanLyBar.Client.Views
 
             _rawData = data;
             _templateType = templateType;
-            _storeName = string.IsNullOrEmpty(storeName) ? "NÀNG HƯƠNG QUÁN" : storeName;
+            string defaultCompName = LocalCauHinhService.GetConfig("CompanyName", "NÀNG HƯƠNG QUÁN");
+            _storeName = string.IsNullOrEmpty(storeName) || storeName == "NÀNG HƯƠNG QUÁN" ? defaultCompName : storeName;
             _tuNgay = tuNgay ?? DateTime.Today;
             _denNgay = denNgay ?? DateTime.Today;
 
@@ -64,7 +65,7 @@ namespace QuanLyBar.Client.Views
             _note = note;
             _templateType = string.IsNullOrWhiteSpace(templateType) ? "Mẫu A4 thẳng đứng" : templateType;
             _inSTT = inSTT;
-            _storeName = "NÀNG HƯƠNG QUÁN";
+            _storeName = LocalCauHinhService.GetConfig("CompanyName", "NÀNG HƯƠNG QUÁN");
             _tuNgay = DateTime.Today;
             _denNgay = DateTime.Today;
 

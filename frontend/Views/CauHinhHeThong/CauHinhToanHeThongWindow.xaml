@@ -219,6 +219,12 @@
 
                             <TextBlock Grid.Row="5" Grid.Column="0" Text="Fax:" Margin="0,6"/>
                             <TextBox x:Name="TxtCompanyFax" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4"/>
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Tên Wifi:" Margin="0,6"/>
+                            <TextBox x:Name="TxtWifiNameChung" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4" TextChanged="TxtWifiNameChung_TextChanged"/>
+
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Mật khẩu Wifi:" Margin="0,6"/>
+                            <TextBox x:Name="TxtWifiPassChung" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4" TextChanged="TxtWifiPassChung_TextChanged"/>
                         </Grid>
 
                         <!-- TAB 1: IN HĐ VÀ IN CHẾ BIẾN -->
@@ -302,7 +308,20 @@
                                 <ComboBox x:Name="CboInHoaDonTheoKhuVuc" Grid.Column="1"/>
                             </Grid>
 
-                            <CheckBox x:Name="ChkInMatKhauWifiTrenBill" Content="In mật khẩu wifi trên bill"/>
+                            <Grid Margin="0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="ChkInMatKhauWifiTrenBill" Grid.Column="0" Content="In mật khẩu wifi trên bill" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="1" Text="Tên Wifi:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBox x:Name="TxtWifiName" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0" TextChanged="TxtWifiName_TextChanged"/>
+                                <TextBlock Grid.Column="3" Text="Mật khẩu:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBox x:Name="TxtWifiPass" Grid.Column="4" VerticalAlignment="Center" TextChanged="TxtWifiPass_TextChanged"/>
+                            </Grid>
                         </StackPanel>
 
                         <!-- TAB 2: MẪU HÓA ĐƠN (DEVELOPER UNLOCK) -->
@@ -344,47 +363,47 @@
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Báo giá:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatBaoGia" Grid.Row="0" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="0" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="0" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Báo giá" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Hóa đơn nhà hàng:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatHoaDon" Grid.Row="1" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="1" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="1" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Hóa đơn nhà hàng" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Phiếu nhập kho:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatNhapKho" Grid.Row="2" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="2" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="2" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Phiếu nhập kho" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="Phiếu xuất kho:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatXuatKho" Grid.Row="3" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="3" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="3" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Phiếu xuất kho" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Phiếu chuyển kho:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatChuyenKho" Grid.Row="4" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="4" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="4" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Phiếu chuyển kho" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="5" Grid.Column="0" Text="Phiếu kiểm kê:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatKiemKe" Grid.Row="5" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="5" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="5" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Phiếu kiểm kê" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="6" Grid.Column="0" Text="Đặt hàng:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatDatHang" Grid.Row="6" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="6" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="6" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Đặt hàng" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="7" Grid.Column="0" Text="Phiếu thu:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatPhieuThu" Grid.Row="7" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="7" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="7" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Phiếu thu" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="8" Grid.Column="0" Text="Phiếu chi:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatPhieuChi" Grid.Row="8" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="8" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="8" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Phiếu chi" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="9" Grid.Column="0" Text="Phiếu thu công nợ:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatThuCongNo" Grid.Row="9" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="9" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="9" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Phiếu thu công nợ" Click="BtnConfigSoPhieu_Click"/>
 
                             <TextBlock Grid.Row="10" Grid.Column="0" Text="Bảng lương:" Margin="0,4"/>
                             <TextBox x:Name="TxtFormatBangLuong" Grid.Row="10" Grid.Column="1" Margin="0,2"/>
-                            <Button Grid.Row="10" Grid.Column="2" Content="..." Margin="4,2,0,2"/>
+                            <Button Grid.Row="10" Grid.Column="2" Content="..." Margin="4,2,0,2" Tag="Bảng lương" Click="BtnConfigSoPhieu_Click"/>
                         </Grid>
 
                         <!-- TAB 4: BÁN HÀNG -->
@@ -462,8 +481,8 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <CheckBox x:Name="ChkHienThi3NhomOGiaoDienBanHang" Grid.Column="0" Content="Hiển thị 3 nhóm ở giao diện bán hàng"/>
-                                <CheckBox x:Name="ChkToiUuDungBanPhim" Grid.Column="1" Content="Tối ưu dùng bàn phím"/>
+                                <CheckBox x:Name="ChkToiUuDungBanPhim" Grid.Column="0" Content="Tối ưu dùng bàn phím"/>
+                                <CheckBox x:Name="ChkHienThiGhiChuTrenGiaoDienBan" Grid.Column="1" Content="Hiển thị ghi chú trên giao diện bàn"/>
                             </Grid>
 
                             <Grid Margin="0,2">
@@ -472,7 +491,6 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <CheckBox x:Name="ChkSuDungMatHangMacDinh" Grid.Column="0" Content="Sử dụng mặt hàng mặc định"/>
-                                <CheckBox x:Name="ChkHienThiGhiChuTrenGiaoDienBan" Grid.Column="1" Content="Hiển thị ghi chú trên giao diện bàn"/>
                             </Grid>
 
                             <Grid Margin="0,4">

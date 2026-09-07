@@ -627,36 +627,35 @@ namespace QuanLyBar.Client.Services
 
         public static async Task<string> GetNextSoPhieuChuyenKhoAsync()
         {
+            DateTime now = DateTime.Now;
             try
             {
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     if (conn.State != ConnectionState.Open) await conn.OpenAsync();
 
-                    string prefix = $"PCK{DateTime.Now:yy}/";
-                    string prefixOld = $"CK{DateTime.Now:yy}/";
-                    string sql = @"
-                        SELECT FIRST 1 NAME 
-                        FROM TDONHANG 
-                        WHERE LOAI = 3 AND (NAME STARTING WITH @Prefix OR NAME STARTING WITH @PrefixOld)
-                        ORDER BY NAME DESC";
+                    string pattern = await LocalCauHinhService.GetFormatPatternAsync("TPHIEUCHUYENKHO", "PCK(yy)/(*****)");
+                    var (periodStart, periodEnd) = LocalCauHinhService.GetResetPeriod(pattern, now);
 
-                    string lastCode = await conn.QueryFirstOrDefaultAsync<string>(sql, new { Prefix = prefix, PrefixOld = prefixOld });
-                    if (!string.IsNullOrEmpty(lastCode))
+                    int maxSo = 0;
+                    if (periodStart.HasValue && periodEnd.HasValue)
                     {
-                        string[] parts = lastCode.Split('/');
-                        if (parts.Length == 2 && int.TryParse(parts[1], out int num))
-                        {
-                            return $"{prefix}{(num + 1):D5}";
-                        }
+                        maxSo = await conn.ExecuteScalarAsync<int>(
+                            "SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE LOAI = 3 AND CAST(NGAY AS DATE) >= @PStart AND CAST(NGAY AS DATE) <= @PEnd",
+                            new { PStart = periodStart.Value.Date, PEnd = periodEnd.Value.Date });
+                    }
+                    else
+                    {
+                        maxSo = await conn.ExecuteScalarAsync<int>("SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE LOAI = 3");
                     }
 
-                    return $"{prefix}00001";
+                    int nextSo = maxSo + 1;
+                    return LocalCauHinhService.ApplyPattern(pattern, now, nextSo);
                 }
             }
             catch
             {
-                return $"PCK{DateTime.Now:yy}/00001";
+                return LocalCauHinhService.ApplyPattern("PCK(yy)/(*****)", now, 1);
             }
         }
 

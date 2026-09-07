@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
 using QuanLyBar.Client.Models;
+using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client.Views
 {
@@ -27,7 +28,7 @@ namespace QuanLyBar.Client.Views
             InitializeComponent();
             _dataGrid = dataGrid;
             _reportTitle = reportTitle;
-            _storeName = storeName;
+            _storeName = string.IsNullOrEmpty(storeName) || storeName == "NÀNG HƯƠNG QUÁN" ? LocalCauHinhService.GetConfig("CompanyName", "NÀNG HƯƠNG QUÁN") : storeName;
             _tuNgay = tuNgay ?? DateTime.Today;
             _denNgay = denNgay ?? DateTime.Today;
         }

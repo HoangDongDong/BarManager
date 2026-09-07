@@ -32,10 +32,16 @@ namespace QuanLyBar.Client.Models
         private int _soKhach = 0;
         private string _soPhieu;
         private string _khachHangName;
+        private string _nhanVienId;
+        private string _nhanVienName;
         private string _ghiChu;
         private decimal _tienHang = 0;
         private decimal _giamGiaPhanTram = 0;
         private decimal _giamGia = 0;
+        private decimal _thueSuatPt = 0;
+        private decimal _tienThue = 0;
+        private decimal _phiDichVuPt = 0;
+        private decimal _tienPhiDichVu = 0;
         private decimal _tongCong = 0;
 
         public string Id { get => _id; set { _id = value; OnPropertyChanged(); } }
@@ -78,11 +84,40 @@ namespace QuanLyBar.Client.Models
         public int SoKhach { get => _soKhach; set { _soKhach = value; OnPropertyChanged(); } }
         public string SoPhieu { get => _soPhieu; set { _soPhieu = value; OnPropertyChanged(); } }
         public string KhachHangName { get => _khachHangName; set { _khachHangName = value; OnPropertyChanged(); } }
-        public string GhiChu { get => _ghiChu; set { _ghiChu = value; OnPropertyChanged(); } }
+        public string NhanVienId { get => _nhanVienId; set { _nhanVienId = value; OnPropertyChanged(); } }
+        public string NhanVienName { get => _nhanVienName; set { _nhanVienName = value; OnPropertyChanged(); } }
+        public string GhiChu 
+        { 
+            get => _ghiChu; 
+            set 
+            { 
+                _ghiChu = value; 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(GhiChuVisibility)); 
+                OnPropertyChanged(nameof(DisplayName)); 
+            } 
+        }
+
+        public string DisplayName
+        {
+            get
+            {
+                if (ShowGhiChu && !string.IsNullOrWhiteSpace(GhiChu))
+                {
+                    string cleanNote = GhiChu.Trim().Replace("\r\n", " ").Replace("\n", " ");
+                    return $"{Name} ( {cleanNote})";
+                }
+                return Name ?? "";
+            }
+        }
 
         public decimal TienHang { get => _tienHang; set { _tienHang = value; OnPropertyChanged(); } }
         public decimal GiamGiaPhanTram { get => _giamGiaPhanTram; set { _giamGiaPhanTram = value; OnPropertyChanged(); } }
         public decimal GiamGia { get => _giamGia; set { _giamGia = value; OnPropertyChanged(); } }
+        public decimal ThueSuatPt { get => _thueSuatPt; set { _thueSuatPt = value; OnPropertyChanged(); } }
+        public decimal TienThue { get => _tienThue; set { _tienThue = value; OnPropertyChanged(); } }
+        public decimal PhiDichVuPt { get => _phiDichVuPt; set { _phiDichVuPt = value; OnPropertyChanged(); } }
+        public decimal TienPhiDichVu { get => _tienPhiDichVu; set { _tienPhiDichVu = value; OnPropertyChanged(); } }
         public decimal TongCong { get => _tongCong; set { _tongCong = value; OnPropertyChanged(); } }
 
         public ObservableCollection<PosDonHangChiTietViewModel> OrderItems { get; set; } = new ObservableCollection<PosDonHangChiTietViewModel>();
@@ -92,6 +127,32 @@ namespace QuanLyBar.Client.Models
             : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4a4a4a"));
 
         public Visibility TimerVisibility => IsOccupied && !string.IsNullOrEmpty(TimerText) 
+            ? Visibility.Visible 
+            : Visibility.Collapsed;
+
+        private double _cardWidth = 82;
+        private double _cardHeight = 92;
+        private double _iconSize = 50;
+        private double _tableFontSize = 11;
+        private bool _showGhiChu = false;
+
+        public double CardWidth { get => _cardWidth; set { _cardWidth = value; OnPropertyChanged(); } }
+        public double CardHeight { get => _cardHeight; set { _cardHeight = value; OnPropertyChanged(); } }
+        public double IconSize { get => _iconSize; set { _iconSize = value; OnPropertyChanged(); } }
+        public double TableFontSize { get => _tableFontSize; set { _tableFontSize = value; OnPropertyChanged(); } }
+        public bool ShowGhiChu 
+        { 
+            get => _showGhiChu; 
+            set 
+            { 
+                _showGhiChu = value; 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(GhiChuVisibility)); 
+                OnPropertyChanged(nameof(DisplayName)); 
+            } 
+        }
+
+        public Visibility GhiChuVisibility => ShowGhiChu && !string.IsNullOrWhiteSpace(GhiChu) 
             ? Visibility.Visible 
             : Visibility.Collapsed;
 

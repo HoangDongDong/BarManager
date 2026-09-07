@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using QuanLyBar.Client.Models;
+using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client.Views
 {
@@ -31,6 +32,11 @@ namespace QuanLyBar.Client.Views
     {
         private string _banName;
         private List<PosDonHangChiTietViewModel> _items;
+        private int _soLienIn = 1;
+        private bool _inThemTaiQuay = false;
+        private bool _inMoiDoRa1To = false;
+        private bool _inRiengDoAnUong = false;
+        private string _mauInCheBien = "Mẫu 80mm";
         public List<string> AvailablePrinters { get; set; } = new List<string>();
         public ObservableCollection<PrinterMappingItem> PrinterConfigs { get; set; } = new ObservableCollection<PrinterMappingItem>();
 
@@ -44,11 +50,48 @@ namespace QuanLyBar.Client.Views
             DataContext = this;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        public void PrintDirectly()
+        {
+            LoadAvailablePrinters();
+            LoadPrinterConfigs();
+            _ = LoadSysConfigsAsync().ContinueWith(_ => Dispatcher.Invoke(PrintKitchenTicket));
+        }
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             LoadAvailablePrinters();
             LoadPrinterConfigs();
             LoadItemsToPrint();
+            await LoadSysConfigsAsync();
+        }
+
+        private async System.Threading.Tasks.Task LoadSysConfigsAsync()
+        {
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                if (configs.TryGetValue("SoLienInCheBien", out var sl) && int.TryParse(sl, out int soLien) && soLien > 0)
+                {
+                    _soLienIn = soLien;
+                }
+                if (configs.TryGetValue("InThem1LienTaiQuay", out var itq))
+                {
+                    _inThemTaiQuay = itq == "1" || itq.Equals("true", StringComparison.OrdinalIgnoreCase);
+                }
+                if (configs.TryGetValue("InMoiDoRa1To", out var imd))
+                {
+                    _inMoiDoRa1To = imd == "1" || imd.Equals("true", StringComparison.OrdinalIgnoreCase);
+                }
+                if (configs.TryGetValue("InRiengDoAnUong", out var ir))
+                {
+                    _inRiengDoAnUong = ir == "1" || ir.Equals("true", StringComparison.OrdinalIgnoreCase);
+                }
+                if (configs.TryGetValue("MauInCheBien", out var mcb) && !string.IsNullOrWhiteSpace(mcb))
+                {
+                    _mauInCheBien = mcb;
+                }
+            }
+            catch { }
         }
 
         private void LoadAvailablePrinters()
@@ -198,51 +241,202 @@ namespace QuanLyBar.Client.Views
         {
             try
             {
+                string kitchenPrinter = TxtSelectedPrinterName.Text;
+                string defaultPrinter = AvailablePrinters.FirstOrDefault(p => !p.Contains("PDF")) ?? AvailablePrinters.FirstOrDefault() ?? kitchenPrinter;
+
+                // Xây dựng danh sách các phiếu cần in (Mỗi phiếu là 1 trang in / 1 lần cắt giấy)
+                var ticketPages = new List<List<PosDonHangChiTietViewModel>>();
+
+                if (_inMoiDoRa1To)
+                {
+                    // In mỗi đồ ra 1 tờ (mỗi món là 1 trang / 1 lần cắt giấy)
+                    foreach (var item in _items)
+                    {
+                        ticketPages.Add(new List<PosDonHangChiTietViewModel> { item });
+                    }
+                }
+                else if (_inRiengDoAnUong)
+                {
+                    // In riêng theo từng nhóm đồ ăn / đồ uống / đồ khác
+                    var groups = _items.GroupBy(x => x.ItemCategory).ToList();
+                    foreach (var grp in groups)
+                    {
+                        ticketPages.Add(grp.ToList());
+                    }
+                }
+                else
+                {
+                    // In tất cả các món trên cùng 1 trang
+                    ticketPages.Add(_items);
+                }
+
+                PrintMultiPageTicket(ticketPages, kitchenPrinter, _soLienIn);
+                if (_inThemTaiQuay)
+                {
+                    PrintMultiPageTicket(ticketPages, defaultPrinter, 1);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error PrintKitchenTicket: " + ex.Message);
+            }
+        }
+
+        private void PrintMultiPageTicket(List<List<PosDonHangChiTietViewModel>> ticketPages, string printerName, int copies)
+        {
+            if (ticketPages == null || ticketPages.Count == 0) return;
+
+            try
+            {
                 var doc = new PrintDocument();
-                doc.PrinterSettings.PrinterName = TxtSelectedPrinterName.Text;
+                if (!string.IsNullOrEmpty(printerName))
+                {
+                    doc.PrinterSettings.PrinterName = printerName;
+                }
+                doc.PrinterSettings.Copies = (short)Math.Max(1, copies);
+
+                bool is58mm = _mauInCheBien.Contains("58");
+                float leftX = 10;
+                float tableWidth = is58mm ? 190 : 270;
+                float colTTWidth = is58mm ? 28 : 35;
+                float colSLWidth = is58mm ? 32 : 42;
+                float colNameWidth = tableWidth - colTTWidth - colSLWidth;
+
+                int currentPageIndex = 0;
 
                 doc.PrintPage += (s, ev) =>
                 {
-                    var fontTitle = new System.Drawing.Font("Arial", 14, System.Drawing.FontStyle.Bold);
-                    var fontHeader = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
-                    var fontBody = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Regular);
-
-                    float y = 20;
-                    ev.Graphics.DrawString("PHIẾU IN CHẾ BIẾN BẾP / BAR", fontTitle, System.Drawing.Brushes.Black, 20, y);
-                    y += 30;
-
-                    ev.Graphics.DrawString($"Bàn: {_banName}   |   Giờ in: {DateTime.Now:HH:mm:ss dd/MM/yyyy}", fontHeader, System.Drawing.Brushes.Black, 20, y);
-                    y += 25;
-
-                    ev.Graphics.DrawLine(System.Drawing.Pens.Black, 20, y, 380, y);
-                    y += 5;
-
-                    ev.Graphics.DrawString("STT  Tên món", fontHeader, System.Drawing.Brushes.Black, 20, y);
-                    ev.Graphics.DrawString("ĐVT", fontHeader, System.Drawing.Brushes.Black, 250, y);
-                    ev.Graphics.DrawString("SL", fontHeader, System.Drawing.Brushes.Black, 320, y);
-                    y += 20;
-
-                    ev.Graphics.DrawLine(System.Drawing.Pens.Black, 20, y, 380, y);
-                    y += 8;
-
-                    int i = 1;
-                    foreach (var item in _items)
+                    if (currentPageIndex >= ticketPages.Count)
                     {
-                        ev.Graphics.DrawString($"{i++}. {item.MatHangName}", fontBody, System.Drawing.Brushes.Black, 20, y);
-                        ev.Graphics.DrawString(item.DonViTinh ?? "", fontBody, System.Drawing.Brushes.Black, 250, y);
-                        ev.Graphics.DrawString(item.SoLuong.ToString("0"), fontHeader, System.Drawing.Brushes.Black, 320, y);
-                        y += 22;
-
-                        if (!string.IsNullOrEmpty(item.GhiChu))
-                        {
-                            ev.Graphics.DrawString($"   * Ghi chú: {item.GhiChu}", fontBody, System.Drawing.Brushes.DimGray, 20, y);
-                            y += 18;
-                        }
+                        ev.HasMorePages = false;
+                        return;
                     }
 
-                    ev.Graphics.DrawLine(System.Drawing.Pens.Black, 20, y, 380, y);
-                    y += 15;
-                    ev.Graphics.DrawString("--- Chúc quý khách ngon miệng ---", fontBody, System.Drawing.Brushes.Black, 60, y);
+                    var itemsToPrint = ticketPages[currentPageIndex];
+                    var g = ev.Graphics;
+                    var fontTitle = new System.Drawing.Font("Arial", is58mm ? 12 : 14, System.Drawing.FontStyle.Bold);
+                    var fontLabelBold = new System.Drawing.Font("Arial", is58mm ? 8.5f : 9.5f, System.Drawing.FontStyle.Bold);
+                    var fontLabel = new System.Drawing.Font("Arial", is58mm ? 8.5f : 9.5f, System.Drawing.FontStyle.Regular);
+                    var fontItemName = new System.Drawing.Font("Arial", is58mm ? 8.5f : 9.5f, System.Drawing.FontStyle.Bold);
+                    var fontFooter = new System.Drawing.Font("Arial", is58mm ? 8.5f : 9.5f, System.Drawing.FontStyle.Italic);
+
+                    using var solidPen = new System.Drawing.Pen(System.Drawing.Color.Black, 1f);
+                    using var dashPen = new System.Drawing.Pen(System.Drawing.Color.Black, 1f)
+                    {
+                        DashStyle = System.Drawing.Drawing2D.DashStyle.Dash
+                    };
+
+                    using var sfCenter = new System.Drawing.StringFormat { Alignment = System.Drawing.StringAlignment.Center, LineAlignment = System.Drawing.StringAlignment.Center };
+                    using var sfLeft = new System.Drawing.StringFormat { Alignment = System.Drawing.StringAlignment.Near, LineAlignment = System.Drawing.StringAlignment.Center };
+                    using var sfRight = new System.Drawing.StringFormat { Alignment = System.Drawing.StringAlignment.Far, LineAlignment = System.Drawing.StringAlignment.Center };
+
+                    float y = 15;
+
+                    // 1. Tiêu đề: PHIẾU IN CHẾ BIẾN
+                    var titleRect = new System.Drawing.RectangleF(leftX, y, tableWidth, 24);
+                    g.DrawString("PHIẾU IN CHẾ BIẾN", fontTitle, System.Drawing.Brushes.Black, titleRect, sfCenter);
+                    y += 28;
+
+                    // 2. Bàn & Lần in
+                    string banText = _banName.StartsWith("Bàn", StringComparison.OrdinalIgnoreCase) ? _banName : $"Bàn: {_banName}";
+                    if (!banText.StartsWith("Bàn:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        banText = $"Bàn: {banText}";
+                    }
+                    g.DrawString(banText, fontLabelBold, System.Drawing.Brushes.Black, leftX, y);
+                    g.DrawString("Lần: 1", fontLabelBold, System.Drawing.Brushes.Black, leftX + tableWidth - 45, y);
+                    y += 20;
+
+                    // 3. Gửi bởi
+                    string userName = SessionContext.CurrentUser?.TenDangNhap ?? "Administrator";
+                    g.DrawString($"Gửi bởi: {userName}", fontLabelBold, System.Drawing.Brushes.Black, leftX, y);
+                    y += 20;
+
+                    // 4. Gửi lúc
+                    g.DrawString($"Gửi lúc: {DateTime.Now:dd/MM/yyyy HH:mm}", fontLabelBold, System.Drawing.Brushes.Black, leftX, y);
+                    y += 24;
+
+                    // 5. Bảng món ăn
+                    float tableTopY = y;
+                    float headerHeight = 22;
+
+                    // Header text
+                    float col1X = leftX;
+                    float col2X = leftX + colTTWidth;
+                    float col3X = leftX + colTTWidth + colNameWidth;
+
+                    g.DrawString("TT", fontLabelBold, System.Drawing.Brushes.Black, new System.Drawing.RectangleF(col1X, y, colTTWidth, headerHeight), sfCenter);
+                    g.DrawString("Mặt hàng", fontLabelBold, System.Drawing.Brushes.Black, new System.Drawing.RectangleF(col2X, y, colNameWidth, headerHeight), sfCenter);
+                    g.DrawString("SL", fontLabelBold, System.Drawing.Brushes.Black, new System.Drawing.RectangleF(col3X, y, colSLWidth, headerHeight), sfCenter);
+
+                    y += headerHeight;
+                    g.DrawLine(solidPen, leftX, y, leftX + tableWidth, y);
+
+                    // Danh sách món
+                    int stt = 1;
+                    for (int idx = 0; idx < itemsToPrint.Count; idx++)
+                    {
+                        var item = itemsToPrint[idx];
+                        float rowStartY = y;
+
+                        // Đo chiều cao của tên món khi wrap
+                        var nameSize = g.MeasureString(item.MatHangName, fontItemName, (int)colNameWidth - 4);
+                        float textHeight = Math.Max(22, nameSize.Height + 6);
+                        if (!string.IsNullOrEmpty(item.GhiChu))
+                        {
+                            var noteSize = g.MeasureString($"*{item.GhiChu}", fontLabel, (int)colNameWidth - 4);
+                            textHeight += noteSize.Height + 2;
+                        }
+
+                        float rowHeight = textHeight;
+
+                        // Cột TT
+                        g.DrawString(stt.ToString(), fontLabel, System.Drawing.Brushes.Black, new System.Drawing.RectangleF(col1X, rowStartY, colTTWidth, rowHeight), sfCenter);
+
+                        // Cột Mặt hàng
+                        float nameY = rowStartY + 3;
+                        g.DrawString(item.MatHangName, fontItemName, System.Drawing.Brushes.Black, new System.Drawing.RectangleF(col2X + 2, nameY, colNameWidth - 4, nameSize.Height));
+                        if (!string.IsNullOrEmpty(item.GhiChu))
+                        {
+                            g.DrawString($"*{item.GhiChu}", fontLabel, System.Drawing.Brushes.DimGray, new System.Drawing.RectangleF(col2X + 2, nameY + nameSize.Height + 1, colNameWidth - 4, 18));
+                        }
+
+                        // Cột SL
+                        g.DrawString(item.SoLuong.ToString("0"), fontItemName, System.Drawing.Brushes.Black, new System.Drawing.RectangleF(col3X, rowStartY, colSLWidth, rowHeight), sfCenter);
+
+                        y += rowHeight;
+
+                        // Đường kẻ ngang nét đứt giữa các dòng (nếu chưa phải dòng cuối)
+                        if (idx < itemsToPrint.Count - 1)
+                        {
+                            g.DrawLine(dashPen, leftX, y, leftX + tableWidth, y);
+                        }
+                        stt++;
+                    }
+
+                    float tableBottomY = y;
+                    float tableTotalHeight = tableBottomY - tableTopY;
+
+                    // Vẽ khung viền bao quanh bảng (nét liền)
+                    g.DrawRectangle(solidPen, leftX, tableTopY, tableWidth, tableTotalHeight);
+
+                    // Đường chia cột dọc (header nét liền, thân bảng nét đứt)
+                    // Cột TT
+                    g.DrawLine(solidPen, col2X, tableTopY, col2X, tableTopY + headerHeight);
+                    g.DrawLine(dashPen, col2X, tableTopY + headerHeight, col2X, tableBottomY);
+
+                    // Cột SL
+                    g.DrawLine(solidPen, col3X, tableTopY, col3X, tableTopY + headerHeight);
+                    g.DrawLine(dashPen, col3X, tableTopY + headerHeight, col3X, tableBottomY);
+
+                    y += 12;
+
+                    // 6. Chân phiếu: ---Kết thúc---
+                    var footerRect = new System.Drawing.RectangleF(leftX, y, tableWidth, 20);
+                    g.DrawString("---Kết thúc---", fontFooter, System.Drawing.Brushes.Black, footerRect, sfCenter);
+
+                    currentPageIndex++;
+                    ev.HasMorePages = (currentPageIndex < ticketPages.Count);
                 };
 
                 // Chỉ thực hiện in thực tế nếu máy in hợp lệ
@@ -251,9 +445,9 @@ namespace QuanLyBar.Client.Views
                     doc.Print();
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Fallback nếu không kết nối được máy in vật lý
+                Console.WriteLine("Error PrintMultiPageTicket: " + ex.Message);
             }
         }
 

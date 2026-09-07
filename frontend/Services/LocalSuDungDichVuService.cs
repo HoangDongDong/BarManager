@@ -27,9 +27,14 @@ namespace QuanLyBar.Client.Services
             public DateTime? Ngay { get; set; }
             public int? SoKhach { get; set; }
             public string DkhachHangId { get; set; }
+            public string DnhanVienXuatId { get; set; }
+            public string NhanVienName { get; set; }
             public string Note { get; set; }
             public decimal? TienHang { get; set; }
             public decimal? TienGiamGia { get; set; }
+            public decimal? TienThue { get; set; }
+            public decimal? ThueSuatPt { get; set; }
+            public decimal? TienPhiDichVu { get; set; }
             public decimal? TongCong { get; set; }
         }
 
@@ -55,11 +60,16 @@ namespace QuanLyBar.Client.Services
 
                     // Lấy các đơn hàng đang mở (chưa kết thúc)
                     string sqlActiveOrders = @"
-                        SELECT ID as Id, NAME as Name, DBANID as DbanId, BATDAU as BatDau, 
-                               NGAY as Ngay, SOKHACH as SoKhach, DKHACHHANGID as DkhachHangId, 
-                               NOTE as Note, TIENHANG as TienHang, TIENGIAMGIA as TienGiamGia, TONGCONG as TongCong
-                        FROM TDONHANG
-                        WHERE (STATUS = 1 OR STATUS IS NULL) AND KETTHUC IS NULL AND DBANID IS NOT NULL";
+                        SELECT o.ID as Id, o.NAME as Name, o.DBANID as DbanId, o.BATDAU as BatDau, 
+                               o.NGAY as Ngay, o.SOKHACH as SoKhach, o.DKHACHHANGID as DkhachHangId, 
+                               CAST(o.DNHANVIENXUATID AS VARCHAR(50)) as DnhanVienXuatId,
+                               nv.NAME as NhanVienName,
+                               o.NOTE as Note, o.TIENHANG as TienHang, o.TIENGIAMGIA as TienGiamGia, 
+                               COALESCE(o.TIENTHUE, 0) as TienThue, COALESCE(o.TILETHUE, 0) as ThueSuatPt,
+                               COALESCE(o.PHIDICHVU, 0) as TienPhiDichVu, o.TONGCONG as TongCong
+                        FROM TDONHANG o
+                        LEFT JOIN DNHANVIEN nv ON CAST(o.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        WHERE (o.STATUS = 1 OR o.STATUS IS NULL) AND o.KETTHUC IS NULL AND o.DBANID IS NOT NULL";
                     
                     var activeOrders = (await conn.QueryAsync<ActiveOrderDto>(sqlActiveOrders)).ToList();
 
@@ -82,9 +92,14 @@ namespace QuanLyBar.Client.Services
                                 StartTime = activeOrder?.BatDau ?? (isOcc ? (activeOrder?.Ngay ?? DateTime.Now) : (DateTime?)null),
                                 SoPhieu = activeOrder?.Name ?? "",
                                 SoKhach = activeOrder?.SoKhach ?? 0,
+                                NhanVienId = activeOrder?.DnhanVienXuatId ?? "",
+                                NhanVienName = activeOrder?.NhanVienName ?? "",
                                 GhiChu = activeOrder?.Note ?? "",
                                 TienHang = activeOrder?.TienHang ?? 0,
                                 GiamGia = activeOrder?.TienGiamGia ?? 0,
+                                TienThue = activeOrder?.TienThue ?? 0,
+                                ThueSuatPt = activeOrder?.ThueSuatPt ?? 0,
+                                TienPhiDichVu = activeOrder?.TienPhiDichVu ?? 0,
                                 TongCong = activeOrder?.TongCong ?? 0
                             };
 
@@ -112,6 +127,76 @@ namespace QuanLyBar.Client.Services
             public int SoHd { get; set; }
         }
 
+        private async Task<string> GetFormatPatternAsync(System.Data.Common.DbConnection conn, string tableName, string defaultPattern)
+        {
+            try
+            {
+                var format = await conn.ExecuteScalarAsync<string>("SELECT FIRST 1 FORMAT FROM STABLEDESC WHERE UPPER(NAME) = UPPER(@Name)", new { Name = tableName });
+                if (!string.IsNullOrWhiteSpace(format))
+                {
+                    return format.Trim();
+                }
+            }
+            catch { }
+            return defaultPattern;
+        }
+
+        public static (DateTime? StartDate, DateTime? EndDate) GetResetPeriod(string pattern, DateTime date)
+        {
+            if (string.IsNullOrEmpty(pattern))
+            {
+                return (new DateTime(date.Year, 1, 1), new DateTime(date.Year, 12, 31));
+            }
+
+            if (pattern.IndexOf("(dd)", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return (date.Date, date.Date);
+            }
+            else if (pattern.IndexOf("(MM)", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                var start = new DateTime(date.Year, date.Month, 1);
+                var end = start.AddMonths(1).AddDays(-1);
+                return (start, end);
+            }
+            else if (pattern.IndexOf("(yyyy)", StringComparison.OrdinalIgnoreCase) >= 0 || pattern.IndexOf("(yy)", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                var start = new DateTime(date.Year, 1, 1);
+                var end = new DateTime(date.Year, 12, 31);
+                return (start, end);
+            }
+            else
+            {
+                return (null, null);
+            }
+        }
+
+        public static string ApplyPattern(string pattern, DateTime date, int sequence)
+        {
+            if (string.IsNullOrWhiteSpace(pattern)) pattern = "(yy)(******)";
+
+            string result = pattern;
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\(yyyy\)", date.ToString("yyyy"), System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\(yy\)", date.ToString("yy"), System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\(MM\)", date.ToString("MM"), System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\(dd\)", date.ToString("dd"), System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            var match = System.Text.RegularExpressions.Regex.Match(result, @"\(\*+\)");
+            if (match.Success)
+            {
+                int starCount = match.Value.Length - 2;
+                if (starCount < 1) starCount = 5;
+                if (starCount > 9) starCount = 9;
+                string seqStr = sequence.ToString().PadLeft(starCount, '0');
+                result = result.Replace(match.Value, seqStr);
+            }
+            else
+            {
+                result += sequence.ToString("D5");
+            }
+
+            return result;
+        }
+
         public async Task<string> GetNextSoPhieuAsync(DateTime dateTime)
         {
             try
@@ -119,33 +204,47 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
-                    DateTime monthStart = new DateTime(dateTime.Year, dateTime.Month, 1);
-                    DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
-                    string prefix = $"{dateTime:MM}{dateTime:yy}";
+                    string pattern = await LocalCauHinhService.GetFormatPatternAsync("TSOHOADON", "(yy)(******)");
+                    var (periodStart, periodEnd) = GetResetPeriod(pattern, dateTime);
 
-                    int maxFromDonHang = await conn.ExecuteScalarAsync<int>(
-                        "SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE NAME LIKE @Prefix", 
-                        new { Prefix = prefix + "%" });
-
-                    string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON WHERE CAST(NGAY AS DATE) >= @MonthStart AND CAST(NGAY AS DATE) <= @MonthEnd ORDER BY TIMECREATED DESC";
-                    var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql, new { MonthStart = monthStart.Date, MonthEnd = monthEnd.Date });
+                    int maxFromDonHang = 0;
                     int maxFromTso = 0;
-                    if (tsoRow != null)
+
+                    if (periodStart.HasValue && periodEnd.HasValue)
                     {
-                        int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                        maxFromDonHang = await conn.ExecuteScalarAsync<int>(
+                            "SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE CAST(NGAY AS DATE) >= @PStart AND CAST(NGAY AS DATE) <= @PEnd", 
+                            new { PStart = periodStart.Value.Date, PEnd = periodEnd.Value.Date });
+
+                        string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON WHERE CAST(NGAY AS DATE) >= @PStart AND CAST(NGAY AS DATE) <= @PEnd ORDER BY TIMECREATED DESC";
+                        var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql, new { PStart = periodStart.Value.Date, PEnd = periodEnd.Value.Date });
+                        if (tsoRow != null)
+                        {
+                            int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                        }
+                    }
+                    else
+                    {
+                        maxFromDonHang = await conn.ExecuteScalarAsync<int>("SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG");
+                        string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON ORDER BY TIMECREATED DESC";
+                        var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql);
+                        if (tsoRow != null)
+                        {
+                            int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                        }
                     }
 
                     int nextNumber = Math.Max(maxFromDonHang, maxFromTso) + 1;
-                    return $"{prefix}{nextNumber:D5}";
+                    return ApplyPattern(pattern, dateTime, nextNumber);
                 }
             }
             catch
             {
-                return $"{dateTime:MM}{dateTime:yy}00001";
+                return ApplyPattern("(yy)(******)", dateTime, 1);
             }
         }
 
-        public async Task<StartOrderResult> StartTableOrderAsync(string banId, DateTime startTime, int soKhach, string khachHangId, string ghiChu)
+        public async Task<StartOrderResult> StartTableOrderAsync(string banId, DateTime startTime, int soKhach, string khachHangId, string ghiChu, string nhanVienId = null)
         {
             try
             {
@@ -154,27 +253,42 @@ namespace QuanLyBar.Client.Services
                     await conn.OpenAsync();
 
                     string orderId = Guid.NewGuid().ToString();
-                    DateTime monthStart = new DateTime(startTime.Year, startTime.Month, 1);
-                    DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
-                    string prefix = $"{startTime:MM}{startTime:yy}";
+                    string pattern = await LocalCauHinhService.GetFormatPatternAsync("TSOHOADON", "(yy)(******)");
+                    var (periodStart, periodEnd) = GetResetPeriod(pattern, startTime);
 
                     // Lấy số thứ tự lớn nhất từ TDONHANG và TSOHOADON
-                    int maxFromDonHang = await conn.ExecuteScalarAsync<int>(
-                        "SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE NAME LIKE @Prefix", 
-                        new { Prefix = prefix + "%" });
-
-                    string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON WHERE CAST(NGAY AS DATE) >= @MonthStart AND CAST(NGAY AS DATE) <= @MonthEnd ORDER BY TIMECREATED DESC";
-                    var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql, new { MonthStart = monthStart.Date, MonthEnd = monthEnd.Date });
+                    int maxFromDonHang = 0;
                     int maxFromTso = 0;
                     string tsoId = null;
-                    if (tsoRow != null)
+
+                    if (periodStart.HasValue && periodEnd.HasValue)
                     {
-                        tsoId = tsoRow.ID?.ToString();
-                        int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                        maxFromDonHang = await conn.ExecuteScalarAsync<int>(
+                            "SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG WHERE CAST(NGAY AS DATE) >= @PStart AND CAST(NGAY AS DATE) <= @PEnd", 
+                            new { PStart = periodStart.Value.Date, PEnd = periodEnd.Value.Date });
+
+                        string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON WHERE CAST(NGAY AS DATE) >= @PStart AND CAST(NGAY AS DATE) <= @PEnd ORDER BY TIMECREATED DESC";
+                        var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql, new { PStart = periodStart.Value.Date, PEnd = periodEnd.Value.Date });
+                        if (tsoRow != null)
+                        {
+                            tsoId = tsoRow.ID?.ToString();
+                            int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                        }
+                    }
+                    else
+                    {
+                        maxFromDonHang = await conn.ExecuteScalarAsync<int>("SELECT COALESCE(MAX(SOHD), 0) FROM TDONHANG");
+                        string tsoSql = "SELECT FIRST 1 ID, SO FROM TSOHOADON ORDER BY TIMECREATED DESC";
+                        var tsoRow = await conn.QueryFirstOrDefaultAsync(tsoSql);
+                        if (tsoRow != null)
+                        {
+                            tsoId = tsoRow.ID?.ToString();
+                            int.TryParse(tsoRow.SO?.ToString(), out maxFromTso);
+                        }
                     }
 
                     int nextSo = Math.Max(maxFromDonHang, maxFromTso) + 1;
-                    string soPhieu = $"{prefix}{nextSo:D5}";
+                    string soPhieu = ApplyPattern(pattern, startTime, nextSo);
 
                     int userCreatedId = 1;
                     if (SessionContext.CurrentUser != null && int.TryParse(SessionContext.CurrentUser.Id, out int parsedUserId))
@@ -183,6 +297,7 @@ namespace QuanLyBar.Client.Services
                     }
 
                     // Cập nhật hoặc thêm mới vào TSOHOADON
+                    DateTime saveNgay = periodStart ?? new DateTime(startTime.Year, startTime.Month, 1);
                     if (!string.IsNullOrEmpty(tsoId))
                     {
                         string updateTsoSql = "UPDATE TSOHOADON SET SO = @So, NAME = @Name, TIMEMODIFIED = CURRENT_TIMESTAMP, USERMODIFIEDID = @UserId WHERE CAST(ID AS VARCHAR(50)) = @TsoId";
@@ -199,7 +314,7 @@ namespace QuanLyBar.Client.Services
                         await conn.ExecuteAsync(insertTsoSql, new { 
                             Id = Guid.NewGuid().ToString(), 
                             Name = soPhieu,
-                            Ngay = monthStart, 
+                            Ngay = saveNgay, 
                             So = nextSo.ToString(), 
                             UserId = userCreatedId 
                         });
@@ -208,9 +323,9 @@ namespace QuanLyBar.Client.Services
                     // Tạo mới đơn hàng trong TDONHANG
                     string insertSql = @"
                         INSERT INTO TDONHANG (
-                            ID, NAME, SOHD, SOTT, DBANID, BATDAU, NGAY, SOKHACH, DKHACHHANGID, NOTE, STATUS, USERCREATEDID, TIMECREATED
+                            ID, NAME, SOHD, SOTT, DBANID, BATDAU, NGAY, SOKHACH, DKHACHHANGID, DNHANVIENXUATID, NOTE, STATUS, USERCREATEDID, TIMECREATED
                         ) VALUES (
-                            @Id, @SoPhieu, @SoHd, @SoHd, @DbanId, @BatDau, @Ngay, @SoKhach, @KhachHangId, @Note, 1, @UserCreatedId, CURRENT_TIMESTAMP
+                            @Id, @SoPhieu, @SoHd, @SoHd, @DbanId, @BatDau, @Ngay, @SoKhach, @KhachHangId, @NhanVienId, @Note, 1, @UserCreatedId, CURRENT_TIMESTAMP
                         )";
 
                     await conn.ExecuteAsync(insertSql, new
@@ -223,6 +338,7 @@ namespace QuanLyBar.Client.Services
                         Ngay = startTime.Date,
                         SoKhach = soKhach.ToString(),
                         KhachHangId = !string.IsNullOrEmpty(khachHangId) ? khachHangId : null,
+                        NhanVienId = !string.IsNullOrEmpty(nhanVienId) ? nhanVienId : null,
                         Note = ghiChu,
                         UserCreatedId = userCreatedId
                     });
@@ -285,7 +401,7 @@ namespace QuanLyBar.Client.Services
             }
         }
 
-        public async Task<bool> SaveOrderAsync(string orderId, List<PosDonHangChiTietViewModel> items, decimal tienHang, decimal giamGia, decimal tongCong, string ghiChu, int soKhach)
+        public async Task<bool> SaveOrderAsync(string orderId, List<PosDonHangChiTietViewModel> items, decimal tienHang, decimal giamGia, decimal tongCong, string ghiChu, int soKhach, decimal tienThue = 0, decimal thueSuatPt = 0, decimal tienPhiDichVu = 0, decimal phiDichVuPt = 0, string nhanVienId = null)
         {
             if (string.IsNullOrEmpty(orderId)) return false;
 
@@ -306,7 +422,10 @@ namespace QuanLyBar.Client.Services
                         string updateOrderSql = @"
                             UPDATE TDONHANG 
                             SET TIENHANG = @TienHang, TIENGIAMGIA = @GiamGia, TONGCONG = @TongCong, 
-                                NOTE = @Note, SOKHACH = @SoKhach, USERMODIFIEDID = @UserModifiedId, TIMEMODIFIED = CURRENT_TIMESTAMP
+                                TIENTHUE = @TienThue, TILETHUE = @ThueSuatPt, PHIDICHVU = @TienPhiDichVu,
+                                NOTE = @Note, SOKHACH = @SoKhach,
+                                DNHANVIENXUATID = COALESCE(@NhanVienId, DNHANVIENXUATID),
+                                USERMODIFIEDID = @UserModifiedId, TIMEMODIFIED = CURRENT_TIMESTAMP
                             WHERE CAST(ID AS VARCHAR(50)) = @Id";
 
                         await conn.ExecuteAsync(updateOrderSql, new
@@ -315,8 +434,12 @@ namespace QuanLyBar.Client.Services
                             TienHang = tienHang,
                             GiamGia = giamGia,
                             TongCong = tongCong,
+                            TienThue = tienThue,
+                            ThueSuatPt = thueSuatPt,
+                            TienPhiDichVu = tienPhiDichVu,
                             Note = ghiChu,
                             SoKhach = soKhach.ToString(),
+                            NhanVienId = !string.IsNullOrEmpty(nhanVienId) ? nhanVienId : null,
                             UserModifiedId = userCreatedId
                         }, trans);
 
@@ -377,7 +500,18 @@ namespace QuanLyBar.Client.Services
             catch { return false; }
         }
 
-        public async Task<bool> FinishTableOrderWithDetailsAsync(string orderId, decimal khachDua, decimal traLai, decimal theATM, decimal theTraTruoc, string loaiThanhToan)
+        public async Task<bool> FinishTableOrderWithDetailsAsync(
+            string orderId, 
+            decimal khachDua, 
+            decimal traLai, 
+            decimal theATM, 
+            decimal theTraTruoc, 
+            string loaiThanhToan,
+            decimal chuyenKhoan = 0,
+            decimal voucher = 0,
+            decimal diemGiam = 0,
+            decimal truTichLuy = 0,
+            decimal tamUng = 0)
         {
             if (string.IsNullOrEmpty(orderId)) return false;
 
@@ -402,6 +536,8 @@ namespace QuanLyBar.Client.Services
                     // Quy tắc: 20 000đ sẽ được 1 điểm
                     int diemTichLuy = (int)(tongCong / 20000m);
 
+                    decimal tienMatThuc = loaiTtInt == 4 ? 0 : Math.Max(0, khachDua - traLai);
+
                     string sql = @"
                         UPDATE TDONHANG 
                         SET KETTHUC = CURRENT_TIMESTAMP, 
@@ -411,7 +547,12 @@ namespace QuanLyBar.Client.Services
                             TRALAI = @TraLai,
                             TIENMAT = @TienMat,
                             THE = @TheATM,
+                            CHUYENKHOAN = @ChuyenKhoan,
                             THETRATRUOC = @TheTraTruoc,
+                            VOUCHER = @Voucher,
+                            DIEMGIAM = @DiemGiam,
+                            TRUTICHLUY = @TruTichLuy,
+                            DATTRUOC = @DatTruoc,
                             LOAITHANHTOAN = @LoaiTtInt,
                             DIEM = @Diem
                         WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
@@ -419,9 +560,14 @@ namespace QuanLyBar.Client.Services
                         OrderId = orderId, 
                         KhachDua = khachDua.ToString("0.##"),
                         TraLai = traLai.ToString("0.##"),
-                        TienMat = loaiTtInt == 0 ? khachDua : 0,
+                        TienMat = tienMatThuc.ToString("0.##"),
                         TheATM = theATM.ToString("0.##"),
+                        ChuyenKhoan = chuyenKhoan.ToString("0.##"),
                         TheTraTruoc = theTraTruoc.ToString("0.##"),
+                        Voucher = voucher.ToString("0.##"),
+                        DiemGiam = diemGiam.ToString("0.##"),
+                        TruTichLuy = truTichLuy.ToString("0.##"),
+                        DatTruoc = tamUng.ToString("0.##"),
                         LoaiTtInt = loaiTtInt,
                         Diem = diemTichLuy
                     });
@@ -707,6 +853,31 @@ namespace QuanLyBar.Client.Services
             {
                 MessageBox.Show("Lỗi xóa đơn hàng khi gộp: " + ex.Message);
                 return false;
+            }
+        }
+
+        public async Task<List<NhanVienLookupViewModel>> GetNhanVienLookupAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT CAST(ID AS VARCHAR(50)) as Id,
+                               CODE as Code,
+                               NAME as Name,
+                               DIENTHOAI as Dienthoai
+                        FROM DNHANVIEN
+                        WHERE (STATUS <> 0 OR STATUS IS NULL) AND (ITEMTYPE IS NULL OR UPPER(ITEMTYPE) <> 'FOLDER')
+                        ORDER BY SORTORDER, NAME";
+                    var items = (await conn.QueryAsync<NhanVienLookupViewModel>(sql)).ToList();
+                    return items;
+                }
+            }
+            catch
+            {
+                return new List<NhanVienLookupViewModel>();
             }
         }
 

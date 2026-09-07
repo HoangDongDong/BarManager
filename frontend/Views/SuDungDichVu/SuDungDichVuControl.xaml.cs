@@ -23,6 +23,17 @@ namespace QuanLyBar.Client.Views
         private DispatcherTimer _timer;
         private ObservableCollection<DichVuYeuCauViewModel> _dichVuList = new ObservableCollection<DichVuYeuCauViewModel>();
 
+        private bool _coThueSuat = false;
+        private decimal _macDinhThueSuat = 0;
+        private bool _coPhiDichVu = false;
+        private decimal _macDinhPhiDichVu = 0;
+        private bool _choPhepNhapGiamGia = true;
+        private decimal _macDinhGiamGia = 0;
+        private bool _choPhepThayDoiNgayTrenHoaDon = false;
+        private bool _batBuocNhapNhanVien = false;
+        private bool _kichHoatKhuyenMaiTuDong = true;
+        private string _cachChonGioTinhGia = "Giờ gọi đồ";
+
         public SuDungDichVuControl()
         {
             InitializeComponent();
@@ -39,10 +50,116 @@ namespace QuanLyBar.Client.Views
             _timer.Tick += Timer_Tick;
         }
 
+        public async Task RefreshSystemConfigsAsync()
+        {
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                _coThueSuat = configs.TryGetValue("CoThueSuat", out var cts) && (cts == "1" || cts.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (configs.TryGetValue("MacDinhThueSuat", out var mdts) && decimal.TryParse(mdts.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var thueVal))
+                {
+                    _macDinhThueSuat = thueVal;
+                }
+                else _macDinhThueSuat = 0;
+
+                _coPhiDichVu = configs.TryGetValue("CoPhiDichVu", out var cpdv) && (cpdv == "1" || cpdv.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (configs.TryGetValue("MacDinhPhiDichVu", out var mdpdv) && decimal.TryParse(mdpdv.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var phiVal))
+                {
+                    _macDinhPhiDichVu = phiVal;
+                }
+                else _macDinhPhiDichVu = 0;
+
+                _choPhepNhapGiamGia = !configs.TryGetValue("ChoPhepNhapGiamGia", out var cpg) || cpg == "1" || cpg.Equals("true", StringComparison.OrdinalIgnoreCase);
+                if (configs.TryGetValue("MacDinhGiamGia", out var mdgg) && decimal.TryParse(mdgg.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var ggVal))
+                {
+                    _macDinhGiamGia = ggVal;
+                }
+                else _macDinhGiamGia = 0;
+
+                _choPhepThayDoiNgayTrenHoaDon = configs.TryGetValue("ChoPhepThayDoiNgayTrenHoaDon", out var cpdn) && (cpdn == "1" || cpdn.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (DpNgayOrder != null)
+                {
+                    DpNgayOrder.IsEnabled = _choPhepThayDoiNgayTrenHoaDon;
+                    DpNgayOrder.Focusable = _choPhepThayDoiNgayTrenHoaDon;
+                    DpNgayOrder.IsHitTestVisible = _choPhepThayDoiNgayTrenHoaDon;
+                }
+
+                _batBuocNhapNhanVien = configs.TryGetValue("BatBuocNhapNhanVienBanHang", out var bbnv) && (bbnv == "1" || bbnv.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (TxtRequiredNhanVienStar != null)
+                {
+                    TxtRequiredNhanVienStar.Visibility = _batBuocNhapNhanVien ? Visibility.Visible : Visibility.Collapsed;
+                }
+
+                _kichHoatKhuyenMaiTuDong = !configs.TryGetValue("KichHoatKhuyenMaiTuDong", out var kmtd) || kmtd == "1" || kmtd.Equals("true", StringComparison.OrdinalIgnoreCase);
+                _cachChonGioTinhGia = configs.TryGetValue("CachChonGioTinhGia", out var ccg) && !string.IsNullOrWhiteSpace(ccg) ? ccg : "Giờ gọi đồ";
+
+                bool showGhiChu = configs.TryGetValue("HienThiGhiChuTrenGiaoDienBan", out var sgc) && (sgc == "1" || sgc.Equals("true", StringComparison.OrdinalIgnoreCase));
+                string sizeSetting = configs.TryGetValue("KichThuocHienThiOGiaoDienDichVu", out var ss) ? ss : "Lớn";
+
+                double cardWidth = 82;
+                double cardHeight = 92;
+                double iconSize = 50;
+                double tableFontSize = 11;
+
+                switch (sizeSetting)
+                {
+                    case "Lớn":
+                        cardWidth = 105;
+                        cardHeight = 110;
+                        iconSize = 58;
+                        tableFontSize = 12;
+                        break;
+                    case "Trung bình":
+                        cardWidth = 92;
+                        cardHeight = 98;
+                        iconSize = 50;
+                        tableFontSize = 11;
+                        break;
+                    case "Vừa":
+                        cardWidth = 82;
+                        cardHeight = 90;
+                        iconSize = 44;
+                        tableFontSize = 10;
+                        break;
+                    case "Nhỏ":
+                        cardWidth = 72;
+                        cardHeight = 78;
+                        iconSize = 36;
+                        tableFontSize = 9;
+                        break;
+                }
+
+                if (_khuVucList != null)
+                {
+                    foreach (var kv in _khuVucList)
+                    {
+                        if (kv.BanList != null)
+                        {
+                            foreach (var b in kv.BanList)
+                            {
+                                b.CardWidth = cardWidth;
+                                b.CardHeight = cardHeight;
+                                b.IconSize = iconSize;
+                                b.TableFontSize = tableFontSize;
+                                b.ShowGhiChu = showGhiChu;
+                            }
+                        }
+                    }
+                }
+
+                if (LblThueVAT != null) LblThueVAT.Visibility = _coThueSuat ? Visibility.Visible : Visibility.Collapsed;
+                if (PanelThueVATInput != null) PanelThueVATInput.Visibility = _coThueSuat ? Visibility.Visible : Visibility.Collapsed;
+                if (LblPhiDichVu != null) LblPhiDichVu.Visibility = _coPhiDichVu ? Visibility.Visible : Visibility.Collapsed;
+                if (PanelPhiDichVuInput != null) PanelPhiDichVuInput.Visibility = _coPhiDichVu ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch { }
+        }
+
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             if (DgDichVu != null) DgDichVu.ItemsSource = _dichVuList;
 
+            await RefreshSystemConfigsAsync();
             await LoadKhuVucBansAsync();
             await LoadMenuTreeAsync();
             await LoadMatHangListAsync();
@@ -84,6 +201,66 @@ namespace QuanLyBar.Client.Views
         {
             if (_service == null) return;
             _khuVucList = await _service.GetKhuVucBanListAsync();
+
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                string sizeSetting = configs.TryGetValue("KichThuocHienThiOGiaoDienDichVu", out var ss) ? ss : "Lớn";
+                bool showGhiChu = configs.TryGetValue("HienThiGhiChuTrenGiaoDienBan", out var sgc) && (sgc == "1" || sgc.Equals("true", StringComparison.OrdinalIgnoreCase));
+
+                double cardWidth = 82;
+                double cardHeight = 92;
+                double iconSize = 50;
+                double tableFontSize = 11;
+
+                switch (sizeSetting)
+                {
+                    case "Lớn":
+                        cardWidth = 105;
+                        cardHeight = 110;
+                        iconSize = 58;
+                        tableFontSize = 12;
+                        break;
+                    case "Trung bình":
+                        cardWidth = 92;
+                        cardHeight = 98;
+                        iconSize = 50;
+                        tableFontSize = 11;
+                        break;
+                    case "Vừa":
+                        cardWidth = 82;
+                        cardHeight = 90;
+                        iconSize = 44;
+                        tableFontSize = 10;
+                        break;
+                    case "Nhỏ":
+                        cardWidth = 72;
+                        cardHeight = 78;
+                        iconSize = 36;
+                        tableFontSize = 9;
+                        break;
+                }
+
+                if (_khuVucList != null)
+                {
+                    foreach (var kv in _khuVucList)
+                    {
+                        if (kv.BanList != null)
+                        {
+                            foreach (var b in kv.BanList)
+                            {
+                                b.CardWidth = cardWidth;
+                                b.CardHeight = cardHeight;
+                                b.IconSize = iconSize;
+                                b.TableFontSize = tableFontSize;
+                                b.ShowGhiChu = showGhiChu;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
             if (IcKhuVuc != null) IcKhuVuc.ItemsSource = _khuVucList;
 
             // Nếu chưa chọn bàn nào, tự động chọn bàn đầu tiên
@@ -259,6 +436,8 @@ namespace QuanLyBar.Client.Views
         {
             if (ban == null) return;
 
+            await RefreshSystemConfigsAsync();
+
             if (_khuVucList != null)
             {
                 foreach (var kv in _khuVucList)
@@ -306,7 +485,24 @@ namespace QuanLyBar.Client.Views
                 if (TxtSoPhieu != null) TxtSoPhieu.Text = ban.SoPhieu ?? "";
                 if (TxtSoKhach != null) TxtSoKhach.Text = ban.SoKhach.ToString();
                 if (TxtKhachHang != null) TxtKhachHang.Text = ban.KhachHangName ?? "";
+                if (TxtNhanVien != null)
+                {
+                    TxtNhanVien.Text = ban.NhanVienName ?? "";
+                    TxtNhanVien.Tag = ban.NhanVienId;
+                }
                 if (TxtOrderGhiChu != null) TxtOrderGhiChu.Text = ban.GhiChu ?? "";
+
+                if (ban.ThueSuatPt == 0 && _coThueSuat && _macDinhThueSuat > 0)
+                {
+                    ban.ThueSuatPt = _macDinhThueSuat;
+                }
+                if (ban.PhiDichVuPt == 0 && _coPhiDichVu && _macDinhPhiDichVu > 0)
+                {
+                    ban.PhiDichVuPt = _macDinhPhiDichVu;
+                }
+
+                if (TxtThueVATPt != null) TxtThueVATPt.Text = (ban.ThueSuatPt > 0 ? ban.ThueSuatPt : _macDinhThueSuat).ToString("0.##");
+                if (TxtPhiDichVuPt != null) TxtPhiDichVuPt.Text = (ban.PhiDichVuPt > 0 ? ban.PhiDichVuPt : _macDinhPhiDichVu).ToString("0.##");
 
                 await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
             }
@@ -327,7 +523,23 @@ namespace QuanLyBar.Client.Views
                 if (TxtSoPhieu != null) TxtSoPhieu.Text = nextSoPhieu;
                 if (TxtSoKhach != null) TxtSoKhach.Text = "1";
                 if (TxtKhachHang != null) TxtKhachHang.Text = "";
+                if (TxtNhanVien != null)
+                {
+                    TxtNhanVien.Text = "";
+                    TxtNhanVien.Tag = null;
+                }
                 if (TxtOrderGhiChu != null) TxtOrderGhiChu.Text = "";
+
+                if (TxtThueVATPt != null) TxtThueVATPt.Text = _macDinhThueSuat.ToString("0.##");
+                if (TxtPhiDichVuPt != null) TxtPhiDichVuPt.Text = _macDinhPhiDichVu.ToString("0.##");
+            }
+
+            if (DpNgayOrder != null)
+            {
+                DpNgayOrder.SelectedDate = ban.StartTime.HasValue ? ban.StartTime.Value.Date : DateTime.Today;
+                DpNgayOrder.IsEnabled = _choPhepThayDoiNgayTrenHoaDon;
+                DpNgayOrder.Focusable = _choPhepThayDoiNgayTrenHoaDon;
+                DpNgayOrder.IsHitTestVisible = _choPhepThayDoiNgayTrenHoaDon;
             }
 
             RecalculateTotals();
@@ -354,14 +566,23 @@ namespace QuanLyBar.Client.Views
             if (BtnGiamSoLuong != null) BtnGiamSoLuong.IsEnabled = isStarted;
             if (BtnXoaMon != null) BtnXoaMon.IsEnabled = isStarted;
             if (BtnInCheBien != null) BtnInCheBien.IsEnabled = isStarted;
+            if (BtnInTamTinh != null) BtnInTamTinh.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("In tạm tính", "View");
 
             if (DgChiTiet != null) DgChiTiet.IsEnabled = isStarted;
             if (TxtGiamGiaPt != null) TxtGiamGiaPt.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Thay đổi giảm giá tổng hóa đơn", "View");
             if (TxtGiamGia != null) TxtGiamGia.IsEnabled = isStarted && LocalPhanQuyenService.HasFunctionPermission("Thay đổi giảm giá tổng hóa đơn", "View");
             if (TxtOrderGhiChu != null) TxtOrderGhiChu.IsEnabled = isStarted;
             if (TxtKhachHang != null) TxtKhachHang.IsEnabled = isStarted;
+            if (TxtNhanVien != null) TxtNhanVien.IsEnabled = isStarted;
+            if (BtnNhanVienToggle != null) BtnNhanVienToggle.IsEnabled = isStarted;
             if (TxtSoKhach != null) TxtSoKhach.IsEnabled = isStarted;
             if (TxtSoPhieu != null) TxtSoPhieu.IsEnabled = isStarted;
+            if (DpNgayOrder != null)
+            {
+                DpNgayOrder.IsEnabled = _choPhepThayDoiNgayTrenHoaDon;
+                DpNgayOrder.Focusable = _choPhepThayDoiNgayTrenHoaDon;
+                DpNgayOrder.IsHitTestVisible = _choPhepThayDoiNgayTrenHoaDon;
+            }
 
             if (BtnBatDau != null && !isStarted)
             {
@@ -406,9 +627,19 @@ namespace QuanLyBar.Client.Views
             int.TryParse(TxtSoKhach?.Text?.Trim(), out int soKhach);
             if (soKhach <= 0) soKhach = 1;
             string khachHang = TxtKhachHang?.Text?.Trim();
+            string nhanVienId = TxtNhanVien?.Tag?.ToString();
             string ghiChu = TxtOrderGhiChu?.Text?.Trim();
 
-            var result = await _service.StartTableOrderAsync(_currentBan.Id, startTime, soKhach, khachHang, ghiChu);
+            if (_batBuocNhapNhanVien && (string.IsNullOrWhiteSpace(TxtNhanVien?.Text) || string.IsNullOrEmpty(nhanVienId)))
+            {
+                MessageBox.Show("Cấu hình hệ thống bắt buộc phải chọn nhân viên bán hàng!\nVui lòng chọn nhân viên.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtNhanVien?.Focus();
+                if (PopupNhanVien != null) PopupNhanVien.IsOpen = true;
+                if (BtnNhanVienToggle != null) BtnNhanVienToggle.IsChecked = true;
+                return;
+            }
+
+            var result = await _service.StartTableOrderAsync(_currentBan.Id, startTime, soKhach, khachHang, ghiChu, nhanVienId);
             if (result != null && !string.IsNullOrEmpty(result.OrderId))
             {
                 _currentBan.IsOccupied = true;
@@ -417,6 +648,8 @@ namespace QuanLyBar.Client.Views
                 _currentBan.SoPhieu = result.SoPhieu;
                 _currentBan.SoKhach = soKhach;
                 _currentBan.KhachHangName = khachHang;
+                _currentBan.NhanVienId = nhanVienId;
+                _currentBan.NhanVienName = TxtNhanVien?.Text?.Trim();
                 _currentBan.GhiChu = ghiChu;
                 _currentBan.UpdateTimerText();
 
@@ -428,6 +661,17 @@ namespace QuanLyBar.Client.Views
                     BtnBatDau.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#c0392b"));
                 }
 
+                if (_coThueSuat && _macDinhThueSuat > 0)
+                {
+                    _currentBan.ThueSuatPt = _macDinhThueSuat;
+                    if (TxtThueVATPt != null) TxtThueVATPt.Text = _macDinhThueSuat.ToString("0.##");
+                }
+                if (_coPhiDichVu && _macDinhPhiDichVu > 0)
+                {
+                    _currentBan.PhiDichVuPt = _macDinhPhiDichVu;
+                    if (TxtPhiDichVuPt != null) TxtPhiDichVuPt.Text = _macDinhPhiDichVu.ToString("0.##");
+                }
+
                 UpdateOrderControlState();
                 _ = ApplyPromotionsToCurrentBanAsync(true);
                 MessageBox.Show($"Đã bắt đầu mở bàn '{_currentBan.Name}' (Số phiếu: {result.SoPhieu}) lúc {startTime:HH:mm:ss}!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -435,7 +679,7 @@ namespace QuanLyBar.Client.Views
         }
 
         #region Tự động áp dụng khuyến mại
-        private async Task ApplyPromotionsToCurrentBanAsync(bool recalculateTotals = true)
+        private async Task ApplyPromotionsToCurrentBanAsync(bool recalculateTotals = true, DateTime? customCheckTime = null)
         {
             if (_currentBan == null || !_currentBan.IsOccupied || !_currentBan.StartTime.HasValue || _currentBan.OrderItems == null)
             {
@@ -444,19 +688,19 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
-            // BƯỚC 1: Luôn RESET toàn bộ món về giá gốc và xóa khuyến mại cũ
+            // BƯỚC 1: Luôn RESET toàn bộ món về giá gốc và xóa khuyến mại cũ (nếu có nhãn KM:)
             foreach (var item in _currentBan.OrderItems.Where(x => !x.IsHangTang))
             {
-                if (item.DonGiaGoc > 0)
-                {
-                    item.DonGia = item.DonGiaGoc;
-                }
-                item.ChietKhauPhanTram = 0;
                 if (!string.IsNullOrEmpty(item.GhiChu) && (item.GhiChu.StartsWith("KM:") || item.GhiChu.StartsWith("KM đợt:")))
                 {
+                    if (item.DonGiaGoc > 0)
+                    {
+                        item.DonGia = item.DonGiaGoc;
+                    }
+                    item.ChietKhauPhanTram = 0;
                     item.GhiChu = "";
+                    item.Recalculate();
                 }
-                item.Recalculate();
             }
 
             var oldGifts = _currentBan.OrderItems.Where(x => x.IsHangTang || (x.GhiChu != null && x.GhiChu.Contains("(Hàng tặng"))).ToList();
@@ -465,17 +709,27 @@ namespace QuanLyBar.Client.Views
                 _currentBan.OrderItems.Remove(g);
             }
 
-            if (TxtGiamGiaPt != null)
+            if (TxtTenDotKhuyenMaiBill != null && TxtTenDotKhuyenMaiBill.Visibility == Visibility.Visible)
             {
-                TxtGiamGiaPt.Text = "0";
-            }
-            if (TxtTenDotKhuyenMaiBill != null)
-            {
+                if (TxtGiamGiaPt != null)
+                {
+                    TxtGiamGiaPt.Text = "0";
+                }
                 TxtTenDotKhuyenMaiBill.Visibility = Visibility.Collapsed;
             }
 
+            // Nếu tùy chọn 'Kích hoạt khuyến mại tự động' bị TẮT trong Cấu hình hệ thống, dừng tại đây
+            if (!_kichHoatKhuyenMaiTuDong)
+            {
+                if (recalculateTotals) RecalculateTotals();
+                DgChiTiet?.Items?.Refresh();
+                return;
+            }
+
             // BƯỚC 2: Tải các đợt khuyến mại đang có hiệu lực (NGUNGAPDUNG = 0)
-            DateTime checkTime = _currentBan.StartTime.Value;
+            DateTime checkTime = customCheckTime.HasValue
+                ? customCheckTime.Value
+                : (_cachChonGioTinhGia == "Giờ thanh toán" ? DateTime.Now : (_currentBan.StartTime ?? DateTime.Now));
             var activePromotions = await LocalKhuyenMaiService.GetActivePromotionsAsync(checkTime);
             if (activePromotions != null && activePromotions.Count > 0)
             {
@@ -645,17 +899,41 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
+            if (_batBuocNhapNhanVien && (string.IsNullOrWhiteSpace(TxtNhanVien?.Text) || string.IsNullOrEmpty(TxtNhanVien?.Tag?.ToString())))
+            {
+                MessageBox.Show("Cấu hình hệ thống bắt buộc phải chọn nhân viên bán hàng!\nVui lòng chọn nhân viên.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtNhanVien?.Focus();
+                return;
+            }
+
             if (_currentBan.OrderItems == null)
             {
                 _currentBan.OrderItems = new ObservableCollection<PosDonHangChiTietViewModel>();
                 if (DgChiTiet != null) DgChiTiet.ItemsSource = _currentBan.OrderItems;
             }
 
+            decimal quantityToAdd = 1;
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                bool promptQty = (configs.TryGetValue("NhapSoLuongSauKhiChon", out var nsl1) && (nsl1 == "1" || nsl1.Equals("true", StringComparison.OrdinalIgnoreCase)))
+                              || (configs.TryGetValue("HienThiCuaSoNhapSoLuongKhiQuetMaVach", out var nsl2) && (nsl2 == "1" || nsl2.Equals("true", StringComparison.OrdinalIgnoreCase)));
+
+                if (promptQty)
+                {
+                    var qtyWin = new NhapSoLuongChuyenWindow(matHang.Name, 1, isOrdering: true);
+                    qtyWin.Owner = Window.GetWindow(this);
+                    if (qtyWin.ShowDialog() != true) return;
+                    quantityToAdd = qtyWin.SoLuong;
+                }
+            }
+            catch { }
+
             // Kiểm tra xem món đã có trong đơn chưa
             var existing = _currentBan.OrderItems.FirstOrDefault(x => x.MatHangId == matHang.Id && !x.IsHangTang);
             if (existing != null)
             {
-                existing.SoLuong += 1;
+                existing.SoLuong += quantityToAdd;
             }
             else
             {
@@ -668,7 +946,7 @@ namespace QuanLyBar.Client.Views
                     NhomMatHangId = matHang.NhomMatHangId,
                     DonGiaGoc = matHang.GiaBan ?? 0,
                     DonGia = matHang.GiaBan ?? 0,
-                    SoLuong = 1,
+                    SoLuong = quantityToAdd,
                     ChietKhauPhanTram = 0,
                     GhiChu = "",
                     LoaiDoId = matHang.LoaiDoId,
@@ -680,11 +958,12 @@ namespace QuanLyBar.Client.Views
 
             await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true);
             await AutoSaveOrderAsync();
+            TriggerAutoPrintKitchenCountdown();
 
             _ = LocalLuuVetService.GhiLuuVetAsync(
                 _currentBan.ActiveOrderId, _currentBan.Name, "Sử dụng dịch vụ", 
-                $"Thêm '{matHang.Name}' vào bill, số lượng: 1", 
-                4, 1, matHang.GiaBan ?? 0, matHang.GiaBan ?? 0, matHang.Name);
+                $"Thêm '{matHang.Name}' vào bill, số lượng: {quantityToAdd}", 
+                4, quantityToAdd, matHang.GiaBan ?? 0, (matHang.GiaBan ?? 0) * quantityToAdd, matHang.Name);
         }
 
         private async void DgMatHang_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -867,6 +1146,8 @@ namespace QuanLyBar.Client.Views
                     TxtTienHang.Text = "0";
                     TxtTongCong.Text = "0";
                     TxtGiamGia.Text = "0";
+                    if (TxtPhiDichVu != null) TxtPhiDichVu.Text = "0";
+                    if (TxtThueVAT != null) TxtThueVAT.Text = "0";
                     return;
                 }
 
@@ -884,12 +1165,38 @@ namespace QuanLyBar.Client.Views
                     giamTien = ParseNumber(TxtGiamGia.Text);
                 }
 
+                _currentBan.GiamGiaPhanTram = giamPt;
                 _currentBan.GiamGia = giamTien;
-                decimal tongCong = Math.Max(0, tienHang - giamTien);
+
+                decimal sauGiam = Math.Max(0, tienHang - giamTien);
+
+                // Phí dịch vụ
+                decimal phiPt = _coPhiDichVu ? (TxtPhiDichVuPt != null ? ParseNumber(TxtPhiDichVuPt.Text, isPercent: true) : _macDinhPhiDichVu) : 0;
+                decimal tienPhi = 0;
+                if (_coPhiDichVu && phiPt > 0)
+                {
+                    tienPhi = Math.Round(sauGiam * (phiPt / 100m));
+                }
+                _currentBan.PhiDichVuPt = phiPt;
+                _currentBan.TienPhiDichVu = tienPhi;
+
+                // Thuế VAT
+                decimal thuePt = _coThueSuat ? (TxtThueVATPt != null ? ParseNumber(TxtThueVATPt.Text, isPercent: true) : _macDinhThueSuat) : 0;
+                decimal tienThue = 0;
+                if (_coThueSuat && thuePt > 0)
+                {
+                    tienThue = Math.Round((sauGiam + tienPhi) * (thuePt / 100m));
+                }
+                _currentBan.ThueSuatPt = thuePt;
+                _currentBan.TienThue = tienThue;
+
+                decimal tongCong = sauGiam + tienPhi + tienThue;
                 _currentBan.TongCong = tongCong;
 
                 TxtTienHang.Text = tienHang.ToString("N0");
                 TxtGiamGia.Text = giamTien.ToString("N0");
+                if (TxtPhiDichVu != null) TxtPhiDichVu.Text = tienPhi.ToString("N0");
+                if (TxtThueVAT != null) TxtThueVAT.Text = tienThue.ToString("N0");
                 TxtTongCong.Text = tongCong.ToString("N0");
             }
             finally
@@ -938,7 +1245,12 @@ namespace QuanLyBar.Client.Views
                     _currentBan.GiamGia, 
                     _currentBan.TongCong, 
                     TxtOrderGhiChu?.Text?.Trim(), 
-                    soKhach
+                    soKhach,
+                    _currentBan.TienThue,
+                    _currentBan.ThueSuatPt,
+                    _currentBan.TienPhiDichVu,
+                    _currentBan.PhiDichVuPt,
+                    TxtNhanVien?.Tag?.ToString()
                 );
             }
         }
@@ -953,6 +1265,13 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
+            if (_batBuocNhapNhanVien && (string.IsNullOrWhiteSpace(TxtNhanVien?.Text) || string.IsNullOrEmpty(TxtNhanVien?.Tag?.ToString())))
+            {
+                MessageBox.Show("Cấu hình hệ thống bắt buộc phải chọn nhân viên bán hàng!\nVui lòng chọn nhân viên trước khi thanh toán.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtNhanVien?.Focus();
+                return;
+            }
+
             // 1. Cảnh báo nếu thanh toán hóa đơn ngày cũ
             if (_currentBan.StartTime.HasValue && _currentBan.StartTime.Value.Date < DateTime.Today)
             {
@@ -963,7 +1282,13 @@ namespace QuanLyBar.Client.Views
                 await _service.UpdateOrderDateToTodayAsync(_currentBan.ActiveOrderId);
             }
 
-            // 2. Mở cửa sổ Xác nhận thanh toán
+            // 2. Tái tính toán giá / khuyến mại theo Giờ thanh toán nếu có cấu hình
+            if (_cachChonGioTinhGia == "Giờ thanh toán")
+            {
+                await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true, customCheckTime: DateTime.Now);
+            }
+
+            // 3. Mở cửa sổ Xác nhận thanh toán
             var win = new XacNhanThanhToanWindow(_currentBan);
             win.Owner = Window.GetWindow(this);
             if (win.ShowDialog() == true)
@@ -971,13 +1296,18 @@ namespace QuanLyBar.Client.Views
                 decimal khachDua = win.KhachDua;
                 decimal traLai = win.TraLai;
                 decimal theATM = win.TheATM;
+                decimal chuyenKhoan = win.ChuyenKhoan;
                 decimal theTraTruoc = win.TheTraTruoc;
+                decimal voucher = win.Voucher;
+                decimal diemGiam = win.DiemDoi;
+                decimal truTichLuy = win.TienDiem;
+                decimal tamUng = win.TamUng;
                 bool isNo = win.IsKhachNo;
                 bool inBill = win.IsInBill;
 
-                string loaiTT = isNo ? "CongNo" : (theATM > 0 ? "TheATM" : (theTraTruoc > 0 ? "The" : "TienMat"));
+                string loaiTT = isNo ? "CongNo" : (theATM > 0 ? "TheATM" : (chuyenKhoan > 0 ? "ChuyenKhoan" : (theTraTruoc > 0 ? "The" : (voucher > 0 ? "Voucher" : "TienMat"))));
 
-                if (await _service.FinishTableOrderWithDetailsAsync(_currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT))
+                if (await _service.FinishTableOrderWithDetailsAsync(_currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT, chuyenKhoan, voucher, diemGiam, truTichLuy, tamUng))
                 {
                     if (inBill)
                     {
@@ -1059,6 +1389,17 @@ namespace QuanLyBar.Client.Views
 
                     // Chọn bàn mới
                     SelectBan(targetBan);
+
+                    try
+                    {
+                        var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                        bool inChuyenBan = configs.TryGetValue("InThongBaoKhiChuyenBan", out var icb) && (icb == "1" || icb.Equals("true", StringComparison.OrdinalIgnoreCase));
+                        if (inChuyenBan)
+                        {
+                            PrintChuyenBanTicket(oldName, targetBan.Name);
+                        }
+                    }
+                    catch { }
 
                     MessageBox.Show($"Đã chuyển toàn bộ dữ liệu bàn '{oldName}' sang bàn '{targetBan.Name}' thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -1218,20 +1559,68 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
-            // Lọc danh sách các món chưa in chế biến
-            var unprintedItems = _currentBan.OrderItems.Where(x => !x.DaInCheBien).ToList();
+            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+            bool suDungInBep = !configs.TryGetValue("SuDungChucNangInXuongBep", out var sd) || sd == "1" || sd.Equals("true", StringComparison.OrdinalIgnoreCase);
+            if (!suDungInBep)
+            {
+                MessageBox.Show("Chức năng in xuống bếp đang bị tắt trong Cấu hình hệ thống.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            bool inDoAn = !configs.TryGetValue("InDoAn", out var ida) || ida == "1" || ida.Equals("true", StringComparison.OrdinalIgnoreCase);
+            bool inDoUong = !configs.TryGetValue("InDoUong", out var idu) || idu == "1" || idu.Equals("true", StringComparison.OrdinalIgnoreCase);
+            bool inDichVu = configs.TryGetValue("InDichVu", out var idv) && (idv == "1" || idv.Equals("true", StringComparison.OrdinalIgnoreCase));
+            bool inDoKhac = !configs.TryGetValue("InDoKhac", out var idk) || idk == "1" || idk.Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            // Lọc danh sách các món chưa in chế biến và phù hợp nhóm cho phép in
+            var unprintedItems = _currentBan.OrderItems.Where(x => !x.DaInCheBien && (
+                (x.ItemCategory == "DoAn" && inDoAn) ||
+                (x.ItemCategory == "DoUong" && inDoUong) ||
+                (x.ItemCategory == "DichVu" && inDichVu) ||
+                (x.ItemCategory == "DoKhac" && inDoKhac)
+            )).ToList();
+
             if (unprintedItems.Count == 0)
             {
                 MessageBox.Show("Không có mặt hàng nào để in", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var win = new InCheBienWindow(_currentBan.Name, unprintedItems);
+            string banDisplay = !string.IsNullOrEmpty(_currentBan.KhuVucName) ? $"{_currentBan.Name} - {_currentBan.KhuVucName}" : _currentBan.Name;
+            var win = new InCheBienWindow(banDisplay, unprintedItems);
             win.Owner = Window.GetWindow(this);
             if (win.ShowDialog() == true)
             {
                 await AutoSaveOrderAsync();
             }
+        }
+
+        private async void BtnInTamTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentBan == null || _currentBan.OrderItems == null || _currentBan.OrderItems.Count == 0)
+            {
+                MessageBox.Show("Không có mặt hàng nào để in tạm tính", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("In tạm tính", "View")) return;
+
+            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+            bool choPhepInTamTinh = !configs.TryGetValue("ChoPhepInTamTinh", out var cp) || cp == "1" || cp.Equals("true", StringComparison.OrdinalIgnoreCase);
+            if (!choPhepInTamTinh)
+            {
+                MessageBox.Show("Chức năng in tạm tính đang bị tắt trong Cấu hình hệ thống.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (_cachChonGioTinhGia == "Giờ thanh toán")
+            {
+                await ApplyPromotionsToCurrentBanAsync(recalculateTotals: true, customCheckTime: DateTime.Now);
+            }
+
+            var printWin = new HoaDonBanHangPrintWindow(_currentBan, isTamTinh: true);
+            printWin.Owner = Window.GetWindow(this);
+            printWin.ShowDialog();
         }
 
         private async void TvMenu_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -1278,6 +1667,11 @@ namespace QuanLyBar.Client.Views
             {
                 e.Handled = true;
                 BtnInCheBien_Click(this, new RoutedEventArgs());
+            }
+            else if (e.Key == Key.F8)
+            {
+                e.Handled = true;
+                BtnInTamTinh_Click(this, new RoutedEventArgs());
             }
             else if (e.Key == Key.F9)
             {
@@ -1438,6 +1832,141 @@ namespace QuanLyBar.Client.Views
         private void BtnKhachHangDanhMuc_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Mở danh mục quản lý khách hàng.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        // ======================= XỬ LÝ NHÂN VIÊN =======================
+        private List<NhanVienLookupViewModel> _allNhanViens = new List<NhanVienLookupViewModel>();
+        private ObservableCollection<NhanVienLookupViewModel> _filteredNhanViens = new ObservableCollection<NhanVienLookupViewModel>();
+
+        private async void TxtNhanVien_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (PopupNhanVien != null && !PopupNhanVien.IsOpen && TxtNhanVien.IsFocused)
+            {
+                PopupNhanVien.IsOpen = true;
+                if (BtnNhanVienToggle != null) BtnNhanVienToggle.IsChecked = true;
+            }
+            await FilterNhanVienAsync(TxtNhanVien?.Text ?? "");
+        }
+
+        private void TxtNhanVien_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Down && PopupNhanVien != null && PopupNhanVien.IsOpen)
+            {
+                DgNhanVienLookup?.Focus();
+                if (DgNhanVienLookup?.Items.Count > 0)
+                {
+                    DgNhanVienLookup.SelectedIndex = 0;
+                }
+            }
+        }
+
+        private async void BtnNhanVienToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (BtnNhanVienToggle?.IsChecked == true)
+            {
+                await LoadNhanVienAsync();
+                await FilterNhanVienAsync(TxtNhanVien?.Text ?? "");
+            }
+        }
+
+        private async Task LoadNhanVienAsync()
+        {
+            if (_allNhanViens.Count == 0 && _service != null)
+            {
+                var list = await _service.GetNhanVienLookupAsync();
+                _allNhanViens = list.Where(x => !string.IsNullOrEmpty(x.Id) || !string.IsNullOrEmpty(x.Name)).ToList();
+            }
+        }
+
+        private async Task FilterNhanVienAsync(string filter)
+        {
+            await LoadNhanVienAsync();
+            _filteredNhanViens.Clear();
+
+            var query = _allNhanViens.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                string lower = filter.Trim().ToLower();
+                query = query.Where(x => (x.Name != null && x.Name.ToLower().Contains(lower))
+                                      || (x.Code != null && x.Code.ToLower().Contains(lower))
+                                      || (x.Dienthoai != null && x.Dienthoai.ToLower().Contains(lower)));
+            }
+
+            foreach (var item in query)
+            {
+                _filteredNhanViens.Add(item);
+            }
+
+            if (DgNhanVienLookup != null)
+            {
+                DgNhanVienLookup.ItemsSource = _filteredNhanViens;
+                if (_filteredNhanViens.Count > 0)
+                {
+                    DgNhanVienLookup.SelectedIndex = 0;
+                }
+            }
+        }
+
+        private async void DgNhanVienLookup_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            await SelectNhanVienItemAsync();
+        }
+
+        private async void DgNhanVienLookup_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                await SelectNhanVienItemAsync();
+            }
+        }
+
+        private async Task SelectNhanVienItemAsync()
+        {
+            if (DgNhanVienLookup?.SelectedItem is NhanVienLookupViewModel selected)
+            {
+                if (TxtNhanVien != null)
+                {
+                    TxtNhanVien.Text = selected.Name;
+                    TxtNhanVien.Tag = selected.Id;
+                }
+
+                if (_currentBan != null)
+                {
+                    _currentBan.NhanVienName = selected.Name;
+                    _currentBan.NhanVienId = selected.Id;
+                    if (!string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+                    {
+                        await AutoSaveOrderAsync();
+                    }
+                }
+
+                if (PopupNhanVien != null) PopupNhanVien.IsOpen = false;
+                if (BtnNhanVienToggle != null) BtnNhanVienToggle.IsChecked = false;
+            }
+        }
+
+        // ======================= XỬ LÝ GHI CHÚ BÀN (TxtOrderGhiChu) =======================
+        private DispatcherTimer _saveNoteDebounceTimer;
+
+        private void TxtOrderGhiChu_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_currentBan != null && _currentBan.IsOccupied)
+            {
+                _currentBan.GhiChu = TxtOrderGhiChu?.Text ?? "";
+
+                if (_saveNoteDebounceTimer == null)
+                {
+                    _saveNoteDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+                    _saveNoteDebounceTimer.Tick += async (s, args) =>
+                    {
+                        _saveNoteDebounceTimer.Stop();
+                        await AutoSaveOrderAsync();
+                    };
+                }
+                _saveNoteDebounceTimer.Stop();
+                _saveNoteDebounceTimer.Start();
+            }
         }
 
         // ======================= XỬ LÝ CÂY THỰC ĐƠN & CHUỘT PHẢI (TvMenu) =======================
@@ -2074,6 +2603,102 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        #endregion
+
+        #region TỰ ĐỘNG IN PHA CHẾ & IN THÔNG BÁO CHUYỂN BÀN
+        private DispatcherTimer _autoPrintKitchenTimer;
+
+        private async void TriggerAutoPrintKitchenCountdown()
+        {
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                bool autoPrint = configs.TryGetValue("TuDongInPhaCheSauKhiGoiMon", out var tp) && (tp == "1" || tp.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (!autoPrint) return;
+
+                int waitSeconds = 10;
+                if (configs.TryGetValue("ThoiGianTuDongIn", out var ws) && int.TryParse(ws, out int s) && s > 0)
+                {
+                    waitSeconds = s;
+                }
+
+                if (_autoPrintKitchenTimer != null)
+                {
+                    _autoPrintKitchenTimer.Stop();
+                }
+                else
+                {
+                    _autoPrintKitchenTimer = new DispatcherTimer();
+                    _autoPrintKitchenTimer.Tick += AutoPrintKitchenTimer_Tick;
+                }
+
+                _autoPrintKitchenTimer.Interval = TimeSpan.FromSeconds(waitSeconds);
+                _autoPrintKitchenTimer.Start();
+            }
+            catch { }
+        }
+
+        private async void AutoPrintKitchenTimer_Tick(object sender, EventArgs e)
+        {
+            _autoPrintKitchenTimer?.Stop();
+            if (_currentBan == null || _currentBan.OrderItems == null || _currentBan.OrderItems.Count == 0) return;
+
+            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+            bool inDoAn = !configs.TryGetValue("InDoAn", out var ida) || ida == "1" || ida.Equals("true", StringComparison.OrdinalIgnoreCase);
+            bool inDoUong = !configs.TryGetValue("InDoUong", out var idu) || idu == "1" || idu.Equals("true", StringComparison.OrdinalIgnoreCase);
+            bool inDichVu = configs.TryGetValue("InDichVu", out var idv) && (idv == "1" || idv.Equals("true", StringComparison.OrdinalIgnoreCase));
+            bool inDoKhac = !configs.TryGetValue("InDoKhac", out var idk) || idk == "1" || idk.Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            var unprinted = _currentBan.OrderItems.Where(x => !x.DaInCheBien && (
+                (x.ItemCategory == "DoAn" && inDoAn) ||
+                (x.ItemCategory == "DoUong" && inDoUong) ||
+                (x.ItemCategory == "DichVu" && inDichVu) ||
+                (x.ItemCategory == "DoKhac" && inDoKhac)
+            )).ToList();
+
+            if (unprinted.Count > 0)
+            {
+                string banDisplay = !string.IsNullOrEmpty(_currentBan.KhuVucName) ? $"{_currentBan.Name} - {_currentBan.KhuVucName}" : _currentBan.Name;
+                var win = new InCheBienWindow(banDisplay, unprinted);
+                win.PrintDirectly();
+                foreach (var it in unprinted) it.DaInCheBien = true;
+                await AutoSaveOrderAsync();
+            }
+        }
+
+        private void PrintChuyenBanTicket(string fromBan, string toBan)
+        {
+            try
+            {
+                var doc = new System.Drawing.Printing.PrintDocument();
+                doc.PrintPage += (s, ev) =>
+                {
+                    var g = ev.Graphics;
+                    var fontTitle = new System.Drawing.Font("Arial", 13, System.Drawing.FontStyle.Bold);
+                    var fontBody = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
+                    var fontSub = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Regular);
+
+                    float y = 15;
+                    g.DrawString("THÔNG BÁO CHUYỂN BÀN", fontTitle, System.Drawing.Brushes.Black, new System.Drawing.RectangleF(10, y, 260, 24), new System.Drawing.StringFormat { Alignment = System.Drawing.StringAlignment.Center });
+                    y += 28;
+                    g.DrawLine(System.Drawing.Pens.Black, 10, y, 270, y);
+                    y += 8;
+
+                    g.DrawString($"Từ bàn: {fromBan}", fontBody, System.Drawing.Brushes.Black, 10, y);
+                    y += 22;
+                    g.DrawString($"Sang bàn: {toBan}", fontBody, System.Drawing.Brushes.Black, 10, y);
+                    y += 22;
+                    string userName = SessionContext.CurrentUser?.TenDangNhap ?? "Administrator";
+                    g.DrawString($"Thực hiện: {userName}", fontSub, System.Drawing.Brushes.Black, 10, y);
+                    y += 20;
+                    g.DrawString($"Thời gian: {DateTime.Now:dd/MM/yyyy HH:mm:ss}", fontSub, System.Drawing.Brushes.Black, 10, y);
+                    y += 22;
+                    g.DrawLine(System.Drawing.Pens.Black, 10, y, 270, y);
+                };
+                if (doc.PrinterSettings.IsValid) doc.Print();
+            }
+            catch { }
+        }
         #endregion
     }
 }

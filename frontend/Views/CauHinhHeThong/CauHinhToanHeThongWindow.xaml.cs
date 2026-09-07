@@ -46,29 +46,55 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         private void InitializeComboBoxes()
         {
             // Mẫu hóa đơn
-            CboMauHoaDon.ItemsSource = new string[] { "Mẫu 80mm mặc định", "Mẫu 58mm", "Mẫu khổ A5", "Mẫu khổ A4" };
-            CboMauHoaDon.SelectedIndex = 0;
+            CboMauHoaDon.ItemsSource = new string[]
+            {
+                "Mẫu 54 mm x 2 dòng",
+                "Mẫu 80mm 2 ngôn ngữ",
+                "Mẫu in 80mm (cộng gộp)",
+                "Mẫu in bill 54mm",
+                "Mẫu in bill 80 (Có CK)",
+                "Mẫu in bill 80mm",
+                "Mẫu in bill 80mm (CK tổng)",
+                "Mẫu in bill A4",
+                "Mẫu in bill A5"
+            };
+            CboMauHoaDon.SelectedIndex = 5; // "Mẫu in bill 80mm"
 
-            CboMauInCheBien.ItemsSource = new string[] { "Mẫu in bếp 80mm", "Mẫu in bếp 58mm", "Mẫu in bar riêng" };
-            CboMauInCheBien.SelectedIndex = 0;
+            // Mẫu in chế biến
+            CboMauInCheBien.ItemsSource = new string[] { "Mẫu 58mm", "Mẫu 80mm" };
+            CboMauInCheBien.SelectedIndex = 1; // "Mẫu 80mm"
 
-            CboMauInChuyenBan.ItemsSource = new string[] { "Mẫu 80mm", "Mẫu 58mm", "Mẫu tiêu chuẩn" };
-            CboMauInChuyenBan.SelectedIndex = 0;
+            // Mẫu in chuyển bàn
+            CboMauInChuyenBan.ItemsSource = new string[] { "Mẫu 58mm", "Mẫu 80mm" };
+            CboMauInChuyenBan.SelectedIndex = 1; // "Mẫu 80mm"
 
-            CboInHoaDonTheoKhuVuc.ItemsSource = new string[] { "Không sử dụng", "Theo khu vực bàn", "Theo nhóm máy in" };
+            // In hóa đơn theo khu vực
+            CboInHoaDonTheoKhuVuc.ItemsSource = new string[]
+            {
+                "Không sử dụng",
+                "Chỉ in hóa đơn theo máy in theo khu vực",
+                "In một liên tại quầy và một liên theo khu vực",
+                "In tạm tính theo khu vực và in hóa đơn tại quầy"
+            };
             CboInHoaDonTheoKhuVuc.SelectedIndex = 0;
 
             // Bán hàng
-            CboCachChonGioTinhGia.ItemsSource = new string[] { "Giờ gọi đồ", "Giờ mở bàn" };
+            CboCachChonGioTinhGia.ItemsSource = new string[] { "Giờ gọi đồ", "Giờ thanh toán" };
             CboCachChonGioTinhGia.SelectedIndex = 0;
 
             CboCachChonKhachHang.ItemsSource = new string[] { "Chọn bằng chuột và bàn phím", "Tự động chọn khách lẻ", "Bắt buộc chọn khách hàng" };
             CboCachChonKhachHang.SelectedIndex = 0;
 
-            CboCachChonNgayGiaoDich.ItemsSource = new string[] { "Theo ngày đóng hóa đơn", "Theo ngày tạo hóa đơn" };
-            CboCachChonNgayGiaoDich.SelectedIndex = 0;
+            CboCachChonNgayGiaoDich.ItemsSource = new string[] { 
+                "Theo ngày mở hóa đơn", 
+                "Theo ngày đóng hóa đơn", 
+                "Hiển thị để lựa chọn khi đăng nhập", 
+                "Đóng mở ngày chủ động", 
+                "Tự động lựa chọn theo giờ" 
+            };
+            CboCachChonNgayGiaoDich.SelectedIndex = 1; // Default: Theo ngày đóng hóa đơn
 
-            CboKichThuocHienThiOGiaoDienDichVu.ItemsSource = new string[] { "Lớn", "Vừa", "Nhỏ" };
+            CboKichThuocHienThiOGiaoDienDichVu.ItemsSource = new string[] { "Lớn", "Trung bình", "Vừa", "Nhỏ" };
             CboKichThuocHienThiOGiaoDienDichVu.SelectedIndex = 0;
 
             // Tích điểm
@@ -141,14 +167,14 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 // 2. In HĐ và in chế biến
                 ChkLuaChonMauKhiIn.IsChecked = GetBool(configs, "LuaChonMauKhiIn", false);
                 ChkHienThiTruocKhiIn.IsChecked = GetBool(configs, "HienThiTruocKhiIn", false);
-                SetComboValue(CboMauHoaDon, GetStr(configs, "MauHoaDon", "Mẫu 80mm mặc định"));
+                SetComboValue(CboMauHoaDon, GetStr(configs, "MauHoaDon", "Mẫu in bill 80mm"));
                 TxtSoLanIn.Text = GetStr(configs, "SoLanIn", "1");
                 ChkSuDungChucNangInXuongBep.IsChecked = GetBool(configs, "SuDungChucNangInXuongBep", true);
                 ChkInDoAn.IsChecked = GetBool(configs, "InDoAn", true);
                 ChkInDoUong.IsChecked = GetBool(configs, "InDoUong", true);
                 ChkInDichVu.IsChecked = GetBool(configs, "InDichVu", false);
                 ChkInDoKhac.IsChecked = GetBool(configs, "InDoKhac", true);
-                SetComboValue(CboMauInCheBien, GetStr(configs, "MauInCheBien", "Mẫu in bếp 80mm"));
+                SetComboValue(CboMauInCheBien, GetStr(configs, "MauInCheBien", "Mẫu 80mm"));
                 TxtSoLienInCheBien.Text = GetStr(configs, "SoLienInCheBien", "1");
                 ChkInThem1LienTaiQuay.IsChecked = GetBool(configs, "InThem1LienTaiQuay", true);
                 ChkInMoiDoRa1To.IsChecked = GetBool(configs, "InMoiDoRa1To", false);
@@ -160,6 +186,12 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 SetComboValue(CboMauInChuyenBan, GetStr(configs, "MauInChuyenBan", "Mẫu 80mm"));
                 SetComboValue(CboInHoaDonTheoKhuVuc, GetStr(configs, "InHoaDonTheoKhuVuc", "Không sử dụng"));
                 ChkInMatKhauWifiTrenBill.IsChecked = GetBool(configs, "InMatKhauWifiTrenBill", false);
+                string wifiName = GetStr(configs, "WifiName", "");
+                string wifiPass = GetStr(configs, "WifiPass", "");
+                TxtWifiName.Text = wifiName;
+                TxtWifiPass.Text = wifiPass;
+                TxtWifiNameChung.Text = wifiName;
+                TxtWifiPassChung.Text = wifiPass;
 
                 // 3. Số phiếu
                 TxtFormatBaoGia.Text = GetFormatStr(tableFormats, "TBAOGIA", "BG(yy)/(*****)");
@@ -182,13 +214,12 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 TxtMacDinhThueSuat.Text = GetStr(configs, "MacDinhThueSuat", "0");
                 ChkCoPhiDichVu.IsChecked = GetBool(configs, "CoPhiDichVu", false);
                 TxtMacDinhPhiDichVu.Text = GetStr(configs, "MacDinhPhiDichVu", "0");
-                ChkNhapSoLuongSauKhiChon.IsChecked = GetBool(configs, "HienThiCuaSoNhapSoLuongKhiQuetMaVach", false);
+                ChkNhapSoLuongSauKhiChon.IsChecked = GetBool(configs, "NhapSoLuongSauKhiChon", false) || GetBool(configs, "HienThiCuaSoNhapSoLuongKhiQuetMaVach", false);
                 ChkChoPhepThayDoiNgayTrenHoaDon.IsChecked = GetBool(configs, "ChoPhepThayDoiNgayTrenHoaDon", false);
                 ChkBatBuocNhapNhanVienBanHang.IsChecked = GetBool(configs, "BatBuocNhapNhanVienBanHang", false);
                 ChkChoPhepInTamTinh.IsChecked = GetBool(configs, "ChoPhepInTamTinh", true);
                 ChkKichHoatKhuyenMaiTuDong.IsChecked = GetBool(configs, "KichHoatKhuyenMaiTuDong", true);
                 ChkChoPhepTrungTenKhachHang.IsChecked = GetBool(configs, "ChoPhepTrungTenKhachHang", false);
-                ChkHienThi3NhomOGiaoDienBanHang.IsChecked = GetBool(configs, "HienThi3NhomOGiaoDienBanHang", false);
                 ChkToiUuDungBanPhim.IsChecked = GetBool(configs, "ToiUuDungBanPhim", false);
                 ChkSuDungMatHangMacDinh.IsChecked = GetBool(configs, "SuDungMatHangMacDinh", true);
                 ChkHienThiGhiChuTrenGiaoDienBan.IsChecked = GetBool(configs, "HienThiGhiChuTrenGiaoDienBan", false);
@@ -285,7 +316,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
                 // 12. Cảm ứng
                 ChkSuDungGiaoDienThietKe.IsChecked = GetBool(configs, "SuDungGiaoDienThietKe", false);
-                ChkNhapSoLuongKhiChonMatHang.IsChecked = GetBool(configs, "NhapSoLuongKhiChonMatHang", true);
+                ChkNhapSoLuongKhiChonMatHang.IsChecked = GetBool(configs, "NhapSoLuongKhiChonMatHang", false);
                 ChkNhapSoKhachKhiMoHoaDon.IsChecked = GetBool(configs, "NhapSoKhachKhiMoHoaDon", false);
                 ChkCoManHinhPhu.IsChecked = GetBool(configs, "CoManHinhPhu", true);
 
@@ -329,16 +360,23 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private void SetComboValue(ComboBox cbo, string value)
         {
-            if (string.IsNullOrEmpty(value)) return;
-            foreach (var item in cbo.Items)
+            if (!string.IsNullOrEmpty(value))
             {
-                if (item.ToString().Equals(value, StringComparison.OrdinalIgnoreCase))
+                foreach (var item in cbo.Items)
                 {
-                    cbo.SelectedItem = item;
-                    return;
+                    string itemStr = item?.ToString() ?? "";
+                    if (itemStr.Equals(value, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrWhiteSpace(itemStr) && (itemStr.Contains(value, StringComparison.OrdinalIgnoreCase) || value.Contains(itemStr, StringComparison.OrdinalIgnoreCase))))
+                    {
+                        cbo.SelectedItem = item;
+                        return;
+                    }
                 }
             }
-            cbo.Text = value;
+            if (cbo.SelectedIndex < 0 && cbo.Items.Count > 0)
+            {
+                cbo.SelectedIndex = 0;
+            }
         }
 
         private void SetLogoImage(byte[] bytes)
@@ -529,6 +567,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     ["MauInChuyenBan"] = CboMauInChuyenBan.Text.Trim(),
                     ["InHoaDonTheoKhuVuc"] = CboInHoaDonTheoKhuVuc.Text.Trim(),
                     ["InMatKhauWifiTrenBill"] = (ChkInMatKhauWifiTrenBill.IsChecked == true) ? "1" : "0",
+                    ["WifiName"] = TxtWifiName.Text.Trim(),
+                    ["WifiPass"] = TxtWifiPass.Text.Trim(),
 
                     // 4. Bán hàng
                     ["ChoPhepNhapGiamGia"] = (ChkChoPhepNhapGiamGia.IsChecked == true) ? "1" : "0",
@@ -539,12 +579,12 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     ["CoPhiDichVu"] = (ChkCoPhiDichVu.IsChecked == true) ? "1" : "0",
                     ["MacDinhPhiDichVu"] = TxtMacDinhPhiDichVu.Text.Trim(),
                     ["HienThiCuaSoNhapSoLuongKhiQuetMaVach"] = (ChkNhapSoLuongSauKhiChon.IsChecked == true) ? "1" : "0",
+                    ["NhapSoLuongSauKhiChon"] = (ChkNhapSoLuongSauKhiChon.IsChecked == true) ? "1" : "0",
                     ["ChoPhepThayDoiNgayTrenHoaDon"] = (ChkChoPhepThayDoiNgayTrenHoaDon.IsChecked == true) ? "1" : "0",
                     ["BatBuocNhapNhanVienBanHang"] = (ChkBatBuocNhapNhanVienBanHang.IsChecked == true) ? "1" : "0",
                     ["ChoPhepInTamTinh"] = (ChkChoPhepInTamTinh.IsChecked == true) ? "1" : "0",
                     ["KichHoatKhuyenMaiTuDong"] = (ChkKichHoatKhuyenMaiTuDong.IsChecked == true) ? "1" : "0",
                     ["ChoPhepTrungTenKhachHang"] = (ChkChoPhepTrungTenKhachHang.IsChecked == true) ? "1" : "0",
-                    ["HienThi3NhomOGiaoDienBanHang"] = (ChkHienThi3NhomOGiaoDienBanHang.IsChecked == true) ? "1" : "0",
                     ["ToiUuDungBanPhim"] = (ChkToiUuDungBanPhim.IsChecked == true) ? "1" : "0",
                     ["SuDungMatHangMacDinh"] = (ChkSuDungMatHangMacDinh.IsChecked == true) ? "1" : "0",
                     ["HienThiGhiChuTrenGiaoDienBan"] = (ChkHienThiGhiChuTrenGiaoDienBan.IsChecked == true) ? "1" : "0",
@@ -675,7 +715,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     ["TBANGLUONG"] = TxtFormatBangLuong.Text.Trim()
                 };
 
-                bool ok = await LocalCauHinhService.SaveAllConfigsAsync(configs, tableFormats, _newLogoBytes);
+                var (ok, error) = await LocalCauHinhService.SaveAllConfigsAsync(configs, tableFormats, _newLogoBytes);
                 if (ok)
                 {
                     MessageBox.Show("Đã lưu thông tin cấu hình hệ thống thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -684,7 +724,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 }
                 else
                 {
-                    MessageBox.Show("Có lỗi xảy ra khi lưu cấu hình vào cơ sở dữ liệu.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Có lỗi xảy ra khi lưu cấu hình vào cơ sở dữ liệu:\n" + (error ?? "Lỗi không xác định"), "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
@@ -694,6 +734,72 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             finally
             {
                 BtnGhiDuLieu.IsEnabled = true;
+            }
+        }
+
+        private bool _isSyncingWifi = false;
+
+        private void TxtWifiName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isSyncingWifi) return;
+            _isSyncingWifi = true;
+            if (TxtWifiNameChung != null) TxtWifiNameChung.Text = TxtWifiName.Text;
+            _isSyncingWifi = false;
+        }
+
+        private void TxtWifiNameChung_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isSyncingWifi) return;
+            _isSyncingWifi = true;
+            if (TxtWifiName != null) TxtWifiName.Text = TxtWifiNameChung.Text;
+            _isSyncingWifi = false;
+        }
+
+        private void TxtWifiPass_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isSyncingWifi) return;
+            _isSyncingWifi = true;
+            if (TxtWifiPassChung != null) TxtWifiPassChung.Text = TxtWifiPass.Text;
+            _isSyncingWifi = false;
+        }
+
+        private void TxtWifiPassChung_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isSyncingWifi) return;
+            _isSyncingWifi = true;
+            if (TxtWifiPass != null) TxtWifiPass.Text = TxtWifiPassChung.Text;
+            _isSyncingWifi = false;
+        }
+
+        private void BtnConfigSoPhieu_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string loaiPhieu)
+            {
+                TextBox targetTextBox = loaiPhieu switch
+                {
+                    "Báo giá" => TxtFormatBaoGia,
+                    "Hóa đơn nhà hàng" => TxtFormatHoaDon,
+                    "Phiếu nhập kho" => TxtFormatNhapKho,
+                    "Phiếu xuất kho" => TxtFormatXuatKho,
+                    "Phiếu chuyển kho" => TxtFormatChuyenKho,
+                    "Phiếu kiểm kê" => TxtFormatKiemKe,
+                    "Đặt hàng" => TxtFormatDatHang,
+                    "Phiếu thu" => TxtFormatPhieuThu,
+                    "Phiếu chi" => TxtFormatPhieuChi,
+                    "Phiếu thu công nợ" => TxtFormatThuCongNo,
+                    "Bảng lương" => TxtFormatBangLuong,
+                    _ => null
+                };
+
+                if (targetTextBox != null)
+                {
+                    var dialog = new CauHinhSoPhieuWindow(loaiPhieu, targetTextBox.Text);
+                    dialog.Owner = this;
+                    if (dialog.ShowDialog() == true)
+                    {
+                        targetTextBox.Text = dialog.ResultPattern;
+                    }
+                }
             }
         }
 

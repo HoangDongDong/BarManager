@@ -66,25 +66,164 @@ namespace QuanLyBar.Client.Views
             catch { }
         }
 
+        private int _soLanIn = 1;
+
         private async System.Threading.Tasks.Task LoadStoreInfoAsync()
         {
             try
             {
-                using (var conn = DbConnectionManager.GetConnection())
-                {
-                    await conn.OpenAsync();
-                    var configs = (await conn.QueryAsync<(string Name, string TextValue)>("SELECT NAME, TEXTVALUE FROM SCONFIG WHERE NAME IN ('CompanyName', 'CompanyAddress', 'CompanyPhone')")).ToList();
-                    
-                    var compName = configs.FirstOrDefault(c => c.Name == "CompanyName").TextValue;
-                    var compAddr = configs.FirstOrDefault(c => c.Name == "CompanyAddress").TextValue;
-                    var compPhone = configs.FirstOrDefault(c => c.Name == "CompanyPhone").TextValue;
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
 
-                    if (!string.IsNullOrWhiteSpace(compName)) TxtTenQuan.Text = compName.Trim();
-                    if (!string.IsNullOrWhiteSpace(compAddr)) TxtDiaChi.Text = "ĐC: " + compAddr.Trim();
-                    if (!string.IsNullOrWhiteSpace(compPhone)) TxtDienThoai.Text = "ĐT: " + compPhone.Trim();
+                if (configs.TryGetValue("SoLanIn", out var sli) && int.TryParse(sli, out int times) && times > 0)
+                {
+                    _soLanIn = times;
+                }
+
+                // Cấu hình độ rộng giấy in theo Mẫu hóa đơn
+                if (configs.TryGetValue("MauHoaDon", out var mhd) && !string.IsNullOrWhiteSpace(mhd))
+                {
+                    if (mhd.Contains("54"))
+                    {
+                        BillPaper.Width = 230; // ~58mm/54mm
+                    }
+                    else if (mhd.Contains("A4"))
+                    {
+                        BillPaper.Width = 794; // A4 standard width (96 DPI)
+                    }
+                    else if (mhd.Contains("A5"))
+                    {
+                        BillPaper.Width = 559; // A5 standard width (96 DPI)
+                    }
+                    else
+                    {
+                        BillPaper.Width = 300; // 80mm standard
+                    }
+                }
+
+                string compName = configs.TryGetValue("CompanyName", out var cn) && !string.IsNullOrWhiteSpace(cn) ? cn : "NÀNG HƯƠNG QUÁN";
+                string compAddr = configs.TryGetValue("CompanyAddress", out var ca) && !string.IsNullOrWhiteSpace(ca) ? ca : "";
+                string compPhone = configs.TryGetValue("CompanyPhone", out var cp) && !string.IsNullOrWhiteSpace(cp) ? cp : "";
+                string compEmail = configs.TryGetValue("CompanyEmail", out var ce) && !string.IsNullOrWhiteSpace(ce) && ce != "0" ? ce : "";
+                string compFax = configs.TryGetValue("CompanyFax", out var cf) && !string.IsNullOrWhiteSpace(cf) && cf != "0" ? cf : "";
+                string loiCamOn = configs.TryGetValue("LoiCamOn", out var lc) && !string.IsNullOrWhiteSpace(lc) ? lc : "Cảm ơn Quý khách. Hẹn gặp lại.!";
+
+                TxtTenQuan.Text = compName.Trim();
+
+                if (!string.IsNullOrWhiteSpace(compAddr))
+                {
+                    TxtDiaChi.Text = compAddr.StartsWith("ĐC", StringComparison.OrdinalIgnoreCase) ? compAddr.Trim() : "ĐC: " + compAddr.Trim();
+                    TxtDiaChi.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TxtDiaChi.Visibility = Visibility.Collapsed;
+                }
+
+                if (!string.IsNullOrWhiteSpace(compPhone))
+                {
+                    TxtDienThoai.Text = compPhone.StartsWith("ĐT", StringComparison.OrdinalIgnoreCase) || compPhone.StartsWith("Điện thoại", StringComparison.OrdinalIgnoreCase)
+                        ? compPhone.Trim()
+                        : "ĐT: " + compPhone.Trim();
+                    TxtDienThoai.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TxtDienThoai.Visibility = Visibility.Collapsed;
+                }
+
+                if (!string.IsNullOrWhiteSpace(compEmail))
+                {
+                    TxtEmail.Text = "Email: " + compEmail.Trim();
+                    TxtEmail.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TxtEmail.Visibility = Visibility.Collapsed;
+                }
+
+                if (!string.IsNullOrWhiteSpace(compFax))
+                {
+                    TxtFax.Text = "Fax: " + compFax.Trim();
+                    TxtFax.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TxtFax.Visibility = Visibility.Collapsed;
+                }
+
+                TxtLoiCamOn.Text = loiCamOn.Trim();
+
+                // Logo
+                try
+                {
+                    var logoBytes = await LocalCauHinhService.LoadCompanyLogoAsync();
+                    if (logoBytes != null && logoBytes.Length > 0)
+                    {
+                        var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                        using (var ms = new System.IO.MemoryStream(logoBytes))
+                        {
+                            bitmap.BeginInit();
+                            bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                            bitmap.StreamSource = ms;
+                            bitmap.EndInit();
+                        }
+                        ImgLogo.Source = bitmap;
+                        BorderLogoGraphic.Visibility = Visibility.Collapsed;
+                        ImgLogo.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        ImgLogo.Visibility = Visibility.Collapsed;
+                        BorderLogoGraphic.Visibility = Visibility.Visible;
+                    }
+                }
+                catch
+                {
+                    ImgLogo.Visibility = Visibility.Collapsed;
+                    BorderLogoGraphic.Visibility = Visibility.Visible;
+                }
+
+                // In mật khẩu Wifi nếu có bật
+                bool inWifi = configs.TryGetValue("InMatKhauWifiTrenBill", out var iw) && (iw == "1" || iw.Equals("true", StringComparison.OrdinalIgnoreCase) || iw == "30");
+                if (inWifi)
+                {
+                    string wifiName = configs.TryGetValue("WifiName", out var wn) && !string.IsNullOrWhiteSpace(wn) ? wn : compName.Trim();
+                    string wifiPass = configs.TryGetValue("WifiPass", out var wp) && !string.IsNullOrWhiteSpace(wp) ? wp : "";
+                    if (!string.IsNullOrWhiteSpace(wifiPass))
+                    {
+                        TxtWifiInfo.Text = $"Wifi: {wifiName} - Pass: {wifiPass}";
+                        TxtWifiInfo.Visibility = Visibility.Visible;
+                    }
+                }
+                // Check if tax or service fee applies from config if not yet computed on PosBanViewModel
+                bool coThue = configs.TryGetValue("CoThueSuat", out var cts) && (cts == "1" || cts.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (coThue && _ban != null && _ban.TienThue == 0)
+                {
+                    if (configs.TryGetValue("MacDinhThueSuat", out var mdts) && decimal.TryParse(mdts.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var thuePt) && thuePt > 0)
+                    {
+                        _ban.ThueSuatPt = thuePt;
+                        decimal sauGiam = Math.Max(0, _ban.TienHang - _ban.GiamGia);
+                        _ban.TienThue = Math.Round(sauGiam * (thuePt / 100m));
+                        _ban.TongCong = sauGiam + _ban.TienPhiDichVu + _ban.TienThue;
+                    }
+                }
+
+                bool coPhi = configs.TryGetValue("CoPhiDichVu", out var cpdv) && (cpdv == "1" || cpdv.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (coPhi && _ban != null && _ban.TienPhiDichVu == 0)
+                {
+                    if (configs.TryGetValue("MacDinhPhiDichVu", out var mdpdv) && decimal.TryParse(mdpdv.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var phiPt) && phiPt > 0)
+                    {
+                        _ban.PhiDichVuPt = phiPt;
+                        decimal sauGiam = Math.Max(0, _ban.TienHang - _ban.GiamGia);
+                        _ban.TienPhiDichVu = Math.Round(sauGiam * (phiPt / 100m));
+                        _ban.TongCong = sauGiam + _ban.TienPhiDichVu + _ban.TienThue;
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error LoadStoreInfoAsync: " + ex.Message);
+            }
         }
 
         private void PopulateBillData()
@@ -105,14 +244,44 @@ namespace QuanLyBar.Client.Views
 
             ListItems.ItemsSource = _ban.OrderItems;
 
+            bool hasBreakdown = _ban.GiamGia > 0 || _ban.TienThue > 0 || _ban.TienPhiDichVu > 0;
+            if (PanelTienHang != null)
+            {
+                PanelTienHang.Visibility = hasBreakdown ? Visibility.Visible : Visibility.Collapsed;
+                TxtTienHang.Text = _ban.TienHang.ToString("N0");
+            }
+
             if (_ban.GiamGia > 0)
             {
                 PanelGiamGia.Visibility = Visibility.Visible;
+                TxtGiamGiaLabel.Text = _ban.GiamGiaPhanTram > 0 ? $"Giảm giá ({_ban.GiamGiaPhanTram:0.##}%):" : "Giảm giá:";
                 TxtGiamGia.Text = _ban.GiamGia.ToString("N0");
             }
             else
             {
                 PanelGiamGia.Visibility = Visibility.Collapsed;
+            }
+
+            if (_ban.TienPhiDichVu > 0)
+            {
+                PanelPhiDichVu.Visibility = Visibility.Visible;
+                TxtPhiDichVuLabel.Text = _ban.PhiDichVuPt > 0 ? $"Phí dịch vụ ({_ban.PhiDichVuPt:0.##}%):" : "Phí dịch vụ:";
+                TxtPhiDichVu.Text = _ban.TienPhiDichVu.ToString("N0");
+            }
+            else
+            {
+                PanelPhiDichVu.Visibility = Visibility.Collapsed;
+            }
+
+            if (_ban.TienThue > 0)
+            {
+                PanelThueVAT.Visibility = Visibility.Visible;
+                TxtThueVATLabel.Text = _ban.ThueSuatPt > 0 ? $"Thuế VAT ({_ban.ThueSuatPt:0.##}%):" : "Thuế VAT:";
+                TxtThueVAT.Text = _ban.TienThue.ToString("N0");
+            }
+            else
+            {
+                PanelThueVAT.Visibility = Visibility.Collapsed;
             }
 
             TxtTongCong.Text = _ban.TongCong.ToString("N0");
@@ -128,8 +297,13 @@ namespace QuanLyBar.Client.Views
                     printDlg.PrintQueue = new PrintQueue(new LocalPrintServer(), printerName);
                 }
 
-                printDlg.PrintVisual(BillPaper, "In Hóa Đơn - " + _ban?.Name);
-                MessageBox.Show("Đã gửi lệnh in đến máy in thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                for (int i = 0; i < _soLanIn; i++)
+                {
+                    printDlg.PrintVisual(BillPaper, "In Hóa Đơn - " + _ban?.Name);
+                }
+
+                string msg = _soLanIn > 1 ? $"Đã gửi lệnh in {_soLanIn} bản đến máy in thành công!" : "Đã gửi lệnh in đến máy in thành công!";
+                MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
