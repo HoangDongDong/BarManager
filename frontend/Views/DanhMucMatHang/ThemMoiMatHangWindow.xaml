@@ -70,23 +70,23 @@
                     <TextBox x:Name="TxtTenHang" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="5" Background="#E0FFFF"/>
 
                     <!-- Row 2: Tên tiếng anh -->
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Tên tiếng anh" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBlock x:Name="LblTenTiengAnh" Grid.Row="2" Grid.Column="0" Text="Tên tiếng anh" VerticalAlignment="Center" Margin="0,5"/>
                     <TextBox x:Name="TxtTenTiengAnh" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="5"/>
 
                     <!-- Row 3: Giá bán -->
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Giá bán" VerticalAlignment="Center" Margin="0,5"/>
                     <TextBox x:Name="TxtGiaBan" Grid.Row="3" Grid.Column="1" Margin="5" Text="0"/>
-                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Giá 2" VerticalAlignment="Center" Margin="5,0"/>
-                    <TextBox Grid.Row="3" Grid.Column="3" Margin="5" Text="0"/>
+                    <TextBlock x:Name="LblGia2" Grid.Row="3" Grid.Column="2" Text="Giá 2" VerticalAlignment="Center" Margin="5,0"/>
+                    <TextBox x:Name="TxtGia2" Grid.Row="3" Grid.Column="3" Margin="5" Text="0"/>
 
                     <!-- Row 4: Giá bán 3/4 -->
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Giá 3" VerticalAlignment="Center" Margin="0,5"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="0"/>
-                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Giá 4" VerticalAlignment="Center" Margin="5,0"/>
-                    <TextBox Grid.Row="4" Grid.Column="3" Margin="5" Text="0"/>
+                    <TextBlock x:Name="LblGia3" Grid.Row="4" Grid.Column="0" Text="Giá 3" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="TxtGia3" Grid.Row="4" Grid.Column="1" Margin="5" Text="0"/>
+                    <TextBlock x:Name="LblGia4" Grid.Row="4" Grid.Column="2" Text="Giá 4" VerticalAlignment="Center" Margin="5,0"/>
+                    <TextBox x:Name="TxtGia4" Grid.Row="4" Grid.Column="3" Margin="5" Text="0"/>
 
                     <!-- Row 5: ĐVT bán -->
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="ĐVT bán, định lượng" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBlock x:Name="LblDvtBan" Grid.Row="5" Grid.Column="0" Text="ĐVT bán, định lượng" VerticalAlignment="Center" Margin="0,5"/>
                     <Grid Grid.Row="5" Grid.Column="1" Margin="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -102,8 +102,8 @@
                     <CheckBox x:Name="ChkGiaTheoThoiGia" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Content="Giá theo thời giá" VerticalAlignment="Center" Margin="5"/>
 
                     <!-- Row 6: ĐVT nhập -->
-                    <TextBlock Grid.Row="6" Grid.Column="0" Text="ĐVT nhập mua" VerticalAlignment="Center" Margin="0,5"/>
-                    <Grid Grid.Row="6" Grid.Column="1" Margin="5">
+                    <TextBlock x:Name="LblDvtNhap" Grid.Row="6" Grid.Column="0" Text="ĐVT nhập mua" VerticalAlignment="Center" Margin="0,5"/>
+                    <Grid x:Name="GridDvtNhap" Grid.Row="6" Grid.Column="1" Margin="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -115,14 +115,21 @@
                         <Button Grid.Column="2" Content="🔄" ToolTip="Tải lại" Width="22" Margin="2,0,0,0" Click="BtnTaiDvt_Click"/>
                         <Button Grid.Column="3" Content="🗂️" ToolTip="Danh mục" Width="22" Margin="2,0,0,0" Click="BtnDanhMucDvt_Click"/>
                     </Grid>
-                    <TextBlock Grid.Row="6" Grid.Column="2" Text="Quy đổi" VerticalAlignment="Center" Margin="5,0"/>
+                    <TextBlock x:Name="LblQuyDoi" Grid.Row="6" Grid.Column="2" Text="Quy đổi" VerticalAlignment="Center" Margin="5,0"/>
                     <TextBox x:Name="TxtQuyDoi" Grid.Row="6" Grid.Column="3" Margin="5" Text="1"/>
 
                     <!-- Row 7: Giá nhập -->
                     <TextBlock Grid.Row="7" Grid.Column="0" Text="Giá nhập" VerticalAlignment="Center" Margin="0,5"/>
-                    <TextBox x:Name="TxtGiaNhap" Grid.Row="7" Grid.Column="1" Margin="5" Text="0"/>
+                    <Grid Grid.Row="7" Grid.Column="1" Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="TxtGiaNhap" Text="0"/>
+                        <TextBlock x:Name="TxtDonViQuyDoiHienThi" Grid.Column="1" Text=" (/1)" VerticalAlignment="Center" Margin="5,0,0,0" Foreground="#555"/>
+                    </Grid>
                     <TextBlock Grid.Row="7" Grid.Column="2" Text="Giá vốn" VerticalAlignment="Center" Margin="5,0"/>
-                    <TextBox Grid.Row="7" Grid.Column="3" Margin="5" Text="0"/>
+                    <TextBox x:Name="TxtGiaVon" Grid.Row="7" Grid.Column="3" Margin="5" Text="0"/>
 
                     <!-- Row 8: Nhóm mặt hàng -->
                     <TextBlock Grid.Row="8" Grid.Column="0" Text="Nhóm mặt hàng" VerticalAlignment="Center" Margin="0,5"/>

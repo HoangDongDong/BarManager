@@ -31,6 +31,7 @@ namespace QuanLyBar.Client.Models
         private DateTime? _startTime;
         private int _soKhach = 0;
         private string _soPhieu;
+        private string _khachHangId;
         private string _khachHangName;
         private string _nhanVienId;
         private string _nhanVienName;
@@ -83,6 +84,7 @@ namespace QuanLyBar.Client.Models
 
         public int SoKhach { get => _soKhach; set { _soKhach = value; OnPropertyChanged(); } }
         public string SoPhieu { get => _soPhieu; set { _soPhieu = value; OnPropertyChanged(); } }
+        public string KhachHangId { get => _khachHangId; set { _khachHangId = value; OnPropertyChanged(); } }
         public string KhachHangName { get => _khachHangName; set { _khachHangName = value; OnPropertyChanged(); } }
         public string NhanVienId { get => _nhanVienId; set { _nhanVienId = value; OnPropertyChanged(); } }
         public string NhanVienName { get => _nhanVienName; set { _nhanVienName = value; OnPropertyChanged(); } }
@@ -169,8 +171,10 @@ namespace QuanLyBar.Client.Models
             if (IsOccupied && StartTime.HasValue)
             {
                 var elapsed = DateTime.Now - StartTime.Value;
-                int hours = (int)elapsed.TotalHours;
-                int minutes = elapsed.Minutes;
+                double totalMin = elapsed.TotalMinutes;
+                double roundedMin = QuanLyBar.Client.Services.LocalCauHinhService.RoundMinutesWithSystemConfig(totalMin);
+                int hours = (int)(roundedMin / 60);
+                int minutes = (int)(roundedMin % 60);
                 TimerText = $"{hours}h {minutes}'";
             }
             else

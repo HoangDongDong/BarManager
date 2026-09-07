@@ -178,21 +178,21 @@
                                     <Setter Property="HorizontalAlignment" Value="Center"/>
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                     <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Setter Property="Foreground" Value="#555555"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
                         <!-- Cột Ngày -->
-                        <DataGridTemplateColumn Header="Ngày" Width="95">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="#d4e8fa" CornerRadius="2" Margin="2,1" Padding="4,1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding NgayStr}" FontWeight="Bold" Foreground="#0050b3" FontSize="11"/>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Ngày" Binding="{Binding NgayStr}" Width="95">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
                         <!-- Cột Giờ -->
                         <DataGridTextColumn Header="Giờ" Binding="{Binding GioStr}" Width="75">
@@ -200,6 +200,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Center"/>
                                     <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -210,8 +211,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Center"/>
                                     <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Setter Property="Foreground" Value="#003366"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -223,6 +223,7 @@
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                     <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                     <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -233,6 +234,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                     <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -243,6 +245,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                     <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -253,21 +256,22 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                     <Setter Property="Padding" Value="4,0"/>
+                                    <Setter Property="Foreground" Value="{Binding RowTextColor}"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-                        <!-- Cột Chức năng -->
-                        <DataGridTemplateColumn Header="Chức năng" Width="150">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
-                                        <TextBlock Text="{Binding ChucNangIcon}" Foreground="{Binding ChucNangColor}" FontSize="11" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding Chucnang}" Foreground="{Binding ChucNangColor}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <!-- Cột Biểu tượng -->
+                        <DataGridTextColumn Header="" Binding="{Binding ChucNangIcon}" Width="30">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="{Binding ChucNangColor}"/>
+                                    <Setter Property="FontSize" Value="11"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

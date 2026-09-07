@@ -588,5 +588,40 @@ namespace QuanLyBar.Client.Services
                 return (false, ex.Message);
             }
         }
+
+        /// <summary>
+        /// Làm tròn số phút sử dụng theo cấu hình hệ thống: Làm tròn mặt hàng theo giờ (phút) và Cách làm tròn
+        /// </summary>
+        public static double RoundMinutesByConfig(double totalMinutes, int roundStepMinutes, string roundMethod)
+        {
+            if (roundStepMinutes <= 0 || totalMinutes <= 0) return totalMinutes;
+
+            double steps = totalMinutes / roundStepMinutes;
+            double roundedSteps;
+
+            if (string.Equals(roundMethod, "Làm tròn lên", StringComparison.OrdinalIgnoreCase))
+            {
+                roundedSteps = Math.Ceiling(steps);
+            }
+            else if (string.Equals(roundMethod, "Làm tròn giữa", StringComparison.OrdinalIgnoreCase) || 
+                     string.Equals(roundMethod, "Làm tròn chuẩn", StringComparison.OrdinalIgnoreCase))
+            {
+                roundedSteps = Math.Round(steps, MidpointRounding.AwayFromZero);
+            }
+            else // "Làm tròn xuống"
+            {
+                roundedSteps = Math.Floor(steps);
+            }
+
+            return roundedSteps * roundStepMinutes;
+        }
+
+        public static double RoundMinutesWithSystemConfig(double totalMinutes)
+        {
+            int step = GetIntConfig("LamTronMatHangDichVuTheoGio", 0);
+            if (step <= 0) return totalMinutes;
+            string method = GetConfig("CachLamTron", "Làm tròn xuống");
+            return RoundMinutesByConfig(totalMinutes, step, method);
+        }
     }
 }

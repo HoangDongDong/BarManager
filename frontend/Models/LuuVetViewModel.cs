@@ -28,6 +28,16 @@ namespace QuanLyBar.Client.Models
         public string Ban { get; set; }
         public string Chucnang { get; set; }
 
+        public bool IsWarning => !string.IsNullOrEmpty(Note) && (
+            Note.StartsWith("Giảm") || 
+            Note.StartsWith("Xóa") || 
+            Note.StartsWith("Hủy") || 
+            Note.Contains("Giảm ") || 
+            Note.Contains("Xóa ") || 
+            Note.Contains("Hủy "));
+
+        public string RowTextColor => IsWarning ? "#dc2626" : "#000000";
+
         public string ChucNangIcon
         {
             get
@@ -42,6 +52,7 @@ namespace QuanLyBar.Client.Models
         {
             get
             {
+                if (IsWarning) return "#dc2626";
                 if (Chucnang != null && Chucnang.Contains("Sử dụng")) return "#d48806";
                 if (Chucnang != null && Chucnang.Contains("Điều chỉnh")) return "#0066cc";
                 return "#333333";

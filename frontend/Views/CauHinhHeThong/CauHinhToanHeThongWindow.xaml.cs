@@ -98,20 +98,20 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             CboKichThuocHienThiOGiaoDienDichVu.SelectedIndex = 0;
 
             // Tích điểm
-            CboCachTinhDiem.ItemsSource = new string[] { "Điểm được tính trên từng hóa đơn", "Theo tổng tiền thanh toán", "Theo tiền hàng sau chiết khấu" };
+            CboCachTinhDiem.ItemsSource = new string[] { "Điểm được tính trên từng hóa đơn", "Điểm được tính trên tổng doanh số" };
             CboCachTinhDiem.SelectedIndex = 0;
 
             // Mặt hàng
-            CboTimTheo.ItemsSource = new string[] { "Cả tên hàng và mã hàng", "Tên mặt hàng", "Mã mặt hàng" };
+            CboTimTheo.ItemsSource = new string[] { "Cả tên hàng và mã hàng", "Tên hàng", "Mã hàng" };
             CboTimTheo.SelectedIndex = 0;
 
             CboCachTim.ItemsSource = new string[] { "Chứa cụm từ tìm kiếm", "Bắt đầu bằng cụm từ" };
             CboCachTim.SelectedIndex = 0;
 
-            CboSapXepThuTuTheo.ItemsSource = new string[] { "Mã hàng", "Tên mặt hàng", "Nhóm mặt hàng", "Thứ tự sắp xếp" };
+            CboSapXepThuTuTheo.ItemsSource = new string[] { "Mã hàng", "Tên hàng" };
             CboSapXepThuTuTheo.SelectedIndex = 0;
 
-            CboCachLamTron.ItemsSource = new string[] { "Làm tròn xuống", "Làm tròn lên", "Làm tròn chuẩn" };
+            CboCachLamTron.ItemsSource = new string[] { "Làm tròn xuống", "Làm tròn giữa", "Làm tròn lên" };
             CboCachLamTron.SelectedIndex = 0;
 
             // Thiết bị khác
@@ -129,13 +129,10 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             CboSoHoaDonQuayVongTheo.SelectedIndex = 0;
 
             // Tùy chọn khác
-            CboPhimNhapLieuTrenLuoi.ItemsSource = new string[] { "Tab để sang ngang, Enter để xuống dòng", "Enter để sang ô tiếp theo", "Phím mũi tên" };
+            CboPhimNhapLieuTrenLuoi.ItemsSource = new string[] { "Tab để sang ngang, Enter để xuống dòng", "Enter để sang ngang và xuống ở cuối dòng" };
             CboPhimNhapLieuTrenLuoi.SelectedIndex = 0;
 
-            CboChucNangMacDinh.ItemsSource = new string[] { "Sử dụng dịch vụ", "Bán hàng", "Danh mục bàn", "Phiếu thu chi" };
-            CboChucNangMacDinh.SelectedIndex = 0;
-
-            CboDoToChuHienThi.ItemsSource = new string[] { "Nhỏ (100%)", "Vừa (110%)", "Lớn (125%)", "Rất lớn (150%)" };
+            CboDoToChuHienThi.ItemsSource = new string[] { "Nhỏ (100%)", "Nhỡ (110%)", "Vừa (125%)", "To (150%)", "Rất to (200%)" };
             CboDoToChuHienThi.SelectedIndex = 0;
 
             CboGiaoDienChuongTrinh.ItemsSource = new string[] { "Office 2010 - Blue", "Office 2010 - Silver", "Office 2010 - Black", "Visual Studio 2019 Dark", "Material Design Light" };
@@ -313,6 +310,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 SetComboValue(CboSoHoaDonQuayVongTheo, GetStr(configs, "SoHoaDonQuayVongTheo", "Tháng"));
                 ChkKichHoatChucNangKiemDo.IsChecked = GetBool(configs, "KichHoatChucNangKiemDo", false);
                 ChkNhapLyDoKhiHuyHoaDon.IsChecked = GetBool(configs, "NhapLyDoKhiHuyHoaDon", true);
+                ChkNhapLyDoKhiXoaMon.IsChecked = GetBool(configs, "NhapLyDoKhiXoaMon", false);
 
                 // 12. Cảm ứng
                 ChkSuDungGiaoDienThietKe.IsChecked = GetBool(configs, "SuDungGiaoDienThietKe", false);
@@ -326,7 +324,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 ChkTuDongSaoLuuDuLieu.IsChecked = GetBool(configs, "TuDongSaoLuuDuLieu", true);
                 TxtDuongDanSaoLuu.Text = GetStr(configs, "DuongDanSaoLuu", "");
                 TxtSoNgaySaoLuu.Text = GetStr(configs, "SoNgaySaoLuu", "1");
-                SetComboValue(CboChucNangMacDinh, GetStr(configs, "ChucNangMacDinh", "Sử dụng dịch vụ"));
+                TxtChucNangMacDinh.Text = GetStr(configs, "ChucNangMacDinh", "Sử dụng dịch vụ");
                 ChkLocDuLieuBoKhoangTrong.IsChecked = GetBool(configs, "LocDuLieuBoKhoangTrong", false);
                 ChkHienThiXuongDongNeuDoRongCotNho.IsChecked = GetBool(configs, "HienThiXuongDongNeuDoRongCotNho", false);
                 SetComboValue(CboDoToChuHienThi, GetStr(configs, "DoToChuHienThi", "Nhỏ (100%)"));
@@ -678,6 +676,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     ["SoHoaDonQuayVongTheo"] = CboSoHoaDonQuayVongTheo.Text.Trim(),
                     ["KichHoatChucNangKiemDo"] = (ChkKichHoatChucNangKiemDo.IsChecked == true) ? "1" : "0",
                     ["NhapLyDoKhiHuyHoaDon"] = (ChkNhapLyDoKhiHuyHoaDon.IsChecked == true) ? "1" : "0",
+                    ["NhapLyDoKhiXoaMon"] = (ChkNhapLyDoKhiXoaMon.IsChecked == true) ? "1" : "0",
 
                     // 12. Cảm ứng
                     ["SuDungGiaoDienThietKe"] = (ChkSuDungGiaoDienThietKe.IsChecked == true) ? "1" : "0",
@@ -691,7 +690,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     ["DuongDanSaoLuu"] = TxtDuongDanSaoLuu.Text.Trim(),
                     ["PhimNhapLieuTrenLuoi"] = CboPhimNhapLieuTrenLuoi.Text.Trim(),
                     ["PhieuGanNhatODuoi"] = (ChkPhieuGanNhatODuoi.IsChecked == true) ? "1" : "0",
-                    ["ChucNangMacDinh"] = CboChucNangMacDinh.Text.Trim(),
+                    ["ChucNangMacDinh"] = TxtChucNangMacDinh.Text.Trim(),
                     ["LocDuLieuBoKhoangTrong"] = (ChkLocDuLieuBoKhoangTrong.IsChecked == true) ? "1" : "0",
                     ["HienThiXuongDongNeuDoRongCotNho"] = (ChkHienThiXuongDongNeuDoRongCotNho.IsChecked == true) ? "1" : "0",
                     ["DoToChuHienThi"] = CboDoToChuHienThi.Text.Trim(),
@@ -801,6 +800,136 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     }
                 }
             }
+        }
+
+        private void ChucNangMacDinh_Click(object sender, MouseButtonEventArgs e)
+        {
+            ShowChucNangMacDinhMenu();
+        }
+
+        private void BtnChucNangMacDinhDropdown_Click(object sender, RoutedEventArgs e)
+        {
+            ShowChucNangMacDinhMenu();
+        }
+
+        private void ShowChucNangMacDinhMenu()
+        {
+            var cm = new ContextMenu
+            {
+                PlacementTarget = TxtChucNangMacDinh,
+                Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
+            };
+
+            void AddMenuItem(ItemCollection parentItems, string header)
+            {
+                var mi = new MenuItem { Header = header };
+                mi.Click += (s, e) =>
+                {
+                    TxtChucNangMacDinh.Text = header;
+                };
+                parentItems.Add(mi);
+            }
+
+            MenuItem CreateGroup(string groupHeader)
+            {
+                var mi = new MenuItem { Header = groupHeader };
+                cm.Items.Add(mi);
+                return mi;
+            }
+
+            // 1. HOẠT ĐỘNG
+            var mHoatDong = CreateGroup("HOẠT ĐỘNG");
+            AddMenuItem(mHoatDong.Items, "Dịch vụ MTB");
+            AddMenuItem(mHoatDong.Items, "Danh mục bảng giá");
+            AddMenuItem(mHoatDong.Items, "Danh mục cửa hàng");
+            AddMenuItem(mHoatDong.Items, "Danh mục mặt hàng");
+            AddMenuItem(mHoatDong.Items, "Danh mục loại phòng");
+            AddMenuItem(mHoatDong.Items, "Danh mục bàn khu vực");
+            AddMenuItem(mHoatDong.Items, "Danh mục mật khẩu wifi");
+            mHoatDong.Items.Add(new Separator());
+            AddMenuItem(mHoatDong.Items, "Thông báo sửa chữa");
+            AddMenuItem(mHoatDong.Items, "Khách đặt hàng");
+            AddMenuItem(mHoatDong.Items, "Theo dõi đặt phòng");
+            mHoatDong.Items.Add(new Separator());
+            AddMenuItem(mHoatDong.Items, "Sử dụng dịch vụ");
+            AddMenuItem(mHoatDong.Items, "Điều chỉnh hóa đơn");
+            AddMenuItem(mHoatDong.Items, "Quản lý bán hàng");
+            mHoatDong.Items.Add(new Separator());
+            AddMenuItem(mHoatDong.Items, "Lưu vết hoạt động");
+            AddMenuItem(mHoatDong.Items, "Kiểm soát order");
+            mHoatDong.Items.Add(new Separator());
+            AddMenuItem(mHoatDong.Items, "Thống kê doanh thu");
+            AddMenuItem(mHoatDong.Items, "Thống kê mặt hàng bán");
+            AddMenuItem(mHoatDong.Items, "Tổng hợp kết quả kinh doanh");
+            AddMenuItem(mHoatDong.Items, "Chi tiết hoạt động ngày");
+            AddMenuItem(mHoatDong.Items, "Danh mục hóa đơn hủy");
+
+            // 2. KHÁCH HÀNG
+            var mKhachHang = CreateGroup("KHÁCH HÀNG");
+            AddMenuItem(mKhachHang.Items, "Danh mục khách hàng");
+            AddMenuItem(mKhachHang.Items, "Gửi tin nhắn tới khách hàng");
+            AddMenuItem(mKhachHang.Items, "Danh mục đợt khuyến mại");
+            AddMenuItem(mKhachHang.Items, "Khách hàng thân thiết");
+            AddMenuItem(mKhachHang.Items, "Danh mục voucher");
+            AddMenuItem(mKhachHang.Items, "Danh mục thẻ trả trước");
+
+            // 3. KHO HÀNG
+            var mKhoHang = CreateGroup("KHO HÀNG");
+            AddMenuItem(mKhoHang.Items, "Danh mục kho hàng");
+            AddMenuItem(mKhoHang.Items, "Danh mục nhà cung cấp");
+            mKhoHang.Items.Add(new Separator());
+            AddMenuItem(mKhoHang.Items, "Quản lý nhập kho");
+            AddMenuItem(mKhoHang.Items, "Quản lý xuất kho");
+            AddMenuItem(mKhoHang.Items, "Quản lý chuyển kho");
+            AddMenuItem(mKhoHang.Items, "Quản lý kiểm kê");
+            mKhoHang.Items.Add(new Separator());
+            AddMenuItem(mKhoHang.Items, "Tính lại giá vốn");
+            AddMenuItem(mKhoHang.Items, "Xuất lại định lượng");
+            mKhoHang.Items.Add(new Separator());
+            AddMenuItem(mKhoHang.Items, "Tồn kho");
+            AddMenuItem(mKhoHang.Items, "Tồn nhiều kho");
+
+            // 4. CÔNG NỢ
+            var mCongNo = CreateGroup("CÔNG NỢ");
+            AddMenuItem(mCongNo.Items, "Công nợ khách hàng");
+            AddMenuItem(mCongNo.Items, "Công nợ nhà cung cấp");
+            mCongNo.Items.Add(new Separator());
+            AddMenuItem(mCongNo.Items, "Công nợ ban đầu khách hàng");
+            AddMenuItem(mCongNo.Items, "Công nợ ban đầu nhà cung cấp");
+
+            // 5. QUỸ
+            var mQuy = CreateGroup("QUỸ");
+            AddMenuItem(mQuy.Items, "Tạo phiếu thu");
+            AddMenuItem(mQuy.Items, "Tạo phiếu chi");
+            mQuy.Items.Add(new Separator());
+            AddMenuItem(mQuy.Items, "Danh mục phiếu thu");
+            AddMenuItem(mQuy.Items, "Danh mục phiếu chi");
+            mQuy.Items.Add(new Separator());
+            AddMenuItem(mQuy.Items, "Danh mục lý do thu chi");
+            AddMenuItem(mQuy.Items, "Danh mục tài khoản ngân hàng");
+            mQuy.Items.Add(new Separator());
+            AddMenuItem(mQuy.Items, "Sổ quỹ tiền mặt");
+            AddMenuItem(mQuy.Items, "Tồn quỹ");
+
+            // 6. NHÂN SỰ
+            var mNhanSu = CreateGroup("NHÂN SỰ");
+            AddMenuItem(mNhanSu.Items, "Danh mục nhân viên");
+            AddMenuItem(mNhanSu.Items, "Danh mục ca làm việc");
+            mNhanSu.Items.Add(new Separator());
+            AddMenuItem(mNhanSu.Items, "Chấm công");
+            AddMenuItem(mNhanSu.Items, "Tạm ứng lương");
+            AddMenuItem(mNhanSu.Items, "Thưởng phạt");
+            AddMenuItem(mNhanSu.Items, "Bảng lương");
+
+            // 7. QUẢN TRỊ
+            var mQuanTri = CreateGroup("QUẢN TRỊ");
+            AddMenuItem(mQuanTri.Items, "Cấu hình toàn hệ thống");
+            AddMenuItem(mQuanTri.Items, "Người dùng và phân quyền");
+            AddMenuItem(mQuanTri.Items, "Nhật ký truy cập");
+            AddMenuItem(mQuanTri.Items, "Sao lưu dữ liệu");
+            AddMenuItem(mQuanTri.Items, "Khôi phục dữ liệu");
+
+            cm.IsOpen = true;
         }
 
         private void BtnThoat_Click(object sender, RoutedEventArgs e)

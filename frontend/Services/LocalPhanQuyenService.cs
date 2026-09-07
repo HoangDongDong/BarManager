@@ -681,14 +681,7 @@ namespace QuanLyBar.Client.Services
         {
             if (!HasFunctionPermission(funcName, action))
             {
-                string actionDesc = action.ToLower() switch
-                {
-                    "add" or "them" => "thêm mới",
-                    "edit" or "sua" => "chỉnh sửa",
-                    "delete" or "xoa" => "xóa",
-                    _ => "sử dụng"
-                };
-                MessageBox.Show($"Tài khoản của bạn không có quyền {actionDesc} chức năng '{funcName}'!\nVui lòng liên hệ Quản lý để được phân quyền.", "Thông báo phân quyền", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Bạn không có quyền sử dụng chức năng này! Mời bạn liên hệ với quản trị để xử lý.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
             return true;

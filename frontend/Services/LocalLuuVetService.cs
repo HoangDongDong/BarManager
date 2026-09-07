@@ -24,6 +24,18 @@ namespace QuanLyBar.Client.Services
             {
                 if (string.IsNullOrEmpty(soDonHangId)) return;
 
+                // Kiểm tra cấu hình có bật Kích hoạt lưu vết hoạt động không
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                bool kichHoat = !configs.TryGetValue("KichHoatLuuVetHoatDong", out var kh) || kh == "1" || kh.Equals("true", StringComparison.OrdinalIgnoreCase);
+                if (!kichHoat) return;
+
+                // Nếu là log in chế biến, kiểm tra cấu hình LuuVetInCheBien
+                if (note != null && (note.StartsWith("In pha chế") || note.StartsWith("--") || note.StartsWith("  Mặt hàng")))
+                {
+                    bool luuVetCheBien = !configs.TryGetValue("LuuVetInCheBien", out var lvc) || lvc == "1" || lvc.Equals("true", StringComparison.OrdinalIgnoreCase);
+                    if (!luuVetCheBien) return;
+                }
+
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
@@ -187,14 +199,21 @@ namespace QuanLyBar.Client.Services
                         l.BAN as Ban, 
                         l.CHUCNANG as Chucnang
                     FROM TLUUVET l
-                    LEFT JOIN TDONHANG h ON l.SODONHANG = h.ID";
+                    LEFT JOIN TDONHANG h ON CAST(l.SODONHANG AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))";
 
                 var parameters = new DynamicParameters();
 
-                if (!string.IsNullOrWhiteSpace(donHangId))
+                if (!string.IsNullOrWhiteSpace(donHangId) || !string.IsNullOrWhiteSpace(soDonHang))
                 {
-                    sql += " WHERE l.SODONHANG = @DonHangId";
-                    parameters.Add("DonHangId", donHangId.Trim());
+                    sql += " WHERE (CAST(l.SODONHANG AS VARCHAR(50)) = @DonHangId OR CAST(h.ID AS VARCHAR(50)) = @DonHangId OR h.NAME = @SoDonHang OR l.SODONHANG = @SoDonHang)";
+                    parameters.Add("DonHangId", donHangId?.Trim() ?? "");
+                    parameters.Add("SoDonHang", soDonHang?.Trim() ?? "");
+                }
+                else
+                {
+                    sql += " WHERE CAST(l.NGAY AS DATE) >= @TuNgay AND CAST(l.NGAY AS DATE) <= @DenNgay";
+                    parameters.Add("TuNgay", tuNgay.Date);
+                    parameters.Add("DenNgay", denNgay.Date);
                 }
 
                 sql += " ORDER BY l.GIO ASC, l.TIMECREATED ASC";

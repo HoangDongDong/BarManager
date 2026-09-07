@@ -35,6 +35,7 @@ namespace QuanLyBar.Client.Views.QuanLyXuatKho
         private string _selectedKhoId;
         private string _selectedNvId;
         private string _selectedNccId;
+        private bool _suDungNhieuKho = false;
 
         public ThemPhieuXuatKhoWindow(string phieuXuatId = null, List<PhieuXuatItem> allPhieuXuat = null)
         {
@@ -59,9 +60,23 @@ namespace QuanLyBar.Client.Views.QuanLyXuatKho
         {
             try
             {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                _suDungNhieuKho = configs.TryGetValue("SuDungNhieuKho", out var sdnk) && (sdnk == "1" || sdnk.Equals("true", StringComparison.OrdinalIgnoreCase));
+
                 DpNgay.SelectedDate = DateTime.Now;
                 await LoadLookupsAsync();
                 await LoadCatalogAsync();
+
+                if (!_suDungNhieuKho)
+                {
+                    TxtSelectedKho.IsEnabled = false;
+                    BtnToggleKho.IsEnabled = false;
+                }
+                else
+                {
+                    TxtSelectedKho.IsEnabled = true;
+                    BtnToggleKho.IsEnabled = true;
+                }
 
                 if (_isNew)
                 {

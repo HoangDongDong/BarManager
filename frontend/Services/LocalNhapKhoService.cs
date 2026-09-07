@@ -521,7 +521,60 @@ namespace QuanLyBar.Client.Services
                 {
                     if (conn.State != ConnectionState.Open) await conn.OpenAsync();
 
-                    string sql = @"
+                    var p = new DynamicParameters();
+                    int statusVal = isTrash ? 0 : 30;
+                    p.Add("Status", statusVal);
+
+                    var whereList = new List<string>
+                    {
+                        "d.LOAI = 1",
+                        "(d.STATUS = @Status OR (@Status = 0 AND d.STATUS = 0))"
+                    };
+
+                    if (tuNgay.HasValue)
+                    {
+                        whereList.Add("CAST(d.NGAY AS DATE) >= @TuNgay");
+                        p.Add("TuNgay", tuNgay.Value.Date);
+                    }
+                    if (denNgay.HasValue)
+                    {
+                        whereList.Add("CAST(d.NGAY AS DATE) <= @DenNgay");
+                        p.Add("DenNgay", denNgay.Value.Date);
+                    }
+                    if (!string.IsNullOrEmpty(khoId) && khoId != "ALL" && khoId != "UNASSIGNED" && khoId != "TRASH")
+                    {
+                        whereList.Add("CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId");
+                        p.Add("KhoId", khoId);
+                    }
+                    else if (khoId == "UNASSIGNED")
+                    {
+                        whereList.Add("(d.DKHONHAPID IS NULL OR TRIM(CAST(d.DKHONHAPID AS VARCHAR(50))) = '')");
+                    }
+
+                    if (!string.IsNullOrEmpty(nccId) && nccId != "ALL")
+                    {
+                        whereList.Add("CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId");
+                        p.Add("NccId", nccId);
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienId) && nhanVienId != "ALL")
+                    {
+                        whereList.Add("CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId");
+                        p.Add("NvId", nhanVienId);
+                    }
+                    if (!string.IsNullOrEmpty(cuaHangId) && cuaHangId != "ALL" && cuaHangId != "UNASSIGNED" && cuaHangId != "TRASH")
+                    {
+                        whereList.Add("CAST(d.DCUAHANGID AS VARCHAR(50)) = @CuaHangId");
+                        p.Add("CuaHangId", cuaHangId);
+                    }
+                    if (!string.IsNullOrEmpty(taiKhoanNganHangId) && taiKhoanNganHangId != "ALL" && taiKhoanNganHangId != "UNASSIGNED" && taiKhoanNganHangId != "TRASH")
+                    {
+                        whereList.Add("CAST(d.DTAIKHOANNGANHANGID AS VARCHAR(50)) = @TaiKhoanNganHangId");
+                        p.Add("TaiKhoanNganHangId", taiKhoanNganHangId);
+                    }
+
+                    string whereClause = "WHERE " + string.Join(" AND ", whereList);
+
+                    string sql = $@"
                         SELECT 
                             CAST(d.ID AS VARCHAR(50)) as Id,
                             d.NAME as SoPhieu,
@@ -593,11 +646,10 @@ namespace QuanLyBar.Client.Services
                         LEFT JOIN DBANGGIA bg ON CAST(d.DBANGGIAID AS VARCHAR(50)) = CAST(bg.ID AS VARCHAR(50))
                         LEFT JOIN SUSER u1 ON CAST(d.USERCREATEDID AS VARCHAR(50)) = CAST(u1.ID AS VARCHAR(50))
                         LEFT JOIN SUSER u2 ON CAST(d.USERMODIFIEDID AS VARCHAR(50)) = CAST(u2.ID AS VARCHAR(50))
-                        WHERE d.LOAI = 1 AND (d.STATUS = @Status OR (@Status = 0 AND d.STATUS = 0))
+                        {whereClause}
                         ORDER BY d.NGAY DESC, d.TIMECREATED DESC";
 
-                    int statusVal = isTrash ? 0 : 30;
-                    var rows = (await conn.QueryAsync(sql, new { Status = statusVal })).ToList();
+                    var rows = (await conn.QueryAsync(sql, p)).ToList();
 
                     int stt = 1;
                     foreach (var r in rows)
@@ -1087,7 +1139,7 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     if (conn.State != ConnectionState.Open) await conn.OpenAsync();
-                    var rows = await conn.QueryAsync("SELECT CAST(ID AS VARCHAR(50)) as Id, NAME as Name, CODE as Code, GIANHAP as GiaNhap FROM DMATHANG WHERE STATUS = 30 ORDER BY NAME");
+                    var rows = await conn.QueryAsync("SELECT CAST(ID AS VARCHAR(50)) as Id, NAME as Name, CODE as Code, GIANHAP as GiaNhap FROM DMATHANG WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY NAME");
                     foreach (var r in rows)
                     {
                         list.Add(new NhapKhoLookupItem { Id = r.ID?.ToString(), Name = r.NAME?.ToString() ?? "", Code = r.CODE?.ToString() ?? "" });
@@ -1119,8 +1171,17 @@ namespace QuanLyBar.Client.Services
                             COALESCE(m.QUYDOI, 1) as QuyDoi
                         FROM DMATHANG m
                         LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
-                        WHERE (m.STATUS IS NULL OR m.STATUS = 30)
-                        ORDER BY m.NAME";
+                        WHERE (m.STATUS IS NULL OR m.STATUS <> 0)";
+
+                    string sapXep = LocalCauHinhService.GetConfig("SapXepThuTuTheo", "Mã hàng");
+                    if (sapXep.Equals("Tên hàng", StringComparison.OrdinalIgnoreCase) || sapXep.Equals("Tên mặt hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sql += " ORDER BY m.NAME";
+                    }
+                    else
+                    {
+                        sql += " ORDER BY m.CODE, m.NAME";
+                    }
 
                     var rows = await conn.QueryAsync(sql);
                     int stt = 1;
@@ -1289,6 +1350,39 @@ namespace QuanLyBar.Client.Services
                                 Note = dt.Note?.Trim() ?? "",
                                 UserCreatedId = userId
                             });
+
+                            // Cập nhật giá nhập mới nhất cho mặt hàng nguyên vật liệu
+                            if (!string.IsNullOrWhiteSpace(dt.DmathangId) && dt.DonGia > 0)
+                            {
+                                await conn.ExecuteAsync("UPDATE DMATHANG SET GIANHAP = @DonGia WHERE CAST(ID AS VARCHAR(50)) = @DmathangId",
+                                    new { DonGia = dt.DonGia, DmathangId = dt.DmathangId });
+                            }
+                        }
+
+                        // Tự động cập nhật giá nhập / giá vốn cho các mặt hàng định lượng có sử dụng nguyên vật liệu
+                        try
+                        {
+                            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                            bool tuDongGiaNhap = true;
+                            if (configs.TryGetValue("TuDongCapNhatGiaNhapCuaMatHangDinhLuong", out var valGiaNhap))
+                            {
+                                tuDongGiaNhap = valGiaNhap == "1" || valGiaNhap.Equals("True", StringComparison.OrdinalIgnoreCase);
+                            }
+
+                            bool tuDongGiaVon = true;
+                            if (configs.TryGetValue("TuDongCapNhatGiaVonCuaMatHangDinhLuong", out var valGiaVon))
+                            {
+                                tuDongGiaVon = valGiaVon == "1" || valGiaVon.Equals("True", StringComparison.OrdinalIgnoreCase);
+                            }
+
+                            if (tuDongGiaNhap || tuDongGiaVon)
+                            {
+                                await UpdateDinhLuongGiaNhapVaGiaVonAsync(conn, tuDongGiaNhap, tuDongGiaVon);
+                            }
+                        }
+                        catch (Exception exCfg)
+                        {
+                            Console.WriteLine("Auto update recipe prices error: " + exCfg.Message);
                         }
                     }
 
@@ -1298,6 +1392,72 @@ namespace QuanLyBar.Client.Services
             catch (Exception ex)
             {
                 return (false, ex.Message, "");
+            }
+        }
+
+        public static async Task UpdateDinhLuongGiaNhapVaGiaVonAsync(IDbConnection conn, bool updateGiaNhap, bool updateGiaVon)
+        {
+            try
+            {
+                string sql = @"
+                    SELECT 
+                        CAST(dl.DMATHANGID AS VARCHAR(50)) as ParentId,
+                        dl.SOLUONG as SoLuong,
+                        COALESCE(m.GIANHAP, 0) as GiaNhap,
+                        COALESCE(m.GIAVON, COALESCE(m.GIANHAP, 0)) as GiaVon
+                    FROM DDINHLUONG dl
+                    INNER JOIN DMATHANG m ON CAST(dl.DVATTUID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                    WHERE (dl.STATUS IS NULL OR dl.STATUS <> 0)";
+
+                var rows = (await conn.QueryAsync(sql)).ToList();
+                var grouped = rows.GroupBy(r => (string)r.PARENTID);
+
+                foreach (var grp in grouped)
+                {
+                    string parentId = grp.Key;
+                    if (string.IsNullOrEmpty(parentId)) continue;
+
+                    decimal totalGiaNhap = 0;
+                    decimal totalGiaVon = 0;
+
+                    foreach (var item in grp)
+                    {
+                        var dict = item as IDictionary<string, object>;
+                        decimal sl = 0, gn = 0, gv = 0;
+                        if (dict != null)
+                        {
+                            if (dict.TryGetValue("SOLUONG", out var vSl) && vSl != null && decimal.TryParse(vSl.ToString(), out var dSl)) sl = dSl;
+                            if (dict.TryGetValue("GIANHAP", out var vGn) && vGn != null && decimal.TryParse(vGn.ToString(), out var dGn)) gn = dGn;
+                            if (dict.TryGetValue("GIAVON", out var vGv) && vGv != null && decimal.TryParse(vGv.ToString(), out var dGv)) gv = dGv;
+                        }
+
+                        totalGiaNhap += sl * gn;
+                        totalGiaVon += sl * (gv > 0 ? gv : gn);
+                    }
+
+                    if (updateGiaNhap && updateGiaVon)
+                    {
+                        await conn.ExecuteAsync(
+                            "UPDATE DMATHANG SET GIANHAP = @GiaNhap, GIAVON = @GiaVon WHERE CAST(ID AS VARCHAR(50)) = @Id",
+                            new { GiaNhap = totalGiaNhap, GiaVon = totalGiaVon, Id = parentId });
+                    }
+                    else if (updateGiaNhap)
+                    {
+                        await conn.ExecuteAsync(
+                            "UPDATE DMATHANG SET GIANHAP = @GiaNhap WHERE CAST(ID AS VARCHAR(50)) = @Id",
+                            new { GiaNhap = totalGiaNhap, Id = parentId });
+                    }
+                    else if (updateGiaVon)
+                    {
+                        await conn.ExecuteAsync(
+                            "UPDATE DMATHANG SET GIAVON = @GiaVon WHERE CAST(ID AS VARCHAR(50)) = @Id",
+                            new { GiaVon = totalGiaVon, Id = parentId });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("UpdateDinhLuongGiaNhapVaGiaVonAsync error: " + ex.Message);
             }
         }
 

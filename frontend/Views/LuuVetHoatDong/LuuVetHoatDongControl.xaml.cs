@@ -29,6 +29,18 @@ namespace QuanLyBar.Client.Views
 
             try
             {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                bool kichHoat = !configs.TryGetValue("KichHoatLuuVetHoatDong", out var kh) || kh == "1" || kh.Equals("true", StringComparison.OrdinalIgnoreCase);
+                if (!kichHoat)
+                {
+                    MessageBox.Show(
+                        "Chức năng lưu vết hoạt động hiện không được kích hoạt\nBạn có thể kích hoạt trong menu 'Quản trị | Cấu hình toàn hệ thống'",
+                        "Cảnh báo",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    return;
+                }
+
                 // Mặc định khoảng thời gian như ảnh mẫu (15/05/2010 đến 31/08/2026)
                 dpTuNgay.SelectedDate = new DateTime(2010, 5, 15);
                 dpDenNgay.SelectedDate = new DateTime(2026, 8, 31);

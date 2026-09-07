@@ -34,6 +34,11 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         private string _selectedKhoNhapId = "";
         private string _selectedNhanVienNhapId = "";
 
+        private bool _nhapMotMatHangNhieuLan = false;
+        private bool _batBuocNhanVien = false;
+        private bool _batBuocNhaCungCap = false;
+        private bool _suDungNhieuKho = false;
+
         public ThemPhieuNhapKhoWindow(string phieuNhapId = null, List<PhieuNhapItem> allPhieuNhap = null)
         {
             InitializeComponent();
@@ -66,6 +71,12 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         {
             try
             {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                _nhapMotMatHangNhieuLan = configs.TryGetValue("NhapMotMatHangNhieuLanTrongPhieu", out var nln) && (nln == "1" || nln.Equals("true", StringComparison.OrdinalIgnoreCase));
+                _batBuocNhanVien = configs.TryGetValue("BatBuocChonNhanVienTrongNhapKho", out var bbnv) && (bbnv == "1" || bbnv.Equals("true", StringComparison.OrdinalIgnoreCase));
+                _batBuocNhaCungCap = configs.TryGetValue("BatBuocChonNhaCungCapTrongNhapKho", out var bbncc) && (bbncc == "1" || bbncc.Equals("true", StringComparison.OrdinalIgnoreCase));
+                _suDungNhieuKho = configs.TryGetValue("SuDungNhieuKho", out var sdnk) && (sdnk == "1" || sdnk.Equals("true", StringComparison.OrdinalIgnoreCase));
+
                 await LoadLookupsAsync();
                 await LoadMatHangListAsync();
 
@@ -105,15 +116,25 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             {
                 SetSelectedKho(selectId);
             }
-            else if (string.IsNullOrEmpty(_selectedKhoNhapId) && _allKhoLookup.Count > 0)
+            else if (!string.IsNullOrEmpty(_selectedKhoNhapId))
             {
-                SetSelectedKho(_allKhoLookup[0].Id);
+                SetSelectedKho(_selectedKhoNhapId);
+            }
+            else
+            {
+                SetSelectedKho(null);
             }
         }
 
         private void SetSelectedKho(string khoId)
         {
             _selectedKhoNhapId = khoId ?? "";
+            if (string.IsNullOrEmpty(_selectedKhoNhapId))
+            {
+                TxtSelectedKho.Text = "";
+                LstKho.SelectedItem = null;
+                return;
+            }
             var item = _allKhoLookup.FirstOrDefault(x => x.Id == _selectedKhoNhapId || x.Name == _selectedKhoNhapId);
             if (item != null)
             {
@@ -134,15 +155,25 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             {
                 SetSelectedNhanVien(selectId);
             }
-            else if (string.IsNullOrEmpty(_selectedNhanVienNhapId) && _allNvLookup.Count > 0)
+            else if (!string.IsNullOrEmpty(_selectedNhanVienNhapId))
             {
-                SetSelectedNhanVien(_allNvLookup[0].Id);
+                SetSelectedNhanVien(_selectedNhanVienNhapId);
+            }
+            else
+            {
+                SetSelectedNhanVien(null);
             }
         }
 
         private void SetSelectedNhanVien(string nvId)
         {
             _selectedNhanVienNhapId = nvId ?? "";
+            if (string.IsNullOrEmpty(_selectedNhanVienNhapId))
+            {
+                TxtSelectedNhanVien.Text = "";
+                LstNhanVien.SelectedItem = null;
+                return;
+            }
             var item = _allNvLookup.FirstOrDefault(x => x.Id == _selectedNhanVienNhapId || x.Name == _selectedNhanVienNhapId);
             if (item != null)
             {
@@ -176,15 +207,25 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             {
                 SetSelectedNhaCungCap(selectId);
             }
-            else if (string.IsNullOrEmpty(_selectedNhaCungCapId) && _allNccLookup.Count > 0)
+            else if (!string.IsNullOrEmpty(_selectedNhaCungCapId))
             {
-                SetSelectedNhaCungCap(_allNccLookup[0].Id);
+                SetSelectedNhaCungCap(_selectedNhaCungCapId);
+            }
+            else
+            {
+                SetSelectedNhaCungCap(null);
             }
         }
 
         private void SetSelectedNhaCungCap(string nccId)
         {
             _selectedNhaCungCapId = nccId ?? "";
+            if (string.IsNullOrEmpty(_selectedNhaCungCapId))
+            {
+                TxtSelectedNhaCungCap.Text = "";
+                DgNccPopup.SelectedItem = null;
+                return;
+            }
             var item = _allNccLookup.FirstOrDefault(x => x.Id == _selectedNhaCungCapId || x.Name == _selectedNhaCungCapId);
             if (item != null)
             {
@@ -319,7 +360,7 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             decimal donGia = selected.GiaNhap;
             decimal.TryParse(TxtQuickDonGia.Text.Replace(",", "").Replace(".", ""), out donGia);
 
-            var existing = _details.FirstOrDefault(x => x.DmathangId == selected.Id);
+            var existing = !_nhapMotMatHangNhieuLan ? _details.FirstOrDefault(x => x.DmathangId == selected.Id) : null;
             if (existing != null)
             {
                 existing.SlNhap += sl;
@@ -364,6 +405,21 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             _isUserEditedThanhToan = false;
             DpNgay.SelectedDate = DateTime.Now;
             TxtSoPhieu.Text = await LocalNhapKhoService.GetNextSoPhieuNhapAsync();
+            SetSelectedNhaCungCap(null);
+            if (!_suDungNhieuKho)
+            {
+                var defaultKho = _allKhoLookup.FirstOrDefault();
+                SetSelectedKho(defaultKho?.Id);
+                TxtSelectedKho.IsEnabled = false;
+                BtnToggleKho.IsEnabled = false;
+            }
+            else
+            {
+                SetSelectedKho(null);
+                TxtSelectedKho.IsEnabled = true;
+                BtnToggleKho.IsEnabled = true;
+            }
+            SetSelectedNhanVien(null);
             TxtDienGiai.Text = "Nhập mua hàng";
             TxtGhiChu.Text = "";
             _details.Clear();
@@ -398,6 +454,16 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             SetSelectedNhaCungCap(item.DnhacungcapId);
             SetSelectedKho(item.DkhoNhapId);
             SetSelectedNhanVien(item.DnhanVienNhapId);
+            if (!_suDungNhieuKho)
+            {
+                TxtSelectedKho.IsEnabled = false;
+                BtnToggleKho.IsEnabled = false;
+            }
+            else
+            {
+                TxtSelectedKho.IsEnabled = true;
+                BtnToggleKho.IsEnabled = true;
+            }
             TxtDienGiai.Text = !string.IsNullOrEmpty(item.DienGiai) ? item.DienGiai : "Nhập mua hàng";
             TxtGhiChu.Text = item.Note;
 
@@ -670,6 +736,27 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
                 return false;
             }
 
+            if (string.IsNullOrWhiteSpace(_selectedKhoNhapId))
+            {
+                MessageBox.Show("Vui lòng chọn kho nhập!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtSelectedKho.Focus();
+                return false;
+            }
+
+            if (_batBuocNhanVien && string.IsNullOrWhiteSpace(_selectedNhanVienNhapId))
+            {
+                MessageBox.Show("Cấu hình hệ thống bắt buộc phải chọn nhân viên nhập kho!\nVui lòng chọn nhân viên.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtSelectedNhanVien.Focus();
+                return false;
+            }
+
+            if (_batBuocNhaCungCap && string.IsNullOrWhiteSpace(_selectedNhaCungCapId))
+            {
+                MessageBox.Show("Cấu hình hệ thống bắt buộc phải chọn nhà cung cấp trong nhập kho!\nVui lòng chọn nhà cung cấp.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtSelectedNhaCungCap.Focus();
+                return false;
+            }
+
             if (_details.Count == 0)
             {
                 MessageBox.Show("Phiếu nhập chưa có mặt hàng nào. Vui lòng thêm mặt hàng trước khi lưu!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -684,6 +771,11 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             decimal conLai = tongCong - thanhToan;
 
             bool isNew = string.IsNullOrEmpty(_phieuNhapId);
+            if (!_suDungNhieuKho && string.IsNullOrEmpty(_selectedKhoNhapId))
+            {
+                _selectedKhoNhapId = _allKhoLookup.FirstOrDefault()?.Id ?? "";
+            }
+
             var item = new PhieuNhapItem
             {
                 Id = isNew ? Guid.NewGuid().ToString() : _phieuNhapId,

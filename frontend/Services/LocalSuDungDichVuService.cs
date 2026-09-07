@@ -27,6 +27,7 @@ namespace QuanLyBar.Client.Services
             public DateTime? Ngay { get; set; }
             public int? SoKhach { get; set; }
             public string DkhachHangId { get; set; }
+            public string KhachHangName { get; set; }
             public string DnhanVienXuatId { get; set; }
             public string NhanVienName { get; set; }
             public string Note { get; set; }
@@ -61,7 +62,9 @@ namespace QuanLyBar.Client.Services
                     // Lấy các đơn hàng đang mở (chưa kết thúc)
                     string sqlActiveOrders = @"
                         SELECT o.ID as Id, o.NAME as Name, o.DBANID as DbanId, o.BATDAU as BatDau, 
-                               o.NGAY as Ngay, o.SOKHACH as SoKhach, o.DKHACHHANGID as DkhachHangId, 
+                               o.NGAY as Ngay, o.SOKHACH as SoKhach, 
+                               CAST(o.DKHACHHANGID AS VARCHAR(50)) as DkhachHangId, 
+                               kh.NAME as KhachHangName,
                                CAST(o.DNHANVIENXUATID AS VARCHAR(50)) as DnhanVienXuatId,
                                nv.NAME as NhanVienName,
                                o.NOTE as Note, o.TIENHANG as TienHang, o.TIENGIAMGIA as TienGiamGia, 
@@ -69,6 +72,7 @@ namespace QuanLyBar.Client.Services
                                COALESCE(o.PHIDICHVU, 0) as TienPhiDichVu, o.TONGCONG as TongCong
                         FROM TDONHANG o
                         LEFT JOIN DNHANVIEN nv ON CAST(o.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(o.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
                         WHERE (o.STATUS = 1 OR o.STATUS IS NULL) AND o.KETTHUC IS NULL AND o.DBANID IS NOT NULL";
                     
                     var activeOrders = (await conn.QueryAsync<ActiveOrderDto>(sqlActiveOrders)).ToList();
@@ -92,6 +96,8 @@ namespace QuanLyBar.Client.Services
                                 StartTime = activeOrder?.BatDau ?? (isOcc ? (activeOrder?.Ngay ?? DateTime.Now) : (DateTime?)null),
                                 SoPhieu = activeOrder?.Name ?? "",
                                 SoKhach = activeOrder?.SoKhach ?? 0,
+                                KhachHangId = activeOrder?.DkhachHangId ?? "",
+                                KhachHangName = activeOrder?.KhachHangName ?? "",
                                 NhanVienId = activeOrder?.DnhanVienXuatId ?? "",
                                 NhanVienName = activeOrder?.NhanVienName ?? "",
                                 GhiChu = activeOrder?.Note ?? "",
@@ -507,34 +513,52 @@ namespace QuanLyBar.Client.Services
             decimal theATM, 
             decimal theTraTruoc, 
             string loaiThanhToan,
-            decimal chuyenKhoan = 0,
-            decimal voucher = 0,
-            decimal diemGiam = 0,
-            decimal truTichLuy = 0,
-            decimal tamUng = 0)
+            decimal chuyenKhoan = 0, 
+            decimal voucher = 0, 
+            decimal diemDoi = 0, 
+            decimal tienDiem = 0, 
+            decimal tamUng = 0, 
+            bool inBill = false)
         {
             if (string.IsNullOrEmpty(orderId)) return false;
 
             try
             {
-                int loaiTtInt = 0;
-                if (loaiThanhToan == "ChuyenKhoan") loaiTtInt = 1;
-                else if (loaiThanhToan == "TheATM" || loaiThanhToan == "The") loaiTtInt = 2;
-                else if (loaiThanhToan == "TheTraTruoc") loaiTtInt = 3;
-                else if (loaiThanhToan == "CongNo" || loaiThanhToan == "KhachNo") loaiTtInt = 4;
-                else if (loaiThanhToan == "Voucher") loaiTtInt = 5;
-
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
 
+                    int loaiTtInt = 0; // 0: TienMat, 1: The, 2: TheATM, 3: ChuyenKhoan, 4: CongNo, 5: Voucher
+                    if (loaiThanhToan == "CongNo") loaiTtInt = 4;
+                    else if (loaiThanhToan == "TheATM") loaiTtInt = 2;
+                    else if (loaiThanhToan == "ChuyenKhoan") loaiTtInt = 3;
+                    else if (loaiThanhToan == "The") loaiTtInt = 1;
+                    else if (loaiThanhToan == "Voucher") loaiTtInt = 5;
+
+                    // Tính điểm tích lũy theo cấu hình
+                    var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                    decimal doanhSo1Diem = configs.TryGetValue("DoanhSoDeQuyRa1Diem", out var ds) && decimal.TryParse(ds, out var dsv) && dsv > 0 ? dsv : 100000m;
+                    
                     var orderInfo = await conn.QueryFirstOrDefaultAsync(
-                        "SELECT h.NAME as SoPhieu, h.TONGCONG as TongCong, h.NGAY as Ngay, b.NAME as BanName, h.DKHACHHANGID as DkhachhangId FROM TDONHANG h LEFT JOIN DBAN b ON h.DBANID = b.ID WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId",
+                        "SELECT h.DKHACHHANGID, h.TONGCONG, h.NAME as SoPhieu, h.NGAY, b.NAME as BanName FROM TDONHANG h LEFT JOIN DBAN b ON h.DBANID = b.ID WHERE CAST(h.ID AS VARCHAR(50)) = @OrderId", 
                         new { OrderId = orderId });
 
                     decimal tongCong = orderInfo?.TONGCONG != null ? Convert.ToDecimal(orderInfo.TONGCONG) : 0;
-                    // Quy tắc: 20 000đ sẽ được 1 điểm
-                    int diemTichLuy = (int)(tongCong / 20000m);
+                    string cachTinhDiem = configs.TryGetValue("CachTinhDiem", out var ctd) ? ctd : "Điểm được tính trên từng hóa đơn";
+                    string khachHangId = orderInfo?.DKHACHHANGID?.ToString();
+                    int diemTichLuy = 0;
+                    if (cachTinhDiem == "Điểm được tính trên tổng doanh số" && !string.IsNullOrEmpty(khachHangId))
+                    {
+                        var pastSales = await conn.ExecuteScalarAsync<decimal?>("SELECT SUM(COALESCE(TONGCONG, 0)) FROM TDONHANG WHERE CAST(DKHACHHANGID AS VARCHAR(50)) = @KhId AND STATUS = 2 AND CAST(ID AS VARCHAR(50)) <> @OrderId", new { KhId = khachHangId, OrderId = orderId }) ?? 0;
+                        decimal tongSales = pastSales + tongCong;
+                        int tongDiemMoi = doanhSo1Diem > 0 ? (int)(tongSales / doanhSo1Diem) : 0;
+                        int diemCu = doanhSo1Diem > 0 ? (int)(pastSales / doanhSo1Diem) : 0;
+                        diemTichLuy = Math.Max(0, tongDiemMoi - diemCu);
+                    }
+                    else
+                    {
+                        diemTichLuy = doanhSo1Diem > 0 ? (int)(tongCong / doanhSo1Diem) : 0;
+                    }
 
                     decimal tienMatThuc = loaiTtInt == 4 ? 0 : Math.Max(0, khachDua - traLai);
 
@@ -565,19 +589,57 @@ namespace QuanLyBar.Client.Services
                         ChuyenKhoan = chuyenKhoan.ToString("0.##"),
                         TheTraTruoc = theTraTruoc.ToString("0.##"),
                         Voucher = voucher.ToString("0.##"),
-                        DiemGiam = diemGiam.ToString("0.##"),
-                        TruTichLuy = truTichLuy.ToString("0.##"),
+                        DiemGiam = diemDoi.ToString("0.##"),
+                        TruTichLuy = tienDiem.ToString("0.##"),
                         DatTruoc = tamUng.ToString("0.##"),
                         LoaiTtInt = loaiTtInt,
                         Diem = diemTichLuy
                     });
+
+                    // Tự động nâng cấp thành viên khi đạt hạn mức nếu có cấu hình
+                    bool tuDongNangCap = configs.TryGetValue("TuDongNangCapThanhVienKhiDatHanMuc", out var tdnc) && (tdnc == "1" || tdnc.Equals("true", StringComparison.OrdinalIgnoreCase));
+                    if (tuDongNangCap && !string.IsNullOrEmpty(khachHangId))
+                    {
+                        try
+                        {
+                            var khRow = await conn.QueryFirstOrDefaultAsync("SELECT ID, DNHOMKHACHHANGID, DIEMTICHLUYBANDAU FROM DKHACHHANG WHERE CAST(ID AS VARCHAR(50)) = @KhId", new { KhId = khachHangId });
+                            if (khRow != null)
+                            {
+                                decimal diemBanDau = khRow.DIEMTICHLUYBANDAU != null ? Convert.ToDecimal(khRow.DIEMTICHLUYBANDAU) : 0;
+                                decimal tongDiemCacDon = await conn.ExecuteScalarAsync<decimal?>("SELECT SUM(CAST(DIEM AS DECIMAL(18,2))) FROM TDONHANG WHERE CAST(DKHACHHANGID AS VARCHAR(50)) = @KhId AND STATUS = 2", new { KhId = khachHangId }) ?? 0;
+                                decimal tongDiemKhach = diemBanDau + tongDiemCacDon;
+
+                                // Tìm nhóm khách hàng có hạn mức DIEMTICHLUY cao nhất mà khách đạt được
+                                var nhomList = (await conn.QueryAsync("SELECT ID, NAME, DIEMTICHLUY FROM DNHOMKHACHHANG WHERE (STATUS = 30 OR STATUS > 0 OR STATUS IS NULL) AND DIEMTICHLUY IS NOT NULL ORDER BY DIEMTICHLUY DESC")).ToList();
+                                foreach (var n in nhomList)
+                                {
+                                    decimal hanMuc = n.DIEMTICHLUY != null ? Convert.ToDecimal(n.DIEMTICHLUY) : 0;
+                                    if (hanMuc > 0 && tongDiemKhach >= hanMuc)
+                                    {
+                                        string newNhomId = n.ID?.ToString();
+                                        string currentNhomId = khRow.DNHOMKHACHHANGID?.ToString();
+                                        if (!string.IsNullOrEmpty(newNhomId) && newNhomId != currentNhomId)
+                                        {
+                                            await conn.ExecuteAsync("UPDATE DKHACHHANG SET DNHOMKHACHHANGID = @NewNhomId WHERE CAST(ID AS VARCHAR(50)) = @KhId", new { NewNhomId = newNhomId, KhId = khachHangId });
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception exUpgrade)
+                        {
+                            Console.WriteLine("Error auto upgrade customer tier: " + exUpgrade.Message);
+                        }
+                    }
 
                     if (orderInfo != null)
                     {
                         string soPhieu = orderInfo.SOPHIEU?.ToString() ?? "";
                         DateTime ngay = orderInfo.NGAY != null ? Convert.ToDateTime(orderInfo.NGAY) : DateTime.Today;
                         string banName = orderInfo.BANNAME?.ToString() ?? "";
-                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, banName, "Sử dụng dịch vụ", $"Đóng hóa đơn (Có in), số phiếu:{soPhieu}, ngày: {ngay:dd/MM/yyyy}, tích lũy: {diemTichLuy} điểm", 1, 0, 0, tongCong);
+                        string inStr = inBill ? "Có in" : "Không in";
+                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, banName, "Sử dụng dịch vụ", $"Đóng hóa đơn ({inStr}), số phiếu:{soPhieu}, ngày: {ngay:dd/MM/yyyy}", 1, 0, 0, tongCong);
                     }
 
                     return true;
@@ -599,14 +661,12 @@ namespace QuanLyBar.Client.Services
         {
             try
             {
-                using (var conn = DbConnectionManager.GetConnection())
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                if (configs.TryGetValue("ThoiGianChoPhepHuyBill", out var val) && int.TryParse(val, out int mins) && mins > 0)
                 {
-                    await conn.OpenAsync();
-                    var minutes = await conn.ExecuteScalarAsync<int?>(
-                        "SELECT FIRST 1 INTVALUE FROM SCONFIG WHERE NAME = 'ThoiGianChoPhepHuyBill' AND STATUS > 0"
-                    );
-                    return (minutes.HasValue && minutes.Value > 0) ? minutes.Value : 50;
+                    return mins;
                 }
+                return 50;
             }
             catch
             {
@@ -941,12 +1001,10 @@ namespace QuanLyBar.Client.Services
                     string sql = "UPDATE TDONHANG SET DKHACHHANGID = @KhachHangId WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
                     await conn.ExecuteAsync(sql, new { KhachHangId = khachHangId, OrderId = orderId });
 
-                    string khName = await conn.QueryFirstOrDefaultAsync<string>(
-                        "SELECT NAME FROM DKHACHHANG WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = khachHangId });
-                    if (!string.IsNullOrEmpty(khName))
-                    {
-                        _ = LocalLuuVetService.GhiLuuVetAsync(orderId, null, chucNang, $"Đặt khách hàng '{khName}'", 3);
-                    }
+                    string khName = !string.IsNullOrEmpty(khachHangId)
+                        ? await conn.QueryFirstOrDefaultAsync<string>("SELECT NAME FROM DKHACHHANG WHERE CAST(ID AS VARCHAR(50)) = @Id", new { Id = khachHangId })
+                        : "";
+                    _ = LocalLuuVetService.GhiLuuVetAsync(orderId, null, chucNang, $"Đặt khách hàng '{khName ?? ""}'", 3);
 
                     return true;
                 }

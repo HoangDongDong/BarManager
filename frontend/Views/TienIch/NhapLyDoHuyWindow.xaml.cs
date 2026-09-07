@@ -6,11 +6,14 @@ namespace QuanLyBar.Client.Views
     {
         public string LyDo { get; private set; }
 
-        public NhapLyDoHuyWindow()
+        public NhapLyDoHuyWindow(string title = "Nhập lý do", string header = "Mời bạn nhập lý do hủy")
         {
             InitializeComponent();
+            this.Title = title;
+            if (TxtHeader != null) TxtHeader.Text = header;
             Loaded += (s, e) =>
             {
+                if (TxtHeader != null) TxtHeader.Text = header;
                 TxtLyDo.Focus();
             };
         }

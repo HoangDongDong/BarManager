@@ -132,7 +132,15 @@ namespace QuanLyBar.Client.Services
                         }
                     }
 
-                    sql += " ORDER BY m.NAME";
+                    string sapXep = LocalCauHinhService.GetConfig("SapXepThuTuTheo", "Mã hàng");
+                    if (sapXep.Equals("Tên hàng", StringComparison.OrdinalIgnoreCase) || sapXep.Equals("Tên mặt hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sql += " ORDER BY m.NAME";
+                    }
+                    else
+                    {
+                        sql += " ORDER BY m.CODE, m.NAME";
+                    }
 
                     var result = await conn.QueryAsync<MatHangViewModel>(sql, new { NhomId = nhomId });
                     var list = result.ToList();
@@ -317,14 +325,14 @@ namespace QuanLyBar.Client.Services
                     
                     string sql = @"
                         INSERT INTO DMATHANG (
-                            ID, CODE, NAME, GIANHAP, GIABAN, QUYDOI, 
+                            ID, CODE, NAME, GIANHAP, GIABAN, GIABAN2, GIABAN3, GIABAN4, TENTIENGANH, QUYDOI, 
                             GIATHEOTHOIGIA, DNHOMMATHANGID, DDONVITINHID,
                             STATUS, USERCREATEDID, TIMECREATED,
                             DLOAIMATHANGID, DDONVITINHCHANID, GIABANCHAN,
                             TONTOITHIEU, TONTOIDA, HOAHONG, GIAVON,
                             MACDINHGIAMGIA, MACDINHGIAMTIEN, TAMKHOA, NOTE
                         ) VALUES (
-                            @Id, @Code, @Name, @Gianhap, @Giaban, @Quydoi, 
+                            @Id, @Code, @Name, @Gianhap, @Giaban, @Giaban2, @Giaban3, @Giaban4, @Tentienganh, @Quydoi, 
                             @Giatheothoigia, @DnhommathangId, @DdonvitinhId,
                             1, 1, CURRENT_TIMESTAMP,
                             @DloaimathangId, @DdonvitinhchanId, @Giabanchan,
@@ -342,6 +350,10 @@ namespace QuanLyBar.Client.Services
                         Name = model.Name,
                         Gianhap = model.Gianhap,
                         Giaban = model.Giaban,
+                        Giaban2 = model.Giaban2,
+                        Giaban3 = model.Giaban3,
+                        Giaban4 = model.Giaban4,
+                        Tentienganh = model.Tentienganh,
                         Quydoi = model.Quydoi,
                         Giatheothoigia = model.Giatheothoigia,
                         DnhommathangId = model.DnhommathangId,
@@ -381,8 +393,13 @@ namespace QuanLyBar.Client.Services
                                m.CODE as Code, 
                                m.NAME as Name, 
                                m.GIANHAP as Gianhap, 
+                               m.GIAVON as Giavon,
                                m.GIABAN as Giaban, 
+                               m.GIABAN2 as Giaban2,
+                               m.GIABAN3 as Giaban3,
+                               m.GIABAN4 as Giaban4,
                                m.GIABANCHAN as Giabanchan, 
+                               m.TENTIENGANH as Tentienganh,
                                m.QUYDOI as Quydoi, 
                                m.TAMKHOA as Tamkhoa, 
                                m.GIATHEOTHOIGIA as Giatheothoigia,
@@ -415,11 +432,18 @@ namespace QuanLyBar.Client.Services
                             CODE = @Code,
                             NAME = @Name,
                             GIANHAP = @Gianhap,
+                            GIAVON = @Giavon,
                             GIABAN = @Giaban,
+                            GIABAN2 = @Giaban2,
+                            GIABAN3 = @Giaban3,
+                            GIABAN4 = @Giaban4,
+                            GIABANCHAN = @Giabanchan,
+                            TENTIENGANH = @Tentienganh,
                             QUYDOI = @Quydoi,
                             GIATHEOTHOIGIA = @Giatheothoigia,
                             DNHOMMATHANGID = @DnhommathangId,
                             DDONVITINHID = @DdonvitinhId,
+                            DDONVITINHCHANID = @DdonvitinhchanId,
                             TAMKHOA = @Tamkhoa
                         WHERE ID = @Id";
 
@@ -428,11 +452,18 @@ namespace QuanLyBar.Client.Services
                         Code = model.Code,
                         Name = model.Name,
                         Gianhap = model.Gianhap,
+                        Giavon = model.Giavon,
                         Giaban = model.Giaban,
+                        Giaban2 = model.Giaban2,
+                        Giaban3 = model.Giaban3,
+                        Giaban4 = model.Giaban4,
+                        Giabanchan = model.Giabanchan,
+                        Tentienganh = model.Tentienganh,
                         Quydoi = model.Quydoi,
                         Giatheothoigia = model.Giatheothoigia,
                         DnhommathangId = model.DnhommathangId,
                         DdonvitinhId = model.DdonvitinhId,
+                        DdonvitinhchanId = model.DdonvitinhchanId,
                         Tamkhoa = model.Tamkhoa
                     };
 

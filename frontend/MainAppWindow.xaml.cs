@@ -50,35 +50,27 @@ namespace QuanLyBar.Client
                 // 1. Tự động ẩn/hiện Menu bar và Toolbar theo quyền thực tế của tài khoản
                 ApplyPermissionsToUI();
 
-                // 2. Tự động mở các tab mà tài khoản có quyền xem
-                if (LocalPhanQuyenService.HasFunctionPermission("Sử dụng dịch vụ", "View"))
-                    AddTab("Sử dụng dịch vụ", new QuanLyBar.Client.Views.SuDungDichVuControl());
-
-                if (LocalPhanQuyenService.HasFunctionPermission("Danh mục nhà cung cấp", "View"))
-                    AddTab("Danh mục nhà cung cấp", new QuanLyBar.Client.Views.DanhMucNhaCungCap.DanhMucNhaCungCapControl());
-
-                if (LocalPhanQuyenService.HasFunctionPermission("Nhập kho", "View"))
-                    AddTab("Quản lý nhập kho", new QuanLyBar.Client.Views.QuanLyNhapKho.QuanLyNhapKhoControl());
-
-                if (LocalPhanQuyenService.HasFunctionPermission("Xuất kho", "View"))
-                    AddTab("Quản lý xuất kho", new QuanLyBar.Client.Views.QuanLyXuatKho.QuanLyXuatKhoControl());
-
-                if (LocalPhanQuyenService.HasFunctionPermission("Quản lý chuyển kho", "View"))
-                    AddTab("Quản lý chuyển kho", new QuanLyBar.Client.Views.QuanLyChuyenKho.QuanLyChuyenKhoControl());
-
-                if (LocalPhanQuyenService.HasFunctionPermission("Kiểm kê kho", "View"))
-                    AddTab("Quản lý kiểm kê", new QuanLyBar.Client.Views.QuanLyKiemKe.QuanLyKiemKeControl());
-
-                if (LocalPhanQuyenService.HasFunctionPermission("Thưởng phạt", "View"))
-                    AddTab("Thưởng phạt", new QuanLyBar.Client.Views.NhanSu.ThuongPhatControl());
-
-                if (LocalPhanQuyenService.HasFunctionPermission("Chấm công", "View"))
-                    AddTab("Chấm công", new QuanLyBar.Client.Views.NhanSu.ChamCongControl());
-
-                if (MainTabControl.Items.Count > 0)
+                // 2. Chỉ mở duy nhất tab chức năng mặc định khi mới mở ứng dụng
+                _ = Dispatcher.InvokeAsync(async () =>
                 {
-                    MainTabControl.SelectedIndex = 0;
-                }
+                    try
+                    {
+                        var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                        string defaultTab = configs.TryGetValue("ChucNangMacDinh", out var cnd) && !string.IsNullOrWhiteSpace(cnd) ? cnd : "Sử dụng dịch vụ";
+                        if (defaultTab == "HOAT ĐỘNG") defaultTab = "Sử dụng dịch vụ";
+
+                        await OpenTabByNameAsync(defaultTab);
+
+                        if (MainTabControl.Items.Count > 0)
+                        {
+                            MainTabControl.SelectedIndex = 0;
+                        }
+
+                        await System.Threading.Tasks.Task.Delay(500);
+                        await LocalCanhBaoService.CheckAndShowAlertsAsync(this);
+                    }
+                    catch { }
+                });
             }
         }
 
@@ -347,20 +339,27 @@ namespace QuanLyBar.Client
             }
         }
 
-        private void MenuBtn_Click(object sender, RoutedEventArgs e)
+        private async void MenuBtn_Click(object sender, RoutedEventArgs e)
+        {
+            string tabName = string.Empty;
+
+            if (sender is System.Windows.Controls.Button button)
+            {
+                tabName = button.Content?.ToString() ?? "";
+            }
+            else if (sender is System.Windows.Controls.MenuItem menuItem)
+            {
+                tabName = menuItem.Header?.ToString() ?? "";
+            }
+
+            await OpenTabByNameAsync(tabName);
+        }
+
+        public async Task OpenTabByNameAsync(string rawTabName)
         {
             try
             {
-                string tabName = string.Empty;
-
-                if (sender is System.Windows.Controls.Button button)
-                {
-                    tabName = button.Content?.ToString() ?? "";
-                }
-                else if (sender is System.Windows.Controls.MenuItem menuItem)
-                {
-                    tabName = menuItem.Header?.ToString() ?? "";
-                }
+                string tabName = rawTabName ?? "";
 
                 if (!string.IsNullOrEmpty(tabName))
                 {
@@ -473,6 +472,14 @@ namespace QuanLyBar.Client
                     }
                     else if (tabName == "Quản lý chuyển kho" || tabName == "Chuyển kho" || tabName == "Phiếu chuyển kho")
                     {
+                        var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                        bool suDungNhieuKho = configs.TryGetValue("SuDungNhieuKho", out var sdnk) && (sdnk == "1" || sdnk.Equals("true", StringComparison.OrdinalIgnoreCase));
+                        if (!suDungNhieuKho)
+                        {
+                            MessageBox.Show("Chức năng 'Chuyển kho' chỉ sử dụng khi bật tùy chọn 'Sử dụng nhiều kho' trong Cấu hình hệ thống!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                            return;
+                        }
+
                         tabName = "Quản lý chuyển kho";
                         content = new QuanLyBar.Client.Views.QuanLyChuyenKho.QuanLyChuyenKhoControl();
                     }
@@ -502,6 +509,14 @@ namespace QuanLyBar.Client
                     }
                     else if (tabName == "Tồn nhiều kho" || tabName == "Báo cáo tồn nhiều kho")
                     {
+                        var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                        bool suDungNhieuKho = configs.TryGetValue("SuDungNhieuKho", out var sdnk) && (sdnk == "1" || sdnk.Equals("true", StringComparison.OrdinalIgnoreCase));
+                        if (!suDungNhieuKho)
+                        {
+                            MessageBox.Show("Chức năng 'Tồn nhiều kho' chỉ sử dụng khi bật tùy chọn 'Sử dụng nhiều kho' trong Cấu hình hệ thống!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                            return;
+                        }
+
                         tabName = "Tồn nhiều kho";
                         content = new QuanLyBar.Client.Views.TonKho.TonNhieuKhoControl();
                     }
@@ -566,6 +581,15 @@ namespace QuanLyBar.Client
                     {
                         tabName = "Công nợ nhà cung cấp";
                         content = new QuanLyBar.Client.Views.CongNo.CongNoNhaCungCapControl();
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU THU THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU CHI THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP THU CHI THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP THU CHI THEO LÝ DO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoQuy.BaoCaoPhieuThuChiControl(tabName);
                     }
                     else if (tabName == "Tồn quỹ" || tabName == "Báo cáo tồn quỹ" || tabName == "BÁO CÁO TỒN QUỸ")
                     {
@@ -632,6 +656,13 @@ namespace QuanLyBar.Client
                         win.ShowDialog();
                         return;
                     }
+                    else if (tabName == "Cảnh báo toàn hệ thống" || tabName == "Cảnh báo hệ thống" || tabName == "Cảnh báo")
+                    {
+                        var win = new QuanLyBar.Client.Views.CanhBao.CanhBaoHeThongWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
                     else if (tabName == "Cấu hình toàn hệ thống" || tabName == "Cấu hình hệ thống")
                     {
                         var win = new QuanLyBar.Client.Views.CauHinhHeThong.CauHinhToanHeThongWindow();
@@ -641,14 +672,8 @@ namespace QuanLyBar.Client
                     }
                     else
                     {
-                        content = new System.Windows.Controls.TextBlock
-                        {
-                            Text = $"Nội dung của màn hình: {tabName}\n(Đang tải từ file UserControl...)",
-                            FontSize = 18,
-                            Foreground = System.Windows.Media.Brushes.DarkSlateGray,
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center
-                        };
+                        MessageBox.Show("Bạn không có quyền sử dụng chức năng này! Mời bạn liên hệ với quản trị để xử lý.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
                     }
 
                     AddTab(tabName, content);

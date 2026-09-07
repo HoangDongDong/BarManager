@@ -219,6 +219,108 @@ namespace QuanLyBar.Client.Views
                         _ban.TongCong = sauGiam + _ban.TienPhiDichVu + _ban.TienThue;
                     }
                 }
+
+                // Hiển thị điểm của khách hàng trên hóa đơn nếu có cấu hình
+                bool hienThiDiem = configs.TryGetValue("HienThiDiemCuaKhachHangTrenHoaDon", out var htd) && (htd == "1" || htd.Equals("true", StringComparison.OrdinalIgnoreCase));
+                decimal doanhSo1Diem = 20000;
+                if (configs.TryGetValue("DoanhSoTuongUngVoi1Diem", out var ds1d) && decimal.TryParse(ds1d.Replace(",", "").Replace(".", "").Trim(), out var dsVal) && dsVal > 0)
+                {
+                    doanhSo1Diem = dsVal;
+                }
+
+                if (hienThiDiem && _ban != null)
+                {
+                    try
+                    {
+                        string cachTinhDiem = configs.TryGetValue("CachTinhDiem", out var ctd) ? ctd : "Điểm được tính trên từng hóa đơn";
+                        string khId = _ban.KhachHangId;
+                        string khName = _ban.KhachHangName;
+
+                        using (var conn = DbConnectionManager.GetConnection())
+                        {
+                            await conn.OpenAsync();
+                            if (string.IsNullOrEmpty(khId) && !string.IsNullOrEmpty(_ban.ActiveOrderId))
+                            {
+                                var ord = await conn.QueryFirstOrDefaultAsync("SELECT DKHACHHANGID FROM TDONHANG WHERE CAST(ID AS VARCHAR(50)) = @OrderId", new { OrderId = _ban.ActiveOrderId });
+                                khId = ord?.DKHACHHANGID?.ToString();
+                            }
+
+                            if (string.IsNullOrEmpty(khId) && !string.IsNullOrEmpty(_ban.SoPhieu))
+                            {
+                                var ord = await conn.QueryFirstOrDefaultAsync("SELECT DKHACHHANGID FROM TDONHANG WHERE NAME = @SoPhieu", new { SoPhieu = _ban.SoPhieu });
+                                khId = ord?.DKHACHHANGID?.ToString();
+                            }
+
+                            if (string.IsNullOrEmpty(khId) && !string.IsNullOrWhiteSpace(khName))
+                            {
+                                var khRow = await conn.QueryFirstOrDefaultAsync("SELECT ID FROM DKHACHHANG WHERE UPPER(NAME) = UPPER(@KhName)", new { KhName = khName.Trim() });
+                                khId = khRow?.ID?.ToString();
+                            }
+
+                            int diemLanNay = 0;
+                            if (cachTinhDiem == "Điểm được tính trên tổng doanh số" && !string.IsNullOrEmpty(khId))
+                            {
+                                var pastSales = await conn.ExecuteScalarAsync<decimal?>("SELECT SUM(COALESCE(TONGCONG, 0)) FROM TDONHANG WHERE CAST(DKHACHHANGID AS VARCHAR(50)) = @KhId AND STATUS = 2 AND CAST(ID AS VARCHAR(50)) <> @CurrentOrderId", new { KhId = khId, CurrentOrderId = _ban.ActiveOrderId ?? "" }) ?? 0;
+                                decimal tongSales = pastSales + _ban.TongCong;
+                                int tongDiemMoi = doanhSo1Diem > 0 ? (int)(tongSales / doanhSo1Diem) : 0;
+                                int diemCu = doanhSo1Diem > 0 ? (int)(pastSales / doanhSo1Diem) : 0;
+                                diemLanNay = Math.Max(0, tongDiemMoi - diemCu);
+                            }
+                            else
+                            {
+                                diemLanNay = doanhSo1Diem > 0 ? (int)(_ban.TongCong / doanhSo1Diem) : 0;
+                            }
+
+                            if (!string.IsNullOrEmpty(khId))
+                            {
+                                var khInfo = await conn.QueryFirstOrDefaultAsync("SELECT NAME, DIEMTICHLUYBANDAU FROM DKHACHHANG WHERE CAST(ID AS VARCHAR(50)) = @KhId", new { KhId = khId });
+                                if (khInfo != null)
+                                {
+                                    khName = khInfo.NAME?.ToString() ?? khName;
+                                    decimal diemBanDau = khInfo.DIEMTICHLUYBANDAU != null ? Convert.ToDecimal(khInfo.DIEMTICHLUYBANDAU) : 0;
+                                    
+                                    int tongDiem = 0;
+                                    if (cachTinhDiem == "Điểm được tính trên tổng doanh số")
+                                    {
+                                        var pastSales = await conn.ExecuteScalarAsync<decimal?>("SELECT SUM(COALESCE(TONGCONG, 0)) FROM TDONHANG WHERE CAST(DKHACHHANGID AS VARCHAR(50)) = @KhId AND STATUS = 2 AND CAST(ID AS VARCHAR(50)) <> @CurrentOrderId", new { KhId = khId, CurrentOrderId = _ban.ActiveOrderId ?? "" }) ?? 0;
+                                        tongDiem = (int)(diemBanDau + ((pastSales + _ban.TongCong) / (doanhSo1Diem > 0 ? doanhSo1Diem : 20000)));
+                                    }
+                                    else
+                                    {
+                                        var pastPoints = await conn.ExecuteScalarAsync<decimal?>("SELECT SUM(CAST(DIEM AS DECIMAL(18,2))) FROM TDONHANG WHERE CAST(DKHACHHANGID AS VARCHAR(50)) = @KhId AND STATUS = 2 AND CAST(ID AS VARCHAR(50)) <> @CurrentOrderId", new { KhId = khId, CurrentOrderId = _ban.ActiveOrderId ?? "" }) ?? 0;
+                                        tongDiem = (int)(diemBanDau + pastPoints + diemLanNay);
+                                    }
+
+                                    if (PanelDiemTichLuy != null)
+                                    {
+                                        PanelDiemTichLuy.Visibility = Visibility.Visible;
+                                        TxtKhachHangTen.Text = string.IsNullOrWhiteSpace(khName) ? "Khách hàng" : khName;
+                                        TxtDiemTichLuyHienTai.Text = $"{tongDiem:N0} điểm";
+                                        TxtDiemTichLuyLanNay.Text = $"+{diemLanNay:N0} điểm";
+                                    }
+                                }
+                                else if (PanelDiemTichLuy != null)
+                                {
+                                    PanelDiemTichLuy.Visibility = Visibility.Visible;
+                                    TxtKhachHangTen.Text = string.IsNullOrWhiteSpace(khName) ? "Khách lẻ" : khName;
+                                    TxtDiemTichLuyHienTai.Text = $"{diemLanNay:N0} điểm";
+                                    TxtDiemTichLuyLanNay.Text = $"+{diemLanNay:N0} điểm";
+                                }
+                            }
+                            else if (PanelDiemTichLuy != null)
+                            {
+                                PanelDiemTichLuy.Visibility = Visibility.Visible;
+                                TxtKhachHangTen.Text = string.IsNullOrWhiteSpace(khName) ? "Khách lẻ" : khName;
+                                TxtDiemTichLuyHienTai.Text = $"{diemLanNay:N0} điểm";
+                                TxtDiemTichLuyLanNay.Text = $"+{diemLanNay:N0} điểm";
+                            }
+                        }
+                    }
+                    catch (Exception exPoint)
+                    {
+                        Console.WriteLine("Error calculate points: " + exPoint.Message);
+                    }
+                }
             }
             catch (Exception ex)
             {

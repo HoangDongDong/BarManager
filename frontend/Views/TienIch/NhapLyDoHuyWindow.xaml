@@ -14,7 +14,7 @@
 
         <!-- Header -->
         <Border Grid.Row="0" Background="White" Padding="15,12" BorderBrush="#c2d5ec" BorderThickness="0,0,0,1">
-            <TextBlock Text="Mời bạn nhập lý do hủy" FontWeight="Bold" Foreground="#111111" FontSize="13"/>
+            <TextBlock x:Name="TxtHeader" Text="Mời bạn nhập lý do hủy" FontWeight="Bold" Foreground="#111111" FontSize="13"/>
         </Border>
 
         <!-- Body -->

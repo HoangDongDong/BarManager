@@ -20,6 +20,8 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
         private List<PhieuNhapItem> _allPhieuNhap = new();
         private KhoHangTreeItem _selectedTreeItem;
         private PhieuNhapItem _selectedPhieuNhap;
+        private bool _isInitializing = false;
+        private bool _isLoadingData = false;
 
         public QuanLyNhapKhoControl()
         {
@@ -30,11 +32,26 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
 
         private async void QuanLyNhapKhoControl_Loaded(object sender, RoutedEventArgs e)
         {
-            DpTuNgay.SelectedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            DpDenNgay.SelectedDate = DateTime.Today;
+            if (_isInitializing) return;
+            try
+            {
+                _isInitializing = true;
+                DpTuNgay.SelectedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                DpDenNgay.SelectedDate = DateTime.Today;
 
-            await LoadLookupsAsync();
-            await LoadTreeAsync();
+                var t1 = LoadLookupsAsync();
+                var t2 = LoadTreeAsync();
+                await Task.WhenAll(t1, t2);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error init: " + ex.Message);
+            }
+            finally
+            {
+                _isInitializing = false;
+            }
+
             await LoadDataGridAsync();
         }
 
@@ -101,6 +118,8 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
 
         public async Task LoadDataGridAsync()
         {
+            if (_isInitializing || _isLoadingData) return;
+            _isLoadingData = true;
             try
             {
                 string khoId = null;
@@ -158,10 +177,15 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
             {
                 Console.WriteLine("LoadDataGridAsync error: " + ex.Message);
             }
+            finally
+            {
+                _isLoadingData = false;
+            }
         }
 
         private void ApplyFilter()
         {
+            if (_allPhieuNhap == null || DgPhieuNhap == null) return;
             string keyword = TxtTimKiem.Text?.Trim().ToLowerInvariant() ?? "";
             var filtered = _allPhieuNhap.AsEnumerable();
 
@@ -193,6 +217,7 @@ namespace QuanLyBar.Client.Views.QuanLyNhapKho
 
         private async void Filter_Changed(object sender, RoutedEventArgs e)
         {
+            if (_isInitializing) return;
             await LoadDataGridAsync();
         }
 

@@ -248,17 +248,46 @@
                 <MenuItem Header="Công cụ nhà phát triển"/>
                 <MenuItem Header="Người dùng và phân quyền" Click="MenuBtn_Click"/>
                 <Separator/>
+                <MenuItem Header="Cảnh báo toàn hệ thống" Click="MenuBtn_Click"/>
                 <MenuItem Header="Cấu hình toàn hệ thống" Click="MenuBtn_Click"/>
             </MenuItem>
             <MenuItem Header="BÁO CÁO" Foreground="#1e3f66">
                 <MenuItem Header="BÁO CÁO QUỸ">
-                    <MenuItem Header="DANH SÁCH PHIẾU THU THEO NGÀY"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU CHI THEO NGÀY"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI"/>
-                    <MenuItem Header="TỔNG HỢP THU CHI THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP THU CHI THEO LÝ DO"/>
-                    <MenuItem Header="BÁO CÁO TỒN QUỸ" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH PHIẾU THU THEO NGÀY" Click="MenuBtn_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📈" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI" Click="MenuBtn_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📉" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="DANH SÁCH PHIẾU CHI THEO NGÀY" Click="MenuBtn_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📈" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI" Click="MenuBtn_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📉" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="TỔNG HỢP THU CHI THEO NGÀY" Click="MenuBtn_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📄" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="TỔNG HỢP THU CHI THEO LÝ DO" Click="MenuBtn_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📄" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO TỒN QUỸ" Click="MenuBtn_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Text="📊" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO DANH MỤC">
                     <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÓM"/>

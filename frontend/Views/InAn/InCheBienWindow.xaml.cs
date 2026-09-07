@@ -32,6 +32,8 @@ namespace QuanLyBar.Client.Views
     {
         private string _banName;
         private List<PosDonHangChiTietViewModel> _items;
+        private string _orderId;
+        private bool _isAuto;
         private int _soLienIn = 1;
         private bool _inThemTaiQuay = false;
         private bool _inMoiDoRa1To = false;
@@ -42,11 +44,13 @@ namespace QuanLyBar.Client.Views
 
         private const string CONFIG_FILE = "printer_kitchen_config.json";
 
-        public InCheBienWindow(string banName, List<PosDonHangChiTietViewModel> itemsToPrint)
+        public InCheBienWindow(string banName, List<PosDonHangChiTietViewModel> itemsToPrint, string orderId = null, bool isAuto = false)
         {
             InitializeComponent();
             _banName = banName;
             _items = itemsToPrint;
+            _orderId = orderId;
+            _isAuto = isAuto;
             DataContext = this;
         }
 
@@ -274,6 +278,31 @@ namespace QuanLyBar.Client.Views
                 if (_inThemTaiQuay)
                 {
                     PrintMultiPageTicket(ticketPages, defaultPrinter, 1);
+                }
+
+                // Ghi lưu vết hoạt động in pha chế theo định dạng hệ thống
+                if (!string.IsNullOrEmpty(_orderId) && _items != null && _items.Count > 0)
+                {
+                    _ = System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        string header = _isAuto ? "In pha chế tự động" : "In pha chế";
+                        await LocalLuuVetService.GhiLuuVetAsync(_orderId, _banName, "Sử dụng dịch vụ", header, 0);
+
+                        string nhomStr = "Đồ ăn, đồ uống, đồ khác";
+                        await LocalLuuVetService.GhiLuuVetAsync(_orderId, _banName, "Sử dụng dịch vụ", $"--Loại đồ '{nhomStr}', máy in: {kitchenPrinter}, số liên: {_soLienIn}, lần số 1", 0);
+
+                        if (_inThemTaiQuay)
+                        {
+                            await LocalLuuVetService.GhiLuuVetAsync(_orderId, _banName, "Sử dụng dịch vụ", $"--In 1 liên tại quầy: {defaultPrinter}", 0);
+                        }
+
+                        foreach (var it in _items)
+                        {
+                            await LocalLuuVetService.GhiLuuVetAsync(_orderId, _banName, "Sử dụng dịch vụ", $"  Mặt hàng: {it.MatHangName}, Số lượng: {it.SoLuong:0.##}", 0);
+                        }
+
+                        await LocalLuuVetService.GhiLuuVetAsync(_orderId, _banName, "Sử dụng dịch vụ", $"--In chế biến hoàn thành: {kitchenPrinter}", 0);
+                    });
                 }
             }
             catch (Exception ex)

@@ -873,6 +873,7 @@
 
                             <CheckBox x:Name="ChkKichHoatChucNangKiemDo" Content="Kích hoạt chức năng kiểm đồ" Margin="0,3"/>
                             <CheckBox x:Name="ChkNhapLyDoKhiHuyHoaDon" Content="Nhập lý do khi hủy hóa đơn" Margin="0,3"/>
+                            <CheckBox x:Name="ChkNhapLyDoKhiXoaMon" Content="Nhập lý do khi xóa món" Margin="0,3"/>
                         </StackPanel>
 
                         <!-- TAB 12: CẢM ỨNG -->
@@ -927,8 +928,11 @@
                                     <ColumnDefinition Width="160"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Chức năng mặc định"/>
-                                <ComboBox x:Name="CboChucNangMacDinh" Grid.Column="1"/>
+                                <TextBlock Grid.Column="0" Text="Chức năng mặc định" VerticalAlignment="Center"/>
+                                <Grid Grid.Column="1">
+                                    <TextBox x:Name="TxtChucNangMacDinh" Text="Sử dụng dịch vụ" Height="24" VerticalContentAlignment="Center" Padding="4,0,24,0" Background="White" Cursor="Hand" PreviewMouseDown="ChucNangMacDinh_Click"/>
+                                    <Button x:Name="BtnChucNangMacDinhDropdown" Content="▼" Width="20" Height="22" HorizontalAlignment="Right" Margin="0,1,1,1" BorderThickness="0" Background="#F1F5F9" Cursor="Hand" Click="BtnChucNangMacDinhDropdown_Click"/>
+                                </Grid>
                             </Grid>
 
                             <CheckBox x:Name="ChkLocDuLieuBoKhoangTrong" Content="Lọc dữ liệu bỏ khoảng trống" Margin="0,4,0,1"/>

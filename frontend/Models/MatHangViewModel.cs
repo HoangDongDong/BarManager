@@ -12,7 +12,11 @@ namespace QuanLyBar.Client.Models
         
         public decimal? Gianhap { get; set; } // Giá nhập
         public decimal? Giaban { get; set; } // Giá bán
+        public decimal? Giaban2 { get; set; } // Giá 2
+        public decimal? Giaban3 { get; set; } // Giá 3
+        public decimal? Giaban4 { get; set; } // Giá 4
         public decimal? Giabanchan { get; set; } // Giá bán chẵn
+        public string Tentienganh { get; set; } // Tên tiếng Anh
         
         public string Quydoi { get; set; } // Quy đổi
         public string Tamkhoa { get; set; } // Tạm khóa

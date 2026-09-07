@@ -230,6 +230,24 @@
                                    TextAlignment="Right" Foreground="#000" VerticalAlignment="Center"/>
                     </Grid>
 
+                    <!-- Điểm tích lũy khách hàng (nếu có cấu hình) -->
+                    <Border x:Name="PanelDiemTichLuy" Visibility="Collapsed" Margin="0,6,0,0" Padding="6,3" Background="#f8f9fa" BorderBrush="#dee2e6" BorderThickness="1" CornerRadius="2">
+                        <StackPanel>
+                            <Grid Margin="0,1">
+                                <TextBlock Text="Khách hàng:" FontSize="11" Foreground="#444"/>
+                                <TextBlock x:Name="TxtKhachHangTen" Text="" FontSize="11" FontWeight="SemiBold" TextAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,1">
+                                <TextBlock Text="Điểm tích lũy hiện tại:" FontSize="11" Foreground="#444"/>
+                                <TextBlock x:Name="TxtDiemTichLuyHienTai" Text="0 điểm" FontSize="11" FontWeight="Bold" Foreground="#0055aa" TextAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,1">
+                                <TextBlock Text="Điểm cộng lần này:" FontSize="11" Foreground="#444"/>
+                                <TextBlock x:Name="TxtDiemTichLuyLanNay" Text="+0 điểm" FontSize="11" FontWeight="SemiBold" Foreground="#28a745" TextAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Wifi Info (nếu có) -->
                     <TextBlock x:Name="TxtWifiInfo" Text="Wifi: Quán - Pass: 12345678" 
                                FontSize="11" TextAlignment="Center" Margin="0,8,0,0" 

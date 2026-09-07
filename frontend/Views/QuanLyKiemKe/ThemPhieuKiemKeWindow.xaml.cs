@@ -42,9 +42,14 @@ namespace QuanLyBar.Client.Views.QuanLyKiemKe
 
         private async void ThemPhieuKiemKeWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+            bool suDungNhieuKho = configs.TryGetValue("SuDungNhieuKho", out var sdnk) && (sdnk == "1" || sdnk.Equals("true", StringComparison.OrdinalIgnoreCase));
+
             await LoadLookupsAsync();
             await LoadCatalogMatHangAsync();
             await UpdateTonKhoHeThongAsync();
+
+            CboKhoHang.IsEnabled = suDungNhieuKho;
 
             if (!string.IsNullOrEmpty(_phieuKiemKeId))
             {
