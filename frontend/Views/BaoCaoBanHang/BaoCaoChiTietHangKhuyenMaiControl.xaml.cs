@@ -1,0 +1,271 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Microsoft.Win32;
+using QuanLyBar.Client.Services;
+
+namespace QuanLyBar.Client.Views.BaoCaoBanHang
+{
+    public partial class BaoCaoChiTietHangKhuyenMaiControl : UserControl
+    {
+        private readonly LocalHoaDonService _hoaDonService = new LocalHoaDonService();
+
+        private bool _isLoaded = false;
+        private List<BaoCaoChiTietHangKhuyenMaiItem> _allData = new List<BaoCaoChiTietHangKhuyenMaiItem>();
+
+        public class FilterComboItem
+        {
+            public string Id { get; set; } = "";
+            public string Name { get; set; } = "";
+            public string Icon { get; set; } = "";
+        }
+
+        public BaoCaoChiTietHangKhuyenMaiControl(string tabName = "BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI")
+        {
+            InitializeComponent();
+        }
+
+        private async void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_isLoaded) return;
+            _isLoaded = true;
+
+            var today = DateTime.Today;
+            DpTuNgay.SelectedDate = today;
+            DpDenNgay.SelectedDate = today;
+
+            await LoadCompanyInfoAndLogoAsync();
+            await LoadFiltersAsync();
+            await LoadDataAsync();
+        }
+
+        private async Task LoadCompanyInfoAndLogoAsync()
+        {
+            try
+            {
+                var comp = await LocalCauHinhService.GetCompanyInfoAsync();
+                TxtCompanyName.Text = comp.Name;
+                TxtCompanyAddress.Text = comp.FormattedAddress;
+                TxtCompanyContact.Text = comp.FormattedContact;
+
+                if (comp.LogoBytes != null && comp.LogoBytes.Length > 0)
+                {
+                    var bi = LocalCauHinhService.ImageFromBytes(comp.LogoBytes);
+                    if (bi != null)
+                    {
+                        ImgLogo.Source = bi;
+                        ImgLogo.Visibility = Visibility.Visible;
+                        if (FindName("VbDefaultLogo") is UIElement vb) vb.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private async Task LoadFiltersAsync()
+        {
+            try
+            {
+                var nvList = new List<FilterComboItem> { new FilterComboItem { Id = "", Name = "--- Tất cả ---", Icon = "👤" } };
+                try
+                {
+                    var dbNv = await LocalNhanVienService.GetNhanVienFlatListAsync();
+                    if (dbNv != null)
+                    {
+                        nvList.AddRange(dbNv.Select(n => new FilterComboItem { Id = n.Id ?? "", Name = n.Name ?? "", Icon = "👤" }));
+                    }
+                }
+                catch { }
+                CboThanhToanBoi.ItemsSource = nvList;
+                CboThanhToanBoi.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error LoadFiltersAsync: {ex.Message}");
+            }
+        }
+
+        private async Task LoadDataAsync()
+        {
+            if (DpTuNgay.SelectedDate == null || DpDenNgay.SelectedDate == null) return;
+
+            DateTime tuNgay = DpTuNgay.SelectedDate.Value.Date;
+            DateTime denNgay = DpDenNgay.SelectedDate.Value.Date;
+
+            string thanhToanBoiId = (CboThanhToanBoi.SelectedItem as FilterComboItem)?.Id ?? "";
+
+            if (tuNgay == denNgay)
+            {
+                TxtSubTitleDate.Text = $"Ngày: {tuNgay:dd/MM/yyyy}";
+            }
+            else
+            {
+                TxtSubTitleDate.Text = $"Ngày từ {tuNgay:dd/MM/yyyy} đến {denNgay:dd/MM/yyyy}";
+            }
+
+            string ttText = (CboThanhToanBoi.SelectedItem as FilterComboItem)?.Name;
+            if (string.IsNullOrWhiteSpace(ttText)) ttText = "Tất cả";
+            TxtFilterSummary.Text = $"Thu ngân: {ttText}";
+
+            _allData = await _hoaDonService.GetBaoCaoChiTietHangKhuyenMaiAsync(tuNgay, denNgay, thanhToanBoiId);
+
+            RenderTable();
+        }
+
+        private void RenderTable()
+        {
+            StkDataRows.Children.Clear();
+
+            string keyword = TxtFilter.Text.Trim().ToLower();
+            var filtered = _allData;
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                filtered = _allData.Where(x =>
+                    x.SoPhieu.ToLower().Contains(keyword) ||
+                    x.KhachHang.ToLower().Contains(keyword) ||
+                    x.MatHang.ToLower().Contains(keyword)
+                ).ToList();
+            }
+
+            int stt = 1;
+            foreach (var item in filtered)
+            {
+                item.STT = stt++;
+
+                Border rowBorder = new Border
+                {
+                    Background = Brushes.White,
+                    BorderBrush = Brushes.Black,
+                    BorderThickness = new Thickness(1, 0, 1, 1),
+                    Height = 26
+                };
+
+                Grid rowGrid = new Grid();
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(90) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
+
+                rowGrid.Children.Add(CreateCell(item.STT.ToString(), 0, HorizontalAlignment.Center));
+                rowGrid.Children.Add(CreateCell(item.SoPhieu, 1, HorizontalAlignment.Left));
+                rowGrid.Children.Add(CreateCell(item.NgayDisplay, 2, HorizontalAlignment.Center));
+                rowGrid.Children.Add(CreateCell(item.KhachHang, 3, HorizontalAlignment.Left));
+                rowGrid.Children.Add(CreateCell(item.MatHang, 4, HorizontalAlignment.Left));
+                rowGrid.Children.Add(CreateCell(item.SoLuong > 0 ? item.SoLuong.ToString("#,##0.##") : "0", 5, HorizontalAlignment.Right));
+
+                rowBorder.Child = rowGrid;
+                StkDataRows.Children.Add(rowBorder);
+            }
+        }
+
+        private UIElement CreateCell(string text, int col, HorizontalAlignment align, bool isBold = false)
+        {
+            Border b = new Border
+            {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(0, 0, col == 5 ? 0 : 1, 0),
+                Padding = new Thickness(4, 0, 4, 0)
+            };
+            Grid.SetColumn(b, col);
+
+            TextBlock tb = new TextBlock
+            {
+                Text = text,
+                HorizontalAlignment = align,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Black,
+                FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
+                FontSize = 11.5
+            };
+            b.Child = tb;
+            return b;
+        }
+
+        private async void Filter_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isLoaded) return;
+            await LoadDataAsync();
+        }
+
+        private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadDataAsync();
+        }
+
+        private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RenderTable();
+        }
+
+        private void BtnXem_Click(object sender, RoutedEventArgs e)
+        {
+            BtnIn_Click(sender, e);
+        }
+
+        private void BtnIn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                PrintDialog printDlg = new PrintDialog();
+                if (printDlg.ShowDialog() == true)
+                {
+                    printDlg.PrintVisual(ReportPaper, "Báo cáo chi tiết hàng khuyến mại");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi in: {ex.Message}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SaveFileDialog sfd = new SaveFileDialog
+                {
+                    Filter = "Excel Files (*.csv)|*.csv|All Files (*.*)|*.*",
+                    FileName = $"BaoCaoChiTietHangKhuyenMai_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                };
+
+                if (sfd.ShowDialog() == true)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine($"\"{TxtCompanyName.Text}\"");
+                    sb.AppendLine($"\"{TxtCompanyAddress.Text}\"");
+                    sb.AppendLine($"\"{TxtCompanyContact.Text}\"");
+                    sb.AppendLine("");
+                    sb.AppendLine($"\"{TxtReportTitle.Text}\"");
+                    sb.AppendLine($"\"{TxtSubTitleDate.Text}\"");
+                    sb.AppendLine($"\"{TxtFilterSummary.Text}\"");
+                    sb.AppendLine("");
+
+                    sb.AppendLine("\"STT\",\"Số phiếu\",\"Ngày\",\"Khách hàng\",\"Mặt hàng\",\"Số lượng\"");
+
+                    int stt = 1;
+                    foreach (var item in _allData)
+                    {
+                        sb.AppendLine($"\"{stt++}\",\"{item.SoPhieu}\",\"{item.NgayDisplay}\",\"{item.KhachHang}\",\"{item.MatHang}\",\"{item.SoLuong}\"");
+                    }
+
+                    File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+                    MessageBox.Show("Xuất file Excel (CSV) thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xuất Excel: {ex.Message}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+}

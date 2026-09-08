@@ -290,104 +290,141 @@
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO DANH MỤC">
-                    <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÓM"/>
-                    <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN"/>
-                    <MenuItem Header="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM"/>
-                    <MenuItem Header="DANH SÁCH ĐỢT KHUYẾN MẠI"/>
-                    <MenuItem Header="DANH SÁCH MẶT HÀNG THEO NHÓM"/>
-                    <MenuItem Header="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT"/>
-                    <MenuItem Header="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT"/>
-                    <MenuItem Header="BÁO CÁO CẤU HÌNH BÀN KHU VỰC"/>
-                    <MenuItem Header="CÔNG THỨC ĐỊNH LƯỢNG"/>
-                    <MenuItem Header="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG"/>
+                    <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÓM" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH ĐỢT KHUYẾN MẠI" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH MẶT HÀNG THEO NHÓM" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT" Click="MenuBtn_Click"/>
+                    <MenuItem Header="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO CẤU HÌNH BÀN KHU VỰC" Click="MenuBtn_Click"/>
+                    <MenuItem Header="CÔNG THỨC ĐỊNH LƯỢNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG" Click="MenuBtn_Click"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO BÁN HÀNG">
-                    <MenuItem Header="TỔNG HỢP BÁN HÀNG THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY"/>
-                    <MenuItem Header="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP DOANH THU CHƯA THANH TOÁN"/>
-                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO NGÀY"/>
-                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN"/>
-                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO THU NGÂN"/>
-                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG"/>
-                    <MenuItem Header="TỔNG HỢP BÁN THEO NHÂN VIÊN"/>
-                    <MenuItem Header="TỔNG HỢP BÁN THEO THU NGÂN"/>
-                    <MenuItem Header="TỔNG HỢP BÁN THEO KHÁCH HÀNG"/>
-                    <MenuItem Header="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT"/>
-                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO GIỜ"/>
-                    <MenuItem Header="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI"/>
-                    <MenuItem Header="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN"/>
-                    <MenuItem Header="TỔNG HỢP HOA HỒNG THEO NVKD"/>
-                    <MenuItem Header="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG"/>
-                    <MenuItem Header="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG"/>
+                    <MenuItem Header="TỔNG HỢP BÁN HÀNG THEO NGÀY" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP DOANH THU THEO LOẠI ĐỒ" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP DOANH THU CHƯA THANH TOÁN" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO NGÀY" Click="MenuBtn_Click"/>
+                    <MenuItem Header="THEO NHÂN VIÊN PHỤC VỤ">
+                        <MenuItem Header="TỔNG HỢP BÁN THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="THEO KHU VỰC">
+                        <MenuItem Header="TỔNG HỢP BÁN HÀNG THEO KHU VỰC" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH HÓA ĐƠN THEO KHU VỰC" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH HÓA ĐƠN THEO BÀN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO BÀN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="THEO THU NGÂN">
+                        <MenuItem Header="TỔNG HỢP BÁN THEO THU NGÂN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO BÁN HÀNG THEO THU NGÂN" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="THEO KHÁCH HÀNG">
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP BÁN THEO KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG KHÁC">
+                        <MenuItem Header="TỔNG HỢP HOA HỒNG THEO NVKD" Click="MenuBtn_Click"/>
+                        <MenuItem Header="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG" Click="MenuBtn_Click"/>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO ĐẶT HÀNG">
-                    <MenuItem Header="DANH SÁCH ĐẶT HÀNG THEO NGÀY"/>
-                    <MenuItem Header="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG"/>
-                    <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG"/>
+                    <MenuItem Header="DANH SÁCH ĐẶT HÀNG THEO NGÀY" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO NGÀY" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY" Click="MenuBtn_Click"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO KHO HÀNG">
-                    <MenuItem Header="DANH SÁCH PHIẾU NHẬP KHO THEO NGÀY"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU NHẬP KHO THEO NHÀ CUNG CẤP"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU NHẬP KHO THEO NHÂN VIÊN NHẬP"/>
-                    <MenuItem Header="TỔNG HỢP NHẬP THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP NHẬP THEO NHÀ CUNG CẤP"/>
-                    <MenuItem Header="TỔNG HỢP NHẬP THEO NHÂN VIÊN NHẬP"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU NHẬP THEO NHÀ CUNG CẤP"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU NHẬP THEO NHÂN VIÊN NHẬP"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG NHẬP KHO THEO NGÀY"/>
+                    <MenuItem Header="BÁO CÁO XUẤT BÁN HÀNG">
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO KIỂM KÊ">
+                        <MenuItem Header="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO XUẤT KHÁC">
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP XUẤT KHÁC THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO NHẬP HÀNG">
+                        <MenuItem Header="DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP NHẬP HÀNG THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO CHUYỂN KHO">
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN" Click="MenuBtn_Click"/>
+                        <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP" Click="MenuBtn_Click"/>
+                        <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY" Click="MenuBtn_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="BÁO CÁO THEO HSD">
+                        <MenuItem Header="BÁO CÁO HÀNG HÓA THEO HẠN DÙNG" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG" Click="MenuBtn_Click"/>
+                        <MenuItem Header="BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG" Click="MenuBtn_Click"/>
+                    </MenuItem>
                     <Separator/>
-                    <MenuItem Header="DANH SÁCH PHIẾU XUẤT KHO THEO NGÀY"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU XUẤT KHO THEO NHÂN VIÊN XUẤT"/>
-                    <MenuItem Header="TỔNG HỢP XUẤT KHÁC THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN XUẤT"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG XUẤT THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG XUẤT THEO NHÂN VIÊN XUẤT"/>
-                    <Separator/>
-                    <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN"/>
-                    <Separator/>
-                    <MenuItem Header="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY"/>
-                    <MenuItem Header="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU KIỂM KÊ THEO NGÀY"/>
-                    <MenuItem Header="TỔNG HỢP MẶT HÀNG PHIẾU KIỂM KÊ THEO NHÂN VIÊN"/>
-                    <Separator/>
-                    <MenuItem Header="BÁO CÁO HÀNG TỒN KHO"/>
-                    <MenuItem Header="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN"/>
-                    <MenuItem Header="THẺ KHO"/>
+                    <MenuItem Header="BÁO CÁO HÀNG TỒN KHO" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT" Click="MenuBtn_Click"/>
+                    <MenuItem Header="THẺ KHO" Click="MenuBtn_Click"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO CÔNG NỢ">
-                    <MenuItem Header="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP"/>
-                    <MenuItem Header="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP"/>
-                    <MenuItem Header="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG"/>
-                    <MenuItem Header="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG"/>
-                    <MenuItem Header="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP"/>
-                    <MenuItem Header="BÁO CÁO CÔNG NỢ KHÁCH HÀNG"/>
+                    <MenuItem Header="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP" Click="MenuBtn_Click"/>
+                    <MenuItem Header="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO CÔNG NỢ KHÁCH HÀNG" Click="MenuBtn_Click"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO QUẢN TRỊ">
-                    <MenuItem Header="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)"/>
-                    <MenuItem Header="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)"/>
-                    <MenuItem Header="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ NHẬP)"/>
-                    <MenuItem Header="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)"/>
-                    <MenuItem Header="BÁO CÁO KẾT QUẢ KINH DOANH"/>
-                    <MenuItem Header="CHI TIẾT HOẠT ĐỘNG TRONG NGÀY"/>
-                    <MenuItem Header="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT"/>
-                    <MenuItem Header="PHÂN TÍCH TÌNH HÌNH BÁN HÀNG"/>
-                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO GIỜ"/>
-                    <MenuItem Header="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI"/>
+                    <MenuItem Header="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)" Click="MenuBtn_Click"/>
+                    <MenuItem Header="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)" Click="MenuBtn_Click"/>
+                    <MenuItem Header="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ NHẬP)" Click="MenuBtn_Click"/>
+                    <MenuItem Header="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO KẾT QUẢ KINH DOANH" Click="MenuBtn_Click"/>
+                    <MenuItem Header="CHI TIẾT HOẠT ĐỘNG TRONG NGÀY" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT" Click="MenuBtn_Click"/>
+                    <MenuItem Header="PHÂN TÍCH TÌNH HÌNH BÁN HÀNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BÁO CÁO BÁN HÀNG THEO GIỜ" Click="MenuBtn_Click"/>
+                    <MenuItem Header="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI" Click="MenuBtn_Click"/>
                 </MenuItem>
                 <MenuItem Header="BÁO CÁO BIỂU ĐỒ">
-                    <MenuItem Header="BIỂU ĐỒ DOANH SỐ THEO NHÓM"/>
-                    <MenuItem Header="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG"/>
-                    <MenuItem Header="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM"/>
-                    <MenuItem Header="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH"/>
+                    <MenuItem Header="BIỂU ĐỒ DOANH SỐ THEO NHÓM" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM" Click="MenuBtn_Click"/>
+                    <MenuItem Header="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH" Click="MenuBtn_Click"/>
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="TRỢ GIÚP" Foreground="#1e3f66">

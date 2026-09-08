@@ -227,7 +227,31 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        public async Task<dynamic> GetKhuVucByIdAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT * FROM DKHUVUC WHERE CAST(ID AS VARCHAR(50)) = @Id";
+                    return await conn.QueryFirstOrDefaultAsync(sql, new { Id = id });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error GetKhuVucByIdAsync: " + ex.Message);
+                return null;
+            }
+        }
+
         public async Task<bool> UpdateKhuVucAsync(string id, string name)
+        {
+            return await UpdateKhuVucFullAsync(id, name, null);
+        }
+
+        public async Task<bool> UpdateKhuVucFullAsync(string id, string name, string note = null, int? simageId = null)
         {
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrEmpty(id)) return false;
             try
@@ -249,10 +273,12 @@ namespace QuanLyBar.Client.Services
 
                     string sql = @"
                         UPDATE DKHUVUC 
-                        SET NAME = @Name 
-                        WHERE ID = @Id";
+                        SET NAME = @Name,
+                            NOTE = @Note,
+                            TIMEMODIFIED = CURRENT_TIMESTAMP
+                        WHERE CAST(ID AS VARCHAR(50)) = @Id";
                     
-                    var rows = await conn.ExecuteAsync(sql, new { Name = name.Trim(), Id = id });
+                    var rows = await conn.ExecuteAsync(sql, new { Name = name.Trim(), Note = note, Id = id });
                     return rows > 0;
                 }
             }
@@ -338,6 +364,74 @@ namespace QuanLyBar.Client.Services
             {
                 MessageBox.Show($"Lỗi tải {tableName}: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
                 return new List<LookupItem>();
+            }
+        }
+
+        public async Task<string> InsertNhomHienThiAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    var allIds = await conn.QueryAsync<string>("SELECT ID FROM DNHOMHIENTHI");
+                    int maxId = 0;
+                    foreach (var idStr in allIds)
+                    {
+                        if (int.TryParse(idStr, out int idInt))
+                        {
+                            if (idInt > maxId) maxId = idInt;
+                        }
+                    }
+                    var newId = (maxId + 1).ToString();
+
+                    string sql = @"
+                        INSERT INTO DNHOMHIENTHI (ID, NAME, STATUS, USERCREATEDID, TIMECREATED) 
+                        VALUES (@Id, @Name, 1, 1, CURRENT_TIMESTAMP)";
+                    
+                    var rows = await conn.ExecuteAsync(sql, new { Id = newId, Name = name.Trim() });
+                    return rows > 0 ? newId : null;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi thêm nhóm hiển thị: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }
+        }
+
+        public async Task<string> InsertLoaiPhongAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    var allIds = await conn.QueryAsync<string>("SELECT ID FROM DLOAIPHONG");
+                    int maxId = 0;
+                    foreach (var idStr in allIds)
+                    {
+                        if (int.TryParse(idStr, out int idInt))
+                        {
+                            if (idInt > maxId) maxId = idInt;
+                        }
+                    }
+                    var newId = (maxId + 1).ToString();
+
+                    string sql = @"
+                        INSERT INTO DLOAIPHONG (ID, NAME, STATUS, USERCREATEDID, TIMECREATED) 
+                        VALUES (@Id, @Name, 1, 1, CURRENT_TIMESTAMP)";
+                    
+                    var rows = await conn.ExecuteAsync(sql, new { Id = newId, Name = name.Trim() });
+                    return rows > 0 ? newId : null;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi thêm loại phòng: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
             }
         }
 

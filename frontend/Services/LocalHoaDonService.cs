@@ -1235,5 +1235,2240 @@ namespace QuanLyBar.Client.Services
                 DonHangId = donHangId 
             }, trans);
         }
+
+        public async Task<List<TongHopBanHangTheoNgayItem>> GetTongHopBanHangTheoNgayAsync(DateTime tuNgay, DateTime denNgay, string khoId = null, string nhanVienId = null, string khachHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            CAST(h.NGAY AS DATE) as Ngay,
+                            SUM(CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,2))) as TienHang,
+                            SUM(CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,2))) as GiamGia,
+                            SUM(CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,2))) as TongCong
+                        FROM TDONHANG h
+                        WHERE CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay
+                          AND (h.STATUS IS NULL OR h.STATUS <> 0) ";
+
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienId))
+                    {
+                        sql += " AND (CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienId OR CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId) ";
+                    }
+                    if (!string.IsNullOrEmpty(khachHangId))
+                    {
+                        sql += " AND CAST(h.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId ";
+                    }
+
+                    sql += " GROUP BY CAST(h.NGAY AS DATE) ORDER BY CAST(h.NGAY AS DATE) ASC";
+
+                    var result = await conn.QueryAsync<TongHopBanHangTheoNgayItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhoId = khoId,
+                        NhanVienId = nhanVienId,
+                        KhachHangId = khachHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải tổng hợp bán hàng theo ngày: " + ex.Message);
+                return new List<TongHopBanHangTheoNgayItem>();
+            }
+        }
+
+        public async Task<List<TongHopMatHangBanItem>> GetTongHopMatHangBanTheoNgayAsync(DateTime tuNgay, DateTime denNgay, string khoId = null, string nhanVienId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(n.NAME, 'KHÁC') as TenNhom,
+                            COALESCE(c.TENHANG, m.NAME) as TenHang,
+                            COALESCE(dvt.NAME, 'đĩa') as Dvt,
+                            CAST(SUM(COALESCE(c.SLXUAT, c.SLNHAP, 1)) AS DECIMAL(18,2)) as SoLuong,
+                            CAST(AVG(COALESCE(c.DONGIA, 0)) AS DECIMAL(18,0)) as DonGia,
+                            CAST(AVG(COALESCE(c.TILEGIAMGIA, 0)) AS DECIMAL(18,2)) as GiamGiaPhanTram,
+                            CAST(SUM(COALESCE(c.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienId))
+                    {
+                        sql += " AND (CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienId OR CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId) ";
+                    }
+
+                    sql += " GROUP BY COALESCE(n.NAME, 'KHÁC'), COALESCE(c.TENHANG, m.NAME), dvt.NAME ORDER BY TenNhom ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopMatHangBanItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhoId = khoId,
+                        NhanVienId = nhanVienId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải tổng hợp mặt hàng bán theo ngày: " + ex.Message);
+                return new List<TongHopMatHangBanItem>();
+            }
+        }
+
+        public async Task<List<BaoCaoChiTietBanHangOrderModel>> GetBaoCaoChiTietBanHangTheoNgayAsync(DateTime tuNgay, DateTime denNgay)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sqlOrders = @"
+                        SELECT 
+                            CAST(h.ID AS VARCHAR(50)) as DonHangId,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(20))) as SoPhieu,
+                            CAST(h.NGAY AS DATE) as Ngay,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIO, 0) AS DECIMAL(18,0)) as TienGio,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamTongBill,
+                            CAST(COALESCE(h.PHIDICHVU, 0) AS DECIMAL(18,0)) as PhiDv,
+                            CAST(COALESCE(h.TIENTHUE, 0) AS DECIMAL(18,0)) as Thue,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong,
+                            CAST(COALESCE(h.DATHANHTOAN, h.TONGCONG, 0) AS DECIMAL(18,0)) as ThanhToan,
+                            CAST(COALESCE(h.CONNO, 0) AS DECIMAL(18,0)) as ConNo
+                        FROM TDONHANG h
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay
+                        ORDER BY CAST(h.NGAY AS DATE) ASC, h.NAME ASC";
+
+                    var orders = (await conn.QueryAsync<BaoCaoChiTietBanHangOrderModel>(sqlOrders, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date
+                    })).ToList();
+
+                    if (orders.Count == 0) return orders;
+
+                    var orderIds = orders.Select(x => x.DonHangId).ToList();
+
+                    string sqlItems = @"
+                        SELECT 
+                            CAST(c.TDONHANGID AS VARCHAR(50)) as DonHangId,
+                            COALESCE(c.TENHANG, m.NAME) as MatHangBan,
+                            CAST(COALESCE(c.SLXUAT, c.SLNHAP, 1) AS DECIMAL(18,2)) as Sl,
+                            CAST(COALESCE(c.DONGIA, 0) AS DECIMAL(18,0)) as DonGia,
+                            CAST(COALESCE(c.TILEGIAMGIA, 0) AS DECIMAL(18,2)) as PtCk,
+                            CAST(COALESCE(c.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as TienGiamMh,
+                            CAST(COALESCE(c.THANHTIEN, 0) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        WHERE CAST(c.TDONHANGID AS VARCHAR(50)) IN @OrderIds
+                        ORDER BY c.ID ASC";
+
+                    var items = (await conn.QueryAsync<BaoCaoChiTietBanHangItemModel>(sqlItems, new { OrderIds = orderIds })).ToList();
+
+                    var itemsByOrder = items.GroupBy(x => x.DonHangId).ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var order in orders)
+                    {
+                        if (itemsByOrder.TryGetValue(order.DonHangId, out var itemList))
+                        {
+                            order.Items = itemList;
+                        }
+                        else
+                        {
+                            order.Items = new List<BaoCaoChiTietBanHangItemModel>();
+                        }
+                    }
+
+                    return orders;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải báo cáo chi tiết bán hàng theo ngày: " + ex.Message);
+                return new List<BaoCaoChiTietBanHangOrderModel>();
+            }
+        }
+
+        public async Task<List<TongHopDoanhThuTheoLoaiDoItem>> GetTongHopDoanhThuTheoLoaiDoAsync(DateTime tuNgay, DateTime denNgay)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sqlItems = @"
+                        SELECT 
+                            CAST(h.NGAY AS DATE) as Ngay,
+                            COALESCE(n.NAME, '') as TenNhom,
+                            COALESCE(c.TENHANG, m.NAME, '') as TenHang,
+                            CAST(SUM(COALESCE(c.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND h.NGAY IS NOT NULL
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay
+                        GROUP BY CAST(h.NGAY AS DATE), COALESCE(n.NAME, ''), COALESCE(c.TENHANG, m.NAME, '')";
+
+                    var items = (await conn.QueryAsync(sqlItems, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date
+                    })).ToList();
+
+                    string sqlHeaderTotals = @"
+                        SELECT 
+                            CAST(h.NGAY AS DATE) as Ngay,
+                            CAST(SUM(COALESCE(h.TIENGIO, 0) + COALESCE(h.PHIDICHVU, 0)) AS DECIMAL(18,0)) as TienGioVaDichVu
+                        FROM TDONHANG h
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND h.NGAY IS NOT NULL
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay
+                        GROUP BY CAST(h.NGAY AS DATE)";
+
+                    var headerRows = (await conn.QueryAsync(sqlHeaderTotals, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date
+                    })).ToList();
+
+                    var headerTotals = new Dictionary<DateTime, decimal>();
+                    foreach (var hr in headerRows)
+                    {
+                        if (hr.Ngay != null)
+                        {
+                            DateTime d = Convert.ToDateTime(hr.Ngay);
+                            decimal v = Convert.ToDecimal(hr.TienGioVaDichVu ?? 0);
+                            headerTotals[d] = v;
+                        }
+                    }
+
+                    var dictByDate = new Dictionary<DateTime, TongHopDoanhThuTheoLoaiDoItem>();
+
+                    foreach (var row in items)
+                    {
+                        if (row.Ngay == null) continue;
+                        DateTime dt = Convert.ToDateTime(row.Ngay);
+                        string nhom = Convert.ToString(row.TenNhom ?? "").Trim();
+                        string hang = Convert.ToString(row.TenHang ?? "").Trim();
+                        decimal tt = Convert.ToDecimal(row.ThanhTien ?? 0);
+
+                        if (!dictByDate.TryGetValue(dt, out var item))
+                        {
+                            item = new TongHopDoanhThuTheoLoaiDoItem { Ngay = dt };
+                            dictByDate[dt] = item;
+                        }
+
+                        string combined = (nhom + " " + hang).ToUpper();
+
+                        if (IsDrinkCategory(combined))
+                        {
+                            item.DoUong += tt;
+                        }
+                        else if (IsServiceCategory(combined))
+                        {
+                            item.DichVu += tt;
+                        }
+                        else if (IsOtherCategory(combined))
+                        {
+                            item.DoKhac += tt;
+                        }
+                        else
+                        {
+                            item.DoAn += tt;
+                        }
+                    }
+
+                    foreach (var kvp in headerTotals)
+                    {
+                        DateTime dt = kvp.Key;
+                        if (!dictByDate.TryGetValue(dt, out var item))
+                        {
+                            item = new TongHopDoanhThuTheoLoaiDoItem { Ngay = dt };
+                            dictByDate[dt] = item;
+                        }
+                        item.DichVu += kvp.Value;
+                    }
+
+                    return dictByDate.Values.OrderBy(x => x.Ngay).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải tổng hợp doanh thu theo loại đồ: " + ex.Message);
+                return new List<TongHopDoanhThuTheoLoaiDoItem>();
+            }
+        }
+
+        private static bool IsDrinkCategory(string text)
+        {
+            string[] drinkKeywords = new[] { "UỐNG", "RƯỢU", "BIA", "NƯỚC", "GIẢI KHÁT", "NƯỚC NGỌT", "TRÀ", "CÀ PHÊ", "CAFE", "BEVERAGE", "DRINK", "SINH TỐ", "JUICE", "VỌC" };
+            return drinkKeywords.Any(k => text.Contains(k));
+        }
+
+        private static bool IsServiceCategory(string text)
+        {
+            string[] serviceKeywords = new[] { "DỊCH VỤ", "DICH VU", "TIỀN GIỜ", "TIEN GIO", "KARAOKE", "SERVICE", "BIDA", "PHÒNG" };
+            return serviceKeywords.Any(k => text.Contains(k));
+        }
+
+        private static bool IsOtherCategory(string text)
+        {
+            string[] otherKeywords = new[] { "ĐỒ KHÁC", "KHÁC", "OTHER", "DỤNG CỤ", "THUỐC LÁ", "VĂN PHÒNG PHẨM" };
+            return otherKeywords.Any(k => text.Contains(k));
+        }
+
+        public async Task<List<TongHopDoanhThuChuaThanhToanItem>> GetTongHopDoanhThuChuaThanhToanAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            CAST(h.ID AS VARCHAR(50)) as DonHangId,
+                            CAST(h.NGAY AS DATE) as Ngay,
+                            COALESCE(b.NAME, 'Bàn ' || h.DBANID, 'Mang về') as BanPhong,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(20))) as SoPhieu,
+                            h.BATDAU as BatDauRaw,
+                            h.KETTHUC as KetThucRaw,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND (h.STATUS <> 2 OR h.CONNO > 0 OR COALESCE(h.DATHANHTOAN, 0) < COALESCE(h.TONGCONG, 0) OR h.KETTHUC IS NULL)
+                        ORDER BY CAST(h.NGAY AS DATE) ASC, h.NAME ASC";
+
+                    var result = await conn.QueryAsync<TongHopDoanhThuChuaThanhToanItem>(sql);
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải tổng hợp doanh thu chưa thanh toán: " + ex.Message);
+                return new List<TongHopDoanhThuChuaThanhToanItem>();
+            }
+        }
+
+        public async Task<List<BaoCaoBanHangTheoNgayOrderItem>> GetBaoCaoBanHangTheoNgayListAsync(DateTime tuNgay, DateTime denNgay, string nhanVienId = null, string khachHangId = null, string cuaHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            CAST(h.ID AS VARCHAR(50)) as DonHangId,
+                            CAST(h.NGAY AS DATE) as Ngay,
+                            COALESCE(u.NAME, 'Administrator') as ThuNgan,
+                            COALESCE(nv.NAME, '') as NhanVienBan,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(20))) as SoPhieu,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong,
+                            CAST(COALESCE(h.TIENMAT, h.TONGCONG, 0) AS DECIMAL(18,0)) as TienMat,
+                            CAST(COALESCE(h.CHUYENKHOAN, 0) AS DECIMAL(18,0)) as ChuyenKhoan,
+                            CAST(COALESCE(h.THE, 0) AS DECIMAL(18,0)) as The,
+                            CAST(COALESCE(h.THETRATRUOC, 0) AS DECIMAL(18,0)) as TheTt
+                        FROM TDONHANG h
+                        LEFT JOIN DNHANVIEN nv ON CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(nhanVienId))
+                    {
+                        sql += " AND (CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienId OR CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId) ";
+                    }
+                    if (!string.IsNullOrEmpty(khachHangId))
+                    {
+                        sql += " AND CAST(h.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId ";
+                    }
+                    if (!string.IsNullOrEmpty(cuaHangId))
+                    {
+                        sql += " AND CAST(h.DCUAHANGID AS VARCHAR(50)) = @CuaHangId ";
+                    }
+
+                    sql += " ORDER BY CAST(h.NGAY AS DATE) ASC, ThuNgan ASC, h.NAME ASC";
+
+                    var result = await conn.QueryAsync<BaoCaoBanHangTheoNgayOrderItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        NhanVienId = nhanVienId,
+                        KhachHangId = khachHangId,
+                        CuaHangId = cuaHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải báo cáo bán hàng theo ngày: " + ex.Message);
+                return new List<BaoCaoBanHangTheoNgayOrderItem>();
+            }
+        }
+
+        public async Task<List<TongHopBanTheoNhanVienItem>> GetTongHopBanTheoNhanVienAsync(DateTime tuNgay, DateTime denNgay, string khoId = null, string nhanVienId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(nv.NAME, 'Chưa xác định') as NhanVien,
+                            CAST(SUM(COALESCE(h.TIENHANG, 0)) AS DECIMAL(18,0)) as TienHang,
+                            CAST(SUM(COALESCE(h.TIENGIAMGIA, 0)) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(SUM(COALESCE(h.TONGCONG, 0)) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DNHANVIEN nv ON (CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50)) OR CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50)))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienId))
+                    {
+                        sql += " AND (CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienId OR CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId) ";
+                    }
+
+                    sql += " GROUP BY COALESCE(nv.NAME, 'Chưa xác định') ORDER BY NhanVien ASC";
+
+                    var result = await conn.QueryAsync<TongHopBanTheoNhanVienItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhoId = khoId,
+                        NhanVienId = nhanVienId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải tổng hợp bán theo nhân viên: " + ex.Message);
+                return new List<TongHopBanTheoNhanVienItem>();
+            }
+        }
+
+        public async Task<List<BaoCaoBanHangTheoNhanVienOrderItem>> GetBaoCaoBanHangTheoNhanVienListAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khachHangId = null, 
+            string nhanVienXuatId = null, 
+            string thanhToanBoiId = null, 
+            string cuaHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            CAST(h.ID AS VARCHAR(50)) as DonHangId,
+                            CAST(h.NGAY AS DATE) as Ngay,
+                            COALESCE(nv.NAME, u.NAME, 'Chưa xác định') as NhanVienBan,
+                            CAST(COALESCE(nv.ID, u.ID, '0') AS VARCHAR(50)) as NhanVienId,
+                            COALESCE(u.NAME, 'Administrator') as ThuNgan,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(20))) as SoPhieu,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong,
+                            CAST(COALESCE(h.DKHACHHANGID, '0') AS VARCHAR(50)) as KhachHangId,
+                            CAST(COALESCE(h.DCUAHANGID, '0') AS VARCHAR(50)) as CuaHangId
+                        FROM TDONHANG h
+                        LEFT JOIN DNHANVIEN nv ON CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(nhanVienXuatId))
+                    {
+                        sql += " AND (CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId OR CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienXuatId) ";
+                    }
+                    if (!string.IsNullOrEmpty(thanhToanBoiId))
+                    {
+                        sql += " AND CAST(h.USERCREATEDID AS VARCHAR(50)) = @ThanhToanBoiId ";
+                    }
+                    if (!string.IsNullOrEmpty(khachHangId))
+                    {
+                        sql += " AND CAST(h.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId ";
+                    }
+                    if (!string.IsNullOrEmpty(cuaHangId))
+                    {
+                        sql += " AND CAST(h.DCUAHANGID AS VARCHAR(50)) = @CuaHangId ";
+                    }
+
+                    sql += " ORDER BY NhanVienBan ASC, CAST(h.NGAY AS DATE) ASC, h.NAME ASC";
+
+                    var result = await conn.QueryAsync<BaoCaoBanHangTheoNhanVienOrderItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        NhanVienXuatId = nhanVienXuatId,
+                        ThanhToanBoiId = thanhToanBoiId,
+                        KhachHangId = khachHangId,
+                        CuaHangId = cuaHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetBaoCaoBanHangTheoNhanVienListAsync: {ex.Message}");
+                return new List<BaoCaoBanHangTheoNhanVienOrderItem>();
+            }
+        }
+
+        public async Task<List<TongHopMatHangBanTheoNhanVienItem>> GetTongHopMatHangBanTheoNhanVienAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khoId = null, 
+            string nhanVienId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(nv.NAME, u.NAME, 'Chưa xác định') as NhanVien,
+                            COALESCE(n.NAME, 'KHÁC') as TenNhom,
+                            COALESCE(c.TENHANG, m.NAME) as TenHang,
+                            COALESCE(dvt.NAME, dvt2.NAME, 'đĩa') as Dvt,
+                            CAST(SUM(COALESCE(c.SLXUAT, c.SLNHAP, 1)) AS DECIMAL(18,2)) as SoLuong,
+                            CAST(AVG(COALESCE(c.DONGIA, 0)) AS DECIMAL(18,0)) as DonGia,
+                            CAST(AVG(COALESCE(c.TILEGIAMGIA, 0)) AS DECIMAL(18,2)) as GiamGiaPhanTram,
+                            CAST(SUM(COALESCE(c.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN nv ON CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt2 ON CAST(c.DDONVITINHID AS VARCHAR(50)) = CAST(dvt2.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienId))
+                    {
+                        sql += " AND (CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienId OR CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId) ";
+                    }
+
+                    sql += " GROUP BY COALESCE(nv.NAME, u.NAME, 'Chưa xác định'), COALESCE(n.NAME, 'KHÁC'), COALESCE(c.TENHANG, m.NAME), COALESCE(dvt.NAME, dvt2.NAME, 'đĩa') ORDER BY NhanVien ASC, TenNhom ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopMatHangBanTheoNhanVienItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhoId = khoId,
+                        NhanVienId = nhanVienId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopMatHangBanTheoNhanVienAsync: {ex.Message}");
+                return new List<TongHopMatHangBanTheoNhanVienItem>();
+            }
+        }
+
+        public async Task<List<TongHopMatHangTheoNhomHienThiItem>> GetTongHopMatHangTheoNhomHienThiAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null, 
+            string nhomHienThiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(n.NAME, 'KHÁC') as NhomHienThi,
+                            COALESCE(c.TENHANG, m.NAME) as TenHang,
+                            COALESCE(dvt.NAME, dvt2.NAME, '') as Dvt,
+                            CAST(SUM(COALESCE(c.SLXUAT, c.SLNHAP, 1)) AS DECIMAL(18,2)) as SoLuong,
+                            CAST(AVG(COALESCE(c.DONGIA, 0)) AS DECIMAL(18,0)) as DonGia,
+                            CAST(AVG(COALESCE(c.TILEGIAMGIA, 0)) AS DECIMAL(18,2)) as GiamGiaPhanTram,
+                            CAST(SUM(COALESCE(c.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt2 ON CAST(c.DDONVITINHID AS VARCHAR(50)) = CAST(dvt2.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+                    if (!string.IsNullOrEmpty(nhomHienThiId))
+                    {
+                        sql += " AND (CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomHienThiId OR CAST(n.PARENTID AS VARCHAR(50)) = @NhomHienThiId) ";
+                    }
+
+                    sql += " GROUP BY COALESCE(n.NAME, 'KHÁC'), COALESCE(c.TENHANG, m.NAME), COALESCE(dvt.NAME, dvt2.NAME, '') ORDER BY NhomHienThi ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopMatHangTheoNhomHienThiItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId,
+                        NhomHienThiId = nhomHienThiId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopMatHangTheoNhomHienThiAsync: {ex.Message}");
+                return new List<TongHopMatHangTheoNhomHienThiItem>();
+            }
+        }
+
+        public async Task<List<TongHopBanHangTheoKhuVucItem>> GetTongHopBanHangTheoKhuVucAsync(
+            DateTime tuNgay, 
+            DateTime denNgay)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(kv.NAME, 'Chưa xác định') as KhuVuc,
+                            CAST(SUM(COALESCE(h.TIENHANG, 0)) AS DECIMAL(18,0)) as TienHang,
+                            CAST(SUM(COALESCE(h.TIENGIAMGIA, 0)) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(SUM(COALESCE(h.TONGCONG, 0)) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay
+                        GROUP BY COALESCE(kv.NAME, 'Chưa xác định')
+                        ORDER BY KhuVuc ASC";
+
+                    var result = await conn.QueryAsync<TongHopBanHangTheoKhuVucItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopBanHangTheoKhuVucAsync: {ex.Message}");
+                return new List<TongHopBanHangTheoKhuVucItem>();
+            }
+        }
+
+        public async Task<List<TongHopBanHangTheoBanPhongItem>> GetTongHopBanHangTheoBanPhongAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null, 
+            string nhomHienThiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(kv.NAME, 'Chưa xác định') as KhuVuc,
+                            COALESCE(b.NAME, 'Chưa xác định') as BanPhong,
+                            CAST(SUM(COALESCE(h.TIENHANG, 0)) AS DECIMAL(18,0)) as TienHang,
+                            CAST(SUM(COALESCE(h.TIENGIAMGIA, 0)) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(SUM(COALESCE(h.TONGCONG, 0)) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+                    if (!string.IsNullOrEmpty(nhomHienThiId))
+                    {
+                        sql += " AND CAST(b.DNHOMHIENTHIID AS VARCHAR(50)) = @NhomHienThiId ";
+                    }
+
+                    sql += " GROUP BY COALESCE(kv.NAME, 'Chưa xác định'), COALESCE(b.NAME, 'Chưa xác định') ORDER BY KhuVuc ASC, BanPhong ASC";
+
+                    var result = await conn.QueryAsync<TongHopBanHangTheoBanPhongItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId,
+                        NhomHienThiId = nhomHienThiId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopBanHangTheoBanPhongAsync: {ex.Message}");
+                return new List<TongHopBanHangTheoBanPhongItem>();
+            }
+        }
+
+        public async Task<List<DanhSachHoaDonTheoKhuVucItem>> GetDanhSachHoaDonTheoKhuVucAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(kv.NAME, 'Chưa xác định') as KhuVuc,
+                            h.NGAY as Ngay,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(50))) as SoPhieu,
+                            COALESCE(b.NAME, 'Chưa xác định') as BanPhong,
+                            COALESCE(kh.NAME, '') as KhachHang,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+
+                    sql += " ORDER BY KhuVuc ASC, h.NGAY ASC, h.TIMECREATED ASC";
+
+                    var result = await conn.QueryAsync<DanhSachHoaDonTheoKhuVucItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId
+                    });
+
+                    var list = result.ToList();
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        list[i].STT = i + 1;
+                    }
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetDanhSachHoaDonTheoKhuVucAsync: {ex.Message}");
+                return new List<DanhSachHoaDonTheoKhuVucItem>();
+            }
+        }
+
+        public async Task<List<DanhSachHoaDonTheoBanItem>> GetDanhSachHoaDonTheoBanAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null,
+            string nhomHienThiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(b.NAME, 'Chưa xác định') as BanPhong,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(50))) as SoPhieu,
+                            h.NGAY as Ngay,
+                            COALESCE(kh.NAME, '') as KhachHang,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong,
+                            COALESCE(kv.NAME, '') as KhuVuc
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+                    if (!string.IsNullOrEmpty(nhomHienThiId))
+                    {
+                        sql += " AND CAST(b.DNHOMHIENTHIID AS VARCHAR(50)) = @NhomHienThiId ";
+                    }
+
+                    sql += " ORDER BY BanPhong ASC, h.NGAY ASC, h.TIMECREATED ASC";
+
+                    var result = await conn.QueryAsync<DanhSachHoaDonTheoBanItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId,
+                        NhomHienThiId = nhomHienThiId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetDanhSachHoaDonTheoBanAsync: {ex.Message}");
+                return new List<DanhSachHoaDonTheoBanItem>();
+            }
+        }
+
+        public async Task<List<TongHopMatHangBanTheoKhuVucItem>> GetTongHopMatHangBanTheoKhuVucAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null, 
+            string nhomMatHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(kv.NAME, 'Chưa xác định') as KhuVuc,
+                            COALESCE(n.NAME, 'KHÁC') as TenNhom,
+                            COALESCE(c.TENHANG, m.NAME) as TenHang,
+                            COALESCE(dvt.NAME, dvt2.NAME, '') as Dvt,
+                            CAST(SUM(COALESCE(c.SLXUAT, c.SLNHAP, 1)) AS DECIMAL(18,2)) as SoLuong,
+                            CAST(AVG(COALESCE(c.DONGIA, 0)) AS DECIMAL(18,0)) as DonGia,
+                            CAST(AVG(COALESCE(c.TILEGIAMGIA, 0)) AS DECIMAL(18,2)) as GiamGiaPhanTram,
+                            CAST(SUM(COALESCE(c.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt2 ON CAST(c.DDONVITINHID AS VARCHAR(50)) = CAST(dvt2.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+                    if (!string.IsNullOrEmpty(nhomMatHangId))
+                    {
+                        sql += " AND CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomMatHangId ";
+                    }
+
+                    sql += " GROUP BY COALESCE(kv.NAME, 'Chưa xác định'), COALESCE(n.NAME, 'KHÁC'), COALESCE(c.TENHANG, m.NAME), COALESCE(dvt.NAME, dvt2.NAME, '') ORDER BY KhuVuc ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopMatHangBanTheoKhuVucItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId,
+                        NhomMatHangId = nhomMatHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopMatHangBanTheoKhuVucAsync: {ex.Message}");
+                return new List<TongHopMatHangBanTheoKhuVucItem>();
+            }
+        }
+
+        public async Task<List<TongHopMatHangBanTheoBanItem>> GetTongHopMatHangBanTheoBanAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null, 
+            string nhomMatHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(b.NAME, 'Chưa xác định') as BanPhong,
+                            COALESCE(n.NAME, 'KHÁC') as TenNhom,
+                            COALESCE(c.TENHANG, m.NAME) as TenHang,
+                            COALESCE(dvt.NAME, dvt2.NAME, '') as Dvt,
+                            CAST(SUM(COALESCE(c.SLXUAT, c.SLNHAP, 1)) AS DECIMAL(18,2)) as SoLuong,
+                            CAST(AVG(COALESCE(c.DONGIA, 0)) AS DECIMAL(18,0)) as DonGia,
+                            CAST(AVG(COALESCE(c.TILEGIAMGIA, 0)) AS DECIMAL(18,2)) as GiamGiaPhanTram,
+                            CAST(SUM(COALESCE(c.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien,
+                            COALESCE(kv.NAME, '') as KhuVuc
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt2 ON CAST(c.DDONVITINHID AS VARCHAR(50)) = CAST(dvt2.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+                    if (!string.IsNullOrEmpty(nhomMatHangId))
+                    {
+                        sql += " AND CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomMatHangId ";
+                    }
+
+                    sql += " GROUP BY COALESCE(b.NAME, 'Chưa xác định'), COALESCE(n.NAME, 'KHÁC'), COALESCE(c.TENHANG, m.NAME), COALESCE(dvt.NAME, dvt2.NAME, ''), COALESCE(kv.NAME, '') ORDER BY BanPhong ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopMatHangBanTheoBanItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId,
+                        NhomMatHangId = nhomMatHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopMatHangBanTheoBanAsync: {ex.Message}");
+                return new List<TongHopMatHangBanTheoBanItem>();
+            }
+        }
+
+        public async Task<List<TongHopBanHangTheoNhomHienThiItem>> GetTongHopBanHangTheoNhomHienThiAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null, 
+            string nhomHienThiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(nh.NAME, 'KHÁC') as NhomHienThi,
+                            CAST(SUM(COALESCE(h.TIENHANG, 0)) AS DECIMAL(18,0)) as TienHang,
+                            CAST(SUM(COALESCE(h.TIENGIAMGIA, 0)) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(SUM(COALESCE(h.TONGCONG, 0)) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG nh ON CAST(b.DNHOMHIENTHIID AS VARCHAR(50)) = CAST(nh.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+                    if (!string.IsNullOrEmpty(nhomHienThiId))
+                    {
+                        sql += " AND CAST(b.DNHOMHIENTHIID AS VARCHAR(50)) = @NhomHienThiId ";
+                    }
+
+                    sql += " GROUP BY COALESCE(nh.NAME, 'KHÁC') ORDER BY NhomHienThi ASC";
+
+                    var result = await conn.QueryAsync<TongHopBanHangTheoNhomHienThiItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId,
+                        NhomHienThiId = nhomHienThiId
+                    });
+
+                    var list = result.ToList();
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        list[i].STT = i + 1;
+                    }
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopBanHangTheoNhomHienThiAsync: {ex.Message}");
+                return new List<TongHopBanHangTheoNhomHienThiItem>();
+            }
+        }
+
+        public async Task<List<DanhSachHoaDonTheoNhomHienThiItem>> GetDanhSachHoaDonTheoNhomHienThiAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khuVucId = null, 
+            string nhomHienThiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(nh.NAME, 'Chưa xác định') as NhomHienThi,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(50))) as SoPhieu,
+                            h.NGAY as Ngay,
+                            COALESCE(kh.NAME, '') as KhachHang,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong,
+                            COALESCE(b.NAME, '') as BanPhong,
+                            COALESCE(kv.NAME, '') as KhuVuc
+                        FROM TDONHANG h
+                        LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50))
+                        LEFT JOIN DKHUVUC kv ON CAST(b.DKHUVUCID AS VARCHAR(50)) = CAST(kv.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG nh ON CAST(b.DNHOMHIENTHIID AS VARCHAR(50)) = CAST(nh.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khuVucId))
+                    {
+                        sql += " AND (CAST(b.DKHUVUCID AS VARCHAR(50)) = @KhuVucId OR CAST(kv.PARENTID AS VARCHAR(50)) = @KhuVucId) ";
+                    }
+                    if (!string.IsNullOrEmpty(nhomHienThiId))
+                    {
+                        sql += " AND CAST(b.DNHOMHIENTHIID AS VARCHAR(50)) = @NhomHienThiId ";
+                    }
+
+                    sql += " ORDER BY NhomHienThi ASC, h.NGAY ASC, h.TIMECREATED ASC";
+
+                    var result = await conn.QueryAsync<DanhSachHoaDonTheoNhomHienThiItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhuVucId = khuVucId,
+                        NhomHienThiId = nhomHienThiId
+                    });
+
+                    var list = result.ToList();
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        list[i].STT = i + 1;
+                    }
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetDanhSachHoaDonTheoNhomHienThiAsync: {ex.Message}");
+                return new List<DanhSachHoaDonTheoNhomHienThiItem>();
+            }
+        }
+
+        public async Task<List<TongHopBanTheoThuNganItem>> GetTongHopBanTheoThuNganAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khoId = null,
+            string nhanVienXuatId = null,
+            string thanhToanBoiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(u.NAME, su.NAME, u.USERNAME, 'Administrator') as ThuNgan,
+                            CAST(SUM(COALESCE(h.TIENHANG, 0)) AS DECIMAL(18,0)) as TienHang,
+                            CAST(SUM(COALESCE(h.TIENGIAMGIA, 0)) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(SUM(COALESCE(h.TONGCONG, 0)) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DNHANVIEN u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER su ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(su.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienXuatId))
+                    {
+                        sql += " AND CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId ";
+                    }
+                    if (!string.IsNullOrEmpty(thanhToanBoiId))
+                    {
+                        sql += " AND CAST(h.USERCREATEDID AS VARCHAR(50)) = @ThanhToanBoiId ";
+                    }
+
+                    sql += " GROUP BY COALESCE(u.NAME, su.NAME, u.USERNAME, 'Administrator') ORDER BY ThuNgan ASC";
+
+                    var result = await conn.QueryAsync<TongHopBanTheoThuNganItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhoId = khoId,
+                        NhanVienXuatId = nhanVienXuatId,
+                        ThanhToanBoiId = thanhToanBoiId
+                    });
+
+                    var list = result.ToList();
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        list[i].STT = i + 1;
+                    }
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopBanTheoThuNganAsync: {ex.Message}");
+                return new List<TongHopBanTheoThuNganItem>();
+            }
+        }
+
+        public async Task<List<TongHopMatHangBanTheoThuNganItem>> GetTongHopMatHangBanTheoThuNganAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khoId = null,
+            string thanhToanBoiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(u.NAME, su.NAME, u.USERNAME, 'Administrator') as ThuNgan,
+                            COALESCE(n.NAME, 'KHÁC') as TenNhom,
+                            COALESCE(c.TENHANG, m.NAME) as TenHang,
+                            COALESCE(dvt.NAME, dvt2.NAME, '') as Dvt,
+                            CAST(SUM(COALESCE(c.SLXUAT, c.SLNHAP, 1)) AS DECIMAL(18,2)) as SoLuong,
+                            CAST(AVG(COALESCE(c.DONGIA, 0)) AS DECIMAL(18,0)) as DonGia,
+                            CAST(AVG(COALESCE(c.TILEGIAMGIA, 0)) AS DECIMAL(18,2)) as GiamGiaPhanTram,
+                            CAST(SUM(COALESCE(c.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER su ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(su.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt2 ON CAST(c.DDONVITINHID AS VARCHAR(50)) = CAST(dvt2.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(thanhToanBoiId))
+                    {
+                        sql += " AND CAST(h.USERCREATEDID AS VARCHAR(50)) = @ThanhToanBoiId ";
+                    }
+
+                    sql += " GROUP BY COALESCE(u.NAME, su.NAME, u.USERNAME, 'Administrator'), COALESCE(n.NAME, 'KHÁC'), COALESCE(c.TENHANG, m.NAME), COALESCE(dvt.NAME, dvt2.NAME, '') ORDER BY ThuNgan ASC, TenNhom ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopMatHangBanTheoThuNganItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhoId = khoId,
+                        ThanhToanBoiId = thanhToanBoiId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopMatHangBanTheoThuNganAsync: {ex.Message}");
+                return new List<TongHopMatHangBanTheoThuNganItem>();
+            }
+        }
+
+        public async Task<List<BaoCaoBanHangTheoThuNganItem>> GetBaoCaoBanHangTheoThuNganAsync(
+            DateTime tuNgay, 
+            DateTime denNgay, 
+            string khachHangId = null,
+            string nhanVienXuatId = null,
+            string thanhToanBoiId = null,
+            string cuaHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(u.NAME, su.NAME, u.USERNAME, 'Administrator') as ThuNgan,
+                            h.NGAY as Ngay,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(50))) as SoPhieu,
+                            COALESCE(kh.NAME, '') as KhachHang,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DNHANVIEN u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER su ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(su.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khachHangId))
+                    {
+                        sql += " AND CAST(h.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienXuatId))
+                    {
+                        sql += " AND CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId ";
+                    }
+                    if (!string.IsNullOrEmpty(thanhToanBoiId))
+                    {
+                        sql += " AND CAST(h.USERCREATEDID AS VARCHAR(50)) = @ThanhToanBoiId ";
+                    }
+                    if (!string.IsNullOrEmpty(cuaHangId))
+                    {
+                        sql += " AND CAST(h.DCUAHANGID AS VARCHAR(50)) = @CuaHangId ";
+                    }
+
+                    sql += " ORDER BY ThuNgan ASC, h.NGAY ASC, h.TIMECREATED ASC";
+
+                    var result = await conn.QueryAsync<BaoCaoBanHangTheoThuNganItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhachHangId = khachHangId,
+                        NhanVienXuatId = nhanVienXuatId,
+                        ThanhToanBoiId = thanhToanBoiId,
+                        CuaHangId = cuaHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetBaoCaoBanHangTheoThuNganAsync: {ex.Message}");
+                return new List<BaoCaoBanHangTheoThuNganItem>();
+            }
+        }
+
+        public async Task<List<TongHopHoaHongTheoNvkdItem>> GetTongHopHoaHongTheoNvkdAsync(
+            DateTime tuNgay,
+            DateTime denNgay,
+            string khoId = null,
+            string nhanVienBanId = null,
+            string nhanVienXuatId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(nv.NAME, 'Nhân viên bán:') as NhanVienBan,
+                            COALESCE(c.TENHANG, m.NAME, '') as TenHang,
+                            SUM(CAST(COALESCE(c.SOLUONG, 0) AS DECIMAL(18,3))) as SoLuong,
+                            SUM(CAST(COALESCE(c.CHIETKHAU, 0) AS DECIMAL(18,2))) as HoaHong,
+                            SUM(CAST(COALESCE(c.THANHTIEN, 0) AS DECIMAL(18,0))) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN nv ON CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienBanId))
+                    {
+                        sql += " AND CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienBanId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienXuatId))
+                    {
+                        sql += " AND CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienXuatId ";
+                    }
+
+                    sql += " GROUP BY nv.ID, nv.NAME, c.TENHANG, m.NAME ORDER BY NhanVienBan ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopHoaHongTheoNvkdItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhoId = khoId,
+                        NhanVienBanId = nhanVienBanId,
+                        NhanVienXuatId = nhanVienXuatId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopHoaHongTheoNvkdAsync: {ex.Message}");
+                return new List<TongHopHoaHongTheoNvkdItem>();
+            }
+        }
+
+        public async Task<List<ChiTietBanHangTheoHoaDonItem>> GetChiTietBanHangTheoHoaDonAsync(DateTime tuNgay, DateTime denNgay)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            CAST(h.ID AS VARCHAR(50)) as DonHangId,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(50))) as SoPhieu,
+                            h.NGAY as Ngay,
+                            CAST(COALESCE(h.BATDAU, h.TIMECREATED) AS VARCHAR(50)) as Gio,
+                            COALESCE(su.NAME, u.NAME, u.USERNAME, 'Administrator') as ThuNgan,
+                            COALESCE(nvb.NAME, '') as NvBan,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGiaHoaDon,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCongHoaDon,
+                            COALESCE(c.TENHANG, m.NAME, '') as TenHang,
+                            COALESCE(dvt.NAME, dvt2.NAME, '') as Dvt,
+                            CAST(COALESCE(c.SOLUONG, 0) AS DECIMAL(18,3)) as SoLuong,
+                            CAST(COALESCE(c.DONGIA, 0) AS DECIMAL(18,0)) as DonGia,
+                            CAST(COALESCE(c.GIAMGIA, 0) AS DECIMAL(18,2)) as CkPercent,
+                            CAST(COALESCE(c.THANHTIEN, 0) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN SUSER su ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(su.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                        LEFT JOIN DNHANVIEN nvb ON CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nvb.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(c.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt2 ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt2.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay
+                        ORDER BY h.NGAY ASC, h.ID ASC, c.ID ASC";
+
+                    var result = await conn.QueryAsync<ChiTietBanHangTheoHoaDonItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetChiTietBanHangTheoHoaDonAsync: {ex.Message}");
+                return new List<ChiTietBanHangTheoHoaDonItem>();
+            }
+        }
+
+        public async Task<List<BaoCaoChiTietHangKhuyenMaiItem>> GetBaoCaoChiTietHangKhuyenMaiAsync(
+            DateTime tuNgay,
+            DateTime denNgay,
+            string thanhToanBoiId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(50))) as SoPhieu,
+                            h.NGAY as Ngay,
+                            COALESCE(kh.NAME, 'Khách lẻ') as KhachHang,
+                            COALESCE(c.TENHANG, m.NAME, '') as MatHang,
+                            CAST(COALESCE(c.SOLUONG, 0) AS DECIMAL(18,3)) as SoLuong
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND (c.DONGIA = 0 OR c.GIAMGIA = 100 OR c.THANHTIEN = 0)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(thanhToanBoiId))
+                    {
+                        sql += " AND CAST(h.USERCREATEDID AS VARCHAR(50)) = @ThanhToanBoiId ";
+                    }
+
+                    sql += " ORDER BY h.NGAY ASC, h.ID ASC, c.ID ASC";
+
+                    var result = await conn.QueryAsync<BaoCaoChiTietHangKhuyenMaiItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        ThanhToanBoiId = thanhToanBoiId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetBaoCaoChiTietHangKhuyenMaiAsync: {ex.Message}");
+                return new List<BaoCaoChiTietHangKhuyenMaiItem>();
+            }
+        }
+
+        public async Task<List<TongHopBanTheoKhachHangItem>> GetTongHopBanTheoKhachHangAsync(
+            DateTime tuNgay,
+            DateTime denNgay,
+            string khachHangId = null,
+            string khoId = null,
+            string nhanVienId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(kh.MAKHACH, '') as MaKhach,
+                            COALESCE(kh.NAME, 'Khách lẻ / Chưa xác định') as TenKhach,
+                            CAST(COALESCE(kh.DIACHI, '') AS VARCHAR(255)) as DiaChi,
+                            SUM(CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0))) as TienHang,
+                            SUM(CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0))) as GiamGia,
+                            SUM(CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khachHangId))
+                    {
+                        sql += " AND CAST(h.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId ";
+                    }
+                    if (!string.IsNullOrEmpty(khoId))
+                    {
+                        sql += " AND CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienId))
+                    {
+                        sql += " AND (CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId OR CAST(h.USERCREATEDID AS VARCHAR(50)) = @NhanVienId) ";
+                    }
+
+                    sql += " GROUP BY kh.ID, kh.MAKHACH, kh.NAME, kh.DIACHI ORDER BY TenKhach ASC";
+
+                    var result = await conn.QueryAsync<TongHopBanTheoKhachHangItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhachHangId = khachHangId,
+                        KhoId = khoId,
+                        NhanVienId = nhanVienId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopBanTheoKhachHangAsync: {ex.Message}");
+                return new List<TongHopBanTheoKhachHangItem>();
+            }
+        }
+
+        public async Task<List<TongHopMatHangBanTheoKhachHangItem>> GetTongHopMatHangBanTheoKhachHangAsync(
+            DateTime tuNgay,
+            DateTime denNgay,
+            string nhomKhachId = null,
+            string khachHangId = null,
+            string matHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(kh.NAME, 'Khách lẻ / Chưa xác định') as KhachHang,
+                            COALESCE(c.TENHANG, m.NAME, '') as TenHang,
+                            COALESCE(dvt.NAME, dvt2.NAME, '') as Dvt,
+                            SUM(CAST(COALESCE(c.SOLUONG, 0) AS DECIMAL(18,3))) as SoLuong,
+                            MAX(CAST(COALESCE(c.DONGIA, 0) AS DECIMAL(18,0))) as DonGia,
+                            MAX(CAST(COALESCE(c.GIAMGIA, 0) AS DECIMAL(18,2))) as GiamGiaPhanTram,
+                            SUM(CAST(COALESCE(c.THANHTIEN, 0) AS DECIMAL(18,0))) as ThanhTien
+                        FROM TDONHANGCHITIET c
+                        INNER JOIN TDONHANG h ON CAST(c.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(c.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt2 ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt2.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(nhomKhachId))
+                    {
+                        sql += " AND CAST(kh.NHOMID AS VARCHAR(50)) = @NhomKhachId ";
+                    }
+                    if (!string.IsNullOrEmpty(khachHangId))
+                    {
+                        sql += " AND CAST(h.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId ";
+                    }
+                    if (!string.IsNullOrEmpty(matHangId))
+                    {
+                        sql += " AND CAST(c.DMATHANGID AS VARCHAR(50)) = @MatHangId ";
+                    }
+
+                    sql += " GROUP BY kh.ID, kh.NAME, c.TENHANG, m.NAME, dvt.NAME, dvt2.NAME ORDER BY KhachHang ASC, TenHang ASC";
+
+                    var result = await conn.QueryAsync<TongHopMatHangBanTheoKhachHangItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        NhomKhachId = nhomKhachId,
+                        KhachHangId = khachHangId,
+                        MatHangId = matHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetTongHopMatHangBanTheoKhachHangAsync: {ex.Message}");
+                return new List<TongHopMatHangBanTheoKhachHangItem>();
+            }
+        }
+
+        public async Task<List<BaoCaoBanHangTheoKhachHangItem>> GetBaoCaoBanHangTheoKhachHangAsync(
+            DateTime tuNgay,
+            DateTime denNgay,
+            string khachHangId = null,
+            string nhanVienXuatId = null,
+            string thanhToanBoiId = null,
+            string cuaHangId = null)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(kh.NAME, 'Khách lẻ / Chưa xác định') as KhachHang,
+                            h.NGAY as Ngay,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(50))) as SoPhieu,
+                            CAST(COALESCE(h.TIENHANG, 0) AS DECIMAL(18,0)) as TienHang,
+                            CAST(COALESCE(h.TIENGIAMGIA, 0) AS DECIMAL(18,0)) as GiamGia,
+                            CAST(COALESCE(h.TONGCONG, 0) AS DECIMAL(18,0)) as TongCong
+                        FROM TDONHANG h
+                        LEFT JOIN DKHACHHANG kh ON CAST(h.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(h.NGAY AS DATE) <= @DenNgay ";
+
+                    if (!string.IsNullOrEmpty(khachHangId))
+                    {
+                        sql += " AND CAST(h.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId ";
+                    }
+                    if (!string.IsNullOrEmpty(nhanVienXuatId))
+                    {
+                        sql += " AND CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId ";
+                    }
+                    if (!string.IsNullOrEmpty(thanhToanBoiId))
+                    {
+                        sql += " AND CAST(h.USERCREATEDID AS VARCHAR(50)) = @ThanhToanBoiId ";
+                    }
+                    if (!string.IsNullOrEmpty(cuaHangId))
+                    {
+                        sql += " AND CAST(h.DCUAHANGID AS VARCHAR(50)) = @CuaHangId ";
+                    }
+
+                    sql += " ORDER BY KhachHang ASC, h.NGAY ASC, h.TIMECREATED ASC";
+
+                    var result = await conn.QueryAsync<BaoCaoBanHangTheoKhachHangItem>(sql, new
+                    {
+                        TuNgay = tuNgay.Date,
+                        DenNgay = denNgay.Date,
+                        KhachHangId = khachHangId,
+                        NhanVienXuatId = nhanVienXuatId,
+                        ThanhToanBoiId = thanhToanBoiId,
+                        CuaHangId = cuaHangId
+                    });
+
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetBaoCaoBanHangTheoKhachHangAsync: {ex.Message}");
+                return new List<BaoCaoBanHangTheoKhachHangItem>();
+            }
+        }
+
+        public async Task<List<BaoCaoTongHopBanTheoThangGroup>> GetBaoCaoTongHopBanTheoThangAsync(int thang, int nam, bool isGiaTri)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+
+                    DateTime tuNgay = new DateTime(nam, thang, 1);
+                    DateTime denNgay = tuNgay.AddMonths(1).AddDays(-1);
+
+                    string sql = @"
+                        SELECT 
+                            COALESCE(m.CODE, '') as MaSP,
+                            COALESCE(m.NAME, ct.TENHANG, '') as SanPham,
+                            COALESCE(d.NAME, '') as Dvt,
+                            COALESCE(n.NAME, 'KHÁC') as TenNhom,
+                            CAST(EXTRACT(DAY FROM h.NGAY) AS INTEGER) as Ngay,
+                            CAST(SUM(COALESCE(ct.SLXUAT, ct.SLNHAP, 1)) AS DECIMAL(18,2)) as SoLuong,
+                            CAST(SUM(COALESCE(ct.THANHTIEN, 0)) AS DECIMAL(18,0)) as ThanhTien
+                        FROM TDONHANGCHITIET ct
+                        JOIN TDONHANG h ON CAST(ct.TDONHANGID AS VARCHAR(50)) = CAST(h.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG m ON CAST(ct.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH d ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(d.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG n ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(n.ID AS VARCHAR(50))
+                        WHERE (h.STATUS <> 0 OR h.STATUS IS NULL)
+                          AND h.NGAY IS NOT NULL
+                          AND CAST(h.NGAY AS DATE) >= @TuNgay AND CAST(h.NGAY AS DATE) <= @DenNgay
+                        GROUP BY COALESCE(m.CODE, ''), COALESCE(m.NAME, ct.TENHANG, ''), COALESCE(d.NAME, ''), COALESCE(n.NAME, 'KHÁC'), EXTRACT(DAY FROM h.NGAY)
+                        ORDER BY TenNhom ASC, SanPham ASC
+                    ";
+
+                    var rows = (await conn.QueryAsync(sql, new { TuNgay = tuNgay, DenNgay = denNgay })).ToList();
+
+                    var groupedDict = new Dictionary<string, Dictionary<string, BaoCaoTongHopBanTheoThangItem>>();
+
+                    foreach (var row in rows)
+                    {
+                        string tenNhom = row.TENNHOM ?? "KHÁC";
+                        string maSP = row.MASP ?? "";
+                        string sanPham = row.SANPHAM ?? "";
+                        string dvt = row.DVT ?? "";
+                        int ngay = Convert.ToInt32(row.NGAY);
+                        decimal soLuong = Convert.ToDecimal(row.SOLUONG);
+                        decimal thanhTien = Convert.ToDecimal(row.THANHTIEN);
+
+                        // If isGiaTri (Giá trị bán in thousands like 450 for 450,000)
+                        decimal val = isGiaTri ? (thanhTien / 1000m) : soLuong;
+
+                        if (!groupedDict.ContainsKey(tenNhom))
+                            groupedDict[tenNhom] = new Dictionary<string, BaoCaoTongHopBanTheoThangItem>();
+
+                        string itemKey = maSP + "_" + sanPham;
+                        if (!groupedDict[tenNhom].ContainsKey(itemKey))
+                        {
+                            groupedDict[tenNhom][itemKey] = new BaoCaoTongHopBanTheoThangItem
+                            {
+                                MaSP = maSP,
+                                SanPham = sanPham,
+                                Dvt = dvt,
+                                TenNhom = tenNhom
+                            };
+                        }
+
+                        var item = groupedDict[tenNhom][itemKey];
+                        if (ngay >= 1 && ngay <= 31)
+                        {
+                            item.NgayVal[ngay] += val;
+                            item.TongBan += val;
+                        }
+                    }
+
+                    var resultGroups = new List<BaoCaoTongHopBanTheoThangGroup>();
+
+                    foreach (var groupKv in groupedDict)
+                    {
+                        var grp = new BaoCaoTongHopBanTheoThangGroup
+                        {
+                            TenNhom = groupKv.Key,
+                            Items = groupKv.Value.Values.ToList()
+                        };
+
+                        int stt = 1;
+                        foreach (var it in grp.Items)
+                        {
+                            it.STT = stt++;
+                            grp.TongNhom += it.TongBan;
+                            for (int d = 1; d <= 31; d++)
+                            {
+                                grp.TongNgayNhom[d] += it.NgayVal[d];
+                            }
+                        }
+
+                        resultGroups.Add(grp);
+                    }
+
+                    return resultGroups;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GetBaoCaoTongHopBanTheoThangAsync: {ex.Message}");
+                return new List<BaoCaoTongHopBanTheoThangGroup>();
+            }
+        }
+    }
+
+    public class BaoCaoTongHopBanTheoThangItem
+    {
+        public int STT { get; set; }
+        public string MaSP { get; set; } = "";
+        public string SanPham { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public string TenNhom { get; set; } = "KHÁC";
+        public decimal TongBan { get; set; }
+        public decimal[] NgayVal { get; set; } = new decimal[32]; // index 1..31
+
+        public string TongBanDisplay => TongBan != 0 ? TongBan.ToString("#,##0.##") : "";
+        public string D01 => NgayVal[1] != 0 ? NgayVal[1].ToString("#,##0.##") : "";
+        public string D02 => NgayVal[2] != 0 ? NgayVal[2].ToString("#,##0.##") : "";
+        public string D03 => NgayVal[3] != 0 ? NgayVal[3].ToString("#,##0.##") : "";
+        public string D04 => NgayVal[4] != 0 ? NgayVal[4].ToString("#,##0.##") : "";
+        public string D05 => NgayVal[5] != 0 ? NgayVal[5].ToString("#,##0.##") : "";
+        public string D06 => NgayVal[6] != 0 ? NgayVal[6].ToString("#,##0.##") : "";
+        public string D07 => NgayVal[7] != 0 ? NgayVal[7].ToString("#,##0.##") : "";
+        public string D08 => NgayVal[8] != 0 ? NgayVal[8].ToString("#,##0.##") : "";
+        public string D09 => NgayVal[9] != 0 ? NgayVal[9].ToString("#,##0.##") : "";
+        public string D10 => NgayVal[10] != 0 ? NgayVal[10].ToString("#,##0.##") : "";
+        public string D11 => NgayVal[11] != 0 ? NgayVal[11].ToString("#,##0.##") : "";
+        public string D12 => NgayVal[12] != 0 ? NgayVal[12].ToString("#,##0.##") : "";
+        public string D13 => NgayVal[13] != 0 ? NgayVal[13].ToString("#,##0.##") : "";
+        public string D14 => NgayVal[14] != 0 ? NgayVal[14].ToString("#,##0.##") : "";
+        public string D15 => NgayVal[15] != 0 ? NgayVal[15].ToString("#,##0.##") : "";
+        public string D16 => NgayVal[16] != 0 ? NgayVal[16].ToString("#,##0.##") : "";
+        public string D17 => NgayVal[17] != 0 ? NgayVal[17].ToString("#,##0.##") : "";
+        public string D18 => NgayVal[18] != 0 ? NgayVal[18].ToString("#,##0.##") : "";
+        public string D19 => NgayVal[19] != 0 ? NgayVal[19].ToString("#,##0.##") : "";
+        public string D20 => NgayVal[20] != 0 ? NgayVal[20].ToString("#,##0.##") : "";
+        public string D21 => NgayVal[21] != 0 ? NgayVal[21].ToString("#,##0.##") : "";
+        public string D22 => NgayVal[22] != 0 ? NgayVal[22].ToString("#,##0.##") : "";
+        public string D23 => NgayVal[23] != 0 ? NgayVal[23].ToString("#,##0.##") : "";
+        public string D24 => NgayVal[24] != 0 ? NgayVal[24].ToString("#,##0.##") : "";
+        public string D25 => NgayVal[25] != 0 ? NgayVal[25].ToString("#,##0.##") : "";
+        public string D26 => NgayVal[26] != 0 ? NgayVal[26].ToString("#,##0.##") : "";
+        public string D27 => NgayVal[27] != 0 ? NgayVal[27].ToString("#,##0.##") : "";
+        public string D28 => NgayVal[28] != 0 ? NgayVal[28].ToString("#,##0.##") : "";
+        public string D29 => NgayVal[29] != 0 ? NgayVal[29].ToString("#,##0.##") : "";
+        public string D30 => NgayVal[30] != 0 ? NgayVal[30].ToString("#,##0.##") : "";
+        public string D31 => NgayVal[31] != 0 ? NgayVal[31].ToString("#,##0.##") : "";
+    }
+
+    public class BaoCaoTongHopBanTheoThangGroup
+    {
+        public string TenNhom { get; set; } = "";
+        public List<BaoCaoTongHopBanTheoThangItem> Items { get; set; } = new List<BaoCaoTongHopBanTheoThangItem>();
+        public decimal TongNhom { get; set; }
+        public decimal[] TongNgayNhom { get; set; } = new decimal[32];
+
+        public string TongNhomDisplay => TongNhom != 0 ? TongNhom.ToString("#,##0.##") : "";
+        public string D01 => TongNgayNhom[1] != 0 ? TongNgayNhom[1].ToString("#,##0.##") : "";
+        public string D02 => TongNgayNhom[2] != 0 ? TongNgayNhom[2].ToString("#,##0.##") : "";
+        public string D03 => TongNgayNhom[3] != 0 ? TongNgayNhom[3].ToString("#,##0.##") : "";
+        public string D04 => TongNgayNhom[4] != 0 ? TongNgayNhom[4].ToString("#,##0.##") : "";
+        public string D05 => TongNgayNhom[5] != 0 ? TongNgayNhom[5].ToString("#,##0.##") : "";
+        public string D06 => TongNgayNhom[6] != 0 ? TongNgayNhom[6].ToString("#,##0.##") : "";
+        public string D07 => TongNgayNhom[7] != 0 ? TongNgayNhom[7].ToString("#,##0.##") : "";
+        public string D08 => TongNgayNhom[8] != 0 ? TongNgayNhom[8].ToString("#,##0.##") : "";
+        public string D09 => TongNgayNhom[9] != 0 ? TongNgayNhom[9].ToString("#,##0.##") : "";
+        public string D10 => TongNgayNhom[10] != 0 ? TongNgayNhom[10].ToString("#,##0.##") : "";
+        public string D11 => TongNgayNhom[11] != 0 ? TongNgayNhom[11].ToString("#,##0.##") : "";
+        public string D12 => TongNgayNhom[12] != 0 ? TongNgayNhom[12].ToString("#,##0.##") : "";
+        public string D13 => TongNgayNhom[13] != 0 ? TongNgayNhom[13].ToString("#,##0.##") : "";
+        public string D14 => TongNgayNhom[14] != 0 ? TongNgayNhom[14].ToString("#,##0.##") : "";
+        public string D15 => TongNgayNhom[15] != 0 ? TongNgayNhom[15].ToString("#,##0.##") : "";
+        public string D16 => TongNgayNhom[16] != 0 ? TongNgayNhom[16].ToString("#,##0.##") : "";
+        public string D17 => TongNgayNhom[17] != 0 ? TongNgayNhom[17].ToString("#,##0.##") : "";
+        public string D18 => TongNgayNhom[18] != 0 ? TongNgayNhom[18].ToString("#,##0.##") : "";
+        public string D19 => TongNgayNhom[19] != 0 ? TongNgayNhom[19].ToString("#,##0.##") : "";
+        public string D20 => TongNgayNhom[20] != 0 ? TongNgayNhom[20].ToString("#,##0.##") : "";
+        public string D21 => TongNgayNhom[21] != 0 ? TongNgayNhom[21].ToString("#,##0.##") : "";
+        public string D22 => TongNgayNhom[22] != 0 ? TongNgayNhom[22].ToString("#,##0.##") : "";
+        public string D23 => TongNgayNhom[23] != 0 ? TongNgayNhom[23].ToString("#,##0.##") : "";
+        public string D24 => TongNgayNhom[24] != 0 ? TongNgayNhom[24].ToString("#,##0.##") : "";
+        public string D25 => TongNgayNhom[25] != 0 ? TongNgayNhom[25].ToString("#,##0.##") : "";
+        public string D26 => TongNgayNhom[26] != 0 ? TongNgayNhom[26].ToString("#,##0.##") : "";
+        public string D27 => TongNgayNhom[27] != 0 ? TongNgayNhom[27].ToString("#,##0.##") : "";
+        public string D28 => TongNgayNhom[28] != 0 ? TongNgayNhom[28].ToString("#,##0.##") : "";
+        public string D29 => TongNgayNhom[29] != 0 ? TongNgayNhom[29].ToString("#,##0.##") : "";
+        public string D30 => TongNgayNhom[30] != 0 ? TongNgayNhom[30].ToString("#,##0.##") : "";
+        public string D31 => TongNgayNhom[31] != 0 ? TongNgayNhom[31].ToString("#,##0.##") : "";
+    }
+
+    public class TongHopBanHangTheoNgayItem
+    {
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class TongHopMatHangBanItem
+    {
+        public string TenNhom { get; set; } = "";
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal GiamGiaPhanTram { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class BaoCaoChiTietBanHangOrderModel
+    {
+        public string DonHangId { get; set; } = "";
+        public string SoPhieu { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public decimal TienHang { get; set; }
+        public decimal TienGio { get; set; }
+        public decimal GiamTongBill { get; set; }
+        public decimal PhiDv { get; set; }
+        public decimal Thue { get; set; }
+        public decimal TongCong { get; set; }
+        public decimal ThanhToan { get; set; }
+        public decimal ConNo { get; set; }
+        public List<BaoCaoChiTietBanHangItemModel> Items { get; set; } = new List<BaoCaoChiTietBanHangItemModel>();
+    }
+
+    public class BaoCaoChiTietBanHangItemModel
+    {
+        public string DonHangId { get; set; } = "";
+        public string MatHangBan { get; set; } = "";
+        public decimal Sl { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal PtCk { get; set; }
+        public decimal TienGiamMh { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class TongHopDoanhThuTheoLoaiDoItem
+    {
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public decimal DoAn { get; set; }
+        public decimal DoUong { get; set; }
+        public decimal DichVu { get; set; }
+        public decimal DoKhac { get; set; }
+        public decimal Cong => DoAn + DoUong + DichVu + DoKhac;
+    }
+
+    public class TongHopDoanhThuChuaThanhToanItem
+    {
+        public string DonHangId { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string BanPhong { get; set; } = "";
+        public string SoPhieu { get; set; } = "";
+        public object BatDauRaw { get; set; }
+        public object KetThucRaw { get; set; }
+        public string BatDau => FormatTime(BatDauRaw);
+        public string KetThuc => FormatTime(KetThucRaw);
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+
+        private static string FormatTime(object raw)
+        {
+            if (raw == null || raw == DBNull.Value) return "";
+            if (raw is DateTime dt) return dt.ToString("HH:mm");
+            if (raw is TimeSpan ts) return ts.ToString(@"hh\:mm");
+            string str = raw.ToString() ?? "";
+            if (DateTime.TryParse(str, out var parsedDt)) return parsedDt.ToString("HH:mm");
+            if (TimeSpan.TryParse(str, out var parsedTs)) return parsedTs.ToString(@"hh\:mm");
+            return str;
+        }
+    }
+
+    public class BaoCaoBanHangTheoNgayOrderItem
+    {
+        public string DonHangId { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string ThuNgan { get; set; } = "Administrator";
+        public string NhanVienBan { get; set; } = "";
+        public string SoPhieu { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+        public decimal TienMat { get; set; }
+        public decimal ChuyenKhoan { get; set; }
+        public decimal The { get; set; }
+        public decimal TheTt { get; set; }
+    }
+
+    public class TongHopBanTheoNhanVienItem
+    {
+        public string NhanVien { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class BaoCaoBanHangTheoNhanVienOrderItem
+    {
+        public string DonHangId { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string NhanVienBan { get; set; } = "";
+        public string NhanVienId { get; set; } = "";
+        public string ThuNgan { get; set; } = "";
+        public string SoPhieu { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+        public string KhachHangId { get; set; } = "";
+        public string CuaHangId { get; set; } = "";
+    }
+
+    public class TongHopMatHangBanTheoNhanVienItem
+    {
+        public string NhanVien { get; set; } = "Chưa xác định";
+        public string TenNhom { get; set; } = "KHÁC";
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal GiamGiaPhanTram { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class TongHopMatHangTheoNhomHienThiItem
+    {
+        public string NhomHienThi { get; set; } = "";
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal GiamGiaPhanTram { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class TongHopBanHangTheoKhuVucItem
+    {
+        public string KhuVuc { get; set; } = "Chưa xác định";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class TongHopBanHangTheoBanPhongItem
+    {
+        public string KhuVuc { get; set; } = "Chưa xác định";
+        public string BanPhong { get; set; } = "Chưa xác định";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class DanhSachHoaDonTheoKhuVucItem
+    {
+        public int STT { get; set; }
+        public string KhuVuc { get; set; } = "Chưa xác định";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string SoPhieu { get; set; } = "";
+        public string BanPhong { get; set; } = "";
+        public string KhachHang { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class DanhSachHoaDonTheoBanItem
+    {
+        public int STT { get; set; }
+        public string BanPhong { get; set; } = "Chưa xác định";
+        public string SoPhieu { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string KhachHang { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+        public string KhuVuc { get; set; } = "";
+    }
+
+    public class TongHopMatHangBanTheoKhuVucItem
+    {
+        public int STT { get; set; }
+        public string KhuVuc { get; set; } = "Chưa xác định";
+        public string TenNhom { get; set; } = "";
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal GiamGiaPhanTram { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class TongHopMatHangBanTheoBanItem
+    {
+        public int STT { get; set; }
+        public string BanPhong { get; set; } = "Chưa xác định";
+        public string TenNhom { get; set; } = "";
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal GiamGiaPhanTram { get; set; }
+        public decimal ThanhTien { get; set; }
+        public string KhuVuc { get; set; } = "";
+    }
+
+    public class TongHopBanHangTheoNhomHienThiItem
+    {
+        public int STT { get; set; }
+        public string NhomHienThi { get; set; } = "KHÁC";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class DanhSachHoaDonTheoNhomHienThiItem
+    {
+        public int STT { get; set; }
+        public string NhomHienThi { get; set; } = "Chưa xác định";
+        public string SoPhieu { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string KhachHang { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+        public string BanPhong { get; set; } = "";
+        public string KhuVuc { get; set; } = "";
+    }
+
+    public class TongHopBanTheoThuNganItem
+    {
+        public int STT { get; set; }
+        public string ThuNgan { get; set; } = "Administrator";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class TongHopMatHangBanTheoThuNganItem
+    {
+        public int STT { get; set; }
+        public string ThuNgan { get; set; } = "Administrator";
+        public string TenNhom { get; set; } = "KHÁC";
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal GiamGiaPhanTram { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class BaoCaoBanHangTheoThuNganItem
+    {
+        public int STT { get; set; }
+        public string ThuNgan { get; set; } = "Administrator";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string SoPhieu { get; set; } = "";
+        public string KhachHang { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class TongHopBanTheoKhachHangItem
+    {
+        public int STT { get; set; }
+        public string MaKhach { get; set; } = "";
+        public string TenKhach { get; set; } = "";
+        public string DiaChi { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class TongHopMatHangBanTheoKhachHangItem
+    {
+        public int STT { get; set; }
+        public string KhachHang { get; set; } = "Khách lẻ / Chưa xác định";
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal GiamGiaPhanTram { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class BaoCaoBanHangTheoKhachHangItem
+    {
+        public int STT { get; set; }
+        public string KhachHang { get; set; } = "Khách lẻ / Chưa xác định";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string SoPhieu { get; set; } = "";
+        public decimal TienHang { get; set; }
+        public decimal GiamGia { get; set; }
+        public decimal TongCong { get; set; }
+    }
+
+    public class TongHopHoaHongTheoNvkdItem
+    {
+        public int STT { get; set; }
+        public string NhanVienBan { get; set; } = "Nhân viên bán:";
+        public string TenHang { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal HoaHong { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class ChiTietBanHangTheoHoaDonItem
+    {
+        public string DonHangId { get; set; } = "";
+        public string SoPhieu { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string Gio { get; set; } = "";
+        public string ThuNgan { get; set; } = "";
+        public string NvBan { get; set; } = "";
+        public decimal GiamGiaHoaDon { get; set; }
+        public decimal TongCongHoaDon { get; set; }
+        public int STT { get; set; }
+        public string TenHang { get; set; } = "";
+        public string Dvt { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal CkPercent { get; set; }
+        public decimal ThanhTien { get; set; }
+    }
+
+    public class BaoCaoChiTietHangKhuyenMaiItem
+    {
+        public int STT { get; set; }
+        public string SoPhieu { get; set; } = "";
+        public DateTime Ngay { get; set; }
+        public string NgayDisplay => Ngay.ToString("dd/MM/yyyy");
+        public string KhachHang { get; set; } = "";
+        public string MatHang { get; set; } = "";
+        public decimal SoLuong { get; set; }
     }
 }

@@ -1,0 +1,439 @@
+<UserControl x:Class="QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanTheoThangControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="900" d:DesignWidth="1300"
+             Background="#759dc9" FontFamily="Segoe UI" FontSize="12"
+             Loaded="UserControl_Loaded">
+
+    <UserControl.Resources>
+        <Style x:Key="FlatButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#ffffff"/>
+            <Setter Property="BorderBrush" Value="#a4b8cc"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#e6f2ff"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#70a0d0"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#cce4ff"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#d0e4f7"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#b8d5f0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- 0: Thanh Lọc Tháng / Năm -->
+            <RowDefinition Height="Auto"/>
+            <!-- 1: Thanh Công Cụ In / Xuất -->
+            <RowDefinition Height="Auto"/>
+            <!-- 2: Khung Hiển Thị Báo Cáo Trang A4 Landscape -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 0. Thanh Lọc 1 -->
+        <Border Grid.Row="0" Background="#e3eaf5" Padding="6,4" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Tháng" VerticalAlignment="Center" FontWeight="SemiBold" Margin="4,0,4,0" Foreground="#222"/>
+                <ComboBox x:Name="CboThang" Width="60" Height="24" Margin="0,0,10,0" SelectionChanged="Filter_Changed" Background="White"/>
+
+                <TextBlock Text="Năm" VerticalAlignment="Center" FontWeight="SemiBold" Margin="4,0,4,0" Foreground="#222"/>
+                <TextBox x:Name="TxtNam" Width="70" Height="24" Margin="0,0,14,0" VerticalContentAlignment="Center" Background="White"/>
+
+                <!-- Nút Refresh -->
+                <Button x:Name="BtnRefresh" Style="{StaticResource FlatButtonStyle}" Click="BtnRefresh_Click" Margin="0,0,6,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔄" Margin="0,0,4,0" FontSize="11" VerticalAlignment="Center"/>
+                        <TextBlock Text="Tải dữ liệu (F5)" FontSize="12" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+        </Border>
+
+        <!-- 1. Thanh Lọc 2 & Thao tác Toolbar -->
+        <Border Grid.Row="1" Background="#c2d5ec" Padding="6,2" BorderBrush="#a4b8cc" BorderThickness="0,0,0,1">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <!-- Nút In -->
+                    <Button x:Name="BtnPrint" Style="{StaticResource ActionButtonStyle}" Margin="0,0,4,0" Click="BtnPrint_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🖨️" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Print" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Rectangle Width="1" Fill="#a4b8cc" Margin="4,2"/>
+
+                    <!-- Nút Save / Export -->
+                    <Button x:Name="BtnExportExcel" Style="{StaticResource ActionButtonStyle}" Margin="0,0,4,0" Click="BtnExportExcel_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Save" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <TextBlock Text="1 of 1" Margin="8,0" VerticalAlignment="Center" Foreground="#333"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 2. Khung Hiển Thị Báo Cáo Trang A4 Landscape -->
+        <ScrollViewer x:Name="ReportScrollViewer" Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#96bee7" Offset="0"/>
+                    <GradientStop Color="#709ecd" Offset="1"/>
+                </LinearGradientBrush>
+            </ScrollViewer.Background>
+
+            <!-- Container Trang A4 Landscape -->
+            <Grid HorizontalAlignment="Center" Margin="25,15,25,25">
+                <Border x:Name="A4PageBorder" Width="1200" MinHeight="750" Background="White" 
+                        BorderBrush="#555555" BorderThickness="1" Padding="25,20,25,25">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="4" Direction="315" Color="#333333" Opacity="0.45"/>
+                    </Border.Effect>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <!-- 0: Header Công Ty / Logo -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- 1: Tiêu Đề Báo Cáo -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- 2: Bảng Dữ Liệu Matrix 31 ngày -->
+                            <RowDefinition Height="*"/>
+                            <!-- 3: Chữ Ký Footer -->
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 0. Header Thông Tin Quán & Logo -->
+                        <Grid Grid.Row="0" Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Logo Bếp / Dao Nĩa -->
+                            <Image x:Name="ImgLogo" Grid.Column="0" Width="80" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            <Viewbox x:Name="VbDefaultLogo" Grid.Column="0" Width="75" Height="75" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Grid Width="100" Height="100">
+                                    <Border Background="#F8FAFC" BorderBrush="#007ACC" BorderThickness="2" CornerRadius="50" Width="96" Height="96"/>
+                                    <Canvas Width="100" Height="100">
+                                        <!-- Fork -->
+                                        <Path Fill="#007ACC" Data="M 32,24 L 32,42 C 32,46 36,49 40,49 L 40,78 L 44,78 L 44,49 C 48,49 52,46 52,42 L 52,24 L 48,24 L 48,38 L 45,38 L 45,24 L 43,24 L 43,38 L 41,38 L 41,24 L 39,24 L 39,38 L 36,38 L 36,24 Z"/>
+                                        <!-- Knife -->
+                                        <Path Fill="#2C3E50" Data="M 58,24 C 64,24 68,32 68,44 L 62,44 L 62,78 L 58,78 Z"/>
+                                    </Canvas>
+                                </Grid>
+                            </Viewbox>
+
+                            <!-- Thông tin nhà hàng -->
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtCompanyName" Text="NÀNG HƯƠNG QUÁN" FontSize="16" FontWeight="Bold" 
+                                           HorizontalAlignment="Right" Foreground="#111" Margin="0,0,0,2"/>
+                                <TextBlock x:Name="TxtCompanyAddress" Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" 
+                                           FontSize="10.5" HorizontalAlignment="Right" Foreground="#333" Margin="0,0,0,2"/>
+                                <TextBlock x:Name="TxtCompanyContact" Text="Điện thoại: Điện thoại: 0909090880, Email:" 
+                                           FontSize="10.5" HorizontalAlignment="Right" Foreground="#333"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- 1. Tiêu Đề Báo Cáo & Đơn vị tính -->
+                        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                            <TextBlock x:Name="TxtReportTitle" Text="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG" 
+                                       FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#000" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="TxtDonViTinh" Text="(Đơn vị: nghìn đồng)" FontSize="11" FontStyle="Italic"
+                                       HorizontalAlignment="Right" Foreground="#333" Visibility="Collapsed" Margin="0,0,5,2"/>
+                        </StackPanel>
+
+                        <!-- 2. Bảng Dữ Liệu Matrix -->
+                        <Grid Grid.Row="2" Margin="0,0,0,20">
+                            <StackPanel>
+                                <!-- Header chung cho bảng: 2 hàng header -->
+                                <Border BorderBrush="#000" BorderThickness="1,1,1,1" Background="#f0f0f0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="24"/>
+                                            <RowDefinition Height="24"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="32"/>
+                                            <ColumnDefinition Width="65"/>
+                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="40"/>
+                                            <ColumnDefinition Width="55"/>
+                                            <!-- 31 cột ngày (01 - 31) -->
+                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                            <ColumnDefinition Width="23"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Hàng 1 + Hàng 2 cho TT, Mã SP, Sản phẩm, ĐVT, Tổng bán -->
+                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" BorderBrush="#000" BorderThickness="0,0,1,0" Padding="1,2"><TextBlock Text="TT" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" BorderBrush="#000" BorderThickness="0,0,1,0" Padding="1,2"><TextBlock Text="Mã SP" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" BorderBrush="#000" BorderThickness="0,0,1,0" Padding="2,2">
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <TextBlock Text="Ngày bán" FontSize="9.5" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="Sản phẩm" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Left"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" BorderBrush="#000" BorderThickness="0,0,1,0" Padding="1,2"><TextBlock Text="ĐVT" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="4" BorderBrush="#000" BorderThickness="0,0,1,0" Padding="1,2">
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <TextBlock Text="Tổng" FontWeight="Bold" FontSize="10" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="bán" FontWeight="Bold" FontSize="10" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Header THÁNG: M/yyyy spanning 31 cột -->
+                                        <Border Grid.Row="0" Grid.Column="5" Grid.ColumnSpan="31" BorderBrush="#000" BorderThickness="0,0,0,1" Padding="2,2">
+                                            <TextBlock x:Name="TxtHeaderThangNam" Text="THÁNG: 9/2026" FontWeight="Bold" FontSize="11" HorizontalAlignment="Left" Margin="4,0,0,0"/>
+                                        </Border>
+
+                                        <!-- Hàng 2: Ngày 01 -> 31 -->
+                                        <Border Grid.Row="1" Grid.Column="5" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="01" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="6" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="02" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="7" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="03" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="8" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="04" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="9" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="05" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="10" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="06" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="11" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="07" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="12" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="08" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="13" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="09" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="14" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="10" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="15" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="11" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="16" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="12" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="17" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="13" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="18" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="14" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="19" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="15" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="20" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="16" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="21" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="17" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="22" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="18" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="23" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="19" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="24" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="20" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="25" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="21" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="26" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="22" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="27" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="23" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="28" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="24" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="29" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="25" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="30" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="26" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="31" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="27" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="32" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="28" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="33" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="29" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="34" BorderBrush="#ccc" BorderThickness="0,0,1,0"><TextBlock Text="30" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                        <Border Grid.Row="1" Grid.Column="35" BorderThickness="0,0,0,0"><TextBlock Text="31" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- ItemsControl chứa từng Nhóm hàng -->
+                                <ItemsControl x:Name="IcReportGroups">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <!-- Tiêu đề nhóm hàng -->
+                                                <Border Background="#f0f0f0" BorderBrush="#000" BorderThickness="1,0,1,1" Padding="6,3">
+                                                    <TextBlock Text="{Binding TenNhom, StringFormat='Nhóm hàng: {0}'}" FontWeight="Bold" FontSize="11" Foreground="#000"/>
+                                                </Border>
+
+                                                <!-- Bảng sản phẩm trong nhóm -->
+                                                <Border BorderBrush="#000" BorderThickness="1,0,1,0">
+                                                    <StackPanel>
+                                                        <ItemsControl ItemsSource="{Binding Items}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="32"/>
+                                                                            <ColumnDefinition Width="65"/>
+                                                                            <ColumnDefinition Width="170"/>
+                                                                            <ColumnDefinition Width="40"/>
+                                                                            <ColumnDefinition Width="55"/>
+                                                                            <!-- 31 cột ngày (01 - 31) -->
+                                                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                            <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                            <ColumnDefinition Width="23"/>
+                                                                        </Grid.ColumnDefinitions>
+
+                                                                        <Border Grid.Column="0" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="2,2"><TextBlock Text="{Binding STT}" HorizontalAlignment="Center" FontSize="10"/></Border>
+                                                                        <Border Grid.Column="1" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="2,2"><TextBlock Text="{Binding MaSP}" HorizontalAlignment="Left" FontSize="10"/></Border>
+                                                                        <Border Grid.Column="2" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="4,2"><TextBlock Text="{Binding SanPham}" TextTrimming="CharacterEllipsis" FontSize="10.5"/></Border>
+                                                                        <Border Grid.Column="3" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="2,2"><TextBlock Text="{Binding Dvt}" HorizontalAlignment="Center" FontSize="10"/></Border>
+                                                                        <Border Grid.Column="4" BorderBrush="#000" BorderThickness="0,0,1,1" Background="#fafafa" Padding="2,2"><TextBlock Text="{Binding TongBanDisplay}" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="10.5"/></Border>
+
+                                                                        <!-- 31 Cột Ngày -->
+                                                                        <Border Grid.Column="5" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D01}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="6" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D02}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="7" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D03}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="8" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D04}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="9" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D05}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="10" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D06}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="11" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D07}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="12" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D08}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="13" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D09}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="14" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D10}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="15" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D11}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="16" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D12}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="17" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D13}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="18" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D14}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="19" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D15}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="20" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D16}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="21" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D17}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="22" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D18}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="23" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D19}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="24" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D20}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="25" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D21}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="26" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D22}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="27" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D23}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="28" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D24}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="29" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D25}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="30" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D26}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="31" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D27}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="32" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D28}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="33" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D29}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="34" BorderBrush="#e0e0e0" BorderThickness="0,0,1,1" Padding="1,2"><TextBlock Text="{Binding D30}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                        <Border Grid.Column="35" BorderBrush="#000" BorderThickness="0,0,0,1" Padding="1,2"><TextBlock Text="{Binding D31}" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!-- Dòng Tổng nhóm hàng -->
+                                                        <Grid Background="#f9f9f9">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="307"/>
+                                                                <ColumnDefinition Width="55"/>
+                                                                <!-- 31 cột ngày (01 - 31) -->
+                                                                <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                <ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/><ColumnDefinition Width="23"/>
+                                                                <ColumnDefinition Width="23"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <Border Grid.Column="0" BorderBrush="#000" BorderThickness="0,0,1,1" Padding="8,3">
+                                                                <TextBlock Text="{Binding TenNhom, StringFormat='Tổng nhóm hàng: {0}'}" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                                            </Border>
+                                                            <Border Grid.Column="1" BorderBrush="#000" BorderThickness="0,0,1,1" Padding="2,3">
+                                                                <TextBlock Text="{Binding TongNhomDisplay}" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                                            </Border>
+
+                                                            <!-- 31 Tổng Cột Ngày -->
+                                                            <Border Grid.Column="2" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D01}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="3" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D02}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="4" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D03}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="5" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D04}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="6" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D05}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="7" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D06}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="8" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D07}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="9" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D08}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="10" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D09}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="11" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D10}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="12" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D11}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="13" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D14}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="14" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D13}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="15" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D14}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="16" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D15}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="17" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D16}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="18" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D17}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="19" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D18}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="20" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D19}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="21" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D20}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="22" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D21}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="23" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D22}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="24" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D23}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="25" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D24}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="26" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D25}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="27" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D26}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="28" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D27}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="29" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D28}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="30" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D29}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="31" BorderBrush="#ccc" BorderThickness="0,0,1,1" Padding="1,3"><TextBlock Text="{Binding D30}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                            <Border Grid.Column="32" BorderBrush="#000" BorderThickness="0,0,0,1" Padding="1,3"><TextBlock Text="{Binding D31}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="9.5"/></Border>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- 3. Chữ Ký Footer -->
+                        <Grid Grid.Row="3" Margin="0,15,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="Trưởng phòng" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center"/>
+                                <TextBlock Text="(Ký, họ tên)" FontStyle="Italic" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,40"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="Người lập" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center"/>
+                                <TextBlock Text="(Ký, họ tên)" FontStyle="Italic" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,40"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -274,7 +274,7 @@ namespace QuanLyBar.Client.Services
                     string sql = @"
                         SELECT 
                             CAST(h.ID AS VARCHAR(50)) as Id,
-                            COALESCE(h.NAME, h.CODE, '') as SoPhieu,
+                            COALESCE(h.NAME, CAST(h.SOHD AS VARCHAR(20)), '') as SoPhieu,
                             h.NGAY,
                             h.LOAI,
                             COALESCE(c.NOTE, h.NOTE, '') as DienGiai,

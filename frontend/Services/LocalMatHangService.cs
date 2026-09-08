@@ -101,11 +101,15 @@ namespace QuanLyBar.Client.Services
                                n.NAME as NhomMatHangName,
                                m.DLOAIMATHANGID as DloaimathangId,
                                l.NAME as LoaiMatHangName,
+                               m.DHANGSANXUATID as DhangsanxuatId,
+                               hsx.NAME as HangSanXuatName,
                                m.DDONVITINHID as DdonvitinhId,
                                d.NAME as DonViTinhName,
                                m.DDONVITINHCHANID as DdonvitinhchanId,
                                dc.NAME as DonViTinhChanName,
                                m.STATUS as Status,
+                               m.TONTOITHIEU as Tontoithieu,
+                               m.TONTOIDA as Tontoida,
                                m.TIMECREATED as Timecreated,
                                m.TIMEMODIFIED as Timemodified,
                                COALESCE(uc.NAME, 'Administrator') as UsercreatedName,
@@ -113,6 +117,7 @@ namespace QuanLyBar.Client.Services
                         FROM DMATHANG m
                         LEFT JOIN DNHOMMATHANG n ON m.DNHOMMATHANGID = n.ID
                         LEFT JOIN DLOAIMATHANG l ON m.DLOAIMATHANGID = l.ID
+                        LEFT JOIN DHANGSANXUAT hsx ON m.DHANGSANXUATID = hsx.ID
                         LEFT JOIN DDONVITINH d ON m.DDONVITINHID = d.ID
                         LEFT JOIN DDONVITINH dc ON m.DDONVITINHCHANID = dc.ID
                         LEFT JOIN SUSER uc ON m.USERCREATEDID = uc.ID
@@ -196,6 +201,24 @@ namespace QuanLyBar.Client.Services
             {
                 System.Windows.MessageBox.Show("Lỗi tải danh sách loại mặt hàng: " + ex.Message);
                 return new List<DLOAIMATHANG>();
+            }
+        }
+
+        public async Task<List<DHANGSANXUAT>> GetHangSanXuatListAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT ID as Id, NAME as Name FROM DHANGSANXUAT WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY NAME";
+                    var result = await conn.QueryAsync<DHANGSANXUAT>(sql);
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<DHANGSANXUAT>();
             }
         }
 
@@ -592,6 +615,25 @@ namespace QuanLyBar.Client.Services
             return await GetNhomMatHangListAsync();
         }
 
+        public async Task<dynamic> GetNhomMatHangByIdAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT * FROM DNHOMMATHANG WHERE CAST(ID AS VARCHAR(50)) = @Id";
+                    return await conn.QueryFirstOrDefaultAsync(sql, new { Id = id });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error GetNhomMatHangByIdAsync: " + ex.Message);
+                return null;
+            }
+        }
+
         public async Task<bool> UpdateNhomMatHangAsync(DNHOMMATHANG model)
         {
             try
@@ -615,13 +657,19 @@ namespace QuanLyBar.Client.Services
                     string sql = @"
                         UPDATE DNHOMMATHANG 
                         SET NAME = @Name,
+                            CODE = @Code,
+                            DLOAIDOID = @DloaidoId,
+                            SIMAGEID = @SimageId,
                             TIMEMODIFIED = CURRENT_TIMESTAMP,
                             USERMODIFIEDID = 1
                         WHERE CAST(ID AS VARCHAR(50)) = @Id";
 
                     var parameters = new {
                         Id = model.Id,
-                        Name = model.Name
+                        Name = model.Name,
+                        Code = model.Code,
+                        DloaidoId = model.DloaidoId,
+                        SimageId = model.SimageId
                     };
 
                     int affectedRows = await conn.ExecuteAsync(sql, parameters);
@@ -799,5 +847,52 @@ namespace QuanLyBar.Client.Services
                 return false;
             }
         }
+
+        public async Task<List<DinhLuongReportItem>> GetBaoCaoDinhLuongAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT 
+                            CAST(m.DNHOMMATHANGID AS VARCHAR(50)) as NhomMatHangId,
+                            COALESCE(nh.NAME, 'Chưa xếp nhóm') as NhomMatHangName,
+                            CAST(m.ID AS VARCHAR(50)) as MatHangId,
+                            m.NAME as MatHangName,
+                            COALESCE(vt.NAME, 'Vật tư chưa tên') as VatTuName,
+                            CAST(COALESCE(dl.SOLUONG, 0) AS DECIMAL(18,2)) as SoLuong,
+                            COALESCE(dvt.NAME, '') as DonViTinh
+                        FROM DDINHLUONG dl
+                        INNER JOIN DMATHANG m ON CAST(dl.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                        LEFT JOIN DNHOMMATHANG nh ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(nh.ID AS VARCHAR(50))
+                        LEFT JOIN DMATHANG vt ON CAST(dl.DVATTUID AS VARCHAR(50)) = CAST(vt.ID AS VARCHAR(50))
+                        LEFT JOIN DDONVITINH dvt ON CAST(vt.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                        WHERE (m.STATUS IS NULL OR m.STATUS <> 0)
+                          AND (dl.STATUS IS NULL OR dl.STATUS <> 0)
+                        ORDER BY nh.NAME, m.NAME, vt.NAME";
+
+                    var result = await conn.QueryAsync<DinhLuongReportItem>(sql);
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi tải báo cáo công thức định lượng: " + ex.Message);
+                return new List<DinhLuongReportItem>();
+            }
+        }
+    }
+
+    public class DinhLuongReportItem
+    {
+        public string NhomMatHangId { get; set; }
+        public string NhomMatHangName { get; set; }
+        public string MatHangId { get; set; }
+        public string MatHangName { get; set; }
+        public string VatTuName { get; set; }
+        public decimal SoLuong { get; set; }
+        public string DonViTinh { get; set; }
     }
 }

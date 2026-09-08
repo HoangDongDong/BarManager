@@ -1,0 +1,140 @@
+<UserControl x:Class="QuanLyBar.Client.Views.BaoCaoBieuDo.BieuDoDoanhThuThangTrongNamControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1100"
+             Loaded="UserControl_Loaded">
+    <Grid Background="#7b96b2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Filter Toolbar -->
+        <Border Grid.Row="0" Background="#dbe5f1" BorderBrush="#a4bce3" BorderThickness="0,0,0,1" Padding="6,4">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Năm" VerticalAlignment="Center" Margin="5,0,5,0" FontWeight="SemiBold" Foreground="#1e3f66"/>
+                <TextBox x:Name="TxtNam" Width="80" Height="24" VerticalAlignment="Center" Text="2026" TextAlignment="Center"/>
+
+                <Button x:Name="BtnReload" Margin="15,0,0,0" Padding="10,2" Height="24" Click="BtnReload_Click"
+                        Background="#f0f4fc" BorderBrush="#7096c8" FontWeight="SemiBold" Foreground="#1e3f66" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔄" Margin="0,0,5,0"/>
+                        <TextBlock Text="Tải dữ liệu (F5)"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Action Bar (F3, Print, Excel) -->
+        <Border Grid.Row="1" Background="#c9d9eb" BorderBrush="#9cb8dd" BorderThickness="0,0,0,1" Padding="6,3">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <Button x:Name="BtnPrintPreview" Margin="4,0" Padding="8,2" Height="22" Background="#f0f4fc" BorderBrush="#7096c8" Click="BtnPrint_Click" ToolTip="Xem trước bản in (Ctrl+Shift+P)">
+                        <TextBlock Text="🔍 Xem (Ctrl + Shift + P)" FontSize="11"/>
+                    </Button>
+                    <Button x:Name="BtnPrint" Margin="4,0" Padding="8,2" Height="22" Background="#f0f4fc" BorderBrush="#7096c8" Click="BtnPrint_Click" ToolTip="In ấn (Ctrl+P)">
+                        <TextBlock Text="🖨 In (Ctrl + P)" FontSize="11"/>
+                    </Button>
+                    <Button x:Name="BtnExcel" Margin="4,0" Padding="8,2" Height="22" Background="#f0f4fc" BorderBrush="#7096c8" Click="BtnExcel_Click" ToolTip="Xuất tập tin Excel/CSV (F12)">
+                        <TextBlock Text="📊 (F12)" FontSize="11"/>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Report Paper View -->
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="20">
+            <Border x:Name="ReportPaper" Background="White" Width="980" HorizontalAlignment="Center" Margin="0,0,0,20"
+                    BorderBrush="#333333" BorderThickness="1" CornerRadius="1">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.35" BlurRadius="12" ShadowDepth="4"/>
+                </Border.Effect>
+
+                <Grid Margin="30,25,30,30">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Header: Logo, Company info -->
+                        <RowDefinition Height="Auto"/> <!-- Title & Subtitle Filter -->
+                        <RowDefinition Height="Auto"/> <!-- Chart Container -->
+                        <RowDefinition Height="Auto"/> <!-- Footer: Signatures -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Company Logo -->
+                        <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="70" Height="70">
+                            <Image x:Name="ImgLogo" Stretch="Uniform" Visibility="Collapsed"/>
+                            <Viewbox x:Name="VbDefaultLogo" Width="60" Height="60">
+                                <Canvas Width="64" Height="64">
+                                    <Path Data="M32 2 L38 22 L59 22 L42 35 L48 55 L32 42 L16 55 L22 35 L5 22 L26 22 Z" Fill="#444444"/>
+                                    <Path Data="M20 45 L32 58 L44 45" Stroke="#333333" StrokeThickness="2" Fill="Transparent"/>
+                                    <Path Data="M28 20 L36 20" Stroke="#333333" StrokeThickness="2"/>
+                                </Canvas>
+                            </Viewbox>
+                        </Grid>
+
+                        <!-- Company Details -->
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
+                            <TextBlock x:Name="TxtCompanyName" Text="NÀNG HƯƠNG QUÁN" FontSize="15" FontWeight="Bold" Foreground="#000" HorizontalAlignment="Right"/>
+                            <TextBlock x:Name="TxtCompanyAddress" Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" FontSize="11" Foreground="#333" HorizontalAlignment="Right" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="TxtCompanyContact" Text="Điện thoại: 0909090880   Email:" FontSize="11" Foreground="#333" HorizontalAlignment="Right" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Title & Date -->
+                    <StackPanel Grid.Row="1" Margin="0,5,0,15">
+                        <TextBlock Text="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#000"/>
+                        <TextBlock x:Name="TxtFilterSummary" Text="Năm: 2026" FontSize="12" FontStyle="Italic" HorizontalAlignment="Center" Foreground="#444" Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <!-- Line Chart Card -->
+                    <Border Grid.Row="2" Background="#fcfdfe" BorderBrush="#b0b0b0" BorderThickness="1" CornerRadius="12" Margin="0,10,0,20" Padding="14" Height="380">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#666666" Opacity="0.3" BlurRadius="8" ShadowDepth="2"/>
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Legend Top Right -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,5">
+                                <Rectangle Width="14" Height="3" Fill="#4a90e2" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Năm nay" FontSize="11" Foreground="#444" Margin="0,0,15,0"/>
+
+                                <Rectangle Width="14" Height="3" Fill="#f5a623" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Năm ngoái" FontSize="11" Foreground="#444"/>
+                            </StackPanel>
+
+                            <!-- Chart Canvas -->
+                            <Canvas x:Name="CvsYearChart" Grid.Row="1" ClipToBounds="True" SizeChanged="CvsYearChart_SizeChanged"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Footer Signatures -->
+                    <Grid Grid.Row="3" Margin="0,20,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center" Width="200">
+                            <TextBlock x:Name="TxtSignDate" Text="Ngày 08 tháng 09 năm 2026" FontSize="11" FontStyle="Italic" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Người lập" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            <TextBlock Text="(Ký, họ tên)" FontSize="10" FontStyle="Italic" HorizontalAlignment="Center" Margin="0,2,0,45"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

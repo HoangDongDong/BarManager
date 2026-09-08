@@ -199,7 +199,7 @@ namespace QuanLyBar.Client.Services
             return result;
         }
 
-        public static async Task<List<DotKhuyenMaiViewModel>> GetDotKhuyenMaiListAsync(string filterId, int itemType, string keyword)
+        public static async Task<List<DotKhuyenMaiViewModel>> GetDotKhuyenMaiListAsync(string filterId = null, int itemType = 0, string keyword = "")
         {
             var list = new List<DotKhuyenMaiViewModel>();
 

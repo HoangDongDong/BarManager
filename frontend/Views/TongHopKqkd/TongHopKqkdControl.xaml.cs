@@ -51,6 +51,39 @@ namespace QuanLyBar.Client.Views
             await LoadDataAsync();
         }
 
+        private async Task LoadCompanyInfoAsync(string branchName = null)
+        {
+            try
+            {
+                var comp = await LocalCauHinhService.GetCompanyInfoAsync(branchName ?? TxtSelectedCuaHang.Text);
+                TxtTenCuaHang.Text = comp.Name.ToUpper();
+                TxtDiaChi.Text = comp.FormattedAddress;
+                TxtContact.Text = comp.FormattedContact;
+
+                if (comp.LogoBytes != null && comp.LogoBytes.Length > 0)
+                {
+                    var bi = LocalCauHinhService.ImageFromBytes(comp.LogoBytes);
+                    if (bi != null)
+                    {
+                        ImgLogo.Source = bi;
+                        ImgLogo.Visibility = Visibility.Visible;
+                        TxtDefaultLogo.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        ImgLogo.Visibility = Visibility.Collapsed;
+                        TxtDefaultLogo.Visibility = Visibility.Visible;
+                    }
+                }
+                else
+                {
+                    ImgLogo.Visibility = Visibility.Collapsed;
+                    TxtDefaultLogo.Visibility = Visibility.Visible;
+                }
+            }
+            catch { }
+        }
+
         private async Task LoadCuaHangListAsync()
         {
             try
@@ -60,8 +93,8 @@ namespace QuanLyBar.Client.Views
                 if (stores.Count > 0 && string.IsNullOrEmpty(TxtSelectedCuaHang.Text))
                 {
                     TxtSelectedCuaHang.Text = stores[0].Name;
-                    TxtTenCuaHang.Text = stores[0].Name.ToUpper();
                 }
+                await LoadCompanyInfoAsync(TxtSelectedCuaHang.Text);
             }
             catch { }
         }
@@ -71,13 +104,13 @@ namespace QuanLyBar.Client.Views
             BtnToggleCuaHang.IsChecked = !BtnToggleCuaHang.IsChecked;
         }
 
-        private void LstCuaHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void LstCuaHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (LstCuaHang.SelectedItem is CuaHangViewModel sel)
             {
                 TxtSelectedCuaHang.Text = sel.Name;
-                TxtTenCuaHang.Text = sel.Name.ToUpper();
                 BtnToggleCuaHang.IsChecked = false;
+                await LoadCompanyInfoAsync(sel.Name);
             }
         }
 

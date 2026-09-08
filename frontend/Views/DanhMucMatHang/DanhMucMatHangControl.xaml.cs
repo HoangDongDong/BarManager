@@ -118,6 +118,19 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private void DataGridRow_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row && row.Item is MatHangViewModel selectedMatHang)
+            {
+                if (_currentNhomId == "-1") return;
+
+                var list = DgMatHang.ItemsSource as System.Collections.Generic.List<MatHangViewModel>;
+                int initialIndex = list != null ? list.IndexOf(selectedMatHang) : -1;
+                var themMoiWin = new ThemMoiMatHangWindow(selectedMatHang.DnhommathangId, selectedMatHang.Id, list, initialIndex, ReloadMatHangGrid);
+                themMoiWin.ShowDialog();
+            }
+        }
+
         private void DgMatHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DgMatHang.SelectedItem is MatHangViewModel selected)
@@ -461,62 +474,92 @@ namespace QuanLyBar.Client.Views
             win.ShowDialog();
         }
 
-        private async void BtnThemNhom_Click(object sender, RoutedEventArgs e)
+        private void BtnThemNhom_Click(object sender, RoutedEventArgs e)
         {
-            var selectedNhom = TvNhomMatHang.SelectedItem as NhomMatHangViewModel;
-            if (selectedNhom == null)
-            {
-                MessageBox.Show("Vui lòng chọn một thư mục hoặc nhóm mặt hàng để thêm nhóm con!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (string.IsNullOrEmpty(selectedNhom.Id))
-            {
-                MessageBox.Show("Không thể thêm con vào nút gốc này.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            int index = 1;
-            string defaultName = $"Thư mục {index}";
-            while (selectedNhom.Children != null && selectedNhom.Children.Any(x => x.Name == defaultName))
-            {
-                index++;
-                defaultName = $"Thư mục {index}";
-            }
-
-            var newNhom = new DNHOMMATHANG
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = defaultName,
-                Code = "TMP",
-                ParentId = selectedNhom.Id,
-                Timecreated = DateTime.Now
-            };
-
-            bool success = await _matHangService.InsertNhomMatHangAsync(newNhom);
-            if (success)
+            var flatList = GetFlatNhomList();
+            var win = new ThemNhomWindow(isThuMuc: false, nhomIdToEdit: null, nhomList: flatList, initialIndex: -1, onDataSaved: async () =>
             {
                 await ReloadTreeViewAsync();
-                var items = TvNhomMatHang.ItemsSource as System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel>;
-                var node = FindNode(items, selectedNhom.Id);
-                if (node != null)
+                ReloadMatHangGrid();
+            });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void BtnSuaNhom_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvNhomMatHang.SelectedItem is NhomMatHangViewModel selected)
+            {
+                OpenEditNhomWindow(selected);
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một nhóm mặt hàng để chỉnh sửa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void TreeViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is TreeViewItem tvi && tvi.DataContext is NhomMatHangViewModel selected)
+            {
+                if (string.IsNullOrEmpty(selected.Id) || selected.Id == "-1") return;
+                OpenEditNhomWindow(selected);
+                e.Handled = true;
+            }
+        }
+
+        private void OpenEditNhomWindow(NhomMatHangViewModel selected)
+        {
+            if (selected == null || string.IsNullOrEmpty(selected.Id) || selected.Id == "-1")
+            {
+                MessageBox.Show("Vui lòng chọn một nhóm mặt hàng để chỉnh sửa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var flatList = GetFlatNhomList();
+            int initialIndex = flatList.FindIndex(n => n.Id == selected.Id);
+
+            var win = new ThemNhomWindow(
+                isThuMuc: false, 
+                nhomIdToEdit: selected.Id, 
+                nhomList: flatList, 
+                initialIndex: initialIndex, 
+                onDataSaved: async () =>
                 {
-                    var newItem = node.Children.FirstOrDefault(x => x.Name == defaultName);
-                    if (newItem != null)
+                    await ReloadTreeViewAsync();
+                    ReloadMatHangGrid();
+                },
+                initialName: selected.Name
+            );
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private System.Collections.Generic.List<NhomMatHangViewModel> GetFlatNhomList()
+        {
+            var list = new System.Collections.Generic.List<NhomMatHangViewModel>();
+            if (TvNhomMatHang.ItemsSource is System.Collections.IEnumerable roots)
+            {
+                void Flatten(System.Collections.IEnumerable items)
+                {
+                    foreach (var item in items)
                     {
-                        if (TvNhomMatHang.ItemContainerGenerator.ContainerFromItem(node) is TreeViewItem tvi)
+                        if (item is NhomMatHangViewModel it)
                         {
-                            tvi.IsExpanded = true;
-                            tvi.UpdateLayout();
+                            if (!string.IsNullOrEmpty(it.Id) && it.Id != "-1")
+                            {
+                                list.Add(it);
+                            }
+                            if (it.Children != null && it.Children.Count > 0)
+                            {
+                                Flatten(it.Children);
+                            }
                         }
-                        
-                        await Application.Current.Dispatcher.InvokeAsync(() => 
-                        {
-                            newItem.IsEditing = true;
-                        }, System.Windows.Threading.DispatcherPriority.Background);
                     }
                 }
+                Flatten(roots);
             }
+            return list;
         }
 
         private async void BtnThemThuMuc_Click(object sender, RoutedEventArgs e)
@@ -717,12 +760,12 @@ namespace QuanLyBar.Client.Views
         {
             if (TvNhomMatHang.SelectedItem is NhomMatHangViewModel selected)
             {
-                if (string.IsNullOrEmpty(selected.Id))
+                if (string.IsNullOrEmpty(selected.Id) || selected.Id == "-1")
                 {
-                    MessageBox.Show("Không thể sửa thư mục gốc.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Không thể sửa thư mục gốc hoặc thùng rác.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                selected.IsEditing = true;
+                OpenEditNhomWindow(selected);
             }
         }
 

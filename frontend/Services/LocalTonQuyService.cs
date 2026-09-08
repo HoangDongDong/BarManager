@@ -44,8 +44,11 @@ namespace QuanLyBar.Client.Services
         public DateTime? Ngay { get; set; }
         public string NgayHienThi => Ngay?.ToString("dd/MM/yyyy") ?? "";
         public string DienGiai { get; set; } = "";
+        public string TaoBoi { get; set; } = "Administrator";
+        public string ThoiGian { get; set; } = "";
         public decimal Thu { get; set; }
         public decimal Chi { get; set; }
+        public decimal RunningTon { get; set; }
         public string ThuHienThi => Thu > 0 ? Thu.ToString("N0") : (Thu == 0 && Chi == 0 ? "0" : (Thu == 0 && (SoPhieu.StartsWith("PN") || SoPhieu.StartsWith("PC")) ? "0" : ""));
         public string ChiHienThi => Chi > 0 ? Chi.ToString("N0") : (Chi == 0 && Thu == 0 ? "0" : "");
 
@@ -202,7 +205,9 @@ namespace QuanLyBar.Client.Services
                             DTHETRATRUOCID,
                             DCUAHANGID,
                             LOAI,
-                            STATUS
+                            STATUS,
+                            USERCREATEDID,
+                            TIMECREATED
                         FROM TTHUCHI
                         WHERE (STATUS IS NULL OR STATUS <> 0)";
 
@@ -217,6 +222,18 @@ namespace QuanLyBar.Client.Services
                         if (rawNgay != null && DateTime.TryParse(rawNgay.ToString(), out var dt)) ngay = dt;
 
                         string dienGiai = GetValue(dict, "DIENGIAI")?.ToString() ?? "";
+                        string taoBoi = "Administrator";
+                        string thoiGian = "";
+                        var rawTc = GetValue(dict, "TIMECREATED");
+                        if (rawTc != null && DateTime.TryParse(rawTc.ToString(), out var timeC))
+                        {
+                            thoiGian = timeC.ToString("HH:mm");
+                        }
+                        else if (ngay.HasValue)
+                        {
+                            thoiGian = ngay.Value.ToString("HH:mm");
+                        }
+
                         decimal thu = 0;
                         decimal chi = 0;
 
@@ -248,6 +265,8 @@ namespace QuanLyBar.Client.Services
                             SoPhieu = soPhieu,
                             Ngay = ngay,
                             DienGiai = dienGiai,
+                            TaoBoi = taoBoi,
+                            ThoiGian = thoiGian,
                             Thu = thu,
                             Chi = chi,
                             LoaiQuy = loaiQuy,
@@ -276,7 +295,9 @@ namespace QuanLyBar.Client.Services
                             DTAIKHOANNGANHANGID,
                             DCUAHANGID,
                             LOAI,
-                            STATUS
+                            STATUS,
+                            USERCREATEDID,
+                            TIMECREATED
                         FROM TDONHANG
                         WHERE (STATUS IS NULL OR STATUS <> 0)";
 
@@ -294,6 +315,18 @@ namespace QuanLyBar.Client.Services
                         if (rawNgay != null && DateTime.TryParse(rawNgay.ToString(), out var dt)) ngay = dt;
 
                         string dienGiai = GetValue(dict, "DIENGIAI")?.ToString() ?? "";
+                        string taoBoi = "Administrator";
+                        string thoiGian = "";
+                        var rawTc = GetValue(dict, "TIMECREATED");
+                        if (rawTc != null && DateTime.TryParse(rawTc.ToString(), out var timeC))
+                        {
+                            thoiGian = timeC.ToString("HH:mm");
+                        }
+                        else if (ngay.HasValue)
+                        {
+                            thoiGian = ngay.Value.ToString("HH:mm");
+                        }
+
                         string loai = GetValue(dict, "LOAI")?.ToString() ?? "";
                         string chId = GetValue(dict, "DCUAHANGID")?.ToString()?.Trim() ?? "";
                         string tkId = GetValue(dict, "DTAIKHOANNGANHANGID")?.ToString()?.Trim() ?? "";
@@ -339,6 +372,8 @@ namespace QuanLyBar.Client.Services
                                 SoPhieu = soPhieu,
                                 Ngay = ngay,
                                 DienGiai = dienGiai,
+                                TaoBoi = taoBoi,
+                                ThoiGian = thoiGian,
                                 Thu = 0,
                                 Chi = chiAmount,
                                 LoaiQuy = loaiQuy,
@@ -363,6 +398,8 @@ namespace QuanLyBar.Client.Services
                                     SoPhieu = soPhieu,
                                     Ngay = ngay,
                                     DienGiai = dienGiai,
+                                    TaoBoi = taoBoi,
+                                    ThoiGian = thoiGian,
                                     Thu = thuAmount,
                                     Chi = 0,
                                     LoaiQuy = loaiQuy,
@@ -435,9 +472,12 @@ namespace QuanLyBar.Client.Services
             }).ToList();
 
             int stt = 1;
+            decimal runningBalance = tonDau;
             foreach (var item in trongKy)
             {
-                item.Stt = (stt++).ToString("D2");
+                item.Stt = (stt++).ToString();
+                runningBalance = runningBalance + item.Thu - item.Chi;
+                item.RunningTon = runningBalance;
             }
 
             result.TonDau = tonDau;

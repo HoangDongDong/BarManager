@@ -425,7 +425,7 @@ namespace QuanLyBar.Client.Services
         }
 
         public static async Task<List<PhieuThuChiGridItem>> GetDanhSachPhieuThuChiAsync(
-            bool isThu,
+            bool? isThu,
             DateTime? fromDate = null,
             DateTime? toDate = null,
             string cuaHangId = null,
@@ -493,11 +493,18 @@ namespace QuanLyBar.Client.Services
                     }
                     catch { }
 
-                    string colAmount = isThu ? "THU" : "CHI";
                     var conditions = new List<string>();
                     var p = new DynamicParameters();
 
-                    conditions.Add($"{colAmount} > 0");
+                    if (isThu.HasValue)
+                    {
+                        string colAmount = isThu.Value ? "THU" : "CHI";
+                        conditions.Add($"{colAmount} > 0");
+                    }
+                    else
+                    {
+                        conditions.Add("(THU > 0 OR CHI > 0)");
+                    }
 
                     if (isTrash)
                     {
@@ -595,9 +602,23 @@ namespace QuanLyBar.Client.Services
                         string dienGiai = GetValue(dict, "DIENGIAI")?.ToString() ?? "";
                         string chungTuGoc = GetValue(dict, "CHUNGTUGOC")?.ToString() ?? "";
 
+                        decimal thuVal = 0;
+                        var rawThu = GetValue(dict, "THU");
+                        if (rawThu != null && decimal.TryParse(rawThu.ToString(), out var dtVal)) thuVal = dtVal;
+
+                        decimal chiVal = 0;
+                        var rawChi = GetValue(dict, "CHI");
+                        if (rawChi != null && decimal.TryParse(rawChi.ToString(), out var dcVal)) chiVal = dcVal;
+
                         decimal soTien = 0;
-                        var rawTien = isThu ? GetValue(dict, "THU") : GetValue(dict, "CHI");
-                        if (rawTien != null && decimal.TryParse(rawTien.ToString(), out var dec)) soTien = dec;
+                        if (isThu.HasValue)
+                        {
+                            soTien = isThu.Value ? thuVal : chiVal;
+                        }
+                        else
+                        {
+                            soTien = thuVal > 0 ? thuVal : chiVal;
+                        }
 
                         string ghiChu = GetValue(dict, "GHICHU")?.ToString() ?? "";
                         string ckRaw = GetValue(dict, "CHUYENKHOAN")?.ToString() ?? "";
@@ -665,6 +686,8 @@ namespace QuanLyBar.Client.Services
                             LyDoThuChi = lyDoThuChi,
                             DienGiai = dienGiai,
                             ChungTuGoc = chungTuGoc,
+                            Thu = thuVal,
+                            Chi = chiVal,
                             SoTien = soTien,
                             GhiChu = ghiChu,
                             ChuyenKhoan = chuyenKhoan,
@@ -747,6 +770,8 @@ namespace QuanLyBar.Client.Services
         public string LyDoThuChi { get; set; } = "";
         public string DienGiai { get; set; } = "";
         public string ChungTuGoc { get; set; } = "";
+        public decimal Thu { get; set; }
+        public decimal Chi { get; set; }
         public decimal SoTien { get; set; }
         public string GhiChu { get; set; } = "";
         public string ChuyenKhoan { get; set; } = "";

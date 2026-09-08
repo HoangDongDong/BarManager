@@ -6,6 +6,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using QuanLyBar.Client.Services;
+using QuanLyBar.Client.Views.BaoCaoKhoHang;
+using QuanLyBar.Client.Views.BaoCaoQuanTri;
+using QuanLyBar.Client.Views.BaoCaoBieuDo;
 
 namespace QuanLyBar.Client
 {
@@ -273,7 +276,7 @@ namespace QuanLyBar.Client
             if (t == "Thẻ trả trước") return "Danh mục thẻ trả trước";
             if (t == "Đợt khuyến mại") return "Danh mục đợt khuyến mại";
             if (t == "Quản lý người dùng" || t == "Phân quyền" || t == "Người dùng và phân quyền") return "Quản lý người dùng";
-            if (t == "Báo cáo tồn quỹ" || t == "BÁO CÁO TỒN QUỸ") return "Tồn quỹ";
+            if (t == "Báo cáo tồn quỹ" || t == "BÁO CÁO TỒN QUỸ") return "BÁO CÁO TỒN QUỸ";
             if (t == "Quản lý phiếu thu" || t == "Tạo phiếu thu" || t == "Phiếu thu" || t == "Tạo phiếu chi" || t == "Phiếu chi" || t == "Quản lý phiếu chi") return "Danh mục phiếu thu chi";
             if (t == "Thưởng phạt" || t == "Quản lý thưởng phạt") return "Quản lý thưởng phạt";
             if (t == "Quản lý chấm công") return "Chấm công";
@@ -587,11 +590,552 @@ namespace QuanLyBar.Client
                              tabName.Equals("DANH SÁCH PHIẾU CHI THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
                              tabName.Equals("DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI", StringComparison.OrdinalIgnoreCase) ||
                              tabName.Equals("TỔNG HỢP THU CHI THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
-                             tabName.Equals("TỔNG HỢP THU CHI THEO LÝ DO", StringComparison.OrdinalIgnoreCase))
+                             tabName.Equals("TỔNG HỢP THU CHI THEO LÝ DO", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("BÁO CÁO TỒN QUỸ", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo tồn quỹ", StringComparison.OrdinalIgnoreCase))
                     {
-                        content = new QuanLyBar.Client.Views.BaoCaoQuy.BaoCaoPhieuThuChiControl(tabName);
+                        string repName = tabName.Trim().ToUpper();
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoQuy.BaoCaoPhieuThuChiControl(repName);
                     }
-                    else if (tabName == "Tồn quỹ" || tabName == "Báo cáo tồn quỹ" || tabName == "BÁO CÁO TỒN QUỸ")
+                    else if (tabName.Equals("TỔNG HỢP BÁN HÀNG THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp bán hàng theo ngày", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoBanHangTheoNgayControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng bán theo ngày", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoMatHangBanTheoNgayControl(tabName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo chi tiết bán hàng theo ngày", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoChiTietBanHangTheoNgayControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP DOANH THU THEO LOẠI ĐỒ", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp doanh thu theo loại đồ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopDoanhThuTheoLoaiDoControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP DOANH THU CHƯA THANH TOÁN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp doanh thu chưa thanh toán", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopDoanhThuChuaThanhToanControl(tabName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO BÁN HÀNG THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo bán hàng theo ngày", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoBanHangTheoNgayListControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP BÁN THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp bán theo nhân viên", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanTheoNhanVienControl(tabName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo bán hàng theo nhân viên", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoBanHangTheoNhanVienControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng bán theo nhân viên", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopMatHangBanTheoNhanVienControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP BÁN THEO THU NGÂN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp bán theo thu ngân", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanTheoThuNganControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng bán theo thu ngân", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopMatHangBanTheoThuNganControl(tabName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO BÁN HÀNG THEO THU NGÂN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo bán hàng theo thu ngân", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoBanHangTheoThuNganControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng bán theo khách hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopMatHangBanTheoKhachHangControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP BÁN THEO KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp bán theo khách hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanTheoKhachHangControl(tabName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo bán hàng theo khách hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoBanHangTheoKhachHangControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP HOA HỒNG THEO NVKD", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp hoa hồng theo nvkd", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopHoaHongTheoNvkdControl(tabName);
+                    }
+                    else if (tabName.Equals("CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Chi tiết bán hàng theo hóa đơn", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.ChiTietBanHangTheoHoaDonControl(tabName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo chi tiết hàng khuyến mại", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoChiTietHangKhuyenMaiControl(tabName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo tổng hợp giá trị bán theo tháng", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Báo cáo tổng hợp số lượng bán theo tháng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = tabName.Trim().ToUpper();
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanTheoThangControl(repName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng theo nhóm hiển thị", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopMatHangTheoNhomHienThiControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng bán theo khu vực", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopMatHangBanTheoKhuVucControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG BÁN THEO BÀN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng bán theo bàn", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopMatHangBanTheoBanControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp bán hàng theo bàn phòng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanHangTheoBanPhongControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp bán hàng theo nhóm hiển thị", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanHangTheoNhomHienThiControl(tabName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH HÓA ĐƠN THEO BÀN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Danh sách hóa đơn theo bàn", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoDanhSachHoaDonTheoBanControl(tabName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Danh sách hóa đơn theo nhóm hiển thị", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoDanhSachHoaDonTheoNhomHienThiControl(tabName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH HÓA ĐƠN THEO KHU VỰC", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Danh sách hóa đơn theo khu vực", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoDanhSachHoaDonTheoKhuVucControl(tabName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP BÁN HÀNG THEO KHU VỰC", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp bán hàng theo khu vực", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoTongHopBanHangTheoKhuVucControl(tabName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH KHÁCH HÀNG THEO NHÓM", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = tabName.Trim().ToUpper();
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoKhachHangControl(repName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH NHÀ CUNG CẤP THEO NHÓM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "DANH SÁCH NHÀ CUNG CẤP THEO NHÓM";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoNhaCungCapControl(repName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH ĐỢT KHUYẾN MẠI", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "DANH SÁCH ĐỢT KHUYẾN MẠI";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoKhuyenMaiControl(repName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH MẶT HÀNG THEO NHÓM", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = tabName.Trim().ToUpper();
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoMatHangControl(repName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO CẤU HÌNH BÀN KHU VỰC", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("BÁO CÁO CẤU HÌNH BÀN/KHU VỰC", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "BÁO CÁO CẤU HÌNH BÀN KHU VỰC";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoBanKhuVucControl(repName);
+                    }
+                    else if (tabName.Equals("CÔNG THỨC ĐỊNH LƯỢNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "CÔNG THỨC ĐỊNH LƯỢNG";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoDinhLuongControl(repName);
+                    }
+                    else if (tabName.Equals("BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("BÁO CÁO CHI TIẾT PHÂN QUYỀN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoPhanQuyenControl(repName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH ĐẶT HÀNG THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Danh sách đặt hàng theo ngày", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "DANH SÁCH ĐẶT HÀNG THEO NGÀY";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDatHang.BaoCaoDanhSachDatHangTheoNgayControl(repName);
+                    }
+                    else if (tabName.Equals("DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Danh sách đặt hàng theo khách hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDatHang.BaoCaoDanhSachDatHangTheoKhachHangControl(repName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP ĐẶT HÀNG THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp đặt hàng theo ngày", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "TỔNG HỢP ĐẶT HÀNG THEO NGÀY";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDatHang.BaoCaoTongHopDatHangTheoNgayControl(repName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp đặt hàng theo khách hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDatHang.BaoCaoTongHopDatHangTheoKhachHangControl(repName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng đặt theo khách hàng", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDatHang.BaoCaoTongHopMatHangDatTheoKhachHangControl(repName);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp mặt hàng đặt theo ngày", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string repName = "TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY";
+                        tabName = repName;
+                        content = new QuanLyBar.Client.Views.BaoCaoDatHang.BaoCaoTongHopMatHangDatTheoNgayControl(repName);
+                    }
+                    // ================= BÁO CÁO KHO HÀNG =================
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY";
+                        content = new BaoCaoXuatBanHangControl(BaoCaoXuatBanHangControl.ReportMode.TheoNgay);
+                    }
+                    else if (tabName.Equals("BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG";
+                        content = new BaoCaoXuatBanHangControl(BaoCaoXuatBanHangControl.ReportMode.TheoDon);
+                    }
+                    else if (tabName.Equals("BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG";
+                        content = new BaoCaoXuatBanHangControl(BaoCaoXuatBanHangControl.ReportMode.DinhLuong);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY";
+                        content = new BaoCaoKiemKeControl(BaoCaoKiemKeControl.ReportMode.DS_Ngay);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP MẶT HÀNG PHIẾU KIỂM KÊ THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY";
+                        content = new BaoCaoKiemKeControl(BaoCaoKiemKeControl.ReportMode.TH_Ngay);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP MẶT HÀNG PHIẾU KIỂM KÊ THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN";
+                        content = new BaoCaoKiemKeControl(BaoCaoKiemKeControl.ReportMode.TH_NV);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN";
+                        content = new BaoCaoKiemKeControl(BaoCaoKiemKeControl.ReportMode.DS_NV);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP MẶT HÀNG XUẤT THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY";
+                        content = new BaoCaoXuatKhacControl(BaoCaoXuatKhacControl.ReportMode.TH_Ngay);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP MẶT HÀNG XUẤT THEO NHÂN VIÊN XUẤT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN";
+                        content = new BaoCaoXuatKhacControl(BaoCaoXuatKhacControl.ReportMode.TH_NV);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU XUẤT KHO THEO NHÂN VIÊN XUẤT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN";
+                        content = new BaoCaoXuatKhacControl(BaoCaoXuatKhacControl.ReportMode.DS_NV);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP XUẤT KHÁC THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP XUẤT KHÁC THEO NGÀY";
+                        content = new BaoCaoXuatKhacControl(BaoCaoXuatKhacControl.ReportMode.TH_XuatKhac_Ngay);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN XUẤT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN";
+                        content = new BaoCaoXuatKhacControl(BaoCaoXuatKhacControl.ReportMode.TH_XuatKhac_NV);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU XUẤT KHO THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY";
+                        content = new BaoCaoXuatKhacControl(BaoCaoXuatKhacControl.ReportMode.DS_Ngay);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU NHẬP KHO THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.DS_Ngay);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU NHẬP KHO THEO NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.DS_NCC);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("DANH SÁCH PHIẾU NHẬP KHO THEO NHÂN VIÊN NHẬP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.DS_NV);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP MẶT HÀNG PHIẾU NHẬP THEO NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.TH_NCC);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP MẶT HÀNG PHIẾU NHẬP THEO NHÂN VIÊN NHẬP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.TH_NV);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP NHẬP HÀNG THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP NHẬP THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP NHẬP HÀNG THEO NGÀY";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.TH_Nhap_Ngay);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP NHẬP THEO NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.TH_Nhap_NCC);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP NHẬP THEO NHÂN VIÊN NHẬP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.TH_Nhap_NV);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP MẶT HÀNG NHẬP KHO THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY";
+                        content = new BaoCaoNhapHangControl(BaoCaoNhapHangControl.ReportMode.TH_MatHang_Ngay);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN";
+                        content = new BaoCaoChuyenKhoControl(BaoCaoChuyenKhoControl.ReportMode.TH_NV_Nhan);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN";
+                        content = new BaoCaoChuyenKhoControl(BaoCaoChuyenKhoControl.ReportMode.TH_NV_Chuyen);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY";
+                        content = new BaoCaoChuyenKhoControl(BaoCaoChuyenKhoControl.ReportMode.TH_Ngay);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT";
+                        content = new BaoCaoChuyenKhoControl(BaoCaoChuyenKhoControl.ReportMode.DS_NV_Xuat);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP";
+                        content = new BaoCaoChuyenKhoControl(BaoCaoChuyenKhoControl.ReportMode.DS_NV_Nhap);
+                    }
+                    else if (tabName.Equals("DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY";
+                        content = new BaoCaoChuyenKhoControl(BaoCaoChuyenKhoControl.ReportMode.DS_Ngay);
+                    }
+                    else if (tabName.Equals("BÁO CÁO HÀNG HÓA THEO HẠN DÙNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("HÀNG HÓA THEO HẠN DÙNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO HÀNG HÓA THEO HẠN DÙNG";
+                        content = new BaoCaoHsdControl(BaoCaoHsdControl.ReportMode.TheoHsd);
+                    }
+                    else if (tabName.Equals("BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("HÀNG HÓA ĐÃ HẾT HẠN DÙNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG";
+                        content = new BaoCaoHsdControl(BaoCaoHsdControl.ReportMode.HetHan);
+                    }
+                    else if (tabName.Equals("BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("HÀNG TỒN KHO CÓ HẠN DÙNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG";
+                        content = new BaoCaoHsdControl(BaoCaoHsdControl.ReportMode.TonCoHsd);
+                    }
+                    else if (tabName.Equals("BÁO CÁO HÀNG TỒN KHO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO HÀNG TỒN KHO";
+                        content = new BaoCaoHangTonKhoControl();
+                    }
+                    else if (tabName.Equals("BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN";
+                        content = new BaoCaoTongHopXntControl();
+                    }
+                    else if (tabName.Equals("BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT";
+                        content = new BaoCaoTongHopXntChiTietControl();
+                    }
+                    else if (tabName.Equals("THẺ KHO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "THẺ KHO";
+                        content = new BaoCaoTheKhoControl();
+                    }
+                    else if (tabName.Equals("ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP";
+                        content = new QuanLyBar.Client.Views.BaoCaoCongNo.BaoCaoDoiChieuCongNoNccControl();
+                    }
+                    else if (tabName.Equals("BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP";
+                        content = new QuanLyBar.Client.Views.BaoCaoCongNo.BaoCaoCongNoNccControl();
+                    }
+                    else if (tabName.Equals("ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG";
+                        content = new QuanLyBar.Client.Views.BaoCaoCongNo.BaoCaoDoiChieuCongNoKhachHangControl();
+                    }
+                    else if (tabName.Equals("TỔNG HỢP CÔNG NỢ KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP CÔNG NỢ KHÁCH HÀNG";
+                        content = new QuanLyBar.Client.Views.BaoCaoCongNo.BaoCaoTongHopCongNoKhachHangControl();
+                    }
+                    else if (tabName.Equals("TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP";
+                        content = new QuanLyBar.Client.Views.BaoCaoCongNo.BaoCaoTongHopCongNoNccControl();
+                    }
+                    else if (tabName.Equals("BÁO CÁO CÔNG NỢ KHÁCH HÀNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO CÔNG NỢ KHÁCH HÀNG";
+                        content = new QuanLyBar.Client.Views.BaoCaoCongNo.BaoCaoCongNoKhachHangControl();
+                    }
+                    // ================= BÁO CÁO QUẢN TRỊ =================
+                    else if (tabName.Equals("TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)";
+                        content = new BaoCaoTongHopLaiGopMatHangControl(BaoCaoTongHopLaiGopMatHangControl.ReportPriceMode.GiaVon);
+                    }
+                    else if (tabName.Equals("TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)";
+                        content = new BaoCaoTongHopLaiGopMatHangControl(BaoCaoTongHopLaiGopMatHangControl.ReportPriceMode.GiaNhap);
+                    }
+                    else if (tabName.Equals("CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ NHẬP)", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ NHẬP)";
+                        content = new BaoCaoChiTietLaiTheoHoaDonControl(BaoCaoChiTietLaiTheoHoaDonControl.ReportInvoiceMode.GiaNhap);
+                    }
+                    else if (tabName.Equals("CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)";
+                        content = new BaoCaoChiTietLaiTheoHoaDonControl(BaoCaoChiTietLaiTheoHoaDonControl.ReportInvoiceMode.GiaVon);
+                    }
+                    else if (tabName.Equals("BÁO CÁO KẾT QUẢ KINH DOANH", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Tổng hợp KQKD", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("TỔNG HỢP KQKD", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO KẾT QUẢ KINH DOANH";
+                        content = new QuanLyBar.Client.Views.TongHopKqkdControl();
+                    }
+                    else if (tabName.Equals("CHI TIẾT HOẠT ĐỘNG TRONG NGÀY", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("Chi tiết hoạt động", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("CHI TIẾT HOẠT ĐỘNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "CHI TIẾT HOẠT ĐỘNG TRONG NGÀY";
+                        content = new QuanLyBar.Client.Views.ChiTietHoatDongControl();
+                    }
+                    else if (tabName.Equals("BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT";
+                        content = new BaoCao20MatHangBanChayControl();
+                    }
+                    else if (tabName.Equals("PHÂN TÍCH TÌNH HÌNH BÁN HÀNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "PHÂN TÍCH TÌNH HÌNH BÁN HÀNG";
+                        content = new BaoCaoPhanTichTinhHinhBanHangControl();
+                    }
+                    else if (tabName.Equals("BÁO CÁO BÁN HÀNG THEO GIỜ", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("BÁO CÁO BÁN HÀNG THEO GIỜ VÀO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BÁO CÁO BÁN HÀNG THEO GIỜ";
+                        content = new BaoCaoBanHangTheoGioControl();
+                    }
+                    else if (tabName.Equals("DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI";
+                        content = new BaoCaoMonXoaGiamTraLaiControl();
+                    }
+                    // ================= BÁO CÁO BIỂU ĐỒ =================
+                    else if (tabName.Equals("BIỂU ĐỒ DOANH SỐ THEO NHÓM", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("BIỂU ĐỒ DOANH SỐ THEO NHÓM HÀNG HÓA", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BIỂU ĐỒ DOANH SỐ THEO NHÓM";
+                        content = new BieuDoDoanhSoTheoNhomControl();
+                    }
+                    else if (tabName.Equals("BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG";
+                        content = new BieuDoDoanhThuNgayTrongThangControl();
+                    }
+                    else if (tabName.Equals("BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM";
+                        content = new BieuDoDoanhThuThangTrongNamControl();
+                    }
+                    else if (tabName.Equals("BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH", StringComparison.OrdinalIgnoreCase) ||
+                             tabName.Equals("BIỂU ĐỒ DOANH SỐ THEO NHÂN VIÊN KINH DOANH", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tabName = "BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH";
+                        content = new BieuDoTheoNhanVienKdControl();
+                    }
+                    else if (tabName == "Tồn quỹ")
                     {
                         tabName = "Tồn quỹ";
                         content = new QuanLyBar.Client.Views.TonQuy.TonQuyControl();

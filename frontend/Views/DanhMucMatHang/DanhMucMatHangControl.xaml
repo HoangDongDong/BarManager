@@ -60,7 +60,7 @@
                                 <Button ToolTip="Thêm mới Nhóm mặt hàng" Padding="2" Click="BtnThemNhom_Click">
                                     <TextBlock Text="➕" Foreground="Green"/>
                                 </Button>
-                                <Button ToolTip="Chỉnh sửa" Padding="2">
+                                <Button ToolTip="Chỉnh sửa nhóm mặt hàng" Padding="2" Click="BtnSuaNhom_Click">
                                     <TextBlock Text="✏️"/>
                                 </Button>
                                 <Button ToolTip="Tạo mới thư mục" Padding="2" Click="BtnThemThuMuc_Click">
@@ -124,10 +124,11 @@
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
-                        <!-- Bind IsExpanded via style -->
+                        <!-- Bind IsExpanded via style and handle DoubleClick -->
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="{x:Type TreeViewItem}">
                                 <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
+                                <EventSetter Event="MouseDoubleClick" Handler="TreeViewItem_MouseDoubleClick"/>
                             </Style>
                         </TreeView.ItemContainerStyle>
                     </TreeView>
@@ -159,6 +160,7 @@
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <EventSetter Event="PreviewMouseRightButtonDown" Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                                <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_MouseDoubleClick"/>
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.ContextMenu>

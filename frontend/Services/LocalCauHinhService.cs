@@ -331,6 +331,137 @@ namespace QuanLyBar.Client.Services
             return result;
         }
 
+        public class CompanyInfoModel
+        {
+            public string Name { get; set; } = "TRỤ SỞ CHÍNH";
+            public string Address { get; set; } = "Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội";
+            public string Phone { get; set; } = "0909090880";
+            public string Email { get; set; } = "";
+            public string TaxCode { get; set; } = "";
+            public string Fax { get; set; } = "";
+            public string FormattedAddress
+            {
+                get
+                {
+                    if (string.IsNullOrWhiteSpace(Address)) return "";
+                    var a = Address.Trim();
+                    if (a.StartsWith("Địa chỉ", StringComparison.OrdinalIgnoreCase) || a.StartsWith("ĐC", StringComparison.OrdinalIgnoreCase)) return a;
+                    return $"Địa chỉ: {a}";
+                }
+            }
+            public string FormattedContact
+            {
+                get
+                {
+                    var parts = new List<string>();
+                    string p = CleanPhone(Phone);
+                    if (!string.IsNullOrWhiteSpace(p) && p != "0") parts.Add($"Điện thoại: {p}");
+                    if (!string.IsNullOrWhiteSpace(Fax) && Fax != "0") parts.Add($"Fax: {Fax}");
+                    if (!string.IsNullOrWhiteSpace(Email) && Email != "0" && !Email.Equals("null", StringComparison.OrdinalIgnoreCase)) parts.Add($"Email: {Email}");
+                    if (!string.IsNullOrWhiteSpace(TaxCode) && TaxCode != "0") parts.Add($"MST: {TaxCode}");
+                    return string.Join("   ", parts);
+                }
+            }
+            public byte[] LogoBytes { get; set; }
+
+            public static string CleanPhone(string raw)
+            {
+                if (string.IsNullOrWhiteSpace(raw)) return "";
+                return System.Text.RegularExpressions.Regex.Replace(raw, @"^(Điện thoại|ĐT|Phone|Tel)\s*[:：]\s*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+            }
+        }
+
+        public static System.Windows.Media.Imaging.BitmapImage ImageFromBytes(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0) return null;
+            try
+            {
+                var bi = new System.Windows.Media.Imaging.BitmapImage();
+                using (var ms = new System.IO.MemoryStream(bytes))
+                {
+                    bi.BeginInit();
+                    bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bi.StreamSource = ms;
+                    bi.EndInit();
+                }
+                bi.Freeze();
+                return bi;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static async Task<CompanyInfoModel> GetCompanyInfoAsync(string branchNameOrId = null)
+        {
+            var configs = await LoadAllConfigsAsync();
+            string cName = configs.TryGetValue("CompanyName", out var cn) && !string.IsNullOrWhiteSpace(cn) ? cn.Trim() : "";
+            string cAddr = configs.TryGetValue("CompanyAddress", out var ca) && !string.IsNullOrWhiteSpace(ca) ? ca.Trim() : "";
+            string cPhone = configs.TryGetValue("CompanyPhone", out var cp) && !string.IsNullOrWhiteSpace(cp) ? cp.Trim() : "";
+            string cEmail = configs.TryGetValue("CompanyEmail", out var ce) && !string.IsNullOrWhiteSpace(ce) ? ce.Trim() : "";
+            string cFax = configs.TryGetValue("CompanyFax", out var cf) && !string.IsNullOrWhiteSpace(cf) ? cf.Trim() : "";
+            string cTax = configs.TryGetValue("CompanyTaxCode", out var ct) && !string.IsNullOrWhiteSpace(ct) ? ct.Trim() : "";
+
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+
+                    if (!string.IsNullOrWhiteSpace(branchNameOrId) && branchNameOrId != "Tất cả" && branchNameOrId != "[Tất cả]")
+                    {
+                        var storeRow = await conn.QueryFirstOrDefaultAsync("SELECT FIRST 1 * FROM DCUAHANG WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Name)) OR CAST(ID AS VARCHAR(50)) = @Name", new { Name = branchNameOrId.Trim() });
+                        if (storeRow != null)
+                        {
+                            var d = storeRow as IDictionary<string, object>;
+                            string sName = GetValue(d, "NAME")?.ToString()?.Trim();
+                            string sAddr = GetValue(d, "DIACHI")?.ToString()?.Trim();
+                            string sPhone = GetValue(d, "DIENTHOAI")?.ToString()?.Trim();
+                            if (!string.IsNullOrWhiteSpace(sName)) cName = sName;
+                            if (!string.IsNullOrWhiteSpace(sAddr)) cAddr = sAddr;
+                            if (!string.IsNullOrWhiteSpace(sPhone)) cPhone = sPhone;
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(cName) || string.IsNullOrWhiteSpace(cAddr))
+                        {
+                            var storeRow = await conn.QueryFirstOrDefaultAsync("SELECT FIRST 1 * FROM DCUAHANG WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY ID");
+                            if (storeRow != null)
+                            {
+                                var d = storeRow as IDictionary<string, object>;
+                                string sName = GetValue(d, "NAME")?.ToString()?.Trim();
+                                string sAddr = GetValue(d, "DIACHI")?.ToString()?.Trim();
+                                string sPhone = GetValue(d, "DIENTHOAI")?.ToString()?.Trim();
+                                if (string.IsNullOrWhiteSpace(cName) && !string.IsNullOrWhiteSpace(sName)) cName = sName;
+                                if (string.IsNullOrWhiteSpace(cAddr) && !string.IsNullOrWhiteSpace(sAddr)) cAddr = sAddr;
+                                if (string.IsNullOrWhiteSpace(cPhone) && !string.IsNullOrWhiteSpace(sPhone)) cPhone = sPhone;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            if (string.IsNullOrWhiteSpace(cName)) cName = "TRỤ SỞ CHÍNH";
+            if (string.IsNullOrWhiteSpace(cAddr)) cAddr = "Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội";
+            if (string.IsNullOrWhiteSpace(cPhone)) cPhone = "0909090880";
+
+            var logo = await LoadCompanyLogoAsync();
+
+            return new CompanyInfoModel
+            {
+                Name = cName,
+                Address = cAddr,
+                Phone = CompanyInfoModel.CleanPhone(cPhone),
+                Email = (cEmail == "0" || cEmail.Equals("null", StringComparison.OrdinalIgnoreCase)) ? "" : cEmail,
+                Fax = (cFax == "0" || cFax.Equals("null", StringComparison.OrdinalIgnoreCase)) ? "" : cFax,
+                TaxCode = (cTax == "0" || cTax.Equals("null", StringComparison.OrdinalIgnoreCase)) ? "" : cTax,
+                LogoBytes = logo
+            };
+        }
+
         public static async Task<byte[]> LoadCompanyLogoAsync()
         {
             try

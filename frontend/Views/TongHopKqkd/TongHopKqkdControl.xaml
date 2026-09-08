@@ -181,15 +181,18 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             
-                            <!-- Icon / Logo bát đũa -->
+                            <!-- Icon / Logo -->
                             <Border Grid.Column="0" Width="65" Height="65" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="🥢" FontSize="42" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#444"/>
+                                <Grid>
+                                    <Image x:Name="ImgLogo" Stretch="Uniform" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="TxtDefaultLogo" Text="🥢" FontSize="42" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#444"/>
+                                </Grid>
                             </Border>
 
                             <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock x:Name="TxtTenCuaHang" Text="NÀNG HƯƠNG QUÁN" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                <TextBlock Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                <TextBlock Text="Điện thoại: 0909090880   Email:" FontSize="11" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtTenCuaHang" Text="TRỤ SỞ CHÍNH" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                <TextBlock x:Name="TxtDiaChi" Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                <TextBlock x:Name="TxtContact" Text="Điện thoại: 0909090880" FontSize="11" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Grid>
 

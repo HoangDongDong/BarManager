@@ -86,6 +86,8 @@ namespace QuanLyBar.Client.Views
             await LoadDataAsync();
         }
 
+        private LocalCauHinhService.CompanyInfoModel _companyInfo;
+
         private async Task LoadCuaHangListAsync()
         {
             try
@@ -96,6 +98,7 @@ namespace QuanLyBar.Client.Views
                 {
                     TxtSelectedCuaHang.Text = stores[0].Name;
                 }
+                _companyInfo = await LocalCauHinhService.GetCompanyInfoAsync(TxtSelectedCuaHang.Text);
             }
             catch { }
         }
@@ -105,12 +108,13 @@ namespace QuanLyBar.Client.Views
             BtnToggleCuaHang.IsChecked = !BtnToggleCuaHang.IsChecked;
         }
 
-        private void LstCuaHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void LstCuaHang_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (LstCuaHang.SelectedItem is CuaHangViewModel sel)
             {
                 TxtSelectedCuaHang.Text = sel.Name;
                 BtnToggleCuaHang.IsChecked = false;
+                _companyInfo = await LocalCauHinhService.GetCompanyInfoAsync(sel.Name);
                 BuildA4Pages();
             }
         }
@@ -200,6 +204,8 @@ namespace QuanLyBar.Client.Views
             {
                 var tuNgay = dpTuNgay.SelectedDate ?? DateTime.Today;
                 var denNgay = dpDenNgay.SelectedDate ?? DateTime.Today;
+
+                _companyInfo = await LocalCauHinhService.GetCompanyInfoAsync(TxtSelectedCuaHang.Text);
 
                 // 1. Bán hàng
                 var hoaDons = await Task.Run(async () => await _hoaDonService.GetHoaDonListAsync(tuNgay, denNgay));
@@ -396,13 +402,39 @@ namespace QuanLyBar.Client.Views
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
             var logoBorder = new Border { Width = 55, Height = 55, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-            logoBorder.Child = new TextBlock { Text = "🥢", FontSize = 36, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Foreground = new SolidColorBrush(Color.FromRgb(68, 68, 68)) };
+            if (_companyInfo?.LogoBytes != null && _companyInfo.LogoBytes.Length > 0)
+            {
+                var bi = LocalCauHinhService.ImageFromBytes(_companyInfo.LogoBytes);
+                if (bi != null)
+                {
+                    logoBorder.Child = new Image { Source = bi, Stretch = Stretch.Uniform };
+                }
+                else
+                {
+                    logoBorder.Child = new TextBlock { Text = "🥢", FontSize = 36, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Foreground = new SolidColorBrush(Color.FromRgb(68, 68, 68)) };
+                }
+            }
+            else
+            {
+                logoBorder.Child = new TextBlock { Text = "🥢", FontSize = 36, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Foreground = new SolidColorBrush(Color.FromRgb(68, 68, 68)) };
+            }
             Grid.SetColumn(logoBorder, 0);
 
             var spInfo = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-            spInfo.Children.Add(new TextBlock { Text = storeName, FontWeight = FontWeights.Bold, FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
-            spInfo.Children.Add(new TextBlock { Text = "Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội", FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
-            spInfo.Children.Add(new TextBlock { Text = "Điện thoại: Điện thoại: 0909090880   Email:", FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Center });
+            string displayName = !string.IsNullOrWhiteSpace(storeName) && storeName != "Tất cả" && storeName != "[Tất cả]" ? storeName : (_companyInfo?.Name ?? "TRỤ SỞ CHÍNH");
+            spInfo.Children.Add(new TextBlock { Text = displayName, FontWeight = FontWeights.Bold, FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
+            
+            string addr = _companyInfo?.FormattedAddress ?? "";
+            if (!string.IsNullOrWhiteSpace(addr))
+            {
+                spInfo.Children.Add(new TextBlock { Text = addr, FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
+            }
+
+            string contact = _companyInfo?.FormattedContact ?? "";
+            if (!string.IsNullOrWhiteSpace(contact))
+            {
+                spInfo.Children.Add(new TextBlock { Text = contact, FontSize = 10.5, HorizontalAlignment = HorizontalAlignment.Center });
+            }
             Grid.SetColumn(spInfo, 1);
 
             grid.Children.Add(logoBorder);

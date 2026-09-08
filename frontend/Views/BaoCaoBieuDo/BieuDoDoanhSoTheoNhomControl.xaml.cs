@@ -1,0 +1,446 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using Microsoft.Win32;
+using QuanLyBar.Client.Services;
+using static QuanLyBar.Client.Services.LocalBaoCaoBieuDoService;
+
+namespace QuanLyBar.Client.Views.BaoCaoBieuDo
+{
+    public partial class BieuDoDoanhSoTheoNhomControl : UserControl
+    {
+        private readonly LocalBaoCaoBieuDoService _service = new LocalBaoCaoBieuDoService();
+        private bool _isLoaded = false;
+        private List<DoanhSoNhomItem> _allData = new List<DoanhSoNhomItem>();
+
+        private readonly Color[] _chartColors = new[]
+        {
+            Color.FromRgb(74, 144, 226),  // Blue
+            Color.FromRgb(245, 166, 35),  // Orange
+            Color.FromRgb(126, 211, 33),  // Green
+            Color.FromRgb(189, 16, 224),  // Purple
+            Color.FromRgb(80, 227, 194),  // Teal
+            Color.FromRgb(208, 2, 27),    // Red
+            Color.FromRgb(248, 231, 28),  // Yellow
+            Color.FromRgb(144, 19, 254),  // Indigo
+            Color.FromRgb(65, 117, 164),  // Steel Blue
+            Color.FromRgb(243, 156, 18)   // Amber
+        };
+
+        public BieuDoDoanhSoTheoNhomControl()
+        {
+            InitializeComponent();
+        }
+
+        private async void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_isLoaded) return;
+            _isLoaded = true;
+
+            var today = DateTime.Today;
+            DpTuNgay.SelectedDate = new DateTime(today.Year, today.Month, 1);
+            DpDenNgay.SelectedDate = today;
+            TxtSignDate.Text = $"Ngày {today:dd} tháng {today:MM} năm {today:yyyy}";
+
+            await LoadCompanyInfoAndLogoAsync();
+            await LoadDataAsync();
+        }
+
+        private async Task LoadCompanyInfoAndLogoAsync()
+        {
+            try
+            {
+                var comp = await LocalCauHinhService.GetCompanyInfoAsync();
+                TxtCompanyName.Text = comp.Name;
+                TxtCompanyAddress.Text = comp.FormattedAddress;
+                TxtCompanyContact.Text = comp.FormattedContact;
+
+                if (comp.LogoBytes != null && comp.LogoBytes.Length > 0)
+                {
+                    var bi = LocalCauHinhService.ImageFromBytes(comp.LogoBytes);
+                    if (bi != null)
+                    {
+                        ImgLogo.Source = bi;
+                        ImgLogo.Visibility = Visibility.Visible;
+                        if (FindName("VbDefaultLogo") is UIElement vb) vb.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private async void BtnReload_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadDataAsync();
+        }
+
+        private async Task LoadDataAsync()
+        {
+            try
+            {
+                var tuNgay = DpTuNgay.SelectedDate ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                var denNgay = DpDenNgay.SelectedDate ?? DateTime.Today;
+
+                TxtFilterSummary.Text = $"Từ ngày {tuNgay:dd/MM/yyyy} đến ngày {denNgay:dd/MM/yyyy}";
+
+                _allData = await _service.GetDoanhSoTheoNhomAsync(tuNgay, denNgay);
+
+                RenderCharts();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải biểu đồ: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RenderCharts();
+        }
+
+        private void CvsChart_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            RenderCharts();
+        }
+
+        private void RenderCharts()
+        {
+            string filter = TxtSearch.Text?.Trim().ToLower() ?? "";
+            var data = string.IsNullOrEmpty(filter)
+                ? _allData
+                : _allData.Where(x => x.TenNhom.ToLower().Contains(filter)).ToList();
+
+            RenderBarChart(data);
+            RenderPieChart(data);
+        }
+
+        private void RenderBarChart(List<DoanhSoNhomItem> data)
+        {
+            CvsBarChart.Children.Clear();
+            double w = CvsBarChart.ActualWidth > 0 ? CvsBarChart.ActualWidth : 500;
+            double h = CvsBarChart.ActualHeight > 0 ? CvsBarChart.ActualHeight : 300;
+
+            if (data == null || data.Count == 0)
+            {
+                var noData = new TextBlock
+                {
+                    Text = "Không có dữ liệu doanh số trong khoảng thời gian này",
+                    FontSize = 12,
+                    Foreground = Brushes.Gray,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Canvas.SetLeft(noData, w / 4);
+                Canvas.SetTop(noData, h / 2);
+                CvsBarChart.Children.Add(noData);
+                return;
+            }
+
+            double padLeft = 70;
+            double padRight = 20;
+            double padTop = 30;
+            double padBottom = 55;
+
+            double plotW = w - padLeft - padRight;
+            double plotH = h - padTop - padBottom;
+            if (plotW <= 0 || plotH <= 0) return;
+
+            decimal maxVal = data.Max(x => x.DoanhSo);
+            if (maxVal <= 0) maxVal = 1000000;
+            // Round up maxVal to a nice step
+            decimal step = CalculateNiceStep(maxVal);
+            decimal topVal = Math.Ceiling(maxVal / step) * step;
+            if (topVal <= 0) topVal = step;
+
+            // Draw Y-axis grid lines and labels
+            int numSteps = (int)(topVal / step);
+            if (numSteps > 8) numSteps = 8;
+            for (int i = 0; i <= numSteps; i++)
+            {
+                decimal v = (topVal / numSteps) * i;
+                double y = padTop + plotH - (double)(v / topVal) * plotH;
+
+                // Grid line
+                var line = new Line
+                {
+                    X1 = padLeft,
+                    Y1 = y,
+                    X2 = padLeft + plotW,
+                    Y2 = y,
+                    Stroke = new SolidColorBrush(Color.FromArgb(50, 0, 0, 0)),
+                    StrokeThickness = 1
+                };
+                CvsBarChart.Children.Add(line);
+
+                // Label
+                var lbl = new TextBlock
+                {
+                    Text = v.ToString("#,##0"),
+                    FontSize = 9.5,
+                    Foreground = Brushes.Black,
+                    TextAlignment = TextAlignment.Right,
+                    Width = padLeft - 8
+                };
+                Canvas.SetLeft(lbl, 0);
+                Canvas.SetTop(lbl, y - 7);
+                CvsBarChart.Children.Add(lbl);
+            }
+
+            // Draw Axis lines
+            var yAxis = new Line
+            {
+                X1 = padLeft,
+                Y1 = padTop,
+                X2 = padLeft,
+                Y2 = padTop + plotH,
+                Stroke = Brushes.Black,
+                StrokeThickness = 1.2
+            };
+            CvsBarChart.Children.Add(yAxis);
+
+            var xAxis = new Line
+            {
+                X1 = padLeft,
+                Y1 = padTop + plotH,
+                X2 = padLeft + plotW,
+                Y2 = padTop + plotH,
+                Stroke = Brushes.Black,
+                StrokeThickness = 1.2
+            };
+            CvsBarChart.Children.Add(xAxis);
+
+            // Draw Bars
+            int n = data.Count;
+            double groupWidth = plotW / n;
+            double barWidth = Math.Min(groupWidth * 0.65, 45);
+
+            for (int i = 0; i < n; i++)
+            {
+                var it = data[i];
+                double barH = (double)(it.DoanhSo / topVal) * plotH;
+                double x = padLeft + i * groupWidth + (groupWidth - barWidth) / 2;
+                double y = padTop + plotH - barH;
+
+                // Bar rectangle
+                var rect = new Rectangle
+                {
+                    Width = barWidth,
+                    Height = Math.Max(barH, 0),
+                    Fill = new SolidColorBrush(Color.FromRgb(74, 144, 226)),
+                    Stroke = new SolidColorBrush(Color.FromRgb(50, 110, 180)),
+                    StrokeThickness = 1,
+                    ToolTip = $"{it.TenNhom}: {it.DoanhSo:#,##0} VNĐ ({it.TyLe}%)"
+                };
+                Canvas.SetLeft(rect, x);
+                Canvas.SetTop(rect, y);
+                CvsBarChart.Children.Add(rect);
+
+                // Value on top of bar
+                var valTxt = new TextBlock
+                {
+                    Text = it.DoanhSo > 0 ? it.DoanhSo.ToString("#,##0") : "0",
+                    FontSize = 9,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = Brushes.Black,
+                    TextAlignment = TextAlignment.Center,
+                    Width = groupWidth
+                };
+                Canvas.SetLeft(valTxt, padLeft + i * groupWidth);
+                Canvas.SetTop(valTxt, Math.Max(y - 14, 5));
+                CvsBarChart.Children.Add(valTxt);
+
+                // Category X label (multi-line)
+                var catTxt = new TextBlock
+                {
+                    Text = it.TenNhom,
+                    FontSize = 8.5,
+                    Foreground = Brushes.Black,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                    Width = groupWidth
+                };
+                Canvas.SetLeft(catTxt, padLeft + i * groupWidth);
+                Canvas.SetTop(catTxt, padTop + plotH + 4);
+                CvsBarChart.Children.Add(catTxt);
+            }
+        }
+
+        private void RenderPieChart(List<DoanhSoNhomItem> data)
+        {
+            CvsPieChart.Children.Clear();
+            PnlPieLegend.Children.Clear();
+
+            if (data == null || data.Count == 0) return;
+
+            double w = CvsPieChart.ActualWidth > 0 ? CvsPieChart.ActualWidth : 200;
+            double h = CvsPieChart.ActualHeight > 0 ? CvsPieChart.ActualHeight : 300;
+
+            double cx = w / 2;
+            double cy = h / 2;
+            double radius = Math.Min(cx, cy) * 0.78;
+            if (radius <= 0) radius = 80;
+
+            decimal total = data.Sum(x => x.DoanhSo);
+            if (total <= 0) return;
+
+            double startAngle = -90; // Start at top
+
+            for (int i = 0; i < data.Count; i++)
+            {
+                var it = data[i];
+                double sweepAngle = (double)(it.DoanhSo / total) * 360.0;
+                var color = _chartColors[i % _chartColors.Length];
+
+                // Pie slice
+                var slice = CreatePieSlice(cx, cy, radius, startAngle, sweepAngle, color);
+                slice.ToolTip = $"{it.TenNhom}: {it.DoanhSo:#,##0} VNĐ ({it.TyLe}%)";
+                CvsPieChart.Children.Add(slice);
+
+                // Label on slice if angle large enough
+                if (sweepAngle > 15)
+                {
+                    double midAngle = (startAngle + sweepAngle / 2) * Math.PI / 180.0;
+                    double lblR = radius * 0.65;
+                    double lx = cx + lblR * Math.Cos(midAngle);
+                    double ly = cy + lblR * Math.Sin(midAngle);
+
+                    var lbl = new TextBlock
+                    {
+                        Text = $"{it.TyLe}%",
+                        FontSize = 9,
+                        FontWeight = FontWeights.Bold,
+                        Foreground = Brushes.Black
+                    };
+                    Canvas.SetLeft(lbl, lx - 14);
+                    Canvas.SetTop(lbl, ly - 7);
+                    CvsPieChart.Children.Add(lbl);
+                }
+
+                startAngle += sweepAngle;
+
+                // Add to Legend list
+                var legendItem = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
+                var colBox = new Rectangle { Width = 10, Height = 10, Fill = new SolidColorBrush(color), Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center };
+                var legendText = new TextBlock
+                {
+                    Text = $"{it.TenNhom}: {it.TyLe}%",
+                    FontSize = 9.5,
+                    Foreground = Brushes.Black,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxWidth = 120,
+                    ToolTip = $"{it.TenNhom}: {it.DoanhSo:#,##0} VNĐ ({it.TyLe}%)"
+                };
+                legendItem.Children.Add(colBox);
+                legendItem.Children.Add(legendText);
+                PnlPieLegend.Children.Add(legendItem);
+            }
+        }
+
+        private System.Windows.Shapes.Path CreatePieSlice(double cx, double cy, double r, double startAngle, double sweepAngle, Color color)
+        {
+            if (sweepAngle >= 360)
+            {
+                var ellipse = new EllipseGeometry(new Point(cx, cy), r, r);
+                return new System.Windows.Shapes.Path
+                {
+                    Fill = new SolidColorBrush(color),
+                    Stroke = Brushes.White,
+                    StrokeThickness = 1.5,
+                    Data = ellipse
+                };
+            }
+
+            double startRad = startAngle * Math.PI / 180.0;
+            double endRad = (startAngle + sweepAngle) * Math.PI / 180.0;
+
+            Point p1 = new Point(cx, cy);
+            Point p2 = new Point(cx + r * Math.Cos(startRad), cy + r * Math.Sin(startRad));
+            Point p3 = new Point(cx + r * Math.Cos(endRad), cy + r * Math.Sin(endRad));
+
+            var fig = new PathFigure { StartPoint = p1, IsClosed = true, IsFilled = true };
+            fig.Segments.Add(new LineSegment(p2, true));
+            fig.Segments.Add(new ArcSegment(p3, new Size(r, r), 0, sweepAngle > 180, SweepDirection.Clockwise, true));
+
+            var geo = new PathGeometry();
+            geo.Figures.Add(fig);
+
+            return new System.Windows.Shapes.Path
+            {
+                Fill = new SolidColorBrush(color),
+                Stroke = Brushes.White,
+                StrokeThickness = 1.5,
+                Data = geo
+            };
+        }
+
+        private decimal CalculateNiceStep(decimal max)
+        {
+            if (max <= 100000) return 20000;
+            if (max <= 500000) return 100000;
+            if (max <= 2000000) return 200000;
+            if (max <= 5000000) return 500000;
+            if (max <= 10000000) return 1000000;
+            return 2000000;
+        }
+
+        private void BtnPrint_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var printDlg = new PrintDialog();
+                if (printDlg.ShowDialog() == true)
+                {
+                    printDlg.PrintVisual(ReportPaper, "BIỂU ĐỒ DOANH SỐ THEO NHÓM HÀNG HÓA");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi in biểu đồ: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnExcel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var sfd = new SaveFileDialog
+                {
+                    Filter = "CSV File (*.csv)|*.csv",
+                    FileName = $"BieuDo_DoanhSoNhom_{DateTime.Now:yyyyMMdd_HHmm}.csv"
+                };
+
+                if (sfd.ShowDialog() == true)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine(TxtCompanyName.Text);
+                    sb.AppendLine("BIỂU ĐỒ DOANH SỐ THEO NHÓM HÀNG HÓA");
+                    sb.AppendLine(TxtFilterSummary.Text);
+                    sb.AppendLine();
+                    sb.AppendLine("STT,Nhóm hàng,Doanh số,Tỷ lệ %");
+
+                    int idx = 1;
+                    foreach (var it in _allData)
+                    {
+                        sb.AppendLine($"{idx++},\"{it.TenNhom}\",{it.DoanhSo},{it.TyLe}");
+                    }
+                    sb.AppendLine($"TỔNG CỘNG,,{_allData.Sum(x => x.DoanhSo)},100%");
+
+                    File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+                    MessageBox.Show("Xuất file báo cáo thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xuất file: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+}

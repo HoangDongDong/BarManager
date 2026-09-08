@@ -679,7 +679,9 @@ namespace QuanLyBar.Client.Services
 
         public static bool CheckPermissionAndAlert(string funcName, string action = "View", Window owner = null)
         {
-            if (!HasFunctionPermission(funcName, action))
+            bool isReport = MasterReports.Any(r => r.Name.Equals(funcName, StringComparison.OrdinalIgnoreCase));
+            bool hasPerm = isReport ? HasReportPermission(funcName) : HasFunctionPermission(funcName, action);
+            if (!hasPerm)
             {
                 MessageBox.Show("Bạn không có quyền sử dụng chức năng này! Mời bạn liên hệ với quản trị để xử lý.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
@@ -842,14 +844,41 @@ namespace QuanLyBar.Client.Services
             (39, "TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY", "BÁO CÁO ĐẶT HÀNG"),
 
             // BÁO CÁO KHO HÀNG
-            (40, "BÁO CÁO XUẤT BÁN HÀNG", "BÁO CÁO KHO HÀNG"),
-            (41, "BÁO CÁO KIỂM KÊ", "BÁO CÁO KHO HÀNG"),
-            (42, "BÁO CÁO XUẤT KHO", "BÁO CÁO KHO HÀNG"),
-            (43, "BÁO CÁO NHẬP KHO", "BÁO CÁO KHO HÀNG"),
-            (44, "BÁO CÁO CHUYỂN KHO", "BÁO CÁO KHO HÀNG"),
-            (45, "BÁO CÁO THEO HẠN DÙNG", "BÁO CÁO KHO HÀNG"),
-            (46, "BÁO CÁO TỔNG HỢP NHẬP XUẤT TỒN", "BÁO CÁO KHO HÀNG"),
-            (47, "BÁO CÁO THẺ KHO CHI TIẾT", "BÁO CÁO KHO HÀNG"),
+            (40, "TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (41, "BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG", "BÁO CÁO KHO HÀNG"),
+            (42, "BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG", "BÁO CÁO KHO HÀNG"),
+            (43, "DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (44, "TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (45, "TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (46, "DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (47, "TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (48, "TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (49, "DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (50, "TỔNG HỢP XUẤT KHÁC THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (51, "TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (52, "DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (53, "DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (54, "DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP", "BÁO CÁO KHO HÀNG"),
+            (55, "DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (56, "TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP", "BÁO CÁO KHO HÀNG"),
+            (57, "TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (58, "TỔNG HỢP NHẬP HÀNG THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (59, "TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP", "BÁO CÁO KHO HÀNG"),
+            (60, "TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN", "BÁO CÁO KHO HÀNG"),
+            (61, "TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (62, "TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN", "BÁO CÁO KHO HÀNG"),
+            (63, "TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN", "BÁO CÁO KHO HÀNG"),
+            (64, "TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (65, "DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT", "BÁO CÁO KHO HÀNG"),
+            (66, "DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP", "BÁO CÁO KHO HÀNG"),
+            (67, "DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY", "BÁO CÁO KHO HÀNG"),
+            (68, "BÁO CÁO HÀNG HÓA THEO HẠN DÙNG", "BÁO CÁO KHO HÀNG"),
+            (69, "BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG", "BÁO CÁO KHO HÀNG"),
+            (70, "BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG", "BÁO CÁO KHO HÀNG"),
+            (71, "BÁO CÁO HÀNG TỒN KHO", "BÁO CÁO KHO HÀNG"),
+            (72, "BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN", "BÁO CÁO KHO HÀNG"),
+            (73, "BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT", "BÁO CÁO KHO HÀNG"),
+            (74, "THẺ KHO", "BÁO CÁO KHO HÀNG"),
 
             // BÁO CÁO CÔNG NỢ
             (48, "ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP", "BÁO CÁO CÔNG NỢ"),
@@ -1848,5 +1877,95 @@ namespace QuanLyBar.Client.Services
             }
         }
         #endregion
+
+        public static async Task<List<BaoCaoPhanQuyenItem>> GetBaoCaoPhanQuyenDataAsync(string selectedGroupId, string selectedUserId, bool includeReports)
+        {
+            var result = new List<BaoCaoPhanQuyenItem>();
+            try
+            {
+                var allGroups = await GetGroupUsersAsync();
+                var allUsers = await GetUsersAsync();
+
+                string filterGroupId = selectedGroupId;
+
+                // If user selected a specific user, prioritize that user's group
+                if (!string.IsNullOrEmpty(selectedUserId))
+                {
+                    var userObj = allUsers.FirstOrDefault(u => u.Id == selectedUserId || u.UserId == selectedUserId);
+                    if (userObj != null && !string.IsNullOrEmpty(userObj.SgroupuserId))
+                    {
+                        filterGroupId = userObj.SgroupuserId;
+                    }
+                }
+
+                var targetGroups = allGroups.Where(g =>
+                    string.IsNullOrEmpty(filterGroupId) || g.Id == filterGroupId
+                ).ToList();
+
+                foreach (var grp in targetGroups)
+                {
+                    if (string.IsNullOrEmpty(grp.Id)) continue;
+
+                    // 1. Chức năng
+                    var funcs = await GetFunctionRolesAsync(grp.Id);
+                    foreach (var f in funcs)
+                    {
+                        string subG = string.IsNullOrWhiteSpace(f.GroupName) ? "Chức năng khác" : f.GroupName;
+                        result.Add(new BaoCaoPhanQuyenItem
+                        {
+                            GroupUserId = grp.Id,
+                            GroupUserName = grp.Name,
+                            CategoryType = "CHỨC NĂNG",
+                            SubGroup = subG,
+                            FunctionName = f.FunctionName,
+                            CanView = f.CanView,
+                            CanAdd = f.CanAdd,
+                            CanEdit = f.CanEdit,
+                            CanDelete = f.CanDelete
+                        });
+                    }
+
+                    // 2. Báo cáo (nếu chọn CheckBox)
+                    if (includeReports)
+                    {
+                        var reports = await GetReportRolesAsync(grp.Id);
+                        foreach (var r in reports)
+                        {
+                            string subG = string.IsNullOrWhiteSpace(r.GroupName) ? "Báo cáo hệ thống" : r.GroupName;
+                            result.Add(new BaoCaoPhanQuyenItem
+                            {
+                                GroupUserId = grp.Id,
+                                GroupUserName = grp.Name,
+                                CategoryType = "BÁO CÁO",
+                                SubGroup = subG,
+                                FunctionName = r.ReportName,
+                                CanView = r.IsAllowed,
+                                CanAdd = false,
+                                CanEdit = false,
+                                CanDelete = false
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error GetBaoCaoPhanQuyenDataAsync: " + ex.Message);
+            }
+            return result;
+        }
+    }
+
+    public class BaoCaoPhanQuyenItem
+    {
+        public string GroupUserId { get; set; } = "";
+        public string GroupUserName { get; set; } = "";
+        public string CategoryType { get; set; } = ""; // "CHỨC NĂNG" hoặc "BÁO CÁO"
+        public string SubGroup { get; set; } = "";     // Ví dụ: "Bán hàng", "Kho hàng", "Báo cáo"
+        public string FunctionName { get; set; } = "";
+        public bool CanView { get; set; }
+        public bool CanAdd { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
     }
 }

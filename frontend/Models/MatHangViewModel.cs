@@ -24,12 +24,14 @@ namespace QuanLyBar.Client.Models
         
         public string DnhommathangId { get; set; }
         public string DloaimathangId { get; set; }
+        public string DhangsanxuatId { get; set; }
         public string DdonvitinhId { get; set; }
         public string DdonvitinhchanId { get; set; }
 
         // Các trường lấy từ JOIN bảng khác
         public string NhomMatHangName { get; set; } // Tên nhóm mặt hàng
         public string LoaiMatHangName { get; set; } // Tên loại mặt hàng
+        public string HangSanXuatName { get; set; } // Tên hãng sản xuất
         public string DonViTinhName { get; set; } // Tên đơn vị tính
         public string DonViTinhChanName { get; set; } // Tên đơn vị tính chẵn
 

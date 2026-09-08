@@ -77,12 +77,12 @@
         <!-- 0. Thanh Lọc 1 -->
         <Border Grid.Row="0" Background="#e3eaf5" Padding="6,4" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <!-- Ngày Từ - Đến -->
-                <TextBlock Text="Ngày" VerticalAlignment="Center" FontWeight="SemiBold" Margin="2,0,4,0" Foreground="#222"/>
-                <TextBlock Text="Từ:" VerticalAlignment="Center" Margin="0,0,3,0" Foreground="#333"/>
+                <!-- Ngày / Từ ngày -->
+                <TextBlock x:Name="TxtNgayPrefix" Text="Ngày" VerticalAlignment="Center" FontWeight="SemiBold" Margin="2,0,4,0" Foreground="#222"/>
+                <TextBlock x:Name="TxtTuNgayLabel" Text="Từ:" VerticalAlignment="Center" Margin="0,0,3,0" Foreground="#333"/>
                 <DatePicker x:Name="DpTuNgay" Width="105" Height="24" SelectedDateChanged="Filter_Changed"/>
 
-                <TextBlock Text="Đến" VerticalAlignment="Center" Margin="8,0,3,0" Foreground="#333"/>
+                <TextBlock x:Name="TxtDenNgayLabel" Text="Đến" VerticalAlignment="Center" Margin="8,0,3,0" Foreground="#333"/>
                 <DatePicker x:Name="DpDenNgay" Width="105" Height="24" SelectedDateChanged="Filter_Changed"/>
 
                 <!-- Nút chọn nhanh khoảng ngày -->
@@ -108,9 +108,9 @@
                     </Button.ContextMenu>
                 </Button>
 
-                <!-- Lý do thu chi -->
-                <TextBlock Text="Lý do thu chi" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0,5,0" Foreground="#222"/>
-                <ComboBox x:Name="CboLyDo" Width="170" Height="24" Margin="0,0,10,0" SelectionChanged="Filter_Changed" Background="White">
+                <!-- Lý do thu chi / Loại quỹ -->
+                <TextBlock x:Name="TxtLyDoLabel" Text="Lý do thu chi" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0,5,0" Foreground="#222"/>
+                <ComboBox x:Name="CboLyDo" Width="150" Height="24" Margin="0,0,10,0" SelectionChanged="Filter_Changed" Background="White">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="2,1">
@@ -121,9 +121,9 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
 
-                <!-- Cửa hàng -->
-                <TextBlock Text="Cửa hàng" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0,5,0" Foreground="#222"/>
-                <ComboBox x:Name="CboCuaHang" Width="160" Height="24" Margin="0,0,10,0" SelectionChanged="Filter_Changed" Background="White">
+                <!-- Cửa hàng / Tài khoản -->
+                <TextBlock x:Name="TxtCuaHangLabel" Text="Cửa hàng" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0,5,0" Foreground="#222"/>
+                <ComboBox x:Name="CboCuaHang" Width="150" Height="24" Margin="0,0,10,0" SelectionChanged="Filter_Changed" Background="White">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="2,1">
@@ -218,30 +218,15 @@
                             <!-- Logo Bếp / Dao Nĩa -->
                             <Image x:Name="ImgLogo" Grid.Column="0" Width="90" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
                             <Viewbox x:Name="VbDefaultLogo" Grid.Column="0" Width="85" Height="75" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Canvas Width="100" Height="90">
-                                    <!-- Mũ đầu bếp viền nét -->
-                                    <Path Stroke="#222" StrokeThickness="2.2" Fill="White"
-                                          Data="M 26,52 C 16,46 14,32 24,22 C 22,10 38,4 50,14 C 62,4 78,10 76,22 C 86,32 84,46 74,52 Z"/>
-                                    <!-- Nĩa (Trái qua Phải) -->
-                                    <Path Stroke="#222" StrokeThickness="2.2" Fill="#222"
-                                          Data="M 33,30 L 67,64"/>
-                                    <Path Stroke="#222" StrokeThickness="1.8" Fill="#222"
-                                          Data="M 27,24 L 35,32 M 25,28 L 31,34 M 29,22 L 35,28 M 32,20 L 38,26"/>
-                                    <!-- Muỗng (Phải qua Trái) -->
-                                    <Path Stroke="#222" StrokeThickness="2.2" Fill="#222"
-                                          Data="M 67,30 L 33,64"/>
-                                    <Ellipse Canvas.Left="64" Canvas.Top="20" Width="12" Height="16" Stroke="#222" StrokeThickness="2" Fill="#222">
-                                        <Ellipse.RenderTransform>
-                                            <RotateTransform Angle="45" CenterX="6" CenterY="8"/>
-                                        </Ellipse.RenderTransform>
-                                    </Ellipse>
-                                    <!-- Bát / Đĩa đáy -->
-                                    <Path Stroke="#222" StrokeThickness="2.5" Fill="White"
-                                          Data="M 20,52 Q 50,82 80,52 Z"/>
-                                    <!-- Đường đế -->
-                                    <Path Stroke="#222" StrokeThickness="2"
-                                          Data="M 32,74 L 68,74"/>
-                                </Canvas>
+                                <Grid Width="100" Height="100">
+                                    <Border Background="#F8FAFC" BorderBrush="#007ACC" BorderThickness="2" CornerRadius="50" Width="96" Height="96"/>
+                                    <Canvas Width="100" Height="100">
+                                        <!-- Fork -->
+                                        <Path Fill="#007ACC" Data="M 32,24 L 32,42 C 32,46 36,49 40,49 L 40,78 L 44,78 L 44,49 C 48,49 52,46 52,42 L 52,24 L 48,24 L 48,38 L 45,38 L 45,24 L 43,24 L 43,38 L 41,38 L 41,24 L 39,24 L 39,38 L 36,38 L 36,24 Z"/>
+                                        <!-- Knife -->
+                                        <Path Fill="#2C3E50" Data="M 58,24 C 64,24 68,32 68,44 L 62,44 L 62,78 L 58,78 Z"/>
+                                    </Canvas>
+                                </Grid>
                             </Viewbox>
 
                             <!-- Thông tin nhà hàng -->
@@ -265,8 +250,8 @@
                             <!-- Thông tin ngày & bộ lọc bên trái -->
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock x:Name="TxtDateRange" Text="Ngày từ 01/09/2026 đến 30/09/2026" FontSize="10.5" Margin="0,0,0,2" Foreground="#222"/>
-                                <TextBlock x:Name="TxtLyDoDisplay" Text="Lý do thu chi: Tạm ứng" FontSize="10.5" Margin="0,0,0,2" Foreground="#222"/>
-                                <TextBlock x:Name="TxtCuaHangDisplay" Text="Cửa hàng: Khách test" FontSize="10.5" Foreground="#222"/>
+                                <TextBlock x:Name="TxtLyDoDisplay" Text="Lý do thu chi: Tạm ứng" FontSize="10.5" Margin="0,0,0,2" Foreground="#222" Visibility="Collapsed"/>
+                                <TextBlock x:Name="TxtCuaHangDisplay" Text="Cửa hàng: Khách test" FontSize="10.5" Foreground="#222" Visibility="Collapsed"/>
                             </StackPanel>
 
                             <!-- Tiêu đề báo cáo in hoa đậm ở giữa / phải -->
@@ -281,7 +266,7 @@
                         </StackPanel>
 
                         <!-- 3. Chữ Ký Footer -->
-                        <Grid Grid.Row="3" Margin="0,20,0,15">
+                        <Grid x:Name="GridFooterSignatures" Grid.Row="3" Margin="0,20,0,15">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>

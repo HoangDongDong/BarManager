@@ -212,64 +212,96 @@ namespace QuanLyBar.Client.Views
             }
         }
 
-        private async void BtnThemKhuVuc_Click(object sender, RoutedEventArgs e)
+        private void BtnThemKhuVuc_Click(object sender, RoutedEventArgs e)
         {
             var selectedKhuVuc = TvKhuVuc.SelectedItem as KhuVucViewModel;
+            string parentId = (selectedKhuVuc != null && !string.IsNullOrEmpty(selectedKhuVuc.Id) && selectedKhuVuc.Id != "-1") ? selectedKhuVuc.Id : null;
 
-            var win = new ThemKhuVucWindow("THÊM MỚI KHU VỰC");
-            if (win.ShowDialog() == true)
+            var flatList = GetFlatKhuVucList();
+            var win = new ThemKhuVucWindow(isThuMuc: false, khuVucIdToEdit: null, khuVucList: flatList, initialIndex: -1, onDataSaved: async () =>
             {
-                string parentId = null;
-                if (selectedKhuVuc != null && !string.IsNullOrEmpty(selectedKhuVuc.Id))
-                {
-                    parentId = selectedKhuVuc.Id;
-                }
+                await ReloadTreeViewAsync();
+                await LoadBanData(parentId);
+            }, initialName: null, parentId: parentId);
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
 
-                var newKhuVuc = new DKHUVUC
-                {
-                    Name = win.TenKhuVuc,
-                    ParentId = parentId
-                };
-
-                bool success = await _service.InsertKhuVucAsync(newKhuVuc.Name, newKhuVuc.ParentId);
-                if (success)
-                {
-                    await ReloadTreeViewAsync();
-                }
+        private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TreeViewItem tvi && tvi.DataContext is KhuVucViewModel selected)
+            {
+                if (string.IsNullOrEmpty(selected.Id) || selected.Id == "-1") return;
+                OpenEditKhuVucWindow(selected);
+                e.Handled = true;
             }
         }
 
-        private async void BtnSuaKhuVuc_Click(object sender, RoutedEventArgs e)
+        private void BtnSuaKhuVuc_Click(object sender, RoutedEventArgs e)
         {
             var selectedKhuVuc = TvKhuVuc.SelectedItem as KhuVucViewModel;
-            if (selectedKhuVuc != null && !string.IsNullOrEmpty(selectedKhuVuc.Id))
+            if (selectedKhuVuc != null && !string.IsNullOrEmpty(selectedKhuVuc.Id) && selectedKhuVuc.Id != "-1")
             {
-                if (selectedKhuVuc.Id == "-1")
-                {
-                    MessageBox.Show("Không thể sửa Thùng rác!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                var win = new ThemKhuVucWindow("SỬA KHU VỰC", selectedKhuVuc.Name);
-                if (win.ShowDialog() == true)
-                {
-                    var updatedKhuVuc = new DKHUVUC
-                    {
-                        Id = selectedKhuVuc.Id,
-                        Name = win.TenKhuVuc
-                    };
-
-                    bool success = await _service.UpdateKhuVucAsync(updatedKhuVuc.Id, updatedKhuVuc.Name);
-                    if (success)
-                    {
-                        await ReloadTreeViewAsync();
-                    }
-                }
+                OpenEditKhuVucWindow(selectedKhuVuc);
             }
             else
             {
                 MessageBox.Show("Vui lòng chọn khu vực cụ thể cần sửa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private void OpenEditKhuVucWindow(KhuVucViewModel selected)
+        {
+            if (selected == null || string.IsNullOrEmpty(selected.Id) || selected.Id == "-1")
+            {
+                MessageBox.Show("Vui lòng chọn một khu vực để chỉnh sửa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var flatList = GetFlatKhuVucList();
+            int initialIndex = flatList.FindIndex(k => k.Id == selected.Id);
+
+            var win = new ThemKhuVucWindow(
+                isThuMuc: false,
+                khuVucIdToEdit: selected.Id,
+                khuVucList: flatList,
+                initialIndex: initialIndex,
+                onDataSaved: async () =>
+                {
+                    await ReloadTreeViewAsync();
+                    await LoadBanData(selected.Id);
+                },
+                initialName: selected.Name
+            );
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private List<KhuVucViewModel> GetFlatKhuVucList()
+        {
+            var list = new List<KhuVucViewModel>();
+            if (TvKhuVuc.ItemsSource is System.Collections.IEnumerable roots)
+            {
+                void Flatten(System.Collections.IEnumerable items)
+                {
+                    foreach (var item in items)
+                    {
+                        if (item is KhuVucViewModel it)
+                        {
+                            if (!string.IsNullOrEmpty(it.Id) && it.Id != "-1")
+                            {
+                                list.Add(it);
+                            }
+                            if (it.Children != null && it.Children.Count > 0)
+                            {
+                                Flatten(it.Children);
+                            }
+                        }
+                    }
+                }
+                Flatten(roots);
+            }
+            return list;
         }
 
         private async void BtnXoaKhuVuc_Click(object sender, RoutedEventArgs e)
@@ -306,23 +338,15 @@ namespace QuanLyBar.Client.Views
             }
         }
 
-        private async void BtnThemThuMucKhuVuc_Click(object sender, RoutedEventArgs e)
+        private void BtnThemThuMucKhuVuc_Click(object sender, RoutedEventArgs e)
         {
-            var win = new ThemKhuVucWindow("TẠO MỚI THƯ MỤC KHU VỰC");
-            if (win.ShowDialog() == true)
+            var flatList = GetFlatKhuVucList();
+            var win = new ThemKhuVucWindow(isThuMuc: true, khuVucIdToEdit: null, khuVucList: flatList, initialIndex: -1, onDataSaved: async () =>
             {
-                var newKhuVuc = new DKHUVUC
-                {
-                    Name = win.TenKhuVuc,
-                    ParentId = null // Thư mục nằm ở gốc
-                };
-
-                bool success = await _service.InsertKhuVucAsync(newKhuVuc.Name, newKhuVuc.ParentId);
-                if (success)
-                {
-                    await ReloadTreeViewAsync();
-                }
-            }
+                await ReloadTreeViewAsync();
+            }, initialName: null, parentId: null);
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
         }
 
         private async Task ReloadTreeViewAsync()
@@ -467,9 +491,19 @@ namespace QuanLyBar.Client.Views
             var newBan = new DBAN { DkhuvucId = selectedKhuVucId };
             var banList = DgBan.ItemsSource as List<BanViewModel>;
             var win = new ThemMoiBanWindow(newBan, banList);
+            win.Owner = Window.GetWindow(this);
             if (win.ShowDialog() == true)
             {
                 await LoadBanData(selectedKhuVucId);
+            }
+        }
+
+        private void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row && row.Item is BanViewModel)
+            {
+                BtnSuaBan_Click(sender, e);
+                e.Handled = true;
             }
         }
 
@@ -477,13 +511,15 @@ namespace QuanLyBar.Client.Views
         {
             if (DgBan.SelectedItem is BanViewModel selectedRow)
             {
-                if (int.TryParse(selectedRow.Id, out int banId))
+                if (!string.IsNullOrEmpty(selectedRow.Id))
                 {
-                    var editBan = await _service.GetBanByIdAsync(banId.ToString());
+                    var editBan = await _service.GetBanByIdAsync(selectedRow.Id);
                     if (editBan != null)
                     {
                         var banList = DgBan.ItemsSource as List<BanViewModel>;
-                        var win = new ThemMoiBanWindow(editBan, banList);
+                        int initialIndex = banList != null ? banList.IndexOf(selectedRow) : -1;
+                        var win = new ThemMoiBanWindow(editBan, banList, initialIndex);
+                        win.Owner = Window.GetWindow(this);
                         if (win.ShowDialog() == true)
                         {
                             var khuVucId = (TvKhuVuc.SelectedItem as KhuVucViewModel)?.Id;
