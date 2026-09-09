@@ -902,6 +902,19 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private void TvCategoryTree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TreeViewItem tvi && tvi.IsSelected)
+            {
+                e.Handled = true;
+                if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected)
+                {
+                    if (selected.Id == null || selected.Id == "-1") return;
+                    BtnSuaPhuongThuc_Click(sender, e);
+                }
+            }
+        }
+
         private void BtnSuaPhuongThuc_Click(object sender, RoutedEventArgs e)
         {
             if (TvCategoryTree.SelectedItem is TreeCategoryViewModel selected)

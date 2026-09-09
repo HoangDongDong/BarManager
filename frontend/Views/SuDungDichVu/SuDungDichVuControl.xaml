@@ -62,7 +62,7 @@
                                                     BorderBrush="{Binding SelectionBorderBrush}"
                                                     Background="{Binding SelectionBackground}"
                                                     BorderThickness="2" CornerRadius="4">
-                                                <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Click="Ban_Click" PreviewMouseRightButtonDown="Ban_PreviewMouseRightButtonDown" Tag="{Binding}">
+                                                <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Click="Ban_Click" MouseDoubleClick="Ban_MouseDoubleClick" PreviewMouseRightButtonDown="Ban_PreviewMouseRightButtonDown" Tag="{Binding}">
                                                     <Button.ContextMenu>
                                                         <ContextMenu Opened="TableContextMenu_Opened">
                                                             <MenuItem Header="➕ Mở bàn" Click="MnuMoBan_Click"/>

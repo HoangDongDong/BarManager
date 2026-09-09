@@ -305,6 +305,18 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private void Ban_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is PosBanViewModel ban)
+            {
+                SelectBan(ban);
+                if (!ban.IsOccupied)
+                {
+                    BtnBatDau_Click(this, new RoutedEventArgs());
+                }
+            }
+        }
+
         private void Ban_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is Button btn && btn.Tag is PosBanViewModel ban)
