@@ -1214,6 +1214,18 @@ namespace QuanLyBar.Client
                         win.ShowDialog();
                         return;
                     }
+                    else if (tabName == "Ghi chú" || tabName == "Ghi chú nhanh")
+                    {
+                        var win = new QuanLyBar.Client.Views.TienIch.GhiChuNhanhWindow();
+                        win.Owner = this;
+                        win.ShowDialog();
+                        return;
+                    }
+                    else if (tabName == "Báo cáo" || tabName == "Tất cả báo cáo" || tabName == "BÁO CÁO")
+                    {
+                        tabName = "Báo cáo";
+                        content = new QuanLyBar.Client.Views.BaoCaoMainControl();
+                    }
                     else
                     {
                         MessageBox.Show("Bạn không có quyền sử dụng chức năng này! Mời bạn liên hệ với quản trị để xử lý.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);

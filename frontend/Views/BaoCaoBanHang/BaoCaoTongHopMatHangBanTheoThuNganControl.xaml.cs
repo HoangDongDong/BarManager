@@ -122,7 +122,19 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             if (string.IsNullOrWhiteSpace(khoText) || khoText.Contains("Tất cả")) khoText = "Tất cả";
             string tnText = (CboThanhToanBoi.SelectedItem as FilterComboItem)?.Name;
             if (string.IsNullOrWhiteSpace(tnText) || tnText.Contains("Tất cả")) tnText = "Tất cả";
-            TxtFilterSummary.Text = $"Kho xuất: {khoText} | Thu ngân: {tnText}";
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(khoText)) parts.Add($"Kho xuất: {khoText}");
+            if (Utilities.IsSpecificFilter(tnText)) parts.Add($"Thu ngân: {tnText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             if (tuNgay == denNgay)
             {

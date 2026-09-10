@@ -132,7 +132,19 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             if (string.IsNullOrWhiteSpace(kvText) || kvText.Contains("Tất cả")) kvText = "Tất cả";
             string nhomText = (CboNhomHienThi.SelectedItem as FilterComboItem)?.Name;
             if (string.IsNullOrWhiteSpace(nhomText) || nhomText.Contains("Tất cả")) nhomText = "Tất cả";
-            TxtFilterSummary.Text = $"Khu vực: {kvText} | Nhóm hiển thị: {nhomText}";
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(kvText)) parts.Add($"Khu vực: {kvText}");
+            if (Utilities.IsSpecificFilter(nhomText)) parts.Add($"Nhóm hiển thị: {nhomText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             if (tuNgay == denNgay)
             {

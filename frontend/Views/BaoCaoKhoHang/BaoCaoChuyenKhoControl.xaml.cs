@@ -249,7 +249,21 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             string khoNhapName = (CboKhoNhap.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
             string nhomName = (CboNhomHang.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
             string nvName = (CboNhanVien.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
-            TxtFilterSummary.Text = $"Kho xuất: {khoXuatName} | Kho nhập: {khoNhapName} | Nhóm: {nhomName} | Nhân viên: {nvName}";
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(khoXuatName)) parts.Add($"Kho xuất: {khoXuatName}");
+            if (Utilities.IsSpecificFilter(khoNhapName)) parts.Add($"Kho nhập: {khoNhapName}");
+            if (Utilities.IsSpecificFilter(nhomName)) parts.Add($"Nhóm: {nhomName}");
+            if (Utilities.IsSpecificFilter(nvName)) parts.Add($"Nhân viên: {nvName}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             switch (_mode)
             {

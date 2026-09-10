@@ -140,12 +140,25 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             }
 
             string nhomKhachText = (CboNhomKhach.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(nhomKhachText)) nhomKhachText = "Tất cả";
+            
             string khText = (CboKhachHang.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(khText)) khText = "Tất cả";
+            
             string mhText = (CboMatHang.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(mhText)) mhText = "Tất cả";
-            TxtFilterSummary.Text = $"Nhóm khách: {nhomKhachText} | Khách hàng: {khText} | Mặt hàng: {mhText}";
+            
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(nhomKhachText)) parts.Add($"Nhóm khách: {nhomKhachText}");
+            if (Utilities.IsSpecificFilter(khText)) parts.Add($"Khách hàng: {khText}");
+            if (Utilities.IsSpecificFilter(mhText)) parts.Add($"Mặt hàng: {mhText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             _allData = await _hoaDonService.GetTongHopMatHangBanTheoKhachHangAsync(tuNgay, denNgay, nhomKhachId, khachHangId, matHangId);
 

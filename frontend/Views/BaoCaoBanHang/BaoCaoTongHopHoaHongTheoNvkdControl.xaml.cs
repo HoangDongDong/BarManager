@@ -132,12 +132,25 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             }
 
             string khoText = (CboKhoXuat.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(khoText)) khoText = "Tất cả";
+            
             string nvBanText = (CboNhanVienBan.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(nvBanText)) nvBanText = "Tất cả";
+            
             string nvXuatText = (CboNhanVienXuat.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(nvXuatText)) nvXuatText = "Tất cả";
-            TxtFilterSummary.Text = $"Kho xuất: {khoText} | NV bán: {nvBanText} | NV xuất: {nvXuatText}";
+            
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(khoText)) parts.Add($"Kho xuất: {khoText}");
+            if (Utilities.IsSpecificFilter(nvBanText)) parts.Add($"NV bán: {nvBanText}");
+            if (Utilities.IsSpecificFilter(nvXuatText)) parts.Add($"NV xuất: {nvXuatText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             _allData = await _hoaDonService.GetTongHopHoaHongTheoNvkdAsync(tuNgay, denNgay, khoId, nhanVienBanId, nhanVienXuatId);
 

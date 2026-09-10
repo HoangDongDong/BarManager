@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -104,7 +104,18 @@ namespace QuanLyBar.Client.Views.BaoCaoCongNo
             string nccName = (CboNhaCungCap.SelectedItem as CongNoFilterComboItem)?.Name ?? "";
 
             TxtSubTitleDate.Text = $"Từ ngày {tuNgay:dd/MM/yyyy} Đến ngày {denNgay:dd/MM/yyyy}";
-            TxtFilterSummary.Text = $"Nhà cung cấp: {nccName}";
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(nccName)) parts.Add($"Nhà cung cấp: {nccName}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
             TxtSignDate.Text = $"Ngày {DateTime.Today:dd} tháng {DateTime.Today:MM} năm {DateTime.Today:yyyy}";
 
             _data = await LocalBaoCaoCongNoService.GetDoiChieuCongNoNccAsync(tuNgay, denNgay, nccId);

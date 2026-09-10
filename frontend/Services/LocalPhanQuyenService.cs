@@ -679,6 +679,12 @@ namespace QuanLyBar.Client.Services
 
         public static bool CheckPermissionAndAlert(string funcName, string action = "View", Window owner = null)
         {
+            if (string.IsNullOrWhiteSpace(funcName)) return true;
+            if (funcName.Equals("Báo cáo", StringComparison.OrdinalIgnoreCase) || 
+                funcName.Equals("Ghi chú", StringComparison.OrdinalIgnoreCase) ||
+                funcName.Equals("Ghi chú nhanh", StringComparison.OrdinalIgnoreCase))
+                return true;
+
             bool isReport = MasterReports.Any(r => r.Name.Equals(funcName, StringComparison.OrdinalIgnoreCase));
             bool hasPerm = isReport ? HasReportPermission(funcName) : HasFunctionPermission(funcName, action);
             if (!hasPerm)

@@ -1,0 +1,97 @@
+<Window x:Class="QuanLyBar.Client.Views.TienIch.GhiChuNhanhWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ghi chú nhanh" Height="500" Width="700"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize" Background="#dbe5f2">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header Bar -->
+        <Border Grid.Row="0" Background="#f0f4fa" Padding="8,6" BorderBrush="#a4bce3" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="📝 " FontSize="16"/>
+                <TextBlock Text="Ghi chú nhanh" FontSize="14" FontWeight="Bold" Foreground="#1e3f66" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Toolbar (Pagination + Formatting) -->
+        <Border Grid.Row="1" Background="#e2ebf6" Padding="4,2" BorderBrush="#a4bce3" BorderThickness="0,0,0,1">
+            <WrapPanel VerticalAlignment="Center">
+                <!-- Page Controls -->
+                <Button x:Name="BtnDeletePage" Content="❌" ToolTip="Xóa trang này" Width="26" Height="24" Margin="2,0" Click="BtnDeletePage_Click"/>
+                <Button x:Name="BtnPrevPage" Content="◀" ToolTip="Trang trước" Width="26" Height="24" Margin="2,0" Click="BtnPrevPage_Click"/>
+                <TextBlock x:Name="TxtPageInfo" Text="1/1" VerticalAlignment="Center" Margin="5,0" FontWeight="SemiBold" Foreground="#1e3f66"/>
+                <Button x:Name="BtnNextPage" Content="▶" ToolTip="Trang sau" Width="26" Height="24" Margin="2,0" Click="BtnNextPage_Click"/>
+                <Button x:Name="BtnAddPage" Content="➕" ToolTip="Thêm trang mới" Width="26" Height="24" Margin="2,0" Click="BtnAddPage_Click"/>
+                <ComboBox x:Name="CboPages" Width="100" Height="24" Margin="5,0" SelectionChanged="CboPages_SelectionChanged"/>
+
+                <Separator Width="1" Height="18" Margin="8,0" Background="#a4bce3"/>
+
+                <!-- Formatting Controls (B, I, U, S) -->
+                <ToggleButton Command="EditingCommands.ToggleBold" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="In đậm (Bold)">
+                    <TextBlock Text="B" FontWeight="Bold"/>
+                </ToggleButton>
+                <ToggleButton Command="EditingCommands.ToggleItalic" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="In nghiêng (Italic)">
+                    <TextBlock Text="I" FontStyle="Italic"/>
+                </ToggleButton>
+                <ToggleButton Command="EditingCommands.ToggleUnderline" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="Gạch chân (Underline)">
+                    <TextBlock Text="U" TextDecorations="Underline"/>
+                </ToggleButton>
+                <Button x:Name="BtnStrikethrough" Width="26" Height="24" Margin="1,0" ToolTip="Gạch ngang (Strikethrough)" Click="BtnStrikethrough_Click">
+                    <TextBlock Text="S" TextDecorations="{x:Static TextDecorations.Strikethrough}"/>
+                </Button>
+
+                <Separator Width="1" Height="18" Margin="5,0" Background="#a4bce3"/>
+
+                <!-- Alignments -->
+                <Button Command="EditingCommands.AlignLeft" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="Căn trái">
+                    <TextBlock Text="⬅" FontSize="11"/>
+                </Button>
+                <Button Command="EditingCommands.AlignCenter" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="Căn giữa">
+                    <TextBlock Text="↔" FontSize="11"/>
+                </Button>
+                <Button Command="EditingCommands.AlignRight" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="Căn phải">
+                    <TextBlock Text="➡" FontSize="11"/>
+                </Button>
+                <Button Command="EditingCommands.AlignJustify" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="Căn đều">
+                    <TextBlock Text="☰" FontSize="11"/>
+                </Button>
+
+                <Separator Width="1" Height="18" Margin="5,0" Background="#a4bce3"/>
+
+                <!-- Lists & Indent -->
+                <Button Command="EditingCommands.ToggleBullets" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="Danh sách dấu chấm">
+                    <TextBlock Text="•≡"/>
+                </Button>
+                <Button Command="EditingCommands.ToggleNumbering" CommandTarget="{Binding ElementName=RtbContent}" Width="26" Height="24" Margin="1,0" ToolTip="Danh sách số">
+                    <TextBlock Text="1.≡"/>
+                </Button>
+
+                <Separator Width="1" Height="18" Margin="5,0" Background="#a4bce3"/>
+
+                <!-- Special Tools: Time & Line -->
+                <Button x:Name="BtnInsertTimestamp" Width="26" Height="24" Margin="1,0" ToolTip="Chèn thời gian hiện tại" Click="BtnInsertTimestamp_Click">
+                    <TextBlock Text="🕒"/>
+                </Button>
+                <Button x:Name="BtnInsertLine" Width="26" Height="24" Margin="1,0" ToolTip="Chèn đường gạch ngang" Click="BtnInsertLine_Click">
+                    <TextBlock Text="➖"/>
+                </Button>
+            </WrapPanel>
+        </Border>
+
+        <!-- Rich Text Area -->
+        <RichTextBox x:Name="RtbContent" Grid.Row="2" Margin="2" Padding="10"
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                     FontSize="13" TextChanged="RtbContent_TextChanged">
+            <FlowDocument x:Name="FlowDoc">
+                <Paragraph>
+                    <Run Text=""/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+    </Grid>
+</Window>

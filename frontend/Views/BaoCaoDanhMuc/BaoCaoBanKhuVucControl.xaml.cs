@@ -146,7 +146,18 @@ namespace QuanLyBar.Client.Views.BaoCaoDanhMuc
             try
             {
                 string kvText = (CboKhuVuc.SelectedItem as ComboLookupItem)?.Name ?? "Tất cả";
-                TxtFilterSummary.Text = $"Khu vực: {kvText}";
+                var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(kvText)) parts.Add($"Khu vực: {kvText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
                 _rawItems = await _banKhuVucService.GetBanListAsync(null);
                 RenderReportTable();

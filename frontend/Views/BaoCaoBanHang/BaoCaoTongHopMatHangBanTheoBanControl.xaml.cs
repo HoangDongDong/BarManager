@@ -138,10 +138,22 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             }
 
             string kvText = (CboKhuVuc.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(kvText)) kvText = "Tất cả";
+            
             string nhomText = (CboNhomMatHang.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(nhomText)) nhomText = "Tất cả";
-            TxtFilterSummary.Text = $"Khu vực: {kvText} | Nhóm hàng: {nhomText}";
+            
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(kvText)) parts.Add($"Khu vực: {kvText}");
+            if (Utilities.IsSpecificFilter(nhomText)) parts.Add($"Nhóm hàng: {nhomText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             _allData = await _hoaDonService.GetTongHopMatHangBanTheoBanAsync(tuNgay, denNgay, khuVucId, nhomMatHangId);
 

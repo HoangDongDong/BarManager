@@ -747,6 +747,45 @@ namespace QuanLyBar.Client.Services
             return roundedSteps * roundStepMinutes;
         }
 
+        public static async Task<string> GetConfigValueAsync(string key, string defaultValue = "")
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    var row = (await conn.QueryAsync("SELECT TEXTVALUE FROM SCONFIG WHERE UPPER(NAME) = UPPER(@Key)", new { Key = key })).FirstOrDefault();
+                    if (row != null)
+                    {
+                        var dict = row as IDictionary<string, object>;
+                        string val = GetValue(dict, "TEXTVALUE")?.ToString();
+                        if (val != null) return val;
+                    }
+                }
+            }
+            catch { }
+            return defaultValue;
+        }
+
+        public static async Task SaveSingleConfigAsync(string key, string value)
+        {
+            try
+            {
+                _configCache[key] = value ?? "";
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+                    int affected = await conn.ExecuteAsync("UPDATE SCONFIG SET TEXTVALUE = @Value WHERE UPPER(NAME) = UPPER(@Key)", new { Key = key, Value = value ?? "" });
+                    if (affected == 0)
+                    {
+                        var maxId = await GetNextSConfigIdAsync(conn);
+                        await conn.ExecuteAsync("INSERT INTO SCONFIG (ID, NAME, TEXTVALUE) VALUES (@Id, @Key, @Value)", new { Id = maxId, Key = key.ToUpper(), Value = value ?? "" });
+                    }
+                }
+            }
+            catch { }
+        }
+
         public static double RoundMinutesWithSystemConfig(double totalMinutes)
         {
             int step = GetIntConfig("LamTronMatHangDichVuTheoGio", 0);

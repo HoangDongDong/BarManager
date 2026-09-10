@@ -112,8 +112,19 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             }
 
             string ttText = (CboThanhToanBoi.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(ttText)) ttText = "Tất cả";
-            TxtFilterSummary.Text = $"Thu ngân: {ttText}";
+            
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(ttText)) parts.Add($"Thu ngân: {ttText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             _allData = await _hoaDonService.GetBaoCaoChiTietHangKhuyenMaiAsync(tuNgay, denNgay, thanhToanBoiId);
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -370,24 +370,53 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
             if (_mode == BaoCaoQuyMode.TonQuy)
             {
                 TxtDateRange.Text = $"Từ ngày: {fDate} đến ngày {tDate}";
-                string qName = (CboLyDo.SelectedItem as ComboLookupItem)?.Name ?? "Tất cả các quỹ";
-                string tkName = (CboCuaHang.SelectedItem as ComboLookupItem)?.Name ?? "Tất cả";
-                TxtLyDoDisplay.Text = $"Quỹ tiền: {(string.IsNullOrEmpty(qName) ? "Tất cả các quỹ" : qName)}";
-                TxtLyDoDisplay.Visibility = Visibility.Visible;
-                TxtCuaHangDisplay.Text = $"Tài khoản NH: {(string.IsNullOrEmpty(tkName) ? "Tất cả" : tkName)}";
-                TxtCuaHangDisplay.Visibility = Visibility.Visible;
+                string qName = (CboLyDo.SelectedItem as ComboLookupItem)?.Name;
+                string tkName = (CboCuaHang.SelectedItem as ComboLookupItem)?.Name;
+                if (Utilities.IsSpecificFilter(qName))
+                {
+                    TxtLyDoDisplay.Text = $"Quỹ tiền: {qName}";
+                    TxtLyDoDisplay.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TxtLyDoDisplay.Visibility = Visibility.Collapsed;
+                }
+
+                if (Utilities.IsSpecificFilter(tkName))
+                {
+                    TxtCuaHangDisplay.Text = $"Tài khoản NH: {tkName}";
+                    TxtCuaHangDisplay.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TxtCuaHangDisplay.Visibility = Visibility.Collapsed;
+                }
                 return;
             }
 
             TxtDateRange.Text = $"Ngày từ {fDate} đến {tDate}";
 
             string lyDoName = (CboLyDo.SelectedItem as ComboLookupItem)?.Name;
-            TxtLyDoDisplay.Text = $"Lý do thu chi: {(string.IsNullOrEmpty(lyDoName) ? "Tất cả" : lyDoName)}";
-            TxtLyDoDisplay.Visibility = Visibility.Visible;
+            if (Utilities.IsSpecificFilter(lyDoName))
+            {
+                TxtLyDoDisplay.Text = $"Lý do thu chi: {lyDoName}";
+                TxtLyDoDisplay.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                TxtLyDoDisplay.Visibility = Visibility.Collapsed;
+            }
 
             string cuaHangName = (CboCuaHang.SelectedItem as ComboLookupItem)?.Name;
-            TxtCuaHangDisplay.Text = $"Cửa hàng: {(string.IsNullOrEmpty(cuaHangName) ? "Tất cả" : cuaHangName)}";
-            TxtCuaHangDisplay.Visibility = Visibility.Visible;
+            if (Utilities.IsSpecificFilter(cuaHangName))
+            {
+                TxtCuaHangDisplay.Text = $"Cửa hàng: {cuaHangName}";
+                TxtCuaHangDisplay.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                TxtCuaHangDisplay.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void RenderReportTable()

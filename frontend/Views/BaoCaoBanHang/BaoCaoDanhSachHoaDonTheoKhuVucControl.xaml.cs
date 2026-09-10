@@ -117,8 +117,19 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             }
 
             string kvText = (CboKhuVuc.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(kvText)) kvText = "Tất cả";
-            TxtFilterSummary.Text = $"Khu vực: {kvText}";
+            
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(kvText)) parts.Add($"Khu vực: {kvText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             _allData = await _hoaDonService.GetDanhSachHoaDonTheoKhuVucAsync(tuNgay, denNgay, khuVucId);
 

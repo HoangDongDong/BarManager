@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -102,7 +102,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             _isLoaded = true;
 
             var today = DateTime.Today;
-            DpTuNgay.SelectedDate = today;
+            DpTuNgay.SelectedDate = new DateTime(today.Year, today.Month, 1);
             DpDenNgay.SelectedDate = today;
             TxtSignDate.Text = $"Ngày {today:dd} tháng {today:MM} năm {today:yyyy}";
 
@@ -288,7 +288,21 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             string khoName = (CboKhoHang.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
             string nhomName = (CboNhomHang.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
             string nvName = (CboNhanVien.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
-            TxtFilterSummary.Text = $"Kho hàng: {khoName} | NCC: {nccName} | Nhóm: {nhomName} | Nhân viên: {nvName}";
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(khoName)) parts.Add($"Kho hàng: {khoName}");
+            if (Utilities.IsSpecificFilter(nccName)) parts.Add($"NCC: {nccName}");
+            if (Utilities.IsSpecificFilter(nhomName)) parts.Add($"Nhóm: {nhomName}");
+            if (Utilities.IsSpecificFilter(nvName)) parts.Add($"Nhân viên: {nvName}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             switch (_mode)
             {

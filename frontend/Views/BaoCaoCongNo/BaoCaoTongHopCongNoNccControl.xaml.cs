@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -95,7 +95,18 @@ namespace QuanLyBar.Client.Views.BaoCaoCongNo
             string nhomId = (CboNhomNcc.SelectedItem as CongNoFilterComboItem)?.Id ?? "";
             string nhomName = (CboNhomNcc.SelectedItem as CongNoFilterComboItem)?.Name ?? "Tất cả";
 
-            TxtFilterSummary.Text = $"Nhóm nhà cung cấp: {nhomName}";
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(nhomName)) parts.Add($"Nhóm nhà cung cấp: {nhomName}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
             TxtSignDate.Text = $"Ngày {DateTime.Today:dd} tháng {DateTime.Today:MM} năm {DateTime.Today:yyyy}";
 
             _allData = await LocalBaoCaoCongNoService.GetTongHopCongNoNccAsync(nhomId);

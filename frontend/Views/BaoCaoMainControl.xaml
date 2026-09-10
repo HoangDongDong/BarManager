@@ -1,0 +1,294 @@
+<UserControl x:Class="QuanLyBar.Client.Views.BaoCaoMainControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#dbe5f2">
+    <UserControl.Resources>
+        <!-- Style for tabs -->
+        <Style x:Key="TabHeaderStyle" TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border" BorderBrush="#a4bce3" BorderThickness="1,1,1,0" CornerRadius="2,2,0,0" Margin="1,0,1,0" Padding="8,4">
+                            <StackPanel Orientation="Horizontal">
+                                <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
+                                <TextBlock Text=" ✕" Foreground="#888" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#fcd34d" Offset="0"/>
+                                            <GradientStop Color="#f59e0b" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="#e2ebf6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Action Bar -->
+        <Border Grid.Row="0" Background="#e2ebf6" BorderBrush="#a4bce3" BorderThickness="0,0,0,1" Padding="6,4">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="BtnThietKeMau" Content="💾 Thiết kế mẫu" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnThietKeMau_Click"/>
+                <Button x:Name="BtnTuyChonThamSo" Content="⚙️ Tùy chọn tham số báo cáo" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnTuyChonThamSo_Click"/>
+                <Button x:Name="BtnXemDuLieuTho" Content="🔄 Xem dữ liệu thô" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnXemDuLieuTho_Click"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" Margin="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" MinWidth="220"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Sub-tabs (Tất cả / Thường dùng / Tìm kiếm) -->
+            <Border Grid.Column="0" Background="White" BorderBrush="#a4bce3" BorderThickness="1">
+                <TabControl x:Name="TabLeftNav" Background="White" BorderThickness="0" SelectionChanged="TabLeftNav_SelectionChanged">
+                    <TabItem Header="Tất cả" Style="{StaticResource TabHeaderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="55*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="45*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Upper TreeView -->
+                            <TreeView x:Name="TvBaoCao" Grid.Row="0" BorderThickness="0" Margin="2"
+                                      SelectedItemChanged="TvBaoCao_SelectedItemChanged"
+                                      MouseDoubleClick="TvBaoCao_MouseDoubleClick">
+                                <TreeView.Resources>
+                                    <Style TargetType="TreeViewItem">
+                                        <Setter Property="IsExpanded" Value="True"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                        <Setter Property="Foreground" Value="#1e3f66"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </TreeView.Resources>
+                            </TreeView>
+
+                            <!-- Splitter inside left panel -->
+                            <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" Background="#a4bce3"/>
+
+                            <!-- Lower List of items in selected folder -->
+                            <ListBox x:Name="LstSubReports" Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="#a4bce3" Margin="0"
+                                     SelectionChanged="LstSubReports_SelectionChanged"
+                                     MouseDoubleClick="LstSubReports_MouseDoubleClick">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="4,4"/>
+                                        <Setter Property="Margin" Value="0,1"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Background" Value="#bde5f8"/>
+                                                <Setter Property="BorderBrush" Value="#73b6e6"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="📄 " FontSize="11" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#1e293b" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Thường dùng" Style="{StaticResource TabHeaderStyle}">
+                        <ListBox x:Name="LstThuongDung" BorderThickness="0" Margin="2"
+                                 SelectionChanged="LstThuongDung_SelectionChanged"
+                                 MouseDoubleClick="LstThuongDung_MouseDoubleClick">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="4,4"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#bde5f8"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⭐ " FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding}" FontSize="12" Foreground="#1e293b" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </TabItem>
+
+                    <TabItem Header="Tìm kiếm" Style="{StaticResource TabHeaderStyle}">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBox x:Name="TxtSearchReport" Height="26" Padding="4,2" FontSize="12"
+                                     TextChanged="TxtSearchReport_TextChanged"/>
+                            <ListBox x:Name="LstSearchResults" Grid.Row="1" Margin="0,5,0,0" BorderThickness="0"
+                                     SelectionChanged="LstSearchResults_SelectionChanged"
+                                     MouseDoubleClick="LstSearchResults_MouseDoubleClick"/>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Border>
+
+            <!-- Column Splitter -->
+            <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="#a4bce3"/>
+
+            <!-- Right Panel: Parameters & Instructions -->
+            <Grid Grid.Column="2" Background="White">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="3"/>
+                    <ColumnDefinition Width="320"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Report Parameters Panel -->
+                <Border Grid.Column="0" BorderBrush="#a4bce3" BorderThickness="1,1,0,1" Padding="15">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Report Header -->
+                        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                            <TextBlock Text="Tham số báo cáo" FontSize="12" Foreground="#64748b"/>
+                            <TextBlock x:Name="TxtReportTitle" Text="BÁO CÁO TỒN QUỸ"
+                                       FontSize="15" FontWeight="Bold" Foreground="#1e3f66" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <!-- Dynamic Filter Inputs -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="PnlFilterInputs">
+                                <!-- Date Range Filter -->
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="Ngày" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock Text="Từ:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#475569"/>
+                                        <DatePicker x:Name="DpTuNgay" Width="120" Height="26"/>
+                                        <TextBlock Text="Đến:" VerticalAlignment="Center" Margin="10,0,5,0" Foreground="#475569"/>
+                                        <DatePicker x:Name="DpDenNgay" Width="120" Height="26"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Filter 1 -->
+                                <Grid x:Name="PnlFilter1" Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="LblFilter1" Text="Lý do thu chi" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                    <ComboBox x:Name="CboFilter1" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                </Grid>
+
+                                <!-- Filter 2 -->
+                                <Grid x:Name="PnlFilter2" Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="LblFilter2" Text="Cửa hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                    <ComboBox x:Name="CboFilter2" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                </Grid>
+
+                                <!-- Filter 3 (Optional) -->
+                                <Grid x:Name="PnlFilter3" Margin="0,0,0,12" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="LblFilter3" Text="Mặt hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                    <ComboBox x:Name="CboFilter3" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                </Grid>
+
+                                <!-- Filter 4 (Optional) -->
+                                <Grid x:Name="PnlFilter4" Margin="0,0,0,12" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="LblFilter4" Text="Khách hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                    <ComboBox x:Name="CboFilter4" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Bottom Controls -->
+                        <Grid Grid.Row="2" Margin="0,15,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox x:Name="CboMauIn" Grid.Column="0" Height="28" SelectedIndex="0">
+                                <ComboBoxItem Content="Mẫu A4"/>
+                                <ComboBoxItem Content="Mẫu A5"/>
+                                <ComboBoxItem Content="Mẫu Excel"/>
+                            </ComboBox>
+
+                            <Button x:Name="BtnHienThi" Grid.Column="1" Content="🔍 Hiển thị" Width="110" Height="30"
+                                    HorizontalAlignment="Right" Background="#28a745" Foreground="White"
+                                    FontWeight="Bold" FontSize="13" BorderThickness="0" Click="BtnHienThi_Click">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="3"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="#a4bce3"/>
+
+                <!-- Instructions Panel -->
+                <Border Grid.Column="2" BorderBrush="#a4bce3" BorderThickness="0,1,1,1" Padding="15">
+                    <StackPanel>
+                        <TextBlock Text="Các bước xem báo cáo" FontSize="13" FontWeight="Bold" Foreground="#1e3f66" Margin="0,0,0,12"/>
+                        <TextBlock Text="1. Chọn báo cáo trên thư mục báo cáo bên trái" FontSize="12" Foreground="#334155" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                        <TextBlock Text="2. Điền các tham số báo cáo vào bên mục &quot;Tham số báo cáo&quot;" FontSize="12" Foreground="#334155" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                        <TextBlock Text="3. Click &quot;Hiển thị&quot; để xem báo cáo" FontSize="12" Foreground="#334155" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                        <TextBlock Text="4. Bạn có thể nháy đúp vào báo cáo trên thư mục để xem báo cáo với tham số mặc định." FontSize="12" Foreground="#334155" Margin="0,0,0,12" TextWrapping="Wrap"/>
+                        <TextBlock Text="Để sửa mẫu báo cáo hoặc các định dạng trên báo cáo, bạn chọn báo cáo và click &quot;Thiết kế mẫu&quot;." FontSize="12" Foreground="#64748b" TextWrapping="Wrap" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Nếu bạn muốn có mẫu báo cáo riêng của bạn, hãy liên hệ với chúng tôi" FontSize="12" FontStyle="Italic" Foreground="#2563eb" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

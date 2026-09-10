@@ -178,12 +178,25 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                 TxtSubTitleDate.Text = $"Ngày từ {tuNgay:dd/MM/yyyy} đến {denNgay:dd/MM/yyyy}";
 
                 string khoText = (CboKhoXuat.SelectedItem as ComboLookupItem)?.Name;
-                if (string.IsNullOrWhiteSpace(khoText)) khoText = "Tất cả";
+                
                 string nvText = (CboNhanVienXuat.SelectedItem as ComboLookupItem)?.Name;
-                if (string.IsNullOrWhiteSpace(nvText)) nvText = "Tất cả";
+                
                 string khText = (CboKhachHang.SelectedItem as ComboLookupItem)?.Name;
-                if (string.IsNullOrWhiteSpace(khText)) khText = "Tất cả";
-                TxtFilterSummary.Text = $"Kho xuất: {khoText} | NV xuất: {nvText} | Khách hàng: {khText}";
+                
+                var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(khoText)) parts.Add($"Kho xuất: {khoText}");
+            if (Utilities.IsSpecificFilter(nvText)) parts.Add($"NV xuất: {nvText}");
+            if (Utilities.IsSpecificFilter(khText)) parts.Add($"Khách hàng: {khText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
                 string khoId = (CboKhoXuat.SelectedItem as ComboLookupItem)?.Id;
                 string nhanVienId = (CboNhanVienXuat.SelectedItem as ComboLookupItem)?.Id;

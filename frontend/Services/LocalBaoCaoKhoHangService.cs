@@ -676,7 +676,7 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
                     LEFT JOIN DNHANVIEN nv ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
                     WHERE d.LOAI = 1
-                      AND (d.STATUS IS NULL OR d.STATUS <> 0)
+                      AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
                       AND (@NccId IS NULL OR @NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
@@ -1942,24 +1942,25 @@ namespace QuanLyBar.Client.Services
 
                 string sql = @"
                     SELECT 
-                        d.SOPHIEU as SoPhieu,
+                        d.NAME as SoPhieu,
                         d.NGAY as Ngay,
                         ncc.NAME as NhaCungCap,
                         k.NAME as KhoHang,
                         nv.NAME as NhanVien,
-                        COALESCE(d.TONGTIEN, 0) as TienHang,
-                        COALESCE(d.GIAMGIA, 0) as GiamGia,
-                        COALESCE(d.THANHTOAN, d.TONGTIEN, 0) as TongCong
+                        COALESCE(d.TIENHANG, 0) as TienHang,
+                        COALESCE(d.TIENGIAMGIA, 0) as GiamGia,
+                        COALESCE(d.TONGCONG, 0) as TongCong
                     FROM TDONHANG d
-                    LEFT JOIN DNHACUNGCAP ncc ON d.NHACUNGCAPID = ncc.ID
-                    LEFT JOIN DKHOHANG k ON d.KHONHAPID = k.ID
-                    LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
+                    LEFT JOIN DNHACUNGCAP ncc ON CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(ncc.ID AS VARCHAR(50))
+                    LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
+                    LEFT JOIN DNHANVIEN nv ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
                     WHERE d.LOAI = 1
-                      AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.NHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
-                    ORDER BY d.NGAY, d.SOPHIEU";
+                      AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
+                      AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
+                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
+                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (@NvId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
+                    ORDER BY d.NGAY DESC, d.NAME";
 
                 var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId, NvId = nvId });
                 int stt = 1;
@@ -2006,24 +2007,26 @@ namespace QuanLyBar.Client.Services
                         d.NGAY as Ngay,
                         ncc.NAME as NhaCungCap,
                         nv.NAME as NhanVien,
-                        m.MA as MaHang,
+                        m.CODE as MaHang,
                         m.NAME as TenHang,
-                        m.DONVITINH as DVT,
-                        SUM(COALESCE(ct.SOLUONG, 0)) as SoLuong,
+                        dv.NAME as DVT,
+                        SUM(COALESCE(ct.SOLUONGNHAP, ct.SOLUONG, 0)) as SoLuong,
                         AVG(COALESCE(ct.DONGIA, 0)) as DonGia,
                         SUM(COALESCE(ct.THANHTIEN, 0)) as ThanhTien
                     FROM TDONHANG d
-                    JOIN TDONHANGCHITIET ct ON d.ID = ct.DONHANGID
-                    JOIN DMATHANG m ON ct.MATHANGID = m.ID
-                    LEFT JOIN DNHACUNGCAP ncc ON d.NHACUNGCAPID = ncc.ID
-                    LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
+                    JOIN TDONHANGCHITIET ct ON CAST(d.ID AS VARCHAR(50)) = CAST(ct.TDONHANGID AS VARCHAR(50))
+                    JOIN DMATHANG m ON CAST(ct.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                    LEFT JOIN DDONVITINH dv ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dv.ID AS VARCHAR(50))
+                    LEFT JOIN DNHACUNGCAP ncc ON CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(ncc.ID AS VARCHAR(50))
+                    LEFT JOIN DNHANVIEN nv ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
                     WHERE d.LOAI = 1
-                      AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.NHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NhomId = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
-                    GROUP BY d.NGAY, ncc.NAME, nv.NAME, m.MA, m.NAME, m.DONVITINH
+                      AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
+                      AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
+                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
+                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (@NhomId = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (@NvId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
+                    GROUP BY d.NGAY, ncc.NAME, nv.NAME, m.CODE, m.NAME, dv.NAME
                     ORDER BY d.NGAY, m.NAME";
 
                 var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId, NhomId = nhomId, NvId = nvId });
@@ -2067,15 +2070,16 @@ namespace QuanLyBar.Client.Services
                         d.NGAY as Ngay,
                         k.NAME as KhoHang,
                         COUNT(d.ID) as SoPhieu,
-                        SUM(COALESCE(d.TONGTIEN, 0)) as TienHang,
-                        SUM(COALESCE(d.GIAMGIA, 0)) as GiamGia,
-                        SUM(COALESCE(d.THANHTOAN, d.TONGTIEN, 0)) as TongCong
+                        SUM(COALESCE(d.TIENHANG, 0)) as TienHang,
+                        SUM(COALESCE(d.TIENGIAMGIA, 0)) as GiamGia,
+                        SUM(COALESCE(d.TONGCONG, 0)) as TongCong
                     FROM TDONHANG d
-                    LEFT JOIN DKHOHANG k ON d.KHONHAPID = k.ID
+                    LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
                     WHERE d.LOAI = 1
-                      AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.NHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
+                      AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
+                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
+                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
                     GROUP BY d.NGAY, k.NAME
                     ORDER BY d.NGAY";
 
@@ -2113,16 +2117,17 @@ namespace QuanLyBar.Client.Services
                         ncc.NAME as NhaCungCap,
                         k.NAME as KhoHang,
                         COUNT(d.ID) as SoPhieu,
-                        SUM(COALESCE(d.TONGTIEN, 0)) as TienHang,
-                        SUM(COALESCE(d.GIAMGIA, 0)) as GiamGia,
-                        SUM(COALESCE(d.THANHTOAN, d.TONGTIEN, 0)) as TongCong
+                        SUM(COALESCE(d.TIENHANG, 0)) as TienHang,
+                        SUM(COALESCE(d.TIENGIAMGIA, 0)) as GiamGia,
+                        SUM(COALESCE(d.TONGCONG, 0)) as TongCong
                     FROM TDONHANG d
-                    LEFT JOIN DNHACUNGCAP ncc ON d.NHACUNGCAPID = ncc.ID
-                    LEFT JOIN DKHOHANG k ON d.KHONHAPID = k.ID
+                    LEFT JOIN DNHACUNGCAP ncc ON CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(ncc.ID AS VARCHAR(50))
+                    LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
                     WHERE d.LOAI = 1
-                      AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.NHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
+                      AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
+                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
+                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
                     GROUP BY ncc.NAME, k.NAME
                     ORDER BY ncc.NAME";
 
@@ -2159,16 +2164,17 @@ namespace QuanLyBar.Client.Services
                         nv.NAME as NhanVien,
                         k.NAME as KhoHang,
                         COUNT(d.ID) as SoPhieu,
-                        SUM(COALESCE(d.TONGTIEN, 0)) as TienHang,
-                        SUM(COALESCE(d.GIAMGIA, 0)) as GiamGia,
-                        SUM(COALESCE(d.THANHTOAN, d.TONGTIEN, 0)) as TongCong
+                        SUM(COALESCE(d.TIENHANG, 0)) as TienHang,
+                        SUM(COALESCE(d.TIENGIAMGIA, 0)) as GiamGia,
+                        SUM(COALESCE(d.TONGCONG, 0)) as TongCong
                     FROM TDONHANG d
-                    LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
-                    LEFT JOIN DKHOHANG k ON d.KHONHAPID = k.ID
+                    LEFT JOIN DNHANVIEN nv ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
+                    LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
                     WHERE d.LOAI = 1
-                      AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
+                      AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
+                      AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
+                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (@NvId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
                     GROUP BY nv.NAME, k.NAME
                     ORDER BY nv.NAME";
 

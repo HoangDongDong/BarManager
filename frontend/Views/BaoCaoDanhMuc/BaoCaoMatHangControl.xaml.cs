@@ -201,7 +201,19 @@ namespace QuanLyBar.Client.Views.BaoCaoDanhMuc
             {
                 string nhomText = (CboNhomMatHang.SelectedItem as ComboLookupItem)?.Name ?? "Tất cả";
                 string loaiText = (CboLoaiMatHang.SelectedItem as ComboLookupItem)?.Name ?? "Tất cả";
-                TxtFilterSummary.Text = $"Nhóm mặt hàng: {nhomText} | Loại mặt hàng: {loaiText}";
+                var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(nhomText)) parts.Add($"Nhóm mặt hàng: {nhomText}");
+            if (Utilities.IsSpecificFilter(loaiText)) parts.Add($"Loại mặt hàng: {loaiText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
                 _rawItems = await _matHangService.GetMatHangListAsync(null);
                 RenderReportTable();

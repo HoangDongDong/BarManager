@@ -138,14 +138,28 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             }
 
             string khText = (CboKhachHang.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(khText)) khText = "Tất cả";
+            
             string nvText = (CboNhanVienXuat.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(nvText)) nvText = "Tất cả";
+            
             string ttText = (CboThanhToanBoi.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(ttText)) ttText = "Tất cả";
+            
             string chText = (CboCuaHang.SelectedItem as FilterComboItem)?.Name;
-            if (string.IsNullOrWhiteSpace(chText)) chText = "Tất cả";
-            TxtFilterSummary.Text = $"Khách hàng: {khText} | NV xuất: {nvText} | Thu ngân: {ttText} | Cửa hàng: {chText}";
+            
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(khText)) parts.Add($"Khách hàng: {khText}");
+            if (Utilities.IsSpecificFilter(nvText)) parts.Add($"NV xuất: {nvText}");
+            if (Utilities.IsSpecificFilter(ttText)) parts.Add($"Thu ngân: {ttText}");
+            if (Utilities.IsSpecificFilter(chText)) parts.Add($"Cửa hàng: {chText}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             _allData = await _hoaDonService.GetBaoCaoBanHangTheoThuNganAsync(tuNgay, denNgay, khachHangId, nhanVienXuatId, thanhToanBoiId, cuaHangId);
 

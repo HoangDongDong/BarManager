@@ -105,7 +105,20 @@ namespace QuanLyBar.Client.Views.BaoCaoDatHang
             string nhomName = (CboNhomMatHang.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
             string mhName = (CboMatHang.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
             string khName = (CboKhachHang.SelectedItem as FilterComboItem)?.Name ?? "Tất cả";
-            TxtFilterSummary.Text = $"Nhóm hàng: {nhomName} | Mặt hàng: {mhName} | Khách hàng: {khName}";
+            var parts = new List<string>();
+            if (Utilities.IsSpecificFilter(nhomName)) parts.Add($"Nhóm hàng: {nhomName}");
+            if (Utilities.IsSpecificFilter(mhName)) parts.Add($"Mặt hàng: {mhName}");
+            if (Utilities.IsSpecificFilter(khName)) parts.Add($"Khách hàng: {khName}");
+            if (parts.Count > 0)
+            {
+                TxtFilterSummary.Text = string.Join("\n", parts);
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                TxtFilterSummary.Text = "";
+                TxtFilterSummary.Visibility = System.Windows.Visibility.Collapsed;
+            }
 
             _allData = await _reportService.GetTongHopMatHangDatTheoNgayAsync(tuNgay, denNgay, mhId, nhomMhId, khId);
             RenderTable();
