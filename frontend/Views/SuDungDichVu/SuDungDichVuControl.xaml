@@ -144,6 +144,7 @@
                                 <TextBlock x:Name="TxtSelectedBanHeader" Text="[Chưa chọn bàn]" FontWeight="Bold" Foreground="#003366" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
                                 <TextBox x:Name="TxtGioBatDau" Width="75" Height="22" VerticalContentAlignment="Center" TextAlignment="Center" Margin="0,0,4,0" IsReadOnly="True" Background="#f4f4f4"/>
                                 <Button x:Name="BtnBatDau" Content="Bắt đầu" Width="72" Height="24" FontWeight="Bold" Background="#27ae60" Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnBatDau_Click"/>
+                                <Button x:Name="BtnDongBan" Content="Đóng bàn" Width="75" Height="24" FontWeight="Bold" Background="#4a6572" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0" ToolTip="Thoát khỏi bàn hiện tại về trạng thái chưa chọn bàn nào (Esc)" Click="BtnDongBan_Click"/>
                             </StackPanel>
                             
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -477,37 +478,91 @@
         <!-- ======================= CỘT PHẢI: CHỨC NĂNG & THỰC ĐƠN ======================= -->
         <Grid Grid.Column="4" Margin="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="68"/>
+                <ColumnDefinition Width="74"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             
-            <!-- Phím chức năng dọc -->
-            <StackPanel Grid.Column="0" Margin="0,0,4,0">
-                <Button x:Name="BtnChuyenBan" Height="40" Style="{StaticResource ActionButtonStyle}" Click="BtnChuyenBan_Click">
-                    <TextBlock Text="Chuyển bàn" TextWrapping="Wrap" TextAlignment="Center" FontSize="11"/>
-                </Button>
-                <Button x:Name="BtnGopBan" Content="Gộp bàn" Height="40" Style="{StaticResource ActionButtonStyle}" FontSize="11" Click="BtnGopBan_Click"/>
-                <Button x:Name="BtnDatSl" Content="Số lượng" Height="36" Style="{StaticResource ActionButtonStyle}" FontSize="11" Click="BtnDatSl_Click"/>
-                <Button x:Name="BtnThemMon" Content="&lt;&lt; Thêm" Height="28" Margin="0,0,0,2" FontSize="11" Background="#e2f0d9" BorderBrush="#a9d18e" Cursor="Hand" Click="BtnThemMon_Click"/>
-                <Button x:Name="BtnGiamSoLuong" Content="Giảm &gt;&gt;" Height="28" Margin="0,0,0,2" FontSize="11" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamSoLuong_Click"/>
-                <Button x:Name="BtnXoaMon" Content="❌ Xóa" Height="28" Margin="0,0,0,8" FontSize="11" Foreground="Red" Style="{StaticResource ActionButtonStyle}" Click="BtnXoaMon_Click"/>
-                
-                <Button x:Name="BtnGiamGiaTheoNhom" Height="38" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamGiaTheoNhom_Click">
-                    <TextBlock Text="% theo nhóm" TextWrapping="Wrap" TextAlignment="Center" FontSize="11"/>
-                </Button>
-                <Button x:Name="BtnInCheBien" Height="38" Style="{StaticResource ActionButtonStyle}" Click="BtnInCheBien_Click">
-                    <TextBlock Text="In chế biến (F10)" TextWrapping="Wrap" TextAlignment="Center" FontSize="11"/>
-                </Button>
-                <Button x:Name="BtnInTamTinh" Height="40" Background="#f6ffed" BorderBrush="#b7eb8f" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnInTamTinh_Click">
-                    <TextBlock Text="In tạm tính (F8)" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Foreground="#389e0d"/>
-                </Button>
-                <Button x:Name="BtnThanhToan" Height="44" Background="#ffe58f" BorderBrush="#d48806" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnThanhToan_Click">
-                    <TextBlock Text="Thanh toán (F11)" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Foreground="#b32400"/>
-                </Button>
-                <Button x:Name="BtnThongKe" Height="44" Background="#e6f7ff" BorderBrush="#91d5ff" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnThongKe_Click">
-                    <TextBlock Text="Thống kê (F9)" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" Foreground="#0050b3"/>
-                </Button>
-            </StackPanel>
+            <!-- Phím chức năng dọc phân bổ thành 4 nhóm logic tương ứng sơ đồ mẫu -->
+            <Grid Grid.Column="0" Margin="0,0,4,0">
+                <Grid.RowDefinitions>
+                    <!-- Nhóm 1: Thao tác bàn -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Khoảng cách đàn hồi 1 -->
+                    <RowDefinition Height="*" MinHeight="10"/>
+                    <!-- Nhóm 2: Thao tác món -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Khoảng cách đàn hồi 2 -->
+                    <RowDefinition Height="*" MinHeight="10"/>
+                    <!-- Nhóm 3: Chế biến & Giảm giá -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Khoảng cách đàn hồi 3 -->
+                    <RowDefinition Height="*" MinHeight="10"/>
+                    <!-- Nhóm 4: In, Thanh toán, Thống kê (Nằm đáy cột cạnh Tổng cộng) -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- NHÓM 1: THAO TÁC BÀN -->
+                <StackPanel Grid.Row="0">
+                    <Button x:Name="BtnChuyenBan" Height="42" Style="{StaticResource ActionButtonStyle}" Click="BtnChuyenBan_Click">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="⇄" FontSize="13" FontWeight="Bold" Foreground="#1890ff" HorizontalAlignment="Center" Margin="0,0,0,1"/>
+                            <TextBlock Text="Chuyển bàn" TextWrapping="Wrap" TextAlignment="Center" FontSize="10.5"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnGopBan" Height="42" Style="{StaticResource ActionButtonStyle}" Margin="0,0,0,0" Click="BtnGopBan_Click">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="⇥⇤" FontSize="13" FontWeight="Bold" Foreground="#1890ff" HorizontalAlignment="Center" Margin="0,0,0,1"/>
+                            <TextBlock Text="Gộp bàn" TextWrapping="Wrap" TextAlignment="Center" FontSize="10.5"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- NHÓM 2: THAO TÁC MÓN -->
+                <StackPanel Grid.Row="2">
+                    <Button x:Name="BtnDatSl" Content="Số lượng" Height="32" Style="{StaticResource ActionButtonStyle}" FontSize="11" Click="BtnDatSl_Click"/>
+                    <Button x:Name="BtnThemMon" Content="&lt;&lt; Thêm" Height="28" Margin="0,0,0,3" FontSize="11" FontWeight="SemiBold" Background="#e2f0d9" BorderBrush="#a9d18e" Foreground="#276a16" Cursor="Hand" Click="BtnThemMon_Click"/>
+                    <Button x:Name="BtnGiamSoLuong" Content="Giảm &gt;&gt;" Height="28" Margin="0,0,0,3" FontSize="11" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamSoLuong_Click"/>
+                    <Button x:Name="BtnXoaMon" Content="❌ Xóa" Height="28" Margin="0,0,0,0" FontSize="11" Foreground="Red" Style="{StaticResource ActionButtonStyle}" Click="BtnXoaMon_Click"/>
+                </StackPanel>
+
+                <!-- NHÓM 3: BẾP & GIẢM GIÁ -->
+                <StackPanel Grid.Row="4">
+                    <Button x:Name="BtnGiamGiaTheoNhom" Height="42" Style="{StaticResource ActionButtonStyle}" Click="BtnGiamGiaTheoNhom_Click">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="🏷️ %" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,1"/>
+                            <TextBlock Text="% theo nhóm" TextWrapping="Wrap" TextAlignment="Center" FontSize="10"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnInCheBien" Height="44" Style="{StaticResource ActionButtonStyle}" Margin="0,0,0,0" Click="BtnInCheBien_Click">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="🍳 In bếp" FontSize="10.5" HorizontalAlignment="Center" Foreground="#555" Margin="0,0,0,1"/>
+                            <TextBlock Text="In chế biến (F10)" TextWrapping="Wrap" TextAlignment="Center" FontSize="10"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- NHÓM 4: THANH TOÁN & THỐNG KÊ (DƯỚI CÙNG CỘT) -->
+                <StackPanel Grid.Row="6">
+                    <Button x:Name="BtnInTamTinh" Height="42" Background="#f6ffed" BorderBrush="#b7eb8f" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnInTamTinh_Click">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="📄 In thử" FontSize="10.5" HorizontalAlignment="Center" Foreground="#389e0d" Margin="0,0,0,1"/>
+                            <TextBlock Text="In tạm tính (F8)" TextWrapping="Wrap" TextAlignment="Center" FontSize="10" Foreground="#389e0d"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnThanhToan" Height="48" Background="#ffe58f" BorderBrush="#d48806" FontWeight="Bold" Margin="0,0,0,4" Cursor="Hand" Click="BtnThanhToan_Click">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="💳 Tính tiền" FontSize="11" HorizontalAlignment="Center" Foreground="#b32400" Margin="0,0,0,1"/>
+                            <TextBlock Text="Thanh toán (F11)" TextWrapping="Wrap" TextAlignment="Center" FontSize="10" Foreground="#b32400"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="BtnThongKe" Height="42" Background="#e6f7ff" BorderBrush="#91d5ff" FontWeight="Bold" Margin="0,0,0,0" Cursor="Hand" Click="BtnThongKe_Click">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="📊 Báo cáo" FontSize="10.5" HorizontalAlignment="Center" Foreground="#0050b3" Margin="0,0,0,1"/>
+                            <TextBlock Text="Thống kê (F9)" TextWrapping="Wrap" TextAlignment="Center" FontSize="10" Foreground="#0050b3"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
             
             <!-- Menu Thực đơn -->
             <Grid Grid.Column="1">

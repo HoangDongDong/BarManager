@@ -40,6 +40,7 @@ namespace QuanLyBar.Client.Models
         public decimal? Tontoithieu { get; set; }
         public decimal? Tontoida { get; set; }
         public string Anh { get; set; }
+        public byte[] ImageBytes { get; set; }
         public decimal? Hoahong { get; set; }
         public decimal? Giavon { get; set; }
         public string Doitackygui { get; set; }

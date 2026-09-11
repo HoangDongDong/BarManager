@@ -324,7 +324,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 ChkTuDongSaoLuuDuLieu.IsChecked = GetBool(configs, "TuDongSaoLuuDuLieu", true);
                 TxtDuongDanSaoLuu.Text = GetStr(configs, "DuongDanSaoLuu", "");
                 TxtSoNgaySaoLuu.Text = GetStr(configs, "SoNgaySaoLuu", "1");
-                TxtChucNangMacDinh.Text = GetStr(configs, "ChucNangMacDinh", "Sử dụng dịch vụ");
+                TxtChucNangMacDinh.Text = await LocalCauHinhService.ResolveDefaultFunctionNameAsync(
+                    GetStr(configs, "ChucNangMacDinh", "Sử dụng dịch vụ"));
                 ChkLocDuLieuBoKhoangTrong.IsChecked = GetBool(configs, "LocDuLieuBoKhoangTrong", false);
                 ChkHienThiXuongDongNeuDoRongCotNho.IsChecked = GetBool(configs, "HienThiXuongDongNeuDoRongCotNho", false);
                 SetComboValue(CboDoToChuHienThi, GetStr(configs, "DoToChuHienThi", "Nhỏ (100%)"));
@@ -924,6 +925,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             // 7. QUẢN TRỊ
             var mQuanTri = CreateGroup("QUẢN TRỊ");
             AddMenuItem(mQuanTri.Items, "Cấu hình toàn hệ thống");
+            AddMenuItem(mQuanTri.Items, "Thiết kế giao diện màn cảm ứng");
             AddMenuItem(mQuanTri.Items, "Người dùng và phân quyền");
             AddMenuItem(mQuanTri.Items, "Nhật ký truy cập");
             AddMenuItem(mQuanTri.Items, "Sao lưu dữ liệu");

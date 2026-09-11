@@ -1,47 +1,98 @@
 <Window x:Class="QuanLyBar.Client.Views.ThemLoaiMatHangWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Thêm loại mặt hàng" Height="250" Width="400"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
-    <Grid Margin="10">
+        Title="LOẠI MẶT HÀNG - THÊM MỚI" Height="300" Width="480"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="#eaf0f8" KeyDown="Window_KeyDown" Loaded="Window_Loaded">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBlock Text="📄" FontSize="24" Margin="0,0,10,0"/>
-            <TextBlock Text="Thêm loại mặt hàng" VerticalAlignment="Center" FontWeight="Bold" FontSize="14"/>
-        </StackPanel>
+        <Border Grid.Row="0" Background="#fdfde4" BorderBrush="#e2dba0" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🏷️" FontSize="20" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Loại mặt hàng" FontSize="14" FontWeight="Bold" Foreground="#112233" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="(Ctrl+S: Lưu&amp;Mới, Ctrl+L: Lưu, Ctrl+N: Mới, ESC: Thoát)" 
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#556677" FontSize="11"/>
+            </Grid>
+        </Border>
 
-        <!-- Form -->
-        <Grid Grid.Row="1" Margin="0,0,0,10">
+        <!-- Form Content -->
+        <Grid Grid.Row="1" Margin="15,12,15,8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="130"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="45"/>
+                <ColumnDefinition Width="75"/>
             </Grid.ColumnDefinitions>
-            
-            <TextBlock Text="Tên loại:" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtTenLoai" Grid.Column="1" Margin="5,0,0,0" Padding="4"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="26"/>
+                <RowDefinition Height="26"/>
+                <RowDefinition Height="26"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: Tên loại mặt hàng & Ảnh -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Tên loại mặt hàng" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            <TextBox x:Name="TxtTenLoai" Grid.Row="0" Grid.Column="1" Height="25" VerticalContentAlignment="Center" 
+                     Padding="4,0" Background="#E0FFFF" BorderBrush="#88b4e0" BorderThickness="1"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="Ảnh:" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0"/>
+            <Border Grid.Row="0" Grid.Column="3" BorderBrush="#a4b8cc" BorderThickness="1" Background="White" Height="25">
+                <Button x:Name="BtnChonAnh" Background="Transparent" BorderThickness="0" Click="BtnChonAnh_Click" Padding="2,0">
+                    <Grid Width="65">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Image x:Name="ImgPreview" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Path Grid.Column="1" Data="M 0,0 L 3.5,4 L 7,0 Z" Fill="#556677" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                    </Grid>
+                </Button>
+            </Border>
+
+            <!-- Popup Chọn ảnh -->
+            <Popup x:Name="PopupAnh" PlacementTarget="{Binding ElementName=BtnChonAnh}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+                <Border Width="280" Height="280" Background="White" BorderBrush="#8baecc" BorderThickness="1" CornerRadius="2">
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Nút Không -->
+                        <Button x:Name="BtnKhongAnh" Content="&lt;Không&gt;" Background="Transparent" BorderThickness="0" 
+                                Foreground="#0055aa" HorizontalAlignment="Left" FontWeight="Bold" Margin="4,2,4,6" Click="BtnKhongAnh_Click" Cursor="Hand"/>
+                        
+                        <!-- Danh sách ảnh nhóm -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="PanelNhomAnh"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Popup>
+
+            <!-- Checkboxes -->
+            <CheckBox x:Name="ChkCoBanHang" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Content="Có bán hàng" VerticalAlignment="Center" Margin="0,2"/>
+            <CheckBox x:Name="ChkCoTonKho" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Content="Có tồn kho" VerticalAlignment="Center" Margin="0,2"/>
+            <CheckBox x:Name="ChkCoDinhLuong" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Content="Có định lượng" VerticalAlignment="Center" Margin="0,2"/>
         </Grid>
 
-        <!-- Note -->
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Ghi chú:" VerticalAlignment="Top" Margin="0,5,0,0"/>
-            <TextBox x:Name="TxtGhiChu" Grid.Column="1" Margin="5,0,0,0" AcceptsReturn="True" TextWrapping="Wrap"/>
-        </Grid>
-
-        <!-- Footer -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="Ghi dữ liệu" Width="80" Margin="0,0,10,0" Click="BtnLuu_Click"/>
-            <Button Content="Thoát" Width="80" Click="BtnThoat_Click"/>
-        </StackPanel>
+        <!-- Footer Buttons -->
+        <Border Grid.Row="2" Background="#dbe5f2" BorderBrush="#b8cadc" BorderThickness="0,1,0,0" Padding="12,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnLuu" Content="💾 Lưu" Width="85" Height="28" Margin="0,0,6,0" Click="BtnLuu_Click" Background="#f4f8fc" BorderBrush="#a4b8cc"/>
+                <Button x:Name="BtnLuuMoi" Content="Lưu &amp; Mới" Width="85" Height="28" Margin="0,0,6,0" Click="BtnLuuMoi_Click" Background="#f4f8fc" BorderBrush="#a4b8cc"/>
+                <Button x:Name="BtnLuuThoat" Content="Lưu &amp; thoát" Width="85" Height="28" Margin="0,0,6,0" Click="BtnLuuThoat_Click" Background="#f4f8fc" BorderBrush="#a4b8cc"/>
+                <Button x:Name="BtnThoat" Content="Thoát" Width="75" Height="28" Click="BtnThoat_Click" Background="#f4f8fc" BorderBrush="#a4b8cc"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

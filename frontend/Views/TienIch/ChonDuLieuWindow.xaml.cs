@@ -25,6 +25,11 @@ namespace QuanLyBar.Client.Views
         {
             if (TvNhomMatHang.SelectedItem is NhomMatHangViewModel selected)
             {
+                if (string.IsNullOrEmpty(selected.Id) || selected.Id == "-1" || selected.Name == "Tất cả" || selected.Name == "Thùng rác")
+                {
+                    MessageBox.Show("Vui lòng chọn một nhóm mặt hàng cụ thể (không chọn Tất cả hoặc Thùng rác)!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 SelectedNhomMatHang = selected;
                 DialogResult = true;
                 Close();

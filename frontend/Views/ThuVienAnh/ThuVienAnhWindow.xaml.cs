@@ -132,7 +132,7 @@ namespace QuanLyBar.Client.Views.ThuVienAnh
             {
                 try
                 {
-                    byte[] bytes = File.ReadAllBytes(ofd.FileName);
+                    byte[] bytes = ImageHelper.OptimizeImage(File.ReadAllBytes(ofd.FileName), maxWidth: 400, maxHeight: 400, jpegQuality: 80);
                     var (ok, error) = await LocalThuVienAnhService.UpdateImageAsync(_selectedItem.Id, bytes);
                     if (ok)
                     {

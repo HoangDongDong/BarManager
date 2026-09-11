@@ -40,6 +40,58 @@ namespace QuanLyBar.Client.Services
             return decimal.TryParse(val, out decimal v) ? v : defaultValue;
         }
 
+        /// <summary>
+        /// Older databases store the default function as an SMENU/SFUNCTION/SFORM
+        /// identifier. Newer screens store its display name. Resolve both formats
+        /// so the settings screen and the startup tab always show/open a caption.
+        /// </summary>
+        public static async Task<string> ResolveDefaultFunctionNameAsync(
+            string configuredValue,
+            string defaultValue = "Sử dụng dịch vụ")
+        {
+            if (string.IsNullOrWhiteSpace(configuredValue))
+                return defaultValue;
+
+            string value = configuredValue.Trim();
+            if (!Guid.TryParse(value, out Guid guidValue))
+                return value;
+
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    if (conn.State != ConnectionState.Open) conn.Open();
+
+                    string sql = conn is FbConnection
+                        ? @"SELECT FIRST 1 NAME
+                            FROM SMENU
+                            WHERE ID = @Id OR SFUNCTIONID = @Id OR SFORMID = @Id"
+                        : @"SELECT TOP 1 NAME
+                            FROM SMENU
+                            WHERE ID = @Id OR SFUNCTIONID = @Id OR SFORMID = @Id";
+
+                    // Firebird databases in use by the application may expose GUID
+                    // columns as either CHAR(36) or native UUID values.
+                    string name = null;
+                    try
+                    {
+                        name = await conn.QueryFirstOrDefaultAsync<string>(sql, new { Id = value });
+                    }
+                    catch
+                    {
+                        name = await conn.QueryFirstOrDefaultAsync<string>(sql, new { Id = guidValue });
+                    }
+
+                    return string.IsNullOrWhiteSpace(name) ? defaultValue : name.Trim();
+                }
+            }
+            catch
+            {
+                // Never leak an internal GUID into the user-facing field.
+                return defaultValue;
+            }
+        }
+
         private static object GetValue(IDictionary<string, object> d, string name)
         {
             if (d == null) return null;
@@ -501,14 +553,6 @@ namespace QuanLyBar.Client.Services
                     }
                     catch { }
 
-                    // Fallback logo đầu tiên trong SIMAGE
-                    try
-                    {
-                        var defaultImg = await conn.ExecuteScalarAsync<byte[]>("SELECT FIRST 1 IMAGE FROM SIMAGE WHERE IMAGE IS NOT NULL");
-                        return defaultImg;
-                    }
-                    catch { }
-
                     return null;
                 }
             }
@@ -749,6 +793,9 @@ namespace QuanLyBar.Client.Services
 
         public static async Task<string> GetConfigValueAsync(string key, string defaultValue = "")
         {
+            if (_configCache.TryGetValue(key, out string cachedValue) && cachedValue != null)
+                return cachedValue;
+
             try
             {
                 using (var conn = GetConnection())
@@ -759,7 +806,11 @@ namespace QuanLyBar.Client.Services
                     {
                         var dict = row as IDictionary<string, object>;
                         string val = GetValue(dict, "TEXTVALUE")?.ToString();
-                        if (val != null) return val;
+                        if (val != null)
+                        {
+                            _configCache[key] = val;
+                            return val;
+                        }
                     }
                 }
             }
@@ -767,23 +818,76 @@ namespace QuanLyBar.Client.Services
             return defaultValue;
         }
 
-        public static async Task SaveSingleConfigAsync(string key, string value)
+        public static async Task<bool> SaveSingleConfigAsync(string key, string value)
         {
             try
             {
-                _configCache[key] = value ?? "";
                 using (var conn = GetConnection())
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
-                    int affected = await conn.ExecuteAsync("UPDATE SCONFIG SET TEXTVALUE = @Value WHERE UPPER(NAME) = UPPER(@Key)", new { Key = key, Value = value ?? "" });
-                    if (affected == 0)
+                    using (var trans = conn.BeginTransaction())
                     {
-                        var maxId = await GetNextSConfigIdAsync(conn);
-                        await conn.ExecuteAsync("INSERT INTO SCONFIG (ID, NAME, TEXTVALUE) VALUES (@Id, @Key, @Value)", new { Id = maxId, Key = key.ToUpper(), Value = value ?? "" });
+                        object userId = await GetCurrentUserIdAsync(conn, trans);
+                        string savedValue = value ?? "";
+                        int affected = 0;
+
+                        try
+                        {
+                            affected = await conn.ExecuteAsync(@"
+                                UPDATE SCONFIG
+                                SET TEXTVALUE = @Value,
+                                    STATUS = 30,
+                                    USERMODIFIEDID = @UserId,
+                                    TIMEMODIFIED = CURRENT_TIMESTAMP
+                                WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Key))",
+                                new { Key = key, Value = savedValue, UserId = userId }, transaction: trans);
+                        }
+                        catch
+                        {
+                            affected = await conn.ExecuteAsync(
+                                "UPDATE SCONFIG SET TEXTVALUE = @Value WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Key))",
+                                new { Key = key, Value = savedValue }, transaction: trans);
+                        }
+
+                        if (affected == 0)
+                        {
+                            object nextId = await GetNextSConfigIdAsync(conn, trans);
+                            try
+                            {
+                                await conn.ExecuteAsync(@"
+                                    INSERT INTO SCONFIG
+                                        (ID, NAME, TEXTVALUE, STATUS, USERCREATEDID, USERMODIFIEDID, TIMECREATED, TIMEMODIFIED)
+                                    VALUES (@Id, @Key, @Value, 30, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                                    new { Id = nextId, Key = key.ToUpperInvariant(), Value = savedValue, UserId = userId }, transaction: trans);
+                            }
+                            catch
+                            {
+                                try
+                                {
+                                    await conn.ExecuteAsync(@"
+                                        INSERT INTO SCONFIG (ID, NAME, TEXTVALUE, STATUS, USERCREATEDID, TIMECREATED)
+                                        VALUES (@Id, @Key, @Value, 30, @UserId, CURRENT_TIMESTAMP)",
+                                        new { Id = nextId, Key = key.ToUpperInvariant(), Value = savedValue, UserId = userId }, transaction: trans);
+                                }
+                                catch
+                                {
+                                    await conn.ExecuteAsync(
+                                        "INSERT INTO SCONFIG (ID, NAME, TEXTVALUE) VALUES (@Id, @Key, @Value)",
+                                        new { Id = nextId, Key = key.ToUpperInvariant(), Value = savedValue }, transaction: trans);
+                                }
+                            }
+                        }
+
+                        trans.Commit();
+                        _configCache[key] = savedValue;
+                        return true;
                     }
                 }
             }
-            catch { }
+            catch
+            {
+                return false;
+            }
         }
 
         public static double RoundMinutesWithSystemConfig(double totalMinutes)

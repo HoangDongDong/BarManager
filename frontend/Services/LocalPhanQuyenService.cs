@@ -627,11 +627,27 @@ namespace QuanLyBar.Client.Services
             return f;
         }
 
-        public static bool HasFunctionPermission(string funcName, string action = "View")
+        private static bool IsCurrentUserAdmin()
         {
             if (_isCurrentUserAdmin) return true;
+
+            var user = SessionContext.CurrentUser;
+            if (user == null) return false;
+            if (user.IsAdmin) return true;
+
+            string username = user.TenDangNhap?.Trim() ?? "";
+            if (string.Equals(username, "admin", StringComparison.OrdinalIgnoreCase)) return true;
+
+            string role = user.VaiTro?.Trim() ?? "";
+            string groupName = user.GroupName?.Trim() ?? "";
+            return string.Equals(role, "Quản trị viên", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(groupName, "Quản trị viên", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool HasFunctionPermission(string funcName, string action = "View")
+        {
+            if (IsCurrentUserAdmin()) return true;
             if (SessionContext.CurrentUser == null) return true; // Standalone / Dev mode
-            if (SessionContext.CurrentUser.IsAdmin || SessionContext.CurrentUser.TenDangNhap?.ToLower() == "admin") return true;
 
             if (string.IsNullOrWhiteSpace(funcName)) return true;
 
@@ -669,9 +685,8 @@ namespace QuanLyBar.Client.Services
 
         public static bool HasReportPermission(string reportName)
         {
-            if (_isCurrentUserAdmin) return true;
+            if (IsCurrentUserAdmin()) return true;
             if (SessionContext.CurrentUser == null) return true;
-            if (SessionContext.CurrentUser.IsAdmin || SessionContext.CurrentUser.TenDangNhap?.ToLower() == "admin") return true;
 
             if (string.IsNullOrWhiteSpace(reportName)) return true;
             return _userReportPermissions.Contains(reportName.Trim());

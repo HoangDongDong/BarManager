@@ -358,7 +358,7 @@ namespace QuanLyBar.Client
             await OpenTabByNameAsync(tabName);
         }
 
-        public async Task OpenTabByNameAsync(string rawTabName)
+        public async Task OpenTabByNameAsync(string rawTabName, QuanLyBar.Client.Models.ReportFilterParams? filterParams = null)
         {
             try
             {
@@ -381,7 +381,11 @@ namespace QuanLyBar.Client
 
                     System.Windows.UIElement content;
 
-                    if (tabName == "Danh mục mặt hàng")
+                    if (tabName == "Thiết kế giao diện màn cảm ứng")
+                    {
+                        content = new QuanLyBar.Client.Views.CauHinhHeThong.ThietKeGiaoDienCamUngControl();
+                    }
+                    else if (tabName == "Danh mục mặt hàng")
                     {
                         content = new QuanLyBar.Client.Views.DanhMucMatHangControl();
                     }
@@ -1429,10 +1433,18 @@ namespace QuanLyBar.Client
                     string filename = saveFileDialog.FileName;
                     string dbName = System.IO.Path.GetFileNameWithoutExtension(filename);
 
-                    // 1. Copy từ file template Firebird chuẩn
+                    // 1. Copy từ file template CSDL trắng
                     try
                     {
-                        string templatePath = @"D:\taifirebird\new.fdb";
+                        string templatePath = @"D:\QuanLyBar\frontend\CSDL\TEMPLATE.FDB";
+                        if (!System.IO.File.Exists(templatePath))
+                        {
+                            templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CSDL", "TEMPLATE.FDB");
+                        }
+                        if (!System.IO.File.Exists(templatePath))
+                        {
+                            templatePath = @"D:\taifirebird\new.fdb";
+                        }
                         if (!System.IO.File.Exists(templatePath))
                         {
                             templatePath = @"D:\taifirebird\DEMO.FDB";
@@ -1441,6 +1453,10 @@ namespace QuanLyBar.Client
                         if (System.IO.File.Exists(templatePath))
                         {
                             System.IO.File.Copy(templatePath, filename, true);
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Không tìm thấy file CSDL mẫu tại:\nD:\\QuanLyBar\\frontend\\CSDL\\TEMPLATE.FDB", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                         }
                     }
                     catch (Exception exCopy)
@@ -1469,7 +1485,16 @@ namespace QuanLyBar.Client
                             var loaded = System.Text.Json.JsonSerializer.Deserialize<System.Collections.ObjectModel.ObservableCollection<DatabaseInfo>>(json);
                             if (loaded != null) dbList = loaded;
                         }
-                        dbList.Add(newDb);
+                        var existing = dbList.FirstOrDefault(x => string.Equals(x.Path?.Trim(), filename.Trim(), StringComparison.OrdinalIgnoreCase));
+                        if (existing != null)
+                        {
+                            existing.Name = dbName;
+                            existing.ConnectionType = 2;
+                        }
+                        else
+                        {
+                            dbList.Add(newDb);
+                        }
                         var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
                         System.IO.File.WriteAllText(dataFile, System.Text.Json.JsonSerializer.Serialize(dbList, options));
                     }
@@ -1555,7 +1580,9 @@ namespace QuanLyBar.Client
 
         private void MenuDoiMatKhau_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Chức năng đổi mật khẩu tài khoản.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            var win = new QuanLyBar.Client.Views.NguoiDungPhanQuyen.DoiMatKhauWindow();
+            win.Owner = this;
+            win.ShowDialog();
         }
 
         private void MenuLogout_Click(object sender, RoutedEventArgs e)

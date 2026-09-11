@@ -66,9 +66,18 @@
             </DataGrid>
         </Border>
 
-        <!-- Bottom: Checkbox -->
-        <StackPanel Grid.Row="3" Margin="20,0,20,15">
-            <CheckBox x:Name="chkDontShow" Content="Không hiển thị lần sau" IsChecked="True"/>
-        </StackPanel>
+        <!-- Bottom: Checkbox and Buttons -->
+        <Grid Grid.Row="3" Margin="20,0,20,15">
+            <CheckBox x:Name="chkDontShow" Content="Không hiển thị lần sau" IsChecked="True" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="btnSelect" Content="Chọn" Width="85" Height="28" Margin="0,0,8,0" 
+                        Background="#007ACC" Foreground="White" FontWeight="Bold" BorderThickness="0" 
+                        Click="BtnSelect_Click" Cursor="Hand"/>
+                <Button x:Name="btnCancel" Content="Đóng" Width="75" Height="28" 
+                        Background="White" BorderBrush="#cccccc" BorderThickness="1" 
+                        Click="BtnCancel_Click" Cursor="Hand"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

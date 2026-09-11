@@ -32,13 +32,100 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         public string Icon { get; set; } = "";
     }
 
-    public partial class BaoCaoPhieuThuChiControl : UserControl
+    public partial class BaoCaoPhieuThuChiControl : UserControl, QuanLyBar.Client.Models.IReportWithFilters
     {
         private readonly string _rawReportType;
         private readonly BaoCaoQuyMode _mode;
         private bool _isLoaded = false;
         private List<PhieuThuChiGridItem> _rawItems = new List<PhieuThuChiGridItem>();
         private TonQuyResult _tonQuyResult = new TonQuyResult();
+        private QuanLyBar.Client.Models.ReportFilterParams? _pendingParams;
+        private QuanLyBar.Client.Services.ReportPaperLayout? _currentLayout;
+        private List<QuanLyBar.Client.Services.ReportColumnConfigItem>? _colConfigs;
+
+        public void ApplyFilterParams(QuanLyBar.Client.Models.ReportFilterParams p)
+        {
+            _pendingParams = p;
+            if (!_isLoaded) return;
+
+            if (p.TuNgay.HasValue) DpTuNgay.SelectedDate = p.TuNgay.Value;
+            if (p.DenNgay.HasValue) DpDenNgay.SelectedDate = p.DenNgay.Value;
+
+            if (!string.IsNullOrEmpty(p.LyDoId)) SelectCombo(CboLyDo, p.LyDoId);
+            if (!string.IsNullOrEmpty(p.CuaHangId)) SelectCombo(CboCuaHang, p.CuaHangId);
+
+            _ = LoadDataAsync();
+        }
+
+        private void SelectCombo(ComboBox cbo, string? id)
+        {
+            if (cbo == null || string.IsNullOrEmpty(id)) return;
+            foreach (var item in cbo.Items)
+            {
+                if (item is ComboLookupItem ci && ci.Id == id)
+                {
+                    cbo.SelectedItem = ci;
+                    return;
+                }
+            }
+            cbo.SelectedValue = id;
+        }
+
+        private async Task LoadTemplateConfigAsync(QuanLyBar.Client.Services.ReportPaperLayout? immediateLayout = null)
+        {
+            try
+            {
+                if (immediateLayout == null)
+                {
+                    var fullConfig = await QuanLyBar.Client.Services.ReportTemplateConfigService.GetFullTemplateConfigAsync(TxtReportTitle.Text);
+                    _colConfigs = fullConfig.Columns;
+                    _currentLayout = fullConfig.Layout;
+                }
+                else
+                {
+                    _currentLayout = immediateLayout;
+                }
+                ReportPaperLayoutHelper.ApplyReportPaperLayout(
+                    reportPaper: A4PageBorder,
+                    layout: _currentLayout,
+                    colLogo: ColLogo,
+                    brdLogo: BrdLogo,
+                    pnlCompanyText: PnlCompanyText,
+                    txtCompanyName: TxtCompanyName,
+                    txtCompanyAddress: TxtCompanyAddress,
+                    txtCompanyContact: TxtCompanyContact,
+                    gridTitleArea: GridReportTitleArea,
+                    colTitleLeft: ColTitleLeft,
+                    colTitleRight: ColTitleRight,
+                    txtReportTitle: TxtReportTitle,
+                    pnlDateAndFilter: PnlDateAndFilter,
+                    txtSubTitleDate: TxtDateRange,
+                    gridSignatures: GridSignatures,
+                    sigCol0: SigCol0,
+                    sigCol1: SigCol1,
+                    sigCol2: SigCol2,
+                    sigCol3: SigCol3,
+                    sigBlock0: SigBlock0,
+                    sigBlock1: SigBlock1,
+                    sigBlock2: SigBlock2,
+                    sigBlock3: SigBlock3
+                );
+
+                // Báo cáo thu/chi chỉ hiển thị hai chữ ký ở hai đầu, sát dưới bảng.
+                SigCol0.Width = new GridLength(1, GridUnitType.Star);
+                SigCol1.Width = new GridLength(0);
+                SigCol2.Width = new GridLength(0);
+                SigCol3.Width = new GridLength(1, GridUnitType.Star);
+                SigBlock0.Visibility = Visibility.Visible;
+                SigBlock1.Visibility = Visibility.Collapsed;
+                SigBlock2.Visibility = Visibility.Collapsed;
+                SigBlock3.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("LoadTemplateConfigAsync error: " + ex.Message);
+            }
+        }
 
         public BaoCaoPhieuThuChiControl(string reportType = "DANH SÁCH PHIẾU THU THEO NGÀY")
         {
@@ -64,7 +151,7 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
                     TxtReportTitle.Text = "TỔNG HỢP THU CHI THEO NGÀY";
                 }
             }
-            else if (_rawReportType.Contains("CHI"))
+            else if (_rawReportType.Contains("PHIẾU CHI") || _rawReportType.Contains("PHIEU CHI"))
             {
                 if (_rawReportType.Contains("LÝ DO") || _rawReportType.Contains("LY DO"))
                 {
@@ -77,7 +164,7 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
                     TxtReportTitle.Text = "DANH SÁCH PHIẾU CHI THEO NGÀY";
                 }
             }
-            else
+            else if (_rawReportType.Contains("PHIẾU THU") || _rawReportType.Contains("PHIEU THU"))
             {
                 if (_rawReportType.Contains("LÝ DO") || _rawReportType.Contains("LY DO"))
                 {
@@ -165,8 +252,13 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
                 DpDenNgay.SelectedDate = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
             }
 
+            await LoadTemplateConfigAsync();
             await LoadCompanyInfoAndLogoAsync();
             await LoadFiltersAsync();
+            if (_pendingParams != null)
+            {
+                ApplyFilterParams(_pendingParams);
+            }
             await LoadDataAsync();
         }
 
@@ -762,11 +854,11 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         private UIElement CreateGroupHeaderRowTheoNgay(string title)
         {
             var grid = new Grid { MinHeight = 22 };
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(170) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(125) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(40, 0.5) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(100, 1.1) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(170, 1.5) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(0, 1.7, true) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(125, 1.3) });
 
             var border = new Border
             {
@@ -795,11 +887,11 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         {
             var grid = new Grid { MinHeight = isHeader ? 24 : (isSummary ? 24 : 21) };
 
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(170) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(125) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(40, 0.5) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(100, 1.1) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(170, 1.5) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(0, 1.7, true) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(125, 1.3) });
 
             if (isSummary || isGroupSubtotal)
             {
@@ -828,12 +920,12 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         {
             var grid = new Grid { MinHeight = isHeader ? 24 : (isSummary ? 24 : 21) };
 
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(85) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(125) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(40, 0.5) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(100, 1.1) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(85, 1) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(150, 1.5) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(0, 1.7, true) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(125, 1.3) });
 
             if (isSummary)
             {
@@ -863,10 +955,10 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         {
             var grid = new Grid { MinHeight = isHeader ? 24 : (isSummary ? 24 : 21) };
 
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(45) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(200) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(45, 0.6) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(220, 1.7) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(200, 1.4) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(0, 1.4, true) });
 
             if (isSummary)
             {
@@ -897,10 +989,10 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         {
             var grid = new Grid { MinHeight = isHeader ? 24 : (isSummary ? 24 : 21) };
 
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(45) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(45, 0.6) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(0, 1.8, true) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(180, 1.4) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(180, 1.4) });
 
             if (isSummary)
             {
@@ -931,15 +1023,15 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         {
             var grid = new Grid { MinHeight = isHeader ? 24 : (isSummary ? 24 : 21) };
 
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });  // TT
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(95) });  // Số phiếu
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(85) });  // Ngày
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Diễn giải
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(95) });  // Tạo bởi
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });  // Thời gian
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });  // Thu
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });  // Chi
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(90) });  // Tồn
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(35, 0.45) });  // TT
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(95, 1) });  // Số phiếu
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(85, 0.9) });  // Ngày
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(0, 1.5, true) }); // Diễn giải
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(95, 0.9) });  // Tạo bởi
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(60, 0.7) });  // Thời gian
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(80, 0.9) });  // Thu
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(80, 0.9) });  // Chi
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = ResponsiveColumn(90, 1) });  // Tồn
 
             if (isSummary)
             {
@@ -976,11 +1068,12 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
 
         private Border CreateTableCell(string text, int col, HorizontalAlignment align, FontWeight weight, bool isHeader, bool isSummary)
         {
+            bool isCompact = _currentLayout?.Is80mm == true;
             var border = new Border
             {
                 BorderBrush = Brushes.Black,
                 BorderThickness = new Thickness(0, 0, 1, 1),
-                Padding = new Thickness(4, 2, 4, 2),
+                Padding = isCompact ? new Thickness(2, 2, 2, 2) : new Thickness(4, 2, 4, 2),
                 Background = isSummary 
                     ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9bbfe6")) 
                     : (isHeader ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f1f5f9")) : Brushes.White)
@@ -990,15 +1083,26 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
             var tb = new TextBlock
             {
                 Text = text ?? "",
-                FontSize = isHeader ? 10.5 : (isSummary ? 10.5 : 10),
+                FontSize = isCompact ? (isHeader ? 8.5 : 8) : (isHeader ? 10.5 : (isSummary ? 10.5 : 10)),
                 FontWeight = weight,
                 HorizontalAlignment = align,
                 VerticalAlignment = VerticalAlignment.Center,
                 TextTrimming = TextTrimming.CharacterEllipsis,
+                TextWrapping = isCompact && isHeader ? TextWrapping.Wrap : TextWrapping.NoWrap,
                 Foreground = Brushes.Black
             };
             border.Child = tb;
             return border;
+        }
+
+        private GridLength ResponsiveColumn(double a4Width, double compactWeight, bool a4Star = false)
+        {
+            if (_currentLayout?.Is80mm == true)
+                return new GridLength(compactWeight, GridUnitType.Star);
+
+            return a4Star
+                ? new GridLength(1, GridUnitType.Star)
+                : new GridLength(a4Width);
         }
 
         #endregion
@@ -1229,5 +1333,90 @@ namespace QuanLyBar.Client.Views.BaoCaoQuy
         }
 
         #endregion
+
+        private void BtnThietKeMau_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var win = new QuanLyBar.Client.Views.InAn.ThietKeMauInWindow(
+                TxtReportTitle.Text,
+                null,
+                onSaveCallback: async (cols) =>
+                {
+                    await LoadTemplateConfigAsync();
+                    await LoadDataAsync();
+                },
+                onLayoutCallback: layout =>
+                {
+                    _ = LoadTemplateConfigAsync(layout);
+                    RenderReportTable();
+                });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void BtnThamSoTuyChinh_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var win = new QuanLyBar.Client.Views.InAn.TuyChonThamSoBaoCaoWindow(
+                TxtReportTitle.Text,
+                onSavedCallback: async () =>
+                {
+                    await LoadFiltersAsync();
+                    await LoadDataAsync();
+                });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void BtnXemDuLieuTho_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (InlineDataBorder.Visibility == System.Windows.Visibility.Visible)
+            {
+                InlineDataBorder.Visibility = System.Windows.Visibility.Collapsed;
+                return;
+            }
+
+            // Use reflection to find the largest data list in this control
+            var fields = this.GetType().GetFields(
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            object? dataSource = null;
+            int maxCount = 0;
+            foreach (var f in fields)
+            {
+                var val = f.GetValue(this);
+                if (val is System.Collections.IList list && list.Count > maxCount)
+                {
+                    maxCount = list.Count;
+                    dataSource = val;
+                }
+            }
+
+            if (dataSource != null)
+                InlineDataGrid.ItemsSource = (System.Collections.IEnumerable)dataSource;
+            else
+                InlineDataGrid.ItemsSource = new[] { new { ThongBao = "Không có dữ liệu. Hãy tải dữ liệu trước (F5) roi mo lai." } };
+
+            TxtSoBanGhi.Text = $"Tổng số: {maxCount} bản ghi";
+            InlineDataBorder.Visibility = System.Windows.Visibility.Visible;
+
+            // Scroll to bottom so user can see the panel
+            var scrollViewer = FindVisualChild<System.Windows.Controls.ScrollViewer>(this);
+            scrollViewer?.ScrollToEnd();
+        }
+
+        private void BtnDongDuLieuTho_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            InlineDataBorder.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
+        private static T? FindVisualChild<T>(System.Windows.DependencyObject parent) where T : System.Windows.DependencyObject
+        {
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                if (child is T t) return t;
+                var result = FindVisualChild<T>(child);
+                if (result != null) return result;
+            }
+            return null;
+        }
     }
 }

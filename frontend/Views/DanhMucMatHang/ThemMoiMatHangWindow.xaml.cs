@@ -1,5 +1,7 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
 using System.Linq;
@@ -24,6 +26,9 @@ namespace QuanLyBar.Client.Views
         private bool _suDungGia4 = false;
         private string _dienGiaiGia4 = "Giá 4";
         private bool _suDungTenTiengAnh = false;
+        private bool _isLoading = false;
+        private byte[] _currentImageBytes = null;
+        private System.Collections.Generic.List<MatHangViewModel> _fullMaterials = new();
 
         public System.Collections.ObjectModel.ObservableCollection<DinhLuongChiTietViewModel> DinhLuongList { get; set; }
         public System.Collections.ObjectModel.ObservableCollection<MatHangViewModel> AllMaterials { get; set; }
@@ -88,6 +93,19 @@ namespace QuanLyBar.Client.Views
 
         private void Item_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(DinhLuongChiTietViewModel.SelectedMatHang))
+            {
+                if (sender is DinhLuongChiTietViewModel item && item.SelectedMatHang != null)
+                {
+                    if (IsComboSelected() && IsNguyenVatLieu(item.SelectedMatHang))
+                    {
+                        MessageBox.Show("Mặt hàng là combo không được thêm sản phẩm là nguyên vật liệu", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        item.SelectedMatHang = null;
+                        return;
+                    }
+                }
+            }
+
             if (e.PropertyName == nameof(DinhLuongChiTietViewModel.ThanhTienNhap) || 
                 e.PropertyName == nameof(DinhLuongChiTietViewModel.ThanhTienVon) ||
                 e.PropertyName == nameof(DinhLuongChiTietViewModel.SoLuong))
@@ -124,12 +142,18 @@ namespace QuanLyBar.Client.Views
         {
             if (e.Key == System.Windows.Input.Key.F4)
             {
-                BtnThemDong_Click(null, null);
+                if (TabMain.SelectedItem == TabDinhLuong && IsDinhLuongAllowed())
+                {
+                    BtnThemDong_Click(null, null);
+                }
                 e.Handled = true;
             }
             else if (e.Key == System.Windows.Input.Key.F8)
             {
-                BtnXoaDong_Click(null, null);
+                if (TabMain.SelectedItem == TabDinhLuong && IsDinhLuongAllowed())
+                {
+                    BtnXoaDong_Click(null, null);
+                }
                 e.Handled = true;
             }
             else if (e.Key == System.Windows.Input.Key.F10)
@@ -207,8 +231,24 @@ namespace QuanLyBar.Client.Views
                 ApplyGiaBanConfig();
 
                 // Load combo box data
-                var nhomList = await _matHangService.GetNhomMatHangTreeAsync();
-                var flatNhomList = nhomList.SelectMany(x => x.Children.Count > 0 ? x.Children : new System.Collections.ObjectModel.ObservableCollection<NhomMatHangViewModel> { x }).ToList();
+                var nhomTree = await _matHangService.GetNhomMatHangTreeAsync();
+                var flatNhomList = new System.Collections.Generic.List<NhomMatHangViewModel>();
+                void Flatten(System.Collections.Generic.IEnumerable<NhomMatHangViewModel> items)
+                {
+                    if (items == null) return;
+                    foreach (var it in items)
+                    {
+                        if (!string.IsNullOrEmpty(it.Id) && it.Id != "-1" && it.Name != "Tất cả" && it.Name != "Thùng rác")
+                        {
+                            flatNhomList.Add(it);
+                        }
+                        if (it.Children != null && it.Children.Count > 0)
+                        {
+                            Flatten(it.Children);
+                        }
+                    }
+                }
+                Flatten(nhomTree);
                 CboNhomMatHang.ItemsSource = flatNhomList;
 
                 var dvtList = await _matHangService.GetDonViTinhListAsync();
@@ -216,11 +256,8 @@ namespace QuanLyBar.Client.Views
                 CboDvtNhap.ItemsSource = dvtList;
 
                 var allMats = await _matHangService.GetMatHangListAsync(null);
-                AllMaterials.Clear();
-                foreach (var mat in allMats)
-                {
-                    AllMaterials.Add(mat);
-                }
+                _fullMaterials = allMats != null ? allMats.ToList() : new System.Collections.Generic.List<MatHangViewModel>();
+                RefreshAvailableMaterials();
 
                 // Tự động tải danh sách mặt hàng để duyệt Trước/Sau nếu danh sách chưa được truyền vào
                 if (_matHangList == null || _matHangList.Count == 0)
@@ -237,6 +274,8 @@ namespace QuanLyBar.Client.Views
                     }
                 }
 
+                await LoadLoaiMatHangKhacListAsync();
+
                 if (!string.IsNullOrEmpty(_matHangIdToEdit))
                 {
                     await LoadDataById(_matHangIdToEdit);
@@ -249,6 +288,10 @@ namespace QuanLyBar.Client.Views
                         CboNhomMatHang.SelectedValue = _selectedNhomId;
                     }
                     TxtMaHang.Text = ""; 
+                    RdoPhaChe.IsChecked = true;
+                    _currentImageBytes = null;
+                    if (ImgMatHang != null) ImgMatHang.Source = null;
+                    if (GridLoaiKhac != null) GridLoaiKhac.Visibility = Visibility.Collapsed;
                 }
                 UpdateNavigationButtons();
             }
@@ -256,6 +299,185 @@ namespace QuanLyBar.Client.Views
             {
                 MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
             }
+        }
+
+        private async System.Threading.Tasks.Task LoadLoaiMatHangKhacListAsync()
+        {
+            try
+            {
+                var list = await _matHangService.GetLoaiMatHangKhacListAsync();
+                CboLoaiMatHangKhac.ItemsSource = list;
+                if (list != null && list.Count > 0 && CboLoaiMatHangKhac.SelectedIndex < 0)
+                {
+                    CboLoaiMatHangKhac.SelectedIndex = 0;
+                }
+            }
+            catch { }
+        }
+
+        private void RdoLoai_Checked(object sender, RoutedEventArgs e)
+        {
+            if (GridLoaiKhac == null) return;
+            if (RdoKhac.IsChecked == true)
+            {
+                GridLoaiKhac.Visibility = Visibility.Visible;
+                if (CboLoaiMatHangKhac.ItemsSource == null)
+                {
+                    _ = LoadLoaiMatHangKhacListAsync();
+                }
+            }
+            else
+            {
+                GridLoaiKhac.Visibility = Visibility.Collapsed;
+            }
+
+            RefreshAvailableMaterials();
+
+            if (_isLoading) return;
+
+            // Nếu người dùng chọn loại mặt hàng không cho phép định lượng nhưng trước đó đã có định lượng
+            if (!IsDinhLuongAllowed() && DinhLuongList != null && DinhLuongList.Count > 0)
+            {
+                MessageBox.Show("Mặt hàng này không có vật tư / định lượng đi kèm", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            else if (IsComboSelected() && DinhLuongList != null && DinhLuongList.Any(x => IsNguyenVatLieu(x.SelectedMatHang)))
+            {
+                MessageBox.Show("Mặt hàng là combo không được thêm sản phẩm là nguyên vật liệu", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void CboLoaiMatHangKhac_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            RefreshAvailableMaterials();
+
+            if (_isLoading) return;
+            if (RdoKhac?.IsChecked == true && !IsDinhLuongAllowed() && DinhLuongList != null && DinhLuongList.Count > 0)
+            {
+                MessageBox.Show("Mặt hàng này không có vật tư / định lượng đi kèm", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            else if (IsComboSelected() && DinhLuongList != null && DinhLuongList.Any(x => IsNguyenVatLieu(x.SelectedMatHang)))
+            {
+                MessageBox.Show("Mặt hàng là combo không được thêm sản phẩm là nguyên vật liệu", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void BtnThemLoai_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ThemLoaiMatHangWindow();
+            if (win.ShowDialog() == true)
+            {
+                await LoadLoaiMatHangKhacListAsync();
+                if (win.SavedItem != null && !string.IsNullOrEmpty(win.SavedItem.Id))
+                {
+                    CboLoaiMatHangKhac.SelectedValue = win.SavedItem.Id;
+                }
+            }
+        }
+
+        private async void BtnTaiLoai_Click(object sender, RoutedEventArgs e)
+        {
+            string curr = CboLoaiMatHangKhac.SelectedValue?.ToString();
+            await LoadLoaiMatHangKhacListAsync();
+            if (!string.IsNullOrEmpty(curr))
+            {
+                CboLoaiMatHangKhac.SelectedValue = curr;
+            }
+        }
+
+        private async void BtnDanhMucLoai_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new DanhMucLoaiMatHangWindow();
+            win.OnDataChanged = async () =>
+            {
+                await LoadLoaiMatHangKhacListAsync();
+            };
+            win.ShowDialog();
+            await LoadLoaiMatHangKhacListAsync();
+        }
+
+        private void BtnDanAnh_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 1. Kiểm tra ảnh vừa chụp (PrtScn, Win+Shift+S) hoặc vừa Copy trên clipboard
+                if (Clipboard.ContainsImage())
+                {
+                    var bitmapSource = Clipboard.GetImage();
+                    if (bitmapSource != null)
+                    {
+                        using var ms = new System.IO.MemoryStream();
+                        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmapSource));
+                        encoder.Save(ms);
+                        byte[] rawBytes = ms.ToArray();
+
+                        // Tự động Resize và Nén tối ưu
+                        _currentImageBytes = ImageHelper.OptimizeImage(rawBytes, maxWidth: 500, maxHeight: 500, jpegQuality: 80);
+                        ImgMatHang.Source = ImageHelper.BytesToBitmapImage(_currentImageBytes);
+                        return;
+                    }
+                }
+
+                // 2. Kiểm tra nếu clipboard là tệp ảnh được copy từ thư mục máy tính
+                if (Clipboard.ContainsFileDropList())
+                {
+                    var files = Clipboard.GetFileDropList();
+                    if (files != null && files.Count > 0)
+                    {
+                        foreach (string file in files)
+                        {
+                            string ext = System.IO.Path.GetExtension(file).ToLower();
+                            if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp" || ext == ".gif" || ext == ".webp" || ext == ".ico")
+                            {
+                                byte[] rawBytes = System.IO.File.ReadAllBytes(file);
+                                _currentImageBytes = ImageHelper.OptimizeImage(rawBytes, maxWidth: 500, maxHeight: 500, jpegQuality: 80);
+                                ImgMatHang.Source = ImageHelper.BytesToBitmapImage(_currentImageBytes);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                MessageBox.Show("Không tìm thấy ảnh vừa chụp hoặc sao chép trong bộ nhớ tạm!\n\nBạn có thể dùng tổ hợp phím Windows + Shift + S (hoặc phím PrtScn) để chụp ảnh màn hình, rồi bấm lại nút này để dán ảnh.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi dán ảnh: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnChonFileAnh_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Hình ảnh (*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp)|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp|Tất cả tệp (*.*)|*.*",
+                Title = "Chọn ảnh mặt hàng"
+            };
+            if (ofd.ShowDialog() == true)
+            {
+                try
+                {
+                    byte[] rawBytes = System.IO.File.ReadAllBytes(ofd.FileName);
+                    // Tự động Resize (max 500x500) và Nén ảnh chất lượng cao (JPEG 80% hoặc PNG trong suốt)
+                    _currentImageBytes = ImageHelper.OptimizeImage(rawBytes, maxWidth: 500, maxHeight: 500, jpegQuality: 80);
+                    ImgMatHang.Source = ImageHelper.BytesToBitmapImage(_currentImageBytes);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi đọc file ảnh: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void BtnXoaAnh_Click(object sender, RoutedEventArgs e)
+        {
+            _currentImageBytes = null;
+            ImgMatHang.Source = null;
+        }
+
+        private static System.Windows.Media.Imaging.BitmapImage LoadBitmapFromBytes(byte[] bytes)
+        {
+            return ImageHelper.BytesToBitmapImage(bytes);
         }
 
         private void ApplyGiaBanConfig()
@@ -358,34 +580,77 @@ namespace QuanLyBar.Client.Views
 
         private async System.Threading.Tasks.Task LoadDataById(string id)
         {
-            var matHang = await _matHangService.GetMatHangByIdAsync(id);
-            if (matHang != null)
+            _isLoading = true;
+            try
             {
-                TxtMaHang.Text = matHang.Code;
-                TxtTenHang.Text = matHang.Name;
-                if (TxtTenTiengAnh != null) TxtTenTiengAnh.Text = matHang.Tentienganh ?? "";
-                TxtGiaBan.Text = matHang.Giaban?.ToString("N0") ?? "0";
-                if (TxtGia2 != null) TxtGia2.Text = matHang.Giaban2?.ToString("N0") ?? "0";
-                if (TxtGia3 != null) TxtGia3.Text = matHang.Giaban3?.ToString("N0") ?? "0";
-                if (TxtGia4 != null) TxtGia4.Text = matHang.Giaban4?.ToString("N0") ?? "0";
-                TxtGiaNhap.Text = matHang.Gianhap?.ToString("N0") ?? "0";
-                if (TxtGiaVon != null) TxtGiaVon.Text = matHang.Giavon?.ToString("N0") ?? "0";
-                TxtQuyDoi.Text = _suDung2Dvt ? (string.IsNullOrEmpty(matHang.Quydoi) ? "1" : matHang.Quydoi) : "1";
-                ChkGiaTheoThoiGia.IsChecked = matHang.Giatheothoigia == 1;
-                CboNhomMatHang.SelectedValue = matHang.DnhommathangId;
-                CboDvtBan.SelectedValue = matHang.DdonvitinhId;
-                CboDvtNhap.SelectedValue = _suDung2Dvt ? matHang.DdonvitinhchanId : null;
-                ChkTamKhoa.IsChecked = matHang.Tamkhoa == "1" || matHang.Tamkhoa == "True";
-
-                Apply2DvtConfig();
-                ApplyGiaBanConfig();
-
-                var dls = await _matHangService.GetDinhLuongByMatHangIdAsync(id, AllMaterials);
                 DinhLuongList.Clear();
-                foreach (var dl in dls)
+                var matHang = await _matHangService.GetMatHangByIdAsync(id);
+                if (matHang != null)
                 {
-                    DinhLuongList.Add(dl);
+                    TxtMaHang.Text = matHang.Code;
+                    TxtTenHang.Text = matHang.Name;
+                    if (TxtTenTiengAnh != null) TxtTenTiengAnh.Text = matHang.Tentienganh ?? "";
+                    TxtGiaBan.Text = matHang.Giaban?.ToString("N0") ?? "0";
+                    if (TxtGia2 != null) TxtGia2.Text = matHang.Giaban2?.ToString("N0") ?? "0";
+                    if (TxtGia3 != null) TxtGia3.Text = matHang.Giaban3?.ToString("N0") ?? "0";
+                    if (TxtGia4 != null) TxtGia4.Text = matHang.Giaban4?.ToString("N0") ?? "0";
+                    TxtGiaNhap.Text = matHang.Gianhap?.ToString("N0") ?? "0";
+                    if (TxtGiaVon != null) TxtGiaVon.Text = matHang.Giavon?.ToString("N0") ?? "0";
+                    TxtQuyDoi.Text = _suDung2Dvt ? (string.IsNullOrEmpty(matHang.Quydoi) ? "1" : matHang.Quydoi) : "1";
+                    ChkGiaTheoThoiGia.IsChecked = matHang.Giatheothoigia == 1;
+                    CboNhomMatHang.SelectedValue = matHang.DnhommathangId;
+                    CboDvtBan.SelectedValue = matHang.DdonvitinhId;
+                    CboDvtNhap.SelectedValue = _suDung2Dvt ? matHang.DdonvitinhchanId : null;
+                    ChkTamKhoa.IsChecked = matHang.Tamkhoa == "1" || matHang.Tamkhoa == "True";
+
+                    Apply2DvtConfig();
+                    ApplyGiaBanConfig();
+
+                    // Load Loại mặt hàng
+                    string loaiId = matHang.DloaimathangId?.Trim();
+                    if (loaiId == "1")
+                    {
+                        RdoPhaChe.IsChecked = true;
+                        if (GridLoaiKhac != null) GridLoaiKhac.Visibility = Visibility.Collapsed;
+                    }
+                    else if (loaiId == "2")
+                    {
+                        RdoVatTu.IsChecked = true;
+                        if (GridLoaiKhac != null) GridLoaiKhac.Visibility = Visibility.Collapsed;
+                    }
+                    else if (loaiId == "3")
+                    {
+                        RdoMo.IsChecked = true;
+                        if (GridLoaiKhac != null) GridLoaiKhac.Visibility = Visibility.Collapsed;
+                    }
+                    else if (loaiId == "0" || string.IsNullOrEmpty(loaiId))
+                    {
+                        RdoKiemVatTu.IsChecked = true;
+                        if (GridLoaiKhac != null) GridLoaiKhac.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        RdoKhac.IsChecked = true;
+                        if (GridLoaiKhac != null) GridLoaiKhac.Visibility = Visibility.Visible;
+                        await LoadLoaiMatHangKhacListAsync();
+                        CboLoaiMatHangKhac.SelectedValue = loaiId;
+                    }
+
+                    _currentImageBytes = matHang.ImageBytes;
+                    ImgMatHang.Source = LoadBitmapFromBytes(_currentImageBytes);
+
+                    RefreshAvailableMaterials();
+                    var dls = await _matHangService.GetDinhLuongByMatHangIdAsync(id, _fullMaterials != null && _fullMaterials.Count > 0 ? _fullMaterials : AllMaterials);
+                    DinhLuongList.Clear();
+                    foreach (var dl in dls)
+                    {
+                        DinhLuongList.Add(dl);
+                    }
                 }
+            }
+            finally
+            {
+                _isLoading = false;
             }
         }
 
@@ -427,24 +692,36 @@ namespace QuanLyBar.Client.Views
 
         private void BtnTaoMoi_Click(object sender, RoutedEventArgs e)
         {
-            _matHangIdToEdit = null;
-            TxtMaHang.Text = "";
-            TxtTenHang.Text = "";
-            if (TxtTenTiengAnh != null) TxtTenTiengAnh.Text = "";
-            TxtGiaBan.Text = "0";
-            if (TxtGia2 != null) TxtGia2.Text = "0";
-            if (TxtGia3 != null) TxtGia3.Text = "0";
-            if (TxtGia4 != null) TxtGia4.Text = "0";
-            TxtGiaNhap.Text = "0";
-            if (TxtGiaVon != null) TxtGiaVon.Text = "0";
-            TxtQuyDoi.Text = "1";
-            ChkGiaTheoThoiGia.IsChecked = false;
-            ChkTamKhoa.IsChecked = false;
-            DinhLuongList.Clear();
-            this.Title = "MẶT HÀNG - THÊM MỚI";
-            Apply2DvtConfig();
-            ApplyGiaBanConfig();
-            UpdateNavigationButtons();
+            _isLoading = true;
+            try
+            {
+                _matHangIdToEdit = null;
+                TxtMaHang.Text = "";
+                TxtTenHang.Text = "";
+                if (TxtTenTiengAnh != null) TxtTenTiengAnh.Text = "";
+                TxtGiaBan.Text = "0";
+                if (TxtGia2 != null) TxtGia2.Text = "0";
+                if (TxtGia3 != null) TxtGia3.Text = "0";
+                if (TxtGia4 != null) TxtGia4.Text = "0";
+                TxtGiaNhap.Text = "0";
+                if (TxtGiaVon != null) TxtGiaVon.Text = "0";
+                TxtQuyDoi.Text = "1";
+                ChkGiaTheoThoiGia.IsChecked = false;
+                ChkTamKhoa.IsChecked = false;
+                RdoPhaChe.IsChecked = true;
+                _currentImageBytes = null;
+                if (ImgMatHang != null) ImgMatHang.Source = null;
+                DinhLuongList.Clear();
+                RefreshAvailableMaterials();
+                this.Title = "MẶT HÀNG - THÊM MỚI";
+                Apply2DvtConfig();
+                ApplyGiaBanConfig();
+                UpdateNavigationButtons();
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
 
         private async void BtnLuu_Click(object sender, RoutedEventArgs e)
@@ -477,6 +754,53 @@ namespace QuanLyBar.Client.Views
                     return false;
                 }
 
+                string loaiId = "0";
+                if (RdoPhaChe.IsChecked == true) loaiId = "1";
+                else if (RdoKiemVatTu.IsChecked == true) loaiId = "0";
+                else if (RdoVatTu.IsChecked == true) loaiId = "2";
+                else if (RdoMo.IsChecked == true) loaiId = "3";
+                else if (RdoKhac.IsChecked == true)
+                {
+                    loaiId = CboLoaiMatHangKhac.SelectedValue?.ToString();
+                    if (string.IsNullOrEmpty(loaiId))
+                    {
+                        MessageBox.Show("Vui lòng chọn một loại mặt hàng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        CboLoaiMatHangKhac.Focus();
+                        return false;
+                    }
+                }
+
+                // Nếu người dùng chọn loại mặt hàng không cho phép định lượng nhưng có định lượng đi kèm thì cảnh báo và chưa cho lưu
+                if (!IsDinhLuongAllowed() && DinhLuongList != null && DinhLuongList.Count > 0)
+                {
+                    MessageBox.Show("Mặt hàng này không có vật tư / định lượng đi kèm", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                // Nếu là Combo: không được thêm nguyên vật liệu vào định lượng
+                if (IsComboSelected() && DinhLuongList != null && DinhLuongList.Count > 0)
+                {
+                    var rawMat = DinhLuongList.FirstOrDefault(x => IsNguyenVatLieu(x.SelectedMatHang));
+                    if (rawMat != null)
+                    {
+                        MessageBox.Show("Mặt hàng là combo không được thêm sản phẩm là nguyên vật liệu", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        TabMain.SelectedItem = TabDinhLuong;
+                        return false;
+                    }
+                }
+
+                // Kiểm tra số lượng cho định lượng
+                if (IsDinhLuongAllowed() && DinhLuongList != null && DinhLuongList.Count > 0)
+                {
+                    var zeroQty = DinhLuongList.FirstOrDefault(x => x.SelectedMatHang != null && x.SoLuong <= 0);
+                    if (zeroQty != null)
+                    {
+                        MessageBox.Show("Mời bạn nhập số lượng cho định lượng", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        TabMain.SelectedItem = TabDinhLuong;
+                        return false;
+                    }
+                }
+
                 bool isEdit = !string.IsNullOrEmpty(_matHangIdToEdit);
                 var matHang = new MatHangViewModel
                 {
@@ -493,16 +817,41 @@ namespace QuanLyBar.Client.Views
                     Quydoi = _suDung2Dvt ? (string.IsNullOrWhiteSpace(TxtQuyDoi.Text) ? "1" : TxtQuyDoi.Text) : "1",
                     Giatheothoigia = ChkGiaTheoThoiGia.IsChecked == true ? 1 : 0,
                     DnhommathangId = CboNhomMatHang.SelectedValue?.ToString(),
+                    DloaimathangId = loaiId,
                     DdonvitinhId = CboDvtBan.SelectedValue?.ToString(),
                     DdonvitinhchanId = _suDung2Dvt ? CboDvtNhap.SelectedValue?.ToString() : null,
-                    Tamkhoa = ChkTamKhoa.IsChecked == true ? "1" : "0"
+                    Tamkhoa = ChkTamKhoa.IsChecked == true ? "1" : "0",
+                    ImageBytes = _currentImageBytes
                 };
 
                 bool result = isEdit ? await _matHangService.UpdateMatHangAsync(matHang) : await _matHangService.InsertMatHangAsync(matHang);
                 
                 if (result)
                 {
-                    await _matHangService.SaveDinhLuongListAsync(matHang.Id, DinhLuongList.ToList());
+                    if (IsDinhLuongAllowed())
+                    {
+                        await _matHangService.SaveDinhLuongListAsync(matHang.Id, DinhLuongList.ToList());
+                    }
+                    else
+                    {
+                        await _matHangService.SaveDinhLuongListAsync(matHang.Id, new System.Collections.Generic.List<DinhLuongChiTietViewModel>());
+                    }
+
+                    if (_matHangList != null)
+                    {
+                        var cached = _matHangList.FirstOrDefault(x => x.Id == matHang.Id);
+                        if (cached != null)
+                        {
+                            cached.DloaimathangId = loaiId;
+                            cached.Name = matHang.Name;
+                            cached.Code = matHang.Code;
+                            cached.Giaban = matHang.Giaban;
+                            cached.Gianhap = matHang.Gianhap;
+                            cached.DnhommathangId = matHang.DnhommathangId;
+                            cached.DdonvitinhId = matHang.DdonvitinhId;
+                        }
+                    }
+                    _matHangIdToEdit = matHang.Id;
 
                     string msg = isEdit ? "Cập nhật thành công!" : "Thêm mới thành công!";
                     MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -518,8 +867,146 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private bool IsDinhLuongAllowed()
+        {
+            // 1. Mặt hàng pha chế: được phép định lượng
+            if (RdoPhaChe?.IsChecked == true)
+            {
+                return true;
+            }
+
+            // 2. Mặt hàng kiêm vật tư, Vật tư nguyên liệu, Mặt hàng mở: không được phép định lượng
+            if (RdoKiemVatTu?.IsChecked == true || RdoVatTu?.IsChecked == true || RdoMo?.IsChecked == true)
+            {
+                return false;
+            }
+
+            // 3. Khác: chỉ có Combo, Combo mở, Dịch vụ theo giờ là được phép định lượng
+            if (RdoKhac?.IsChecked == true)
+            {
+                DLOAIMATHANG selectedLoai = CboLoaiMatHangKhac?.SelectedItem as DLOAIMATHANG;
+                if (selectedLoai == null && CboLoaiMatHangKhac?.SelectedValue != null && CboLoaiMatHangKhac.ItemsSource is System.Collections.Generic.IEnumerable<DLOAIMATHANG> loaiList)
+                {
+                    string selId = CboLoaiMatHangKhac.SelectedValue.ToString();
+                    selectedLoai = loaiList.FirstOrDefault(x => x.Id == selId);
+                }
+
+                if (selectedLoai != null)
+                {
+                    string name = selectedLoai.Name?.Trim().ToLower() ?? "";
+                    string id = selectedLoai.Id?.Trim() ?? "";
+
+                    // Chỉ có Combo (ID=4), Combo mở (ID=5) và Dịch vụ theo giờ (ID=7) là được phép định lượng
+                    if (id == "4" || id == "5" || id == "7")
+                        return true;
+
+                    if (name.StartsWith("combo") || name.Contains("theo giờ") || name.Contains("thêm giờ"))
+                        return true;
+                }
+
+                return false;
+            }
+
+            return false;
+        }
+
+        private bool IsComboSelected()
+        {
+            if (RdoKhac?.IsChecked != true) return false;
+
+            DLOAIMATHANG selectedLoai = CboLoaiMatHangKhac?.SelectedItem as DLOAIMATHANG;
+            if (selectedLoai == null && CboLoaiMatHangKhac?.SelectedValue != null && CboLoaiMatHangKhac.ItemsSource is System.Collections.Generic.IEnumerable<DLOAIMATHANG> loaiList)
+            {
+                string selId = CboLoaiMatHangKhac.SelectedValue.ToString();
+                selectedLoai = loaiList.FirstOrDefault(x => x.Id == selId);
+            }
+
+            if (selectedLoai != null)
+            {
+                string name = selectedLoai.Name?.Trim().ToLower() ?? "";
+                string id = selectedLoai.Id?.Trim() ?? "";
+                return id == "4" || id == "5" || name.StartsWith("combo") || name.Contains("combo");
+            }
+            return false;
+        }
+
+        private static bool IsNguyenVatLieu(MatHangViewModel mat)
+        {
+            if (mat == null) return false;
+            string loaiId = mat.DloaimathangId?.Trim() ?? "";
+            if (loaiId == "2") return true;
+
+            string loaiName = mat.LoaiMatHangName?.Trim().ToLower() ?? "";
+            if (loaiName == "vật tư nguyên liệu" || loaiName == "nguyên liệu" || loaiName.Contains("nguyên vật liệu"))
+                return true;
+
+            return false;
+        }
+
+        private void RefreshAvailableMaterials()
+        {
+            if (_fullMaterials == null) return;
+
+            bool isCombo = IsComboSelected();
+
+            AllMaterials.Clear();
+            foreach (var mat in _fullMaterials)
+            {
+                // Nếu mặt hàng hiện tại là Combo thì KHÔNG được thêm sản phẩm là nguyên vật liệu
+                if (isCombo && IsNguyenVatLieu(mat))
+                {
+                    continue;
+                }
+                AllMaterials.Add(mat);
+            }
+        }
+
+        private bool _warningShown = false;
+        private bool _isRevertingTab = false;
+
+        private void TabDinhLuong_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (TabMain?.SelectedItem != TabDinhLuong)
+            {
+                if (!IsDinhLuongAllowed())
+                {
+                    e.Handled = true;
+                    _warningShown = true;
+                    MessageBox.Show("Mặt hàng này không có vật tư / định lượng đi kèm", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private void TabMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isRevertingTab) return;
+            if (e.Source != TabMain) return;
+
+            if (TabMain?.SelectedItem == TabDinhLuong)
+            {
+                if (!IsDinhLuongAllowed())
+                {
+                    _isRevertingTab = true;
+                    TabMain.SelectedItem = TabThongTin;
+                    _isRevertingTab = false;
+
+                    if (!_warningShown)
+                    {
+                        MessageBox.Show("Mặt hàng này không có vật tư / định lượng đi kèm", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            _warningShown = false;
+        }
+
         private void BtnThemDong_Click(object sender, RoutedEventArgs e)
         {
+            if (!IsDinhLuongAllowed())
+            {
+                MessageBox.Show("Mặt hàng này không có vật tư / định lượng đi kèm", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            RefreshAvailableMaterials();
             DinhLuongList.Add(new DinhLuongChiTietViewModel { SoLuong = 1 });
         }
 

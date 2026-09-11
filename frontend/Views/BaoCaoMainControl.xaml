@@ -45,9 +45,10 @@
         <!-- Top Action Bar -->
         <Border Grid.Row="0" Background="#e2ebf6" BorderBrush="#a4bce3" BorderThickness="0,0,0,1" Padding="6,4">
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="BtnThietKeMau" Content="💾 Thiết kế mẫu" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnThietKeMau_Click"/>
-                <Button x:Name="BtnTuyChonThamSo" Content="⚙️ Tùy chọn tham số báo cáo" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnTuyChonThamSo_Click"/>
+                <Button x:Name="BtnThietKeMau" Content="📄 Thiết kế mẫu" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnThietKeMau_Click"/>
+                <Button x:Name="BtnTuyChonThamSo" Content="⚙ Tùy chọn tham số báo cáo" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnTuyChonThamSo_Click"/>
                 <Button x:Name="BtnXemDuLieuTho" Content="🔄 Xem dữ liệu thô" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnXemDuLieuTho_Click"/>
+                <Button x:Name="BtnXuatExcel" Content="📊 Xuất excel dữ liệu thô" Padding="10,4" Margin="2,0" Background="#f8fafc" BorderBrush="#a4bce3" FontWeight="SemiBold" Click="BtnXuatExcel_Click"/>
             </StackPanel>
         </Border>
 
@@ -162,131 +163,219 @@
             <!-- Column Splitter -->
             <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="#a4bce3"/>
 
-            <!-- Right Panel: Parameters & Instructions -->
+            <!-- Right Panel: Parameters & Instructions + Raw DataGrid -->
             <Grid Grid.Column="2" Background="White">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="3"/>
-                    <ColumnDefinition Width="320"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" MinHeight="200"/>
+                    <RowDefinition Height="3"/>
+                    <RowDefinition Height="*" MinHeight="150"/>
+                </Grid.RowDefinitions>
 
-                <!-- Report Parameters Panel -->
-                <Border Grid.Column="0" BorderBrush="#a4bce3" BorderThickness="1,1,0,1" Padding="15">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                <!-- Top: Parameters & Instructions -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="3"/>
+                        <ColumnDefinition Width="330"/>
+                    </Grid.ColumnDefinitions>
 
-                        <!-- Report Header -->
-                        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-                            <TextBlock Text="Tham số báo cáo" FontSize="12" Foreground="#64748b"/>
-                            <TextBlock x:Name="TxtReportTitle" Text="BÁO CÁO TỒN QUỸ"
-                                       FontSize="15" FontWeight="Bold" Foreground="#1e3f66" Margin="0,4,0,0"/>
-                        </StackPanel>
+                    <!-- Report Parameters Panel (Grid.Column="0") -->
+                    <Border Grid.Column="0" BorderBrush="#a4bce3" BorderThickness="1,1,0,1" Padding="12,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <!-- Dynamic Filter Inputs -->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="PnlFilterInputs">
-                                <!-- Date Range Filter -->
-                                <Grid Margin="0,0,0,12">
+                            <!-- Report Header -->
+                            <StackPanel Grid.Row="0" Margin="0,0,0,8">
+                                <TextBlock Text="Tham số báo cáo" FontSize="11" Foreground="#64748b"/>
+                                <Grid Margin="0,2,0,0">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-
-                                    <TextBlock Text="Ngày" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <TextBlock Text="Từ:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#475569"/>
-                                        <DatePicker x:Name="DpTuNgay" Width="120" Height="26"/>
-                                        <TextBlock Text="Đến:" VerticalAlignment="Center" Margin="10,0,5,0" Foreground="#475569"/>
-                                        <DatePicker x:Name="DpDenNgay" Width="120" Height="26"/>
-                                    </StackPanel>
-                                </Grid>
-
-                                <!-- Filter 1 -->
-                                <Grid x:Name="PnlFilter1" Margin="0,0,0,12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="90"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="LblFilter1" Text="Lý do thu chi" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
-                                    <ComboBox x:Name="CboFilter1" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                                </Grid>
-
-                                <!-- Filter 2 -->
-                                <Grid x:Name="PnlFilter2" Margin="0,0,0,12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="90"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="LblFilter2" Text="Cửa hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
-                                    <ComboBox x:Name="CboFilter2" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                                </Grid>
-
-                                <!-- Filter 3 (Optional) -->
-                                <Grid x:Name="PnlFilter3" Margin="0,0,0,12" Visibility="Collapsed">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="90"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="LblFilter3" Text="Mặt hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
-                                    <ComboBox x:Name="CboFilter3" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                                </Grid>
-
-                                <!-- Filter 4 (Optional) -->
-                                <Grid x:Name="PnlFilter4" Margin="0,0,0,12" Visibility="Collapsed">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="90"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="LblFilter4" Text="Khách hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
-                                    <ComboBox x:Name="CboFilter4" Grid.Column="1" Height="26" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                    <TextBlock x:Name="TxtReportTitle" Text="DANH SÁCH PHIẾU NHẬP KHO THEO NGÀY"
+                                               FontSize="13" FontWeight="Bold" Foreground="#1e3f66"/>
+                                    <Separator Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" Background="#cbd5e1"/>
                                 </Grid>
                             </StackPanel>
-                        </ScrollViewer>
 
-                        <!-- Bottom Controls -->
-                        <Grid Grid.Row="2" Margin="0,15,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="140"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                            <!-- Dynamic Filter Inputs -->
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="PnlFilterInputs">
+                                    <!-- Date Range Filter -->
+                                    <Grid x:Name="PnlDateFilter" Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                            <ComboBox x:Name="CboMauIn" Grid.Column="0" Height="28" SelectedIndex="0">
-                                <ComboBoxItem Content="Mẫu A4"/>
-                                <ComboBoxItem Content="Mẫu A5"/>
-                                <ComboBoxItem Content="Mẫu Excel"/>
-                            </ComboBox>
+                                        <TextBlock Text="Ngày" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBlock Text="Từ:" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="#475569"/>
+                                            <DatePicker x:Name="DpTuNgay" Width="105" Height="24"/>
+                                            <TextBlock Text="Đến:" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="#475569"/>
+                                            <DatePicker x:Name="DpDenNgay" Width="105" Height="24"/>
+                                        </StackPanel>
+                                    </Grid>
 
-                            <Button x:Name="BtnHienThi" Grid.Column="1" Content="🔍 Hiển thị" Width="110" Height="30"
-                                    HorizontalAlignment="Right" Background="#28a745" Foreground="White"
-                                    FontWeight="Bold" FontSize="13" BorderThickness="0" Click="BtnHienThi_Click">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="3"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                                    <!-- Filter 1 -->
+                                    <Grid x:Name="PnlFilter1" Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="LblFilter1" Text="Nhà cung cấp" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                        <ComboBox x:Name="CboFilter1" Grid.Column="1" Height="24" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                    </Grid>
+
+                                    <!-- Filter 2 -->
+                                    <Grid x:Name="PnlFilter2" Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="LblFilter2" Text="Nhân viên nhập" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                        <ComboBox x:Name="CboFilter2" Grid.Column="1" Height="24" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                    </Grid>
+
+                                    <!-- Filter 3 (Optional) -->
+                                    <Grid x:Name="PnlFilter3" Margin="0,0,0,6" Visibility="Collapsed">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="LblFilter3" Text="Mặt hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                        <ComboBox x:Name="CboFilter3" Grid.Column="1" Height="24" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                    </Grid>
+
+                                    <!-- Filter 4 (Optional) -->
+                                    <Grid x:Name="PnlFilter4" Margin="0,0,0,6" Visibility="Collapsed">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="LblFilter4" Text="Khách hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                        <ComboBox x:Name="CboFilter4" Grid.Column="1" Height="24" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                    </Grid>
+
+                                    <!-- Filter 5 (Optional) -->
+                                    <Grid x:Name="PnlFilter5" Margin="0,0,0,6" Visibility="Collapsed">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="LblFilter5" Text="Mặt hàng" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                        <ComboBox x:Name="CboFilter5" Grid.Column="1" Height="24" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                    </Grid>
+
+                                    <!-- Filter Số phiếu -->
+                                    <Grid x:Name="PnlFilterSoPhieu" Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Số phiếu" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+                                        <TextBox x:Name="TxtSoPhieu" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Padding="4,0"/>
+                                    </Grid>
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <!-- Bottom Controls: Nút Hiển thị -->
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+                                <Button x:Name="BtnHienThi" Content="🔍 Hiển thị" Width="90" Height="26"
+                                        Background="#f8fafc" BorderBrush="#a4bce3" BorderThickness="1"
+                                        FontWeight="SemiBold" FontSize="12" Click="BtnHienThi_Click"/>
+                            </StackPanel>
                         </Grid>
-                    </Grid>
-                </Border>
+                    </Border>
 
-                <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="#a4bce3"/>
+                    <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" Background="#a4bce3"/>
 
-                <!-- Instructions Panel -->
-                <Border Grid.Column="2" BorderBrush="#a4bce3" BorderThickness="0,1,1,1" Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="Các bước xem báo cáo" FontSize="13" FontWeight="Bold" Foreground="#1e3f66" Margin="0,0,0,12"/>
-                        <TextBlock Text="1. Chọn báo cáo trên thư mục báo cáo bên trái" FontSize="12" Foreground="#334155" Margin="0,0,0,8" TextWrapping="Wrap"/>
-                        <TextBlock Text="2. Điền các tham số báo cáo vào bên mục &quot;Tham số báo cáo&quot;" FontSize="12" Foreground="#334155" Margin="0,0,0,8" TextWrapping="Wrap"/>
-                        <TextBlock Text="3. Click &quot;Hiển thị&quot; để xem báo cáo" FontSize="12" Foreground="#334155" Margin="0,0,0,8" TextWrapping="Wrap"/>
-                        <TextBlock Text="4. Bạn có thể nháy đúp vào báo cáo trên thư mục để xem báo cáo với tham số mặc định." FontSize="12" Foreground="#334155" Margin="0,0,0,12" TextWrapping="Wrap"/>
-                        <TextBlock Text="Để sửa mẫu báo cáo hoặc các định dạng trên báo cáo, bạn chọn báo cáo và click &quot;Thiết kế mẫu&quot;." FontSize="12" Foreground="#64748b" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                    <!-- Instructions Panel -->
+                    <Border Grid.Column="2" BorderBrush="#a4bce3" BorderThickness="0,1,1,1" Padding="12,10">
+                        <StackPanel>
+                            <TextBlock Text="Các bước xem báo cáo" FontSize="12" FontWeight="Bold" Foreground="#1e3f66" Margin="0,0,0,8"/>
+                            <TextBlock Text="1. Chọn báo cáo trên thư mục báo cáo bên trái" FontSize="11" Foreground="#334155" Margin="0,0,0,5" TextWrapping="Wrap"/>
+                            <TextBlock Text="2. Điền các tham số báo cáo vào bên mục &quot;Tham số báo cáo&quot;" FontSize="11" Foreground="#334155" Margin="0,0,0,5" TextWrapping="Wrap"/>
+                            <TextBlock Text="3. Click &quot;Hiển thị&quot; để xem báo cáo" FontSize="11" Foreground="#334155" Margin="0,0,0,5" TextWrapping="Wrap"/>
+                            <TextBlock Text="4. Bạn có thể nháy đúp vào báo cáo trên thư mục để xem báo cáo với tham số mặc định." FontSize="11" Foreground="#334155" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                            <TextBlock Text="Để sửa mẫu báo cáo hoặc các định dạng trên báo cáo, bạn chọn báo cáo và click &quot;Thiết kế mẫu&quot;." FontSize="11" Foreground="#64748b" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <TextBlock Text="Nếu bạn muốn có mẫu báo cáo riêng của bạn, hãy liên hệ với chúng tôi" FontSize="11" FontStyle="Italic" Foreground="#2563eb" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
-                        <TextBlock Text="Nếu bạn muốn có mẫu báo cáo riêng của bạn, hãy liên hệ với chúng tôi" FontSize="12" FontStyle="Italic" Foreground="#2563eb" TextWrapping="Wrap"/>
-                    </StackPanel>
+                <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" Background="#a4bce3"/>
+
+                <!-- Bottom: Raw Data Grid Area -->
+                <Border Grid.Row="2" BorderBrush="#a4bce3" BorderThickness="1" Background="White">
+                    <DataGrid x:Name="DgDuLieuTho"
+                              AutoGenerateColumns="True"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="All"
+                              RowHeaderWidth="38"
+                              GridLinesVisibility="All"
+                              HorizontalGridLinesBrush="#cbd5e1"
+                              VerticalGridLinesBrush="#cbd5e1"
+                              Background="White"
+                              FontSize="12"
+                              SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              LoadingRow="DgDuLieuTho_LoadingRow"
+                              SelectionChanged="DgDuLieuTho_SelectionChanged"
+                              AutoGeneratingColumn="DgDuLieuTho_AutoGeneratingColumn">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#f8fafc" Offset="0"/>
+                                            <GradientStop Color="#dbe5f2" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Foreground" Value="#1e293b"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="BorderBrush" Value="#a4bce3"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.RowHeaderStyle>
+                            <Style TargetType="DataGridRowHeader">
+                                <Setter Property="Width" Value="38"/>
+                                <Setter Property="BorderBrush" Value="#a4bce3"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="Background" Value="#e8f0fe"/>
+                                <Setter Property="Foreground" Value="#334155"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                                        <Setter Property="Background" Value="#c86432"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowHeaderStyle>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#005fb8"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                    </DataGrid>
                 </Border>
             </Grid>
         </Grid>

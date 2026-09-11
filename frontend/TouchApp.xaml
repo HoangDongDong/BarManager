@@ -1,0 +1,5 @@
+<Application x:Class="QuanLyBar.Client.TouchApp"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="Views/TouchPOS/TouchMainWindow.xaml">
+</Application>

@@ -21,7 +21,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ApplicationDefinition Remove="TouchApp.xaml" />
+    <None Include="TouchApp.xaml" />
+    <Compile Remove="TouchApp.xaml.cs" />
+    <None Include="TouchApp.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="img\**" />
+    <None Update="CSDL\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="img\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

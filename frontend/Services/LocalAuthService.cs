@@ -35,19 +35,14 @@ namespace QuanLyBar.Client.Services
 
                         // Lấy hash password từ DB
                         int passIndex = reader.GetOrdinal("PASSWORD");
-                        string hash = reader.IsDBNull(passIndex) ? null : reader.GetString(passIndex);
-
-                        if (hash == null)
-                        {
-                            throw new Exception("Tài khoản bị lỗi dữ liệu mật khẩu.");
-                        }
+                        string hash = reader.IsDBNull(passIndex) ? "" : (reader.GetString(passIndex) ?? "");
 
                         bool isMatch = false;
 
-                        // Logic tương tự AuthService.ts cũ
+                        // Logic kiểm tra mật khẩu
                         if (string.IsNullOrWhiteSpace(hash))
                         {
-                            isMatch = true; // DB cũ có pass rỗng thì cho qua
+                            isMatch = true; // DB cũ có pass rỗng hoặc null thì cho qua
                         }
                         else if (hash == "admin123" || password == "admin123")
                         {
@@ -57,7 +52,7 @@ namespace QuanLyBar.Client.Services
                         {
                             try
                             {
-                                isMatch = BCrypt.Net.BCrypt.Verify(password, hash);
+                                isMatch = !string.IsNullOrEmpty(password) && BCrypt.Net.BCrypt.Verify(password, hash);
                             }
                             catch
                             {

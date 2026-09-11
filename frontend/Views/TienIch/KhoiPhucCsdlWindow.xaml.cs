@@ -117,9 +117,18 @@ namespace QuanLyBar.Client.Views
                         var loaded = System.Text.Json.JsonSerializer.Deserialize<System.Collections.ObjectModel.ObservableCollection<DatabaseInfo>>(json);
                         if (loaded != null) dbList = loaded;
                     }
-                    dbList.Add(newDb);
-                    var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-                    File.WriteAllText(dataFile, System.Text.Json.JsonSerializer.Serialize(dbList, options));
+                        var existing = dbList.FirstOrDefault(x => string.Equals(x.Path?.Trim(), targetFdb.Trim(), StringComparison.OrdinalIgnoreCase));
+                        if (existing != null)
+                        {
+                            existing.Name = dbName;
+                            existing.ConnectionType = 2;
+                        }
+                        else
+                        {
+                            dbList.Add(newDb);
+                        }
+                        var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+                        File.WriteAllText(dataFile, System.Text.Json.JsonSerializer.Serialize(dbList, options));
                 }
                 catch { }
 

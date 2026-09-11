@@ -1,0 +1,138 @@
+<Window x:Class="QuanLyBar.Client.Views.CauHinhHeThong.ThietLapDinhDangThanhPhanWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thiết lập cột hiển thị" WindowState="Maximized"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
+        Background="#0D4B5B">
+    <Window.Resources>
+        <Style x:Key="DarkButton" TargetType="Button">
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="16,4"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#777777"/>
+            <Setter Property="BorderBrush" Value="#B6D1DC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style x:Key="ListBoxStyle" TargetType="ListBox">
+            <Setter Property="Background" Value="#89A9C0"/>
+            <Setter Property="BorderBrush" Value="#C1D7E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6"/>
+        </Style>
+    </Window.Resources>
+    <Grid x:Name="LayoutRoot" Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="52"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="#5C91AE" CornerRadius="8" Padding="12">
+            <TextBlock Text="THIẾT LẬP CỘT HIỂN THỊ" Foreground="White" FontSize="19"
+                       FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+        <Grid Grid.Row="1" Margin="0,10,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="CÁC CỘT KHÔNG SỬ DỤNG" Foreground="White" FontWeight="Bold"/>
+            <TextBlock Grid.Column="2" Text="CÁC CỘT SỬ DỤNG" Foreground="White" FontWeight="Bold"/>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="170"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="140"/>
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="LstUnused" Grid.Column="0" Style="{StaticResource ListBoxStyle}" DisplayMemberPath="Name"/>
+            <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="4,88,4,0">
+                <Button Content="THÊM  >>" Click="BtnAdd_Click" Style="{StaticResource DarkButton}"/>
+                <Button Content="&lt;&lt; XÓA" Click="BtnRemove_Click" Style="{StaticResource DarkButton}"/>
+                <Button Content="&lt;&lt; XÓA HẾT" Click="BtnRemoveAll_Click" Style="{StaticResource DarkButton}" Background="#116B1B"/>
+            </StackPanel>
+            <ListBox x:Name="LstUsed" Grid.Column="2" Style="{StaticResource ListBoxStyle}" DisplayMemberPath="Name">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+            <StackPanel x:Name="MoveButtonsPanel" Grid.Column="3" VerticalAlignment="Top" Margin="4,88,0,0">
+                <Button Content="LÊN" Click="BtnMoveUp_Click" Style="{StaticResource DarkButton}"/>
+                <Button Content="XUỐNG" Click="BtnMoveDown_Click" Style="{StaticResource DarkButton}"/>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="3" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="ĐỊNH DẠNG" Click="BtnFormat_Click" Style="{StaticResource DarkButton}" Background="#C95B16"/>
+            <StackPanel Grid.Column="1" Grid.ColumnSpan="5" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="BtnColumnCount" Content="SỐ CỘT: 5" Click="BtnColumnCount_Click" Style="{StaticResource DarkButton}" Background="#6A6715" Width="130"/>
+                <Button x:Name="BtnRowCount" Content="SỐ DÒNG: 5" Click="BtnRowCount_Click" Style="{StaticResource DarkButton}" Background="#6A6715" Width="140"/>
+                <Button x:Name="BtnCellColor" Content="MÀU Ô" Click="BtnCellColor_Click" Style="{StaticResource DarkButton}" Background="#6A6715" Width="120"/>
+                <Button Content="HIỆN TIÊU ĐỀ" Style="{StaticResource DarkButton}" Background="#6A6715" Width="150"/>
+            </StackPanel>
+            <Button Grid.Column="6" Content="CẬP NHẬT" Click="BtnApply_Click" Style="{StaticResource DarkButton}" Background="#126B1A" Width="110"/>
+            <Button Grid.Column="7" Content="THOÁT" Click="BtnCancel_Click" Style="{StaticResource DarkButton}" Background="#A91515" Width="90"/>
+        </Grid>
+
+        <Border x:Name="NumericPadOverlay" Grid.RowSpan="4" Width="420" Height="530"
+                HorizontalAlignment="Center" VerticalAlignment="Center" Background="#0D4B5B"
+                BorderBrush="#B6D1DC" BorderThickness="1" Visibility="Collapsed">
+            <Grid Margin="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="44"/><RowDefinition Height="72"/>
+                    <RowDefinition Height="*"/><RowDefinition Height="*"/><RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/><RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Background="#994B00" CornerRadius="8" Padding="8">
+                    <TextBlock x:Name="TxtNumericPadTitle" Text="NHẬP GIÁ TRỊ" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <Grid Grid.Row="1" Margin="0,4">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/></Grid.ColumnDefinitions>
+                    <TextBox x:Name="TxtNumericValue" Grid.Column="0" Text="0" FontSize="40" FontWeight="Bold" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="1" Content="⌫" Click="BtnNumericBackspace_Click" Style="{StaticResource DarkButton}" Background="#D95B16" FontSize="28"/>
+                </Grid>
+                <UniformGrid Grid.Row="2" Columns="3">
+                    <Button Content="1" Click="NumericKey_Click" Tag="1" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                    <Button Content="2" Click="NumericKey_Click" Tag="2" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                    <Button Content="3" Click="NumericKey_Click" Tag="3" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                </UniformGrid>
+                <UniformGrid Grid.Row="3" Columns="3">
+                    <Button Content="4" Click="NumericKey_Click" Tag="4" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                    <Button Content="5" Click="NumericKey_Click" Tag="5" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                    <Button Content="6" Click="NumericKey_Click" Tag="6" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                </UniformGrid>
+                <UniformGrid Grid.Row="4" Columns="3">
+                    <Button Content="7" Click="NumericKey_Click" Tag="7" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                    <Button Content="8" Click="NumericKey_Click" Tag="8" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                    <Button Content="9" Click="NumericKey_Click" Tag="9" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                </UniformGrid>
+                <Grid Grid.Row="5">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="0" Click="NumericKey_Click" Tag="0" Style="{StaticResource DarkButton}" FontSize="28" Background="#18566A"/>
+                    <Button Grid.Column="1" Content="▶" Click="BtnNumericConfirm_Click" Style="{StaticResource DarkButton}" FontSize="28" Background="#126B1A"/>
+                </Grid>
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="000" Click="NumericKey_Click" Tag="000" Style="{StaticResource DarkButton}" FontSize="24" Background="#18566A"/>
+                    <Button Grid.Column="1" Content="HỦY BỎ" Click="BtnNumericCancel_Click" Style="{StaticResource DarkButton}" FontSize="20" Background="#A91515"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

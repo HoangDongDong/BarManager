@@ -69,7 +69,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
         <!-- 0. Thanh Lọc 1 -->
         <Border Grid.Row="0" Background="#e3eaf5" Padding="6,4" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
@@ -133,6 +134,33 @@
                             <TextBlock Text="(F12)" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+                    
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnThietKeMau" Style="{StaticResource ActionButtonStyle}" Click="BtnThietKeMau_Click" ToolTip="Thiết kế mẫu bao cao" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#127912;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Thiết kế mẫu" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnThamSoTuyChinh" Style="{StaticResource ActionButtonStyle}" Click="BtnThamSoTuyChinh_Click" ToolTip="Tham số tùy chỉnh báo cáo" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#9881;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Tham số" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnXemDuLieuTho" Style="{StaticResource ActionButtonStyle}" Click="BtnXemDuLieuTho_Click" ToolTip="Xem du lieu tho dang luoi" Margin="0,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#128203;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Dữ liệu thô" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -149,16 +177,14 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Header quán & Logo -->
-                    <Grid Grid.Row="0" Margin="0,0,0,20">
+                    </Grid.RowDefinitions>                    <!-- Header quán & Logo -->
+                    <Grid x:Name="GridCompanyHeader" Grid.Row="0" Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition x:Name="ColLogo" Width="100"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Width="80" Height="80" HorizontalAlignment="Left" VerticalAlignment="Top" ClipToBounds="True">
+                        <Border x:Name="BrdLogo" Grid.Column="0" Width="80" Height="80" HorizontalAlignment="Left" VerticalAlignment="Top" ClipToBounds="True">
                             <Grid>
                                 <Image x:Name="ImgLogo" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
                                 <Viewbox x:Name="VbDefaultLogo" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -173,7 +199,7 @@
                             </Grid>
                         </Border>
 
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <StackPanel x:Name="PnlCompanyText" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock x:Name="TxtCompanyName" Text="NÀNG HƯƠNG QUÁN" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" Foreground="#111" Margin="0,0,0,2"/>
                             <TextBlock x:Name="TxtCompanyAddress" Text="Địa chỉ: Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội" FontSize="10.5" HorizontalAlignment="Right" Foreground="#333" Margin="0,0,0,2"/>
                             <TextBlock x:Name="TxtCompanyContact" Text="Điện thoại: 0909090880, Email:" FontSize="10.5" HorizontalAlignment="Right" Foreground="#333"/>
@@ -181,12 +207,12 @@
                     </Grid>
 
                     <!-- Tiêu đề báo cáo -->
-                    <Grid Grid.Row="1" Margin="0,0,0,15">
+                    <Grid x:Name="GridReportTitleArea" Grid.Row="1" Margin="0,0,0,15">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition x:Name="ColTitleLeft" Width="*"/>
+                            <ColumnDefinition x:Name="ColTitleRight" Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                        <StackPanel x:Name="PnlDateAndFilter" Grid.Column="0" VerticalAlignment="Bottom">
                             <TextBlock x:Name="TxtSubTitleDate" Text="Hạn dùng từ 01/09/2026 đến 30/09/2026" FontSize="11.5" HorizontalAlignment="Left" Foreground="#111" Margin="0,0,0,2"/>
                             <TextBlock x:Name="TxtFilterSummary" Text="Kho hàng: Tất cả | Nhóm: Tất cả | Mặt hàng: Tất cả" FontSize="10.5" FontStyle="Italic" HorizontalAlignment="Left" Foreground="#444"/>
                         </StackPanel>
@@ -202,33 +228,33 @@
                     </DockPanel>
 
                     <!-- Chữ ký -->
-                    <Grid Grid.Row="3" Margin="0,30,0,0">
+                    <Grid x:Name="GridSignatures" Grid.Row="3" Margin="0,30,0,0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition x:Name="SigCol0" Width="*"/>
+                            <ColumnDefinition x:Name="SigCol1" Width="*"/>
+                            <ColumnDefinition x:Name="SigCol2" Width="*"/>
+                            <ColumnDefinition x:Name="SigCol3" Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                        <StackPanel x:Name="SigBlock0" Grid.Column="0" HorizontalAlignment="Center">
                             <TextBlock Text="Người lập biểu" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#000"/>
                             <TextBlock Text="(Ký, họ tên)" FontStyle="Italic" FontSize="11" HorizontalAlignment="Center" Foreground="#555"/>
                             <Border Height="60"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                        <StackPanel x:Name="SigBlock1" Grid.Column="1" HorizontalAlignment="Center">
                             <TextBlock Text="Thủ kho" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#000"/>
                             <TextBlock Text="(Ký, họ tên)" FontStyle="Italic" FontSize="11" HorizontalAlignment="Center" Foreground="#555"/>
                             <Border Height="60"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                        <StackPanel x:Name="SigBlock2" Grid.Column="2" HorizontalAlignment="Center">
                             <TextBlock Text="Kế toán trưởng" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#000"/>
                             <TextBlock Text="(Ký, họ tên)" FontStyle="Italic" FontSize="11" HorizontalAlignment="Center" Foreground="#555"/>
                             <Border Height="60"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="3" HorizontalAlignment="Center">
+                        <StackPanel x:Name="SigBlock3" Grid.Column="3" HorizontalAlignment="Center">
                             <TextBlock x:Name="TxtSignDate" Text="Ngày ... tháng ... năm 2026" FontStyle="Italic" FontSize="11" HorizontalAlignment="Center" Foreground="#333" Margin="0,0,0,3"/>
                             <TextBlock Text="Giám đốc" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#000"/>
                             <TextBlock Text="(Ký, đóng dấu)" FontStyle="Italic" FontSize="11" HorizontalAlignment="Center" Foreground="#555"/>
@@ -238,5 +264,36 @@
                 </Grid>
             </Border>
         </ScrollViewer>
+    
+        <!-- Inline Du Lieu Tho Panel -->
+        <Border x:Name="InlineDataBorder" Grid.Row="3" Visibility="Collapsed"
+                Background="#f8fafc" BorderBrush="#4a90d9" BorderThickness="0,2,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="260"/>
+                </Grid.RowDefinitions>
+                <!-- Header -->
+                <Border Grid.Row="0" Background="#1e3a5f" Padding="12,6">
+                    <DockPanel LastChildFill="False">
+                        <TextBlock Text="&#128203; Dữ liệu thô - Dữ liệu hiển thị trong báo cáo" Foreground="White"
+                                   FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnDongDuLieuTho" DockPanel.Dock="Right" Content="&#x2715; Dong"
+                                Click="BtnDongDuLieuTho_Click" Background="#c0392b" Foreground="White"
+                                BorderThickness="0" Padding="10,4" FontWeight="SemiBold" Cursor="Hand"/>
+                        <TextBlock x:Name="TxtSoBanGhi" DockPanel.Dock="Right" Foreground="#aaccee"
+                                   FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    </DockPanel>
+                </Border>
+                <!-- DataGrid -->
+                <DataGrid x:Name="InlineDataGrid" Grid.Row="1"
+                          IsReadOnly="True" AutoGenerateColumns="True"
+                          CanUserSortColumns="True" CanUserResizeColumns="True"
+                          GridLinesVisibility="All"
+                          AlternatingRowBackground="#edf2f9"
+                          HeadersVisibility="Column"
+                          FontSize="12" Margin="0"/>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

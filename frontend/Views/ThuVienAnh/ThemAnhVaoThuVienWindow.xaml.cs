@@ -38,7 +38,8 @@ namespace QuanLyBar.Client.Views.ThuVienAnh
         {
             try
             {
-                _imageBytes = File.ReadAllBytes(filePath);
+                byte[] raw = File.ReadAllBytes(filePath);
+                _imageBytes = ImageHelper.OptimizeImage(raw, maxWidth: 400, maxHeight: 400, jpegQuality: 80);
                 _fileName = Path.GetFileNameWithoutExtension(filePath);
                 TxtFileName.Text = Path.GetFileName(filePath);
                 ImgPreview.Source = LocalThuVienAnhService.BytesToBitmapImage(_imageBytes);

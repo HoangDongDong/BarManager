@@ -6,7 +6,8 @@
              xmlns:models="clr-namespace:QuanLyBar.Client.Models"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1000"
-             Loaded="UserControl_Loaded">
+             Loaded="UserControl_Loaded"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
     
     <Grid>
         <Grid.RowDefinitions>

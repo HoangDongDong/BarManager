@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <CodePage>65001</CodePage>
+    <AssemblyName>QuanLyBar.TouchPOS</AssemblyName>
+    <RootNamespace>QuanLyBar.Client</RootNamespace>
+    <StartupObject>QuanLyBar.Client.TouchApp</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <PackageReference Include="Dapper" Version="2.1.79" />
+    <PackageReference Include="ExcelDataReader" Version="3.9.0" />
+    <PackageReference Include="ExcelDataReader.DataSet" Version="3.9.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.1" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.864.35" />
+  </ItemGroup>
+
+  <!-- Shared source files from frontend project -->
+  <ItemGroup>
+    <Compile Include="..\frontend\**\*.cs" Exclude="..\frontend\App.xaml.cs;..\frontend\Views\DanhMucMatHang\ThuVienAnhWindow.xaml.cs;..\frontend\obj\**;..\frontend\bin\**" />
+    <Compile Include="ThuVienAnhWindowStub.cs" />
+    <Page Include="..\frontend\**\*.xaml" Exclude="..\frontend\App.xaml;..\frontend\obj\**;..\frontend\bin\**" />
+    <ApplicationDefinition Include="..\frontend\TouchApp.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="..\frontend\img\**" />
+  </ItemGroup>
+
+</Project>

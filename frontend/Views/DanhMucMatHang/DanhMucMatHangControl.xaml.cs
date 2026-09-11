@@ -33,20 +33,82 @@ namespace QuanLyBar.Client.Views
             LoadMatHangData(null);
         }
 
+        private void UserControl_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Insert)
+            {
+                if (BtnThemMoi != null && BtnThemMoi.Visibility == Visibility.Visible && BtnThemMoi.IsEnabled)
+                {
+                    BtnThemMoi_Click(this, null);
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key == System.Windows.Input.Key.F4)
+            {
+                if (BtnChinhSua != null && BtnChinhSua.Visibility == Visibility.Visible && BtnChinhSua.IsEnabled)
+                {
+                    BtnChinhSua_Click(this, null);
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key == System.Windows.Input.Key.F3)
+            {
+                TxtLocMatHang?.Focus();
+                TxtLocMatHang?.SelectAll();
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Delete)
+            {
+                if (!(e.OriginalSource is TextBox) && BtnXoa != null && BtnXoa.IsEnabled)
+                {
+                    BtnXoa_Click(this, null);
+                    e.Handled = true;
+                }
+            }
+        }
+
         private void TvNhomMatHang_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is NhomMatHangViewModel selectedNhom)
             {
-                bool isTrash = selectedNhom.Id == "-1";
-                if (BtnThemMoi != null) BtnThemMoi.IsEnabled = !isTrash;
+                bool isTrash = selectedNhom.Id == "-1" || selectedNhom.Name == "Thùng rác";
+                if (BtnThemMoi != null)
+                {
+                    BtnThemMoi.Visibility = isTrash ? Visibility.Collapsed : Visibility.Visible;
+                    BtnThemMoi.IsEnabled = !isTrash;
+                }
+                if (MenuThemMoi != null)
+                {
+                    MenuThemMoi.Visibility = isTrash ? Visibility.Collapsed : Visibility.Visible;
+                }
                 if (BtnChinhSua != null) BtnChinhSua.IsEnabled = !isTrash;
-                if (BtnThemExcel != null) BtnThemExcel.IsEnabled = !isTrash;
-                if (BtnImportDinhLuong != null) BtnImportDinhLuong.IsEnabled = !isTrash;
+                if (BtnThemExcel != null)
+                {
+                    BtnThemExcel.Visibility = isTrash ? Visibility.Collapsed : Visibility.Visible;
+                    BtnThemExcel.IsEnabled = !isTrash;
+                }
+                if (BtnImportDinhLuong != null)
+                {
+                    BtnImportDinhLuong.Visibility = isTrash ? Visibility.Collapsed : Visibility.Visible;
+                    BtnImportDinhLuong.IsEnabled = !isTrash;
+                }
                 if (BtnXoa != null) BtnXoa.Content = isTrash ? "❌ Xóa vĩnh viễn" : "❌ Xóa (Del)";
 
                 // Nếu chọn "Tất cả" (Id = string.Empty) thì truyền null để lấy hết
                 string filterId = string.IsNullOrEmpty(selectedNhom.Id) ? null : selectedNhom.Id;
                 LoadMatHangData(filterId);
+            }
+            else
+            {
+                if (BtnThemMoi != null)
+                {
+                    BtnThemMoi.Visibility = Visibility.Visible;
+                    BtnThemMoi.IsEnabled = true;
+                }
+                if (MenuThemMoi != null)
+                {
+                    MenuThemMoi.Visibility = Visibility.Visible;
+                }
             }
         }
 
@@ -288,19 +350,45 @@ namespace QuanLyBar.Client.Views
 
         private void BtnThemMoi_Click(object sender, RoutedEventArgs e)
         {
-            var chonDuLieuWin = new ChonDuLieuWindow();
-            if (chonDuLieuWin.ShowDialog() == true)
+            var selectedTreeNhom = TvNhomMatHang.SelectedItem as NhomMatHangViewModel;
+
+            // Nếu đang chọn Thùng rác thì không cho thêm mới
+            if (selectedTreeNhom != null && (selectedTreeNhom.Id == "-1" || selectedTreeNhom.Name == "Thùng rác"))
             {
-                var selectedNhom = chonDuLieuWin.SelectedNhomMatHang;
-                string nhomId = selectedNhom != null ? selectedNhom.Id : null;
-
-                var list = DgMatHang.ItemsSource as System.Collections.Generic.List<MatHangViewModel>;
-                var selectedMatHang = DgMatHang.SelectedItem as MatHangViewModel;
-                int initialIndex = selectedMatHang != null && list != null ? list.IndexOf(selectedMatHang) : (list != null && list.Count > 0 ? 0 : -1);
-
-                var themMoiWin = new ThemMoiMatHangWindow(nhomId, null, list, initialIndex, ReloadMatHangGrid);
-                themMoiWin.ShowDialog();
+                return;
             }
+
+            string targetNhomId = null;
+
+            // 1. Nếu trước đó ĐÃ CHỌN một nhóm mặt hàng cụ thể (không phải Tất cả và không phải Thùng rác)
+            if (selectedTreeNhom != null && !string.IsNullOrEmpty(selectedTreeNhom.Id) && selectedTreeNhom.Id != "-1" && selectedTreeNhom.Name != "Tất cả")
+            {
+                // Dùng trực tiếp nhóm đã chọn, KHÔNG hiển thị cửa sổ ChonDuLieuWindow nữa
+                targetNhomId = selectedTreeNhom.Id;
+            }
+            else
+            {
+                // 2. Nếu trước đó đang ở mục Tất cả hoặc chưa chọn nhóm nào -> Hiển thị cửa sổ chọn nhóm
+                var chonDuLieuWin = new ChonDuLieuWindow();
+                if (chonDuLieuWin.ShowDialog() != true)
+                {
+                    return; // Người dùng bấm Hủy bỏ
+                }
+
+                var selectedNhom = chonDuLieuWin.SelectedNhomMatHang;
+                if (selectedNhom == null || string.IsNullOrEmpty(selectedNhom.Id) || selectedNhom.Id == "-1" || selectedNhom.Name == "Tất cả" || selectedNhom.Name == "Thùng rác")
+                {
+                    return;
+                }
+                targetNhomId = selectedNhom.Id;
+            }
+
+            var list = DgMatHang.ItemsSource as System.Collections.Generic.List<MatHangViewModel>;
+            var selectedMatHang = DgMatHang.SelectedItem as MatHangViewModel;
+            int initialIndex = selectedMatHang != null && list != null ? list.IndexOf(selectedMatHang) : (list != null && list.Count > 0 ? 0 : -1);
+
+            var themMoiWin = new ThemMoiMatHangWindow(targetNhomId, null, list, initialIndex, ReloadMatHangGrid);
+            themMoiWin.ShowDialog();
         }
 
         private void BtnChinhSua_Click(object sender, RoutedEventArgs e)

@@ -65,7 +65,7 @@ namespace QuanLyBar.Client.Views
             {
                 try
                 {
-                    byte[] anh = File.ReadAllBytes(ofd.FileName);
+                    byte[] anh = ImageHelper.OptimizeImage(File.ReadAllBytes(ofd.FileName), maxWidth: 400, maxHeight: 400, jpegQuality: 80);
                     
                     // Lấy nhóm đầu tiên hoặc tạo nhóm mặc định nếu chưa có
                     var tree = IcDanhGia.ItemsSource as System.Collections.ObjectModel.ObservableCollection<BieuTuongViewModel>;

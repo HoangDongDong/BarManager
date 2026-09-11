@@ -7,9 +7,30 @@ namespace QuanLyBar.Client
 {
     public partial class DbConnectionWindow : Window
     {
-        public DbConnectionWindow()
+        public DbConnectionWindow(DatabaseInfo existingDb = null)
         {
             InitializeComponent();
+
+            if (existingDb != null)
+            {
+                txtDatabase.Text = existingDb.Path ?? "";
+                txtServer.Text = existingDb.Server ?? "";
+                txtUsername.Text = string.IsNullOrEmpty(existingDb.Username) ? "SYSDBA" : existingDb.Username;
+                txtPassword.Password = existingDb.Password ?? "";
+
+                if (existingDb.ConnectionType == 1)
+                {
+                    rbSqlServer.IsChecked = true;
+                }
+                else if (existingDb.ConnectionType == 0)
+                {
+                    rbFirebirdServer.IsChecked = true;
+                }
+                else
+                {
+                    rbFile.IsChecked = true;
+                }
+            }
         }
 
         private void BtnSelectFile_Click(object sender, RoutedEventArgs e)

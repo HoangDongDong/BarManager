@@ -1,35 +1,58 @@
 <Window x:Class="QuanLyBar.Client.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Đăng nhập" Height="320" Width="500" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="#D5E3F5">
+        Title="Đăng nhập" 
+        Icon="pack://application:,,,/img/logo.png"
+        Height="315" Width="465" 
+        WindowStartupLocation="CenterScreen" 
+        ResizeMode="NoResize" 
+        Background="#CADBF2">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="100"/>
+            <RowDefinition Height="86"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="46"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#333333">
-            <TextBlock Text="PHẦN MỀM QUẢN LÝ NHÀ HÀNG" Foreground="White" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="20,0,0,0"/>
-        </Border>
+        <!-- Header Banner Image -->
+        <Image Grid.Row="0" Source="pack://application:,,,/img/Banner.png" Stretch="Fill" VerticalAlignment="Top"/>
 
         <!-- Main Content -->
-        <Grid Grid.Row="1" Margin="10">
+        <Grid Grid.Row="1" Margin="12,10,14,4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="140"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Logo -->
-            <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <!-- Placeholder for Logo -->
-                <!-- <Ellipse Width="80" Height="80" Fill="#FF6600"/> -->
-                <!-- <TextBlock Text="TÂN AN PHÁT" Foreground="#FF6600" FontWeight="Bold" Margin="0,5,0,0" HorizontalAlignment="Center"/> -->
-            </StackPanel>
+            <!-- Left: Logo & Database -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <!-- Form -->
-            <Grid Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                <Image x:Name="imgLogo" Grid.Row="0"
+                       Source="pack://application:,,,/img/logo.png" 
+                       Width="85" Height="85" 
+                       Stretch="Uniform" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       Cursor="Hand" 
+                       ToolTip="Nhấp để chọn logo quán"
+                       MouseLeftButtonDown="BorderLogo_MouseLeftButtonDown"/>
+
+                <!-- Database selection link -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="4,0,0,4">
+                    <TextBlock FontSize="12">
+                        <Hyperlink Click="Hyperlink_Click" Foreground="#0033CC" TextDecorations="Underline">Cơ sở dữ liệu:</Hyperlink>
+                    </TextBlock>
+                    <TextBlock x:Name="lblDbName" Text="DEMO" Margin="8,0,0,0" FontSize="12" Foreground="Black" FontWeight="Normal" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Right: Login Form -->
+            <Grid Grid.Column="1" Margin="8,4,4,0" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -37,35 +60,47 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="86"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Người dùng:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,0,10"/>
-                <TextBox x:Name="txtUsername" Text="Admin" Grid.Row="0" Grid.Column="1" Height="25" Margin="0,0,0,10" VerticalContentAlignment="Center"/>
+                <!-- Người dùng -->
+                <TextBlock Text="Người dùng:" Grid.Row="0" Grid.Column="0" 
+                           VerticalAlignment="Center" FontWeight="Bold" FontSize="12" 
+                           Foreground="Black" Margin="0,0,4,8"/>
+                <TextBox x:Name="txtUsername" Text="admin" Grid.Row="0" Grid.Column="1" 
+                         Height="24" Margin="0,0,0,8" VerticalContentAlignment="Center" 
+                         FontSize="12" Background="White" BorderBrush="#7F9DB9" BorderThickness="1"/>
 
-                <TextBlock Text="Mật khẩu:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,0,10"/>
-                <PasswordBox x:Name="txtPassword" Grid.Row="1" Grid.Column="1" Height="25" Margin="0,0,0,10" VerticalContentAlignment="Center"/>
+                <!-- Mật khẩu -->
+                <TextBlock Text="Mật khẩu:" Grid.Row="1" Grid.Column="0" 
+                           VerticalAlignment="Center" FontWeight="Bold" FontSize="12" 
+                           Foreground="Black" Margin="0,0,4,8"/>
+                <PasswordBox x:Name="txtPassword" Grid.Row="1" Grid.Column="1" 
+                             Height="24" Margin="0,0,0,8" VerticalContentAlignment="Center" 
+                             FontSize="12" Background="White" BorderBrush="#7F9DB9" BorderThickness="1"/>
 
-                <CheckBox x:Name="chkRemember" Content="Ghi nhớ mật khẩu" Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"/>
-                <CheckBox x:Name="chkAutoLogin" Content="Tự động đăng nhập" Grid.Row="3" Grid.Column="1" Margin="0,0,0,5"/>
+                <!-- Checkboxes -->
+                <CheckBox x:Name="chkRemember" Content="Ghi nhớ mật khẩu" 
+                          Grid.Row="2" Grid.Column="1" Margin="0,2,0,5" 
+                          FontSize="12" Foreground="Black" IsChecked="True"/>
+                <CheckBox x:Name="chkAutoLogin" Content="Tự động đăng nhập" 
+                          Grid.Row="3" Grid.Column="1" Margin="0,2,0,4" 
+                          FontSize="12" Foreground="Black" IsChecked="True"/>
             </Grid>
         </Grid>
 
-        <!-- Bottom section with Database link and Buttons -->
-        <Grid Grid.Row="2" Margin="20,0,20,10">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <TextBlock>
-                    <Hyperlink Click="Hyperlink_Click">Cơ sở dữ liệu:</Hyperlink>
-                </TextBlock>
-                <TextBlock x:Name="lblDbName" Text="DEMO" Margin="10,0,0,0" VerticalAlignment="Center"/>
-            </StackPanel>
+        <!-- Horizontal Divider Line -->
+        <Border Grid.Row="2" Height="1" Background="#A2B7D4" Margin="14,2,14,6"/>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="btnLogin" Content="Đăng nhập" Width="90" Height="30" Margin="0,0,10,0" Background="White" Click="BtnLogin_Click"/>
-                <Button x:Name="btnCancel" Content="Hủy bỏ" Width="90" Height="30" Background="White" Click="BtnCancel_Click"/>
+        <!-- Bottom Buttons -->
+        <Grid Grid.Row="3" Margin="0,0,16,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="btnLogin" Content="Đăng nhập" Width="82" Height="26" 
+                        Margin="0,0,10,0" IsDefault="True" Click="BtnLogin_Click"/>
+                <Button x:Name="btnCancel" Content="Hủy bỏ" Width="82" Height="26" 
+                        IsCancel="True" Click="BtnCancel_Click"/>
             </StackPanel>
         </Grid>
     </Grid>
 </Window>
-

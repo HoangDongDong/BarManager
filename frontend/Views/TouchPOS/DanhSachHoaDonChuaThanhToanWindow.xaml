@@ -1,0 +1,42 @@
+<Window x:Class="QuanLyBar.Client.Views.TouchPOS.DanhSachHoaDonChuaThanhToanWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Danh Sách Hoá Đơn Chưa Thanh Toán" Width="800" Height="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#1A1A2E"
+        Loaded="Window_Loaded">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Danh sách hoá đơn chưa thanh toán" 
+                   FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,12"/>
+
+        <DataGrid Grid.Row="1" x:Name="DgHoaDon"
+                  Background="#16213E" Foreground="White"
+                  BorderBrush="#1976D2" BorderThickness="1"
+                  RowBackground="#16213E" AlternatingRowBackground="#0F3460"
+                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1976D2"
+                  AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Số HĐ" Binding="{Binding SOHOADON}" Width="80"/>
+                <DataGridTextColumn Header="Bàn" Binding="{Binding TENBAN}" Width="100"/>
+                <DataGridTextColumn Header="Khách hàng" Binding="{Binding TENKHACH}" Width="*"/>
+                <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TONGTIEN, StringFormat={}{0:N0}}" Width="120"/>
+                <DataGridTextColumn Header="Thời gian" Binding="{Binding THOIGIAN, StringFormat=HH:mm dd/MM}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="🔍 Tìm kiếm" Click="BtnSearch_Click"
+                    Background="#1976D2" Foreground="White" BorderThickness="0"
+                    Padding="16,8" FontSize="13" Margin="0,0,8,0"/>
+            <Button Content="✖ Đóng" Click="BtnClose_Click"
+                    Background="#455A64" Foreground="White" BorderThickness="0"
+                    Padding="16,8" FontSize="13"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -73,6 +73,7 @@ namespace QuanLyBar.Client.Services
             {
                 Id = string.Empty,
                 Name = "Tất cả",
+                IsExpanded = true,
                 Children = tree
             };
 
@@ -243,6 +244,97 @@ namespace QuanLyBar.Client.Services
 
 
 
+        private static System.Windows.Media.ImageSource BytesToImageSource(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0) return null;
+            try
+            {
+                using var ms = new System.IO.MemoryStream(bytes);
+                var bi = new System.Windows.Media.Imaging.BitmapImage();
+                bi.BeginInit();
+                bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bi.StreamSource = ms;
+                bi.EndInit();
+                bi.Freeze();
+                return bi;
+            }
+            catch { return null; }
+        }
+
+        public async Task<List<SImageViewModel>> GetSImageListAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "SELECT ID as Id, NAME as Name, IMAGE as ImageBytes FROM SIMAGE WHERE IMAGE IS NOT NULL AND NAME <> 'CompanyLogo' ORDER BY NAME, ID";
+                    var raw = await conn.QueryAsync<dynamic>(sql);
+                    var list = new List<SImageViewModel>();
+                    foreach (var r in raw)
+                    {
+                        byte[] bytes = r.IMAGEBYTES as byte[];
+                        list.Add(new SImageViewModel
+                        {
+                            Id = r.ID != null ? r.ID.ToString() : null,
+                            Name = r.NAME != null ? r.NAME.ToString() : "",
+                            ImageBytes = bytes,
+                            ImageSource = BytesToImageSource(bytes)
+                        });
+                    }
+                    return list;
+                }
+            }
+            catch
+            {
+                return new List<SImageViewModel>();
+            }
+        }
+
+        public async Task<List<DLOAIMATHANG>> GetLoaiMatHangKhacListAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT l.ID as Id, l.NAME as Name, l.NOTE as Note, l.SIMAGEID as SimageId, 
+                               l.COBANHANG as Cobanhang, l.COTONKHO as Cotonkho, l.CODINHLUONG as Codinhluong,
+                               s.IMAGE as ImageBytes
+                        FROM DLOAIMATHANG l
+                        LEFT JOIN SIMAGE s ON l.SIMAGEID = s.ID
+                        WHERE (l.STATUS IS NULL OR l.STATUS <> 0)
+                          AND l.ID NOT IN ('0', '1', '2', '3')
+                          AND l.NAME NOT IN ('Mặt hàng kiêm vật tư', 'Mặt hàng pha chế', 'Nguyên vật liệu', 'Vật tư nguyên liệu', 'Mặt hàng mở')
+                        ORDER BY l.SORTORDER, l.NAME";
+
+                    var raw = await conn.QueryAsync<dynamic>(sql);
+                    var list = new List<DLOAIMATHANG>();
+                    foreach (var r in raw)
+                    {
+                        byte[] bytes = r.IMAGEBYTES as byte[];
+                        list.Add(new DLOAIMATHANG
+                        {
+                            Id = r.ID != null ? r.ID.ToString() : "",
+                            Name = r.NAME != null ? r.NAME.ToString() : "",
+                            Note = r.NOTE != null ? r.NOTE.ToString() : null,
+                            SimageId = r.SIMAGEID != null ? r.SIMAGEID.ToString() : null,
+                            Cobanhang = r.COBANHANG != null ? r.COBANHANG.ToString() : "0",
+                            Cotonkho = r.COTONKHO != null ? r.COTONKHO.ToString() : "0",
+                            Codinhluong = r.CODINHLUONG != null ? r.CODINHLUONG.ToString() : "0",
+                            IconSource = BytesToImageSource(bytes)
+                        });
+                    }
+                    return list;
+                }
+            }
+            catch
+            {
+                return new List<DLOAIMATHANG>();
+            }
+        }
+
         public async Task<bool> InsertLoaiMatHangAsync(DLOAIMATHANG model)
         {
             try
@@ -250,27 +342,28 @@ namespace QuanLyBar.Client.Services
                 using (var conn = DbConnectionManager.GetConnection())
                 {
                     await conn.OpenAsync();
-                    
-                    // Since DLOAIMATHANG ID is an integer, we might need a generator or let Firebird auto-increment it if there's a trigger/generator
-                    // Let's assume Firebird uses a generator and we don't supply ID, or we get the max ID + 1. 
-                    // To be safe, if model.Id is null, let's query the max ID.
-                    if (model.Id == null || model.Id == 0)
+                    if (string.IsNullOrEmpty(model.Id))
                     {
-                        var maxId = await conn.QueryFirstOrDefaultAsync<int?>("SELECT MAX(ID) FROM DLOAIMATHANG");
-                        model.Id = (maxId ?? 0) + 1;
+                        model.Id = Guid.NewGuid().ToString();
                     }
 
                     string sql = @"
                         INSERT INTO DLOAIMATHANG (
-                            ID, NAME, NOTE, STATUS, USERCREATEDID, TIMECREATED
+                            ID, NAME, NOTE, STATUS, USERCREATEDID, TIMECREATED,
+                            SIMAGEID, COBANHANG, COTONKHO, CODINHLUONG
                         ) VALUES (
-                            @Id, @Name, @Note, 1, 1, CURRENT_TIMESTAMP
+                            @Id, @Name, @Note, 30, '4f1466a0-0756-4ba9-afa8-053b96ca7569', CURRENT_TIMESTAMP,
+                            @SimageId, @Cobanhang, @Cotonkho, @Codinhluong
                         )";
 
                     var parameters = new {
                         Id = model.Id,
                         Name = model.Name,
-                        Note = model.Note
+                        Note = model.Note,
+                        SimageId = string.IsNullOrEmpty(model.SimageId) ? null : model.SimageId,
+                        Cobanhang = !string.IsNullOrEmpty(model.Cobanhang) ? model.Cobanhang : "0",
+                        Cotonkho = !string.IsNullOrEmpty(model.Cotonkho) ? model.Cotonkho : "0",
+                        Codinhluong = !string.IsNullOrEmpty(model.Codinhluong) ? model.Codinhluong : "0"
                     };
 
                     int affectedRows = await Dapper.SqlMapper.ExecuteAsync(conn, sql, parameters);
@@ -280,6 +373,64 @@ namespace QuanLyBar.Client.Services
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show("Lỗi thêm loại mặt hàng: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateLoaiMatHangAsync(DLOAIMATHANG model)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        UPDATE DLOAIMATHANG SET
+                            NAME = @Name,
+                            NOTE = @Note,
+                            SIMAGEID = @SimageId,
+                            COBANHANG = @Cobanhang,
+                            COTONKHO = @Cotonkho,
+                            CODINHLUONG = @Codinhluong,
+                            TIMEMODIFIED = CURRENT_TIMESTAMP
+                        WHERE ID = @Id";
+
+                    var parameters = new {
+                        Id = model.Id,
+                        Name = model.Name,
+                        Note = model.Note,
+                        SimageId = string.IsNullOrEmpty(model.SimageId) ? null : model.SimageId,
+                        Cobanhang = !string.IsNullOrEmpty(model.Cobanhang) ? model.Cobanhang : "0",
+                        Cotonkho = !string.IsNullOrEmpty(model.Cotonkho) ? model.Cotonkho : "0",
+                        Codinhluong = !string.IsNullOrEmpty(model.Codinhluong) ? model.Codinhluong : "0"
+                    };
+
+                    int affectedRows = await Dapper.SqlMapper.ExecuteAsync(conn, sql, parameters);
+                    return affectedRows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi cập nhật loại mặt hàng: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteLoaiMatHangAsync(string id)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = "DELETE FROM DLOAIMATHANG WHERE ID = @Id";
+                    int affectedRows = await Dapper.SqlMapper.ExecuteAsync(conn, sql, new { Id = id });
+                    return affectedRows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi xóa loại mặt hàng: " + ex.Message);
                 return false;
             }
         }
@@ -353,20 +504,16 @@ namespace QuanLyBar.Client.Services
                             STATUS, USERCREATEDID, TIMECREATED,
                             DLOAIMATHANGID, DDONVITINHCHANID, GIABANCHAN,
                             TONTOITHIEU, TONTOIDA, HOAHONG, GIAVON,
-                            MACDINHGIAMGIA, MACDINHGIAMTIEN, TAMKHOA, NOTE
+                            MACDINHGIAMGIA, MACDINHGIAMTIEN, TAMKHOA, NOTE, ANH
                         ) VALUES (
                             @Id, @Code, @Name, @Gianhap, @Giaban, @Giaban2, @Giaban3, @Giaban4, @Tentienganh, @Quydoi, 
                             @Giatheothoigia, @DnhommathangId, @DdonvitinhId,
                             1, 1, CURRENT_TIMESTAMP,
                             @DloaimathangId, @DdonvitinhchanId, @Giabanchan,
                             @Tontoithieu, @Tontoida, @Hoahong, @Giavon,
-                            @Macdinhgiamgia, @Macdinhgiamtien, @Tamkhoa, @Note
+                            @Macdinhgiamgia, @Macdinhgiamtien, @Tamkhoa, @Note, @Anh
                         )";
 
-                    // Note: 'Doitackygui' in MatHangViewModel is string, but DdoitackyguiId is int in DB.
-                    // We skip DdoitackyguiId since we don't have the ID mapping for now.
-                    // 'Anh' is byte[] in DB but string in ViewModel, skip for now.
-                    
                     var parameters = new {
                         Id = model.Id,
                         Code = model.Code,
@@ -391,7 +538,8 @@ namespace QuanLyBar.Client.Services
                         Macdinhgiamgia = model.Macdinhgiamgia,
                         Macdinhgiamtien = model.Macdinhgiamtien,
                         Tamkhoa = model.Tamkhoa,
-                        Note = model.Ghichu
+                        Note = model.Ghichu,
+                        Anh = model.ImageBytes
                     };
 
                     int affectedRows = await Dapper.SqlMapper.ExecuteAsync(conn, sql, parameters);
@@ -429,7 +577,8 @@ namespace QuanLyBar.Client.Services
                                m.DNHOMMATHANGID as DnhommathangId, 
                                m.DLOAIMATHANGID as DloaimathangId,
                                m.DDONVITINHID as DdonvitinhId,
-                               m.DDONVITINHCHANID as DdonvitinhchanId
+                               m.DDONVITINHCHANID as DdonvitinhchanId,
+                               m.ANH as ImageBytes
                         FROM DMATHANG m
                         WHERE m.ID = @Id";
                     return await conn.QueryFirstOrDefaultAsync<MatHangViewModel>(sql, new { Id = id });
@@ -465,9 +614,12 @@ namespace QuanLyBar.Client.Services
                             QUYDOI = @Quydoi,
                             GIATHEOTHOIGIA = @Giatheothoigia,
                             DNHOMMATHANGID = @DnhommathangId,
+                            DLOAIMATHANGID = @DloaimathangId,
                             DDONVITINHID = @DdonvitinhId,
                             DDONVITINHCHANID = @DdonvitinhchanId,
-                            TAMKHOA = @Tamkhoa
+                            TAMKHOA = @Tamkhoa,
+                            ANH = @Anh,
+                            TIMEMODIFIED = CURRENT_TIMESTAMP
                         WHERE ID = @Id";
 
                     var parameters = new {
@@ -485,9 +637,11 @@ namespace QuanLyBar.Client.Services
                         Quydoi = model.Quydoi,
                         Giatheothoigia = model.Giatheothoigia,
                         DnhommathangId = model.DnhommathangId,
+                        DloaimathangId = model.DloaimathangId,
                         DdonvitinhId = model.DdonvitinhId,
                         DdonvitinhchanId = model.DdonvitinhchanId,
-                        Tamkhoa = model.Tamkhoa
+                        Tamkhoa = model.Tamkhoa,
+                        Anh = model.ImageBytes
                     };
 
                     int affectedRows = await conn.ExecuteAsync(sql, parameters);

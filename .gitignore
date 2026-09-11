@@ -4,8 +4,8 @@
 *.suo
 
 # .NET / C#
-bin/
-obj/
+**/bin/
+**/obj/
 
 # Node.js
 node_modules/

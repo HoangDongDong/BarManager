@@ -295,7 +295,7 @@ namespace QuanLyBar.Client.Services
                         WHERE CAST(c.DMATHANGID AS VARCHAR(50)) = @DmathangId
                           AND (h.STATUS IS NULL OR h.STATUS <> 0)
                           AND (c.STATUS IS NULL OR c.STATUS <> 0)
-                          AND (@KhoId IS NULL OR @KhoId = '' OR CAST(h.DKHOHANGID AS VARCHAR(50)) = @KhoId OR CAST(h.DKHONHAPID AS VARCHAR(50)) = @KhoId OR CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId OR CAST(c.DKHOHANGID AS VARCHAR(50)) = @KhoId)
+                          AND (COALESCE(CAST(@KhoId AS VARCHAR(255)), '') = '' OR CAST(h.DKHOHANGID AS VARCHAR(50)) = @KhoId OR CAST(h.DKHONHAPID AS VARCHAR(50)) = @KhoId OR CAST(h.DKHOXUATID AS VARCHAR(50)) = @KhoId OR CAST(c.DKHOHANGID AS VARCHAR(50)) = @KhoId)
                           AND (@TuNgay IS NULL OR CAST(h.NGAY AS DATE) >= CAST(@TuNgay AS DATE))
                           AND (@DenNgay IS NULL OR CAST(h.NGAY AS DATE) <= CAST(@DenNgay AS DATE))
                         ORDER BY h.NGAY, h.TIMECREATED, h.ID";

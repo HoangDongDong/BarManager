@@ -1,0 +1,34 @@
+<Window x:Class="QuanLyBar.Client.Views.CauHinhHeThong.ThietLapMauNhanhWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="THIẾT LẬP MÀU NHANH" Width="420" Height="390"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="12" Background="#B7CCE6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="Thiết lập màu" FontWeight="Bold" FontSize="16" Margin="8,4,8,10" />
+        <GroupBox Grid.Row="1" Header="Thiết lập màu" Margin="4">
+            <StackPanel Margin="8">
+                <RadioButton x:Name="RbTuDong" Content="Tự động" IsChecked="True" Margin="0,3" />
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <RadioButton x:Name="RbThuCong" Content="Thủ công" VerticalAlignment="Center" />
+                    <TextBox x:Name="TxtColor" Text="#1976D2" Width="150" Margin="24,0,0,0" IsEnabled="False" />
+                    <Button Content="Chọn" Width="65" Margin="8,0,0,0" Click="BtnChooseColor_Click" />
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Grid.Row="2" Header="Đối tượng áp dụng" Margin="4">
+            <StackPanel Margin="8">
+                <RadioButton x:Name="RbMatHang" Content="Tất cả mặt hàng" IsChecked="True" Margin="0,3" />
+                <RadioButton x:Name="RbMatHangTrongNhom" Content="Mặt hàng trong nhóm đang chọn" Margin="0,3" />
+                <RadioButton x:Name="RbNhomHang" Content="Tất cả nhóm hàng" Margin="0,3" />
+                <RadioButton x:Name="RbKhuVuc" Content="Tất cả khu vực" Margin="0,3" />
+            </StackPanel>
+        </GroupBox>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="4,8,4,0">
+            <Button Content="Hủy bỏ" Width="80" Margin="0,0,8,0" Click="BtnCancel_Click" />
+            <Button Content="Thực hiện" Width="90" Click="BtnApply_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -316,6 +316,150 @@ namespace QuanLyBar.Client.Views.DuLieuBanDau
         private void BtnThoat_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void BtnThietKeMau_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            MessageBox.Show(
+                "Chuc nang thiet ke mau bao cao cho phep ban tuy chinh:\n" +
+                "  - Bo cuc va dinh dang bao cao\n" +
+                "  - Font chu, co chu, mau sac\n" +
+                "  - Logo va thong tin dau trang\n" +
+                "  - Them/bo cac cot hien thi\n\n" +
+                "Tinh nang nay se duoc cap nhat trong phien ban tiep theo.",
+                "Thiet ke mau bao cao",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        private void BtnThamSoTuyChinh_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            MessageBox.Show(
+                "Tham so tuy chinh bao cao cho phep ban:\n" +
+                "  - Chon cac cot hien thi trong bao cao\n" +
+                "  - Thiet lap tieu chi nhom du lieu\n" +
+                "  - Cau hinh cac dieu kien loc nang cao\n" +
+                "  - Tuy chinh dinh dang so va ngay thang\n\n" +
+                "Tinh nang nay se duoc cap nhat trong phien ban tiep theo.",
+                "Tham so tuy chinh",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        private void BtnXemDuLieuTho_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            try
+            {
+                var dlg = new System.Windows.Window
+                {
+                    Title = "Xem du lieu tho",
+                    Width = 950,
+                    Height = 620,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner,
+                    Owner = System.Windows.Window.GetWindow(this),
+                    Background = System.Windows.Media.Brushes.White
+                };
+
+                var mainGrid = new System.Windows.Controls.Grid();
+                mainGrid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = System.Windows.GridLength.Auto });
+                mainGrid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = new System.Windows.GridLength(1, System.Windows.GridUnitType.Star) });
+                mainGrid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = System.Windows.GridLength.Auto });
+
+                var header = new System.Windows.Controls.Border
+                {
+                    Background = new System.Windows.Media.SolidColorBrush(
+                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1e3a5f")),
+                    Padding = new System.Windows.Thickness(14, 8, 14, 8)
+                };
+                header.Child = new System.Windows.Controls.TextBlock
+                {
+                    Text = "Xem du lieu tho - Du lieu hien thi trong bao cao",
+                    Foreground = System.Windows.Media.Brushes.White,
+                    FontSize = 14,
+                    FontWeight = System.Windows.FontWeights.SemiBold,
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center
+                };
+                System.Windows.Controls.Grid.SetRow(header, 0);
+                mainGrid.Children.Add(header);
+
+                var dataGrid = new System.Windows.Controls.DataGrid
+                {
+                    IsReadOnly = true,
+                    AutoGenerateColumns = true,
+                    CanUserSortColumns = true,
+                    CanUserResizeColumns = true,
+                    GridLinesVisibility = System.Windows.Controls.DataGridGridLinesVisibility.All,
+                    AlternatingRowBackground = new System.Windows.Media.SolidColorBrush(
+                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#f0f4f8")),
+                    HeadersVisibility = System.Windows.Controls.DataGridHeadersVisibility.Column,
+                    Margin = new System.Windows.Thickness(8),
+                    FontSize = 12
+                };
+
+                var fields = this.GetType().GetFields(
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                object? dataSource = null;
+                int maxCount = 0;
+                foreach (var f in fields)
+                {
+                    var val = f.GetValue(this);
+                    if (val is System.Collections.IList list && list.Count > maxCount)
+                    {
+                        maxCount = list.Count;
+                        dataSource = val;
+                    }
+                }
+
+                if (dataSource != null)
+                    dataGrid.ItemsSource = (System.Collections.IEnumerable)dataSource;
+                else
+                    dataGrid.ItemsSource = new[] { new { ThongBao = "Khong co du lieu. Hay tai du lieu truoc (F5) roi mo lai." } };
+
+                var scroll = new System.Windows.Controls.ScrollViewer
+                {
+                    VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
+                    HorizontalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
+                    Content = dataGrid
+                };
+                System.Windows.Controls.Grid.SetRow(scroll, 1);
+                mainGrid.Children.Add(scroll);
+
+                var footer = new System.Windows.Controls.Border
+                {
+                    Background = new System.Windows.Media.SolidColorBrush(
+                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#f5f7fa")),
+                    BorderBrush = new System.Windows.Media.SolidColorBrush(
+                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#d0d8e4")),
+                    BorderThickness = new System.Windows.Thickness(0, 1, 0, 0),
+                    Padding = new System.Windows.Thickness(12, 6, 12, 6)
+                };
+                var footerPanel = new System.Windows.Controls.DockPanel { LastChildFill = false };
+                footerPanel.Children.Add(new System.Windows.Controls.TextBlock
+                {
+                    Text = $"Tong so ban ghi: {maxCount}",
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center
+                });
+                var closeBtn = new System.Windows.Controls.Button
+                {
+                    Content = "Dong",
+                    Width = 80,
+                    Height = 28
+                };
+                System.Windows.Controls.DockPanel.SetDock(closeBtn, System.Windows.Controls.Dock.Right);
+                closeBtn.Click += (s, ev) => dlg.Close();
+                footerPanel.Children.Add(closeBtn);
+                footer.Child = footerPanel;
+                System.Windows.Controls.Grid.SetRow(footer, 2);
+                mainGrid.Children.Add(footer);
+
+                dlg.Content = mainGrid;
+                dlg.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Loi: {ex.Message}", "Loi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

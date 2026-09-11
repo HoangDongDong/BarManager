@@ -175,6 +175,13 @@ namespace QuanLyBar.Client.Views
             await LoadDichVuYeuCauAsync();
 
             _timer?.Start();
+            
+            if (_currentBan == null)
+            {
+                if (BtnBatDau != null) BtnBatDau.IsEnabled = false;
+                if (BtnDongBan != null) BtnDongBan.IsEnabled = false;
+                UpdateOrderControlState();
+            }
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -273,12 +280,7 @@ namespace QuanLyBar.Client.Views
 
             if (IcKhuVuc != null) IcKhuVuc.ItemsSource = _khuVucList;
 
-            // Nếu chưa chọn bàn nào, tự động chọn bàn đầu tiên
-            if (_currentBan == null && _khuVucList != null && _khuVucList.Count > 0 && _khuVucList[0].BanList != null && _khuVucList[0].BanList.Count > 0)
-            {
-                SelectBan(_khuVucList[0].BanList[0]);
-            }
-            else if (_currentBan != null && _khuVucList != null)
+            if (_currentBan != null && _khuVucList != null)
             {
                 // Tìm lại bàn đang chọn trong danh sách mới
                 var reloadedBan = _khuVucList.SelectMany(k => k.BanList ?? Enumerable.Empty<PosBanViewModel>()).FirstOrDefault(b => b.Id == _currentBan.Id);
@@ -627,14 +629,112 @@ namespace QuanLyBar.Client.Views
                 DpNgayOrder.IsHitTestVisible = _choPhepThayDoiNgayTrenHoaDon;
             }
 
-            if (BtnBatDau != null && !isStarted)
+            if (_currentBan == null)
             {
-                BtnBatDau.IsEnabled = LocalPhanQuyenService.HasFunctionPermission("Hóa đơn bán hàng", "View");
+                if (BtnBatDau != null) BtnBatDau.IsEnabled = false;
+                if (BtnDongBan != null) BtnDongBan.IsEnabled = false;
             }
-            else if (BtnBatDau != null)
+            else
             {
-                BtnBatDau.IsEnabled = true;
+                if (BtnDongBan != null) BtnDongBan.IsEnabled = true;
+
+                if (BtnBatDau != null && !isStarted)
+                {
+                    BtnBatDau.IsEnabled = LocalPhanQuyenService.HasFunctionPermission("Hóa đơn bán hàng", "View");
+                }
+                else if (BtnBatDau != null)
+                {
+                    BtnBatDau.IsEnabled = true;
+                }
             }
+        }
+
+        public async Task ClearSelectedBanAsync()
+        {
+            if (_currentBan != null)
+            {
+                // Tự động lưu đơn hàng hiện tại nếu bàn đang mở
+                if (_currentBan.IsOccupied && !string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+                {
+                    try
+                    {
+                        await AutoSaveOrderAsync();
+                    }
+                    catch { }
+                }
+            }
+
+            _currentBan = null;
+
+            // Bỏ chọn tất cả bàn trên giao diện
+            if (_khuVucList != null)
+            {
+                foreach (var kv in _khuVucList)
+                {
+                    if (kv.BanList != null)
+                    {
+                        foreach (var b in kv.BanList)
+                        {
+                            b.IsSelected = false;
+                        }
+                    }
+                }
+            }
+
+            // Đặt lại các trường trên giao diện
+            if (TxtSelectedBanHeader != null) TxtSelectedBanHeader.Text = "[Chưa chọn bàn]";
+            if (TxtGioBatDau != null) TxtGioBatDau.Text = "";
+            if (TxtGioKetThuc != null) TxtGioKetThuc.Text = "";
+            if (TxtElapsedMinutes != null) TxtElapsedMinutes.Text = "0 phút";
+
+            if (BtnBatDau != null)
+            {
+                BtnBatDau.Content = "Bắt đầu";
+                BtnBatDau.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27ae60"));
+                BtnBatDau.IsEnabled = false;
+            }
+
+            if (BtnDongBan != null)
+            {
+                BtnDongBan.IsEnabled = false;
+            }
+
+            if (TxtSoPhieu != null) TxtSoPhieu.Text = "";
+            if (TxtSoKhach != null) TxtSoKhach.Text = "0";
+            if (TxtKhachHang != null)
+            {
+                TxtKhachHang.Text = "";
+                TxtKhachHang.Tag = null;
+            }
+            if (TxtNhanVien != null)
+            {
+                TxtNhanVien.Text = "";
+                TxtNhanVien.Tag = null;
+            }
+            if (TxtOrderGhiChu != null) TxtOrderGhiChu.Text = "";
+
+            if (DgChiTiet != null) DgChiTiet.ItemsSource = null;
+
+            if (TxtTienHang != null) TxtTienHang.Text = "0";
+            if (TxtGiamGiaPt != null) TxtGiamGiaPt.Text = "0";
+            if (TxtGiamGia != null) TxtGiamGia.Text = "0";
+            if (TxtPhiDichVuPt != null) TxtPhiDichVuPt.Text = "0";
+            if (TxtPhiDichVu != null) TxtPhiDichVu.Text = "0";
+            if (TxtThueVATPt != null) TxtThueVATPt.Text = "0";
+            if (TxtThueVAT != null) TxtThueVAT.Text = "0";
+            if (TxtTongCong != null) TxtTongCong.Text = "0";
+
+            if (TxtTenDotKhuyenMaiBill != null) TxtTenDotKhuyenMaiBill.Visibility = Visibility.Collapsed;
+
+            UpdateOrderControlState();
+
+            // Làm mới danh sách bàn để cập nhật lại màu sắc trạng thái
+            await LoadKhuVucBansAsync();
+        }
+
+        private async void BtnDongBan_Click(object sender, RoutedEventArgs e)
+        {
+            await ClearSelectedBanAsync();
         }
 
         private async void BtnBatDau_Click(object sender, RoutedEventArgs e)
@@ -1806,6 +1906,14 @@ namespace QuanLyBar.Client.Views
                 e.Handled = true;
                 TxtTimMatHang?.Focus();
                 TxtTimMatHang?.SelectAll();
+            }
+            else if (e.Key == Key.Escape)
+            {
+                if (_currentBan != null)
+                {
+                    e.Handled = true;
+                    await ClearSelectedBanAsync();
+                }
             }
         }
 

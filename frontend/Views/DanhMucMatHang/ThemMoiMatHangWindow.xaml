@@ -1,10 +1,97 @@
 <Window x:Class="QuanLyBar.Client.Views.ThemMoiMatHangWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MẶT HÀNG - THÊM MỚI" Height="600" Width="700"
+        Title="MẶT HÀNG - THÊM MỚI" Height="600" Width="740"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded"
         PreviewKeyDown="Window_PreviewKeyDown">
+    
+    <Window.Resources>
+        <ControlTemplate x:Key="ComboBoxWithFooterTemplate" TargetType="ComboBox">
+            <Grid>
+                <ToggleButton x:Name="ToggleButton" 
+                              Focusable="false"
+                              IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
+                              ClickMode="Press">
+                    <ToggleButton.Template>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="Border" 
+                                    Background="White" 
+                                    BorderBrush="#a4b8cc" 
+                                    BorderThickness="1" 
+                                    CornerRadius="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="20"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="1" Background="#f0f4f8" BorderBrush="#d0dbe8" BorderThickness="1,0,0,0">
+                                        <Path Data="M 0 0 L 4 4 L 8 0 Z" Fill="#556677" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </ToggleButton.Template>
+                </ToggleButton>
+                <ContentPresenter x:Name="ContentSite"
+                                  IsHitTestVisible="False" 
+                                  Content="{TemplateBinding SelectionBoxItem}"
+                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                  Margin="5,3,23,3"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Left"/>
+                <TextBox x:Name="PART_EditableTextBox"
+                         Style="{x:Null}" 
+                         Template="{x:Null}" 
+                         HorizontalAlignment="Left" 
+                         VerticalAlignment="Center" 
+                         Margin="3,3,23,3"
+                         Focusable="True" 
+                         Background="Transparent"
+                         Visibility="Hidden"
+                         IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                <Popup x:Name="Popup"
+                       Placement="Bottom"
+                       IsOpen="{TemplateBinding IsDropDownOpen}"
+                       AllowsTransparency="True" 
+                       Focusable="False"
+                       PopupAnimation="Slide">
+                    <Border x:Name="DropDown"
+                            MinWidth="{Binding ActualWidth, ElementName=ToggleButton}"
+                            MaxHeight="260"
+                            BorderThickness="1"
+                            BorderBrush="#8baecc"
+                            Background="White">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ScrollViewer x:Name="DropDownScrollViewer" MaxHeight="180" CanContentScroll="True">
+                                <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                            </ScrollViewer>
+                            <Border Grid.Row="1" Background="#f4f7fc" BorderBrush="#c8d6e5" BorderThickness="0,1,0,0" Padding="3">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="1.3*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Content="➕ Thêm" Margin="1" Padding="2,3" FontSize="11" Background="#eaf2fb" BorderBrush="#a4b8cc" Click="BtnThemLoai_Click"/>
+                                    <Button Grid.Column="1" Content="🔄 Tải" Margin="1" Padding="2,3" FontSize="11" Background="#eaf2fb" BorderBrush="#a4b8cc" Click="BtnTaiLoai_Click"/>
+                                    <Button Grid.Column="2" Content="Danh mục" Margin="1" Padding="2,3" FontSize="11" Background="#eaf2fb" BorderBrush="#a4b8cc" Click="BtnDanhMucLoai_Click"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Popup>
+            </Grid>
+        </ControlTemplate>
+        <Style x:Key="ComboBoxWithFooterStyle" TargetType="ComboBox">
+            <Setter Property="Template" Value="{StaticResource ComboBoxWithFooterTemplate}"/>
+        </Style>
+    </Window.Resources>
     
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -68,15 +155,15 @@
         </ToolBar>
 
         <!-- Main Tab Control -->
-        <TabControl Grid.Row="1" Margin="0,10,0,0">
-            <TabItem Header="Thông tin mặt hàng">
+        <TabControl x:Name="TabMain" Grid.Row="1" Margin="0,10,0,0" SelectionChanged="TabMain_SelectionChanged">
+            <TabItem x:Name="TabThongTin" Header="Thông tin mặt hàng">
                 <Grid Margin="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="80"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="195"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -168,20 +255,97 @@
                     <!-- Row 9: Loại mặt hàng -->
                     <TextBlock Grid.Row="9" Grid.Column="0" Text="Loại mặt hàng" VerticalAlignment="Top" Margin="0,5"/>
                     <StackPanel Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="3" Margin="5">
-                        <RadioButton x:Name="RdoPhaChe" Content="Mặt hàng pha chế" Margin="0,2"/>
-                        <RadioButton x:Name="RdoKiemVatTu" Content="Mặt hàng kiêm vật tư" Margin="0,2" IsChecked="True"/>
-                        <RadioButton x:Name="RdoVatTu" Content="Vật tư nguyên liệu" Margin="0,2"/>
-                        <RadioButton x:Name="RdoMo" Content="Mặt hàng mở" Margin="0,2"/>
-                        <RadioButton x:Name="RdoKhac" Content="Khác" Margin="0,2"/>
+                        <RadioButton x:Name="RdoPhaChe" GroupName="LoaiMatHangGroup" Content="Mặt hàng pha chế" Margin="0,2" IsChecked="True" Checked="RdoLoai_Checked"/>
+                        <RadioButton x:Name="RdoKiemVatTu" GroupName="LoaiMatHangGroup" Content="Mặt hàng kiêm vật tư" Margin="0,2" Checked="RdoLoai_Checked"/>
+                        <RadioButton x:Name="RdoVatTu" GroupName="LoaiMatHangGroup" Content="Vật tư nguyên liệu" Margin="0,2" Checked="RdoLoai_Checked"/>
+                        <RadioButton x:Name="RdoMo" GroupName="LoaiMatHangGroup" Content="Mặt hàng mở" Margin="0,2" Checked="RdoLoai_Checked"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,2">
+                            <RadioButton x:Name="RdoKhac" GroupName="LoaiMatHangGroup" Content="Khác" VerticalAlignment="Center" Checked="RdoLoai_Checked" Unchecked="RdoLoai_Checked"/>
+                            <Grid x:Name="GridLoaiKhac" Margin="15,0,0,0" Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox x:Name="CboLoaiMatHangKhac" Height="25" SelectedValuePath="Id"
+                                          SelectionChanged="CboLoaiMatHangKhac_SelectionChanged"
+                                          Style="{StaticResource ComboBoxWithFooterStyle}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="2,1">
+                                                <Image Source="{Binding IconSource}" Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="12"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="1" Content="➕" ToolTip="Thêm loại mặt hàng" Width="24" Height="25" Margin="4,0,0,0" Click="BtnThemLoai_Click"/>
+                                <Button Grid.Column="2" Content="🔄" ToolTip="Tải lại danh sách" Width="24" Height="25" Margin="2,0,0,0" Click="BtnTaiLoai_Click"/>
+                                <Button Grid.Column="3" Content="🗂️" ToolTip="Danh mục loại mặt hàng" Width="24" Height="25" Margin="2,0,0,0" Click="BtnDanhMucLoai_Click"/>
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- Image Section -->
-                    <Border Grid.Row="0" Grid.RowSpan="7" Grid.Column="4" BorderBrush="Gray" BorderThickness="1" Margin="10,5,0,5">
-                        <Grid>
-                            <TextBlock Text="Ảnh:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="2"/>
-                            <!-- placeholder for image -->
-                        </Grid>
-                    </Border>
+                    <Grid Grid.Row="0" Grid.RowSpan="7" Grid.Column="4" Margin="10,5,0,5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Label "Ảnh:" -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Ảnh:" VerticalAlignment="Center" Margin="0,0,0,4" Foreground="#112233" FontSize="12"/>
+
+                        <!-- 3 Action Buttons -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Top">
+                            <!-- Button 1: Dán ảnh vừa chụp -->
+                            <Button x:Name="BtnDanAnh" Width="26" Height="26" Margin="0,0,0,4" Padding="2" 
+                                    ToolTip="Dán ảnh vừa chụp" Click="BtnDanAnh_Click" 
+                                    Background="#fbfcfd" BorderBrush="#a4b8cc" Cursor="Hand">
+                                <Canvas Width="16" Height="16">
+                                    <!-- Back page -->
+                                    <Path Data="M 4,1 L 11,1 L 14,4 L 14,11 L 4,11 Z" Fill="#edf2f7" Stroke="#6b8299" StrokeThickness="1"/>
+                                    <!-- Front page -->
+                                    <Path Data="M 1,4 L 8,4 L 11,7 L 11,15 L 1,15 Z" Fill="#ffffff" Stroke="#4a709c" StrokeThickness="1"/>
+                                    <!-- Lines inside front page -->
+                                    <Path Data="M 3,8 L 9,8 M 3,10 L 9,10 M 3,12 L 7,12" Stroke="#8fa5b8" StrokeThickness="1"/>
+                                </Canvas>
+                            </Button>
+
+                            <!-- Button 2: Chọn ảnh từ thư viện -->
+                            <Button x:Name="BtnChonFileAnh" Width="26" Height="26" Margin="0,0,0,4" Padding="2" 
+                                    ToolTip="Chọn ảnh từ thư viện" Click="BtnChonFileAnh_Click" 
+                                    Background="#fbfcfd" BorderBrush="#a4b8cc" Cursor="Hand">
+                                <Canvas Width="16" Height="16">
+                                    <!-- Folder back -->
+                                    <Path Data="M 1,3 L 6,3 L 8,5 L 15,5 L 15,13 L 1,13 Z" Fill="#ffe082" Stroke="#d4a320" StrokeThickness="1"/>
+                                    <!-- Folder front -->
+                                    <Path Data="M 1,6 L 15,6 L 13,13 L 1,13 Z" Fill="#ffca28" Stroke="#d4a320" StrokeThickness="1"/>
+                                    <!-- Green arrow -->
+                                    <Path Data="M 9,7 L 14,2 M 10.5,2 L 14,2 L 14,5.5" Stroke="#2e7d32" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                </Canvas>
+                            </Button>
+
+                            <!-- Button 3: Xóa ảnh -->
+                            <Button x:Name="BtnXoaAnh" Width="26" Height="26" Margin="0,0,0,0" Padding="2" 
+                                    ToolTip="Xóa ảnh" Click="BtnXoaAnh_Click" 
+                                    Background="#fbfcfd" BorderBrush="#a4b8cc" Cursor="Hand">
+                                <Canvas Width="16" Height="16">
+                                    <Path Data="M 3,3 L 13,13 M 13,3 L 3,13" Stroke="#d32f2f" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                </Canvas>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Square Image Preview -->
+                        <Border Grid.Row="1" Grid.Column="1" Width="150" Height="150" Background="White" BorderBrush="#707070" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <Image x:Name="ImgMatHang" Stretch="Uniform" Margin="2"/>
+                        </Border>
+                    </Grid>
                     <StackPanel Grid.Row="7" Grid.RowSpan="3" Grid.Column="4" Margin="10,5,0,5">
                         <TextBlock>
                             <Hyperlink><Run Text="Lịch sử nhập mua hàng"/></Hyperlink>
@@ -192,7 +356,7 @@
                     </StackPanel>
                 </Grid>
             </TabItem>
-            <TabItem Header="Định lượng">
+            <TabItem x:Name="TabDinhLuong" Header="Định lượng" PreviewMouseLeftButtonDown="TabDinhLuong_PreviewMouseLeftButtonDown">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

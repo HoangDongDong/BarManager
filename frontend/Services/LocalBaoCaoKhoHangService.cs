@@ -395,8 +395,8 @@ namespace QuanLyBar.Client.Services
                       AND (d.STATUS IS NULL OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NhanVienId IS NULL OR @NhanVienId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienId OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId)
-                      AND (@KhoId IS NULL OR @KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (COALESCE(CAST(@NhanVienId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienId OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId)
+                      AND (COALESCE(CAST(@KhoId AS VARCHAR(255)), '') = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoId)
                     ORDER BY d.NGAY DESC, d.NAME";
 
                 var rows = (await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NhanVienId = nhanVienId, KhoId = khoId })).ToList();
@@ -454,10 +454,10 @@ namespace QuanLyBar.Client.Services
                       AND (c.STATUS IS NULL OR c.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NhomId IS NULL OR @NhomId = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@MhId IS NULL OR @MhId = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
-                      AND (@NhanVienId IS NULL OR @NhanVienId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienId OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId)
-                      AND (@KhoId IS NULL OR @KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (COALESCE(CAST(@NhomId AS VARCHAR(255)), '') = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (COALESCE(CAST(@MhId AS VARCHAR(255)), '') = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
+                      AND (COALESCE(CAST(@NhanVienId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienId OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienId)
+                      AND (COALESCE(CAST(@KhoId AS VARCHAR(255)), '') = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoId)
                     ORDER BY d.NGAY, m.NAME";
 
                 var rows = (await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NhomId = nhomId, MhId = mhId, NhanVienId = nhanVienId, KhoId = khoId })).ToList();
@@ -522,9 +522,9 @@ namespace QuanLyBar.Client.Services
                       AND (d.STATUS IS NULL OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@KhoXuatId IS NULL OR @KhoXuatId = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
-                      AND (@NhanVienXuatId IS NULL OR @NhanVienXuatId = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId)
-                      AND (@KhachHangId IS NULL OR @KhachHangId = '' OR CAST(d.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId)
+                      AND (COALESCE(CAST(@KhoXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
+                      AND (COALESCE(CAST(@NhanVienXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId)
+                      AND (COALESCE(CAST(@KhachHangId AS VARCHAR(255)), '') = '' OR CAST(d.DKHACHHANGID AS VARCHAR(50)) = @KhachHangId)
                     ORDER BY d.NGAY DESC, d.NAME";
 
                 var rows = (await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, KhoXuatId = khoXuatId, NhanVienXuatId = nhanVienXuatId, KhachHangId = khachHangId })).ToList();
@@ -615,9 +615,9 @@ namespace QuanLyBar.Client.Services
                       AND (c.STATUS IS NULL OR c.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@KhoXuatId IS NULL OR @KhoXuatId = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
-                      AND (@NhanVienXuatId IS NULL OR @NhanVienXuatId = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId)
-                      AND (@NccId IS NULL OR @NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
+                      AND (COALESCE(CAST(@KhoXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
+                      AND (COALESCE(CAST(@NhanVienXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NhanVienXuatId)
+                      AND (COALESCE(CAST(@NccId AS VARCHAR(255)), '') = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
                     GROUP BY d.ID, d.NGAY, nv.NAME, m.CODE, c.NAME, m.NAME, dv.NAME, c.DONGIA
                     ORDER BY d.NGAY, nv.NAME, m.NAME";
 
@@ -679,10 +679,10 @@ namespace QuanLyBar.Client.Services
                       AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NccId IS NULL OR @NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@NhanVienNhapId IS NULL OR @NhanVienNhapId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienNhapId)
-                      AND (@KhoNhapId IS NULL OR @KhoNhapId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
-                      AND (@SoPhieu IS NULL OR @SoPhieu = '' OR d.NAME CONTAINING @SoPhieu)
+                      AND (COALESCE(CAST(@NccId AS VARCHAR(255)), '') = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
+                      AND (COALESCE(CAST(@NhanVienNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienNhapId)
+                      AND (COALESCE(CAST(@KhoNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
+                      AND (COALESCE(CAST(@SoPhieu AS VARCHAR(255)), '') = '' OR d.NAME CONTAINING @SoPhieu)
                     ORDER BY d.NGAY DESC, d.NAME";
 
                 var rows = (await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, NhanVienNhapId = nhanVienNhapId, KhoNhapId = khoNhapId, SoPhieu = soPhieu })).ToList();
@@ -792,11 +792,11 @@ namespace QuanLyBar.Client.Services
                       AND (c.STATUS IS NULL OR c.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NccId IS NULL OR @NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoNhapId IS NULL OR @KhoNhapId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
-                      AND (@NhanVienNhapId IS NULL OR @NhanVienNhapId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienNhapId)
-                      AND (@NhomMhId IS NULL OR @NhomMhId = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomMhId)
-                      AND (@MhId IS NULL OR @MhId = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
+                      AND (COALESCE(CAST(@NccId AS VARCHAR(255)), '') = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
+                      AND (COALESCE(CAST(@KhoNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
+                      AND (COALESCE(CAST(@NhanVienNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NhanVienNhapId)
+                      AND (COALESCE(CAST(@NhomMhId AS VARCHAR(255)), '') = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomMhId)
+                      AND (COALESCE(CAST(@MhId AS VARCHAR(255)), '') = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
                     GROUP BY d.ID, d.NGAY, ncc.NAME, nv.NAME, m.CODE, c.NAME, m.NAME, dv.NAME, c.DONGIA
                     ORDER BY d.NGAY, ncc.NAME, nv.NAME, m.NAME";
 
@@ -869,10 +869,10 @@ namespace QuanLyBar.Client.Services
                       AND (d.STATUS IS NULL OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@KhoXuatId IS NULL OR @KhoXuatId = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
-                      AND (@KhoNhapId IS NULL OR @KhoNhapId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
-                      AND (@NvXuatId IS NULL OR @NvXuatId = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NvXuatId)
-                      AND (@NvNhapId IS NULL OR @NvNhapId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvNhapId)
+                      AND (COALESCE(CAST(@KhoXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
+                      AND (COALESCE(CAST(@KhoNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
+                      AND (COALESCE(CAST(@NvXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NvXuatId)
+                      AND (COALESCE(CAST(@NvNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvNhapId)
                     ORDER BY d.NGAY DESC, d.NAME";
 
                 var rows = (await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, KhoXuatId = khoXuatId, KhoNhapId = khoNhapId, NvXuatId = nvXuatId, NvNhapId = nvNhapId })).ToList();
@@ -945,10 +945,10 @@ namespace QuanLyBar.Client.Services
                       AND (c.STATUS IS NULL OR c.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay
                       AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@KhoXuatId IS NULL OR @KhoXuatId = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
-                      AND (@KhoNhapId IS NULL OR @KhoNhapId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
-                      AND (@NvXuatId IS NULL OR @NvXuatId = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NvXuatId)
-                      AND (@NvNhapId IS NULL OR @NvNhapId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvNhapId)
+                      AND (COALESCE(CAST(@KhoXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
+                      AND (COALESCE(CAST(@KhoNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
+                      AND (COALESCE(CAST(@NvXuatId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NvXuatId)
+                      AND (COALESCE(CAST(@NvNhapId AS VARCHAR(255)), '') = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvNhapId)
                     GROUP BY d.ID, d.NGAY, nvx.NAME, nvn.NAME, m.CODE, c.NAME, m.NAME, dv.NAME, c.DONGIA
                     ORDER BY d.NGAY, nvx.NAME, nvn.NAME, m.NAME";
 
@@ -1016,7 +1016,7 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DDONVITINH dv ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dv.ID AS VARCHAR(50))
                     LEFT JOIN DNHOMMATHANG nh ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(nh.ID AS VARCHAR(50))
                     WHERE (m.STATUS IS NULL OR m.STATUS <> 0)
-                      AND (@NhomId IS NULL OR @NhomId = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (COALESCE(CAST(@NhomId AS VARCHAR(255)), '') = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
                     ORDER BY nh.NAME, m.NAME";
 
                 var mhItems = (await conn.QueryAsync(sql, new { NhomId = nhomId })).ToList();
@@ -1095,8 +1095,8 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DDONVITINH dv ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dv.ID AS VARCHAR(50))
                     LEFT JOIN DNHOMMATHANG nh ON CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(nh.ID AS VARCHAR(50))
                     WHERE (m.STATUS IS NULL OR m.STATUS <> 0)
-                      AND (@NhomId IS NULL OR @NhomId = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@MhId IS NULL OR @MhId = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
+                      AND (COALESCE(CAST(@NhomId AS VARCHAR(255)), '') = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (COALESCE(CAST(@MhId AS VARCHAR(255)), '') = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
                     ORDER BY nh.NAME, m.NAME";
 
                 var mhList = (await conn.QueryAsync(sqlMh, new { NhomId = nhomId, MhId = mhId })).ToList();
@@ -1342,8 +1342,15 @@ namespace QuanLyBar.Client.Services
             public string NhaCungCap { get; set; } = "";
             public string KhoHang { get; set; } = "";
             public string NhanVien { get; set; } = "";
+            public string GhiChu { get; set; } = "";
+            public string DienGiai { get; set; } = "";
+            public string Loai { get; set; } = "";
             public decimal TienHang { get; set; }
             public decimal GiamGia { get; set; }
+            public decimal TiLeGiamGia { get; set; }
+            public decimal PhiVanChuyen { get; set; }
+            public decimal TienThue { get; set; }
+            public decimal TiLeThue { get; set; }
             public decimal TongCong { get; set; }
         }
 
@@ -1370,6 +1377,8 @@ namespace QuanLyBar.Client.Services
             public string KhoHang { get; set; } = "";
             public decimal TienHang { get; set; }
             public decimal GiamGia { get; set; }
+            public decimal PhiVanChuyen { get; set; }
+            public decimal TienThue { get; set; }
             public decimal TongCong { get; set; }
         }
 
@@ -1498,9 +1507,9 @@ namespace QuanLyBar.Client.Services
                     JOIN DMATHANG m ON ct.MATHANGID = m.ID
                     WHERE d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
                       AND (d.LOAI = 0 OR d.LOAI = 10 OR d.LOAI = 11 OR d.LOAI IS NULL)
-                      AND (@KhoId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
-                      AND (@NhomId = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@MhId = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NhomId AS VARCHAR(255)) = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (CAST(@MhId AS VARCHAR(255)) = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
                     GROUP BY d.NGAY, m.MA, m.NAME, m.DONVITINH
                     ORDER BY d.NGAY, m.NAME";
 
@@ -1548,7 +1557,7 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
                     WHERE d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
                       AND (d.LOAI = 0 OR d.LOAI = 10 OR d.LOAI = 11 OR d.LOAI IS NULL)
-                      AND (@KhoId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
                     ORDER BY d.NGAY, d.SOPHIEU";
 
                 var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, KhoId = khoId });
@@ -1595,7 +1604,7 @@ namespace QuanLyBar.Client.Services
                     JOIN DMATHANG nvl ON dl.NGUYENLIEUID = nvl.ID
                     WHERE d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
                       AND (d.LOAI = 0 OR d.LOAI = 10 OR d.LOAI = 11 OR d.LOAI IS NULL)
-                      AND (@KhoId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
                     GROUP BY nvl.MA, nvl.NAME, nvl.DONVITINH, nvl.GIAVON, nvl.GIANHAP
                     ORDER BY nvl.NAME";
 
@@ -1641,8 +1650,8 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN TDONHANGCHITIET ct ON d.ID = ct.DONHANGID
                     WHERE d.LOAI = 4
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NvId AS VARCHAR(255)) = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
                     GROUP BY d.SOPHIEU, d.NGAY, k.NAME, nv.NAME
                     ORDER BY d.NGAY, d.SOPHIEU";
 
@@ -1691,9 +1700,9 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
                     WHERE d.LOAI = 4
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NhomId = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NhomId AS VARCHAR(255)) = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (CAST(@NvId AS VARCHAR(255)) = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
                     GROUP BY d.NGAY, nv.NAME, m.MA, m.NAME, m.DONVITINH
                     ORDER BY d.NGAY, m.NAME";
 
@@ -1754,9 +1763,9 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
                     WHERE d.LOAI = 2
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
-                      AND (@NhomId = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NhomId AS VARCHAR(255)) = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (CAST(@NvId AS VARCHAR(255)) = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
                     GROUP BY d.NGAY, nv.NAME, m.MA, m.NAME, m.DONVITINH
                     ORDER BY d.NGAY, m.NAME";
 
@@ -1810,8 +1819,8 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
                     WHERE d.LOAI = 2
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NvId AS VARCHAR(255)) = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
                     ORDER BY d.NGAY, d.SOPHIEU";
 
                 var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, KhoId = khoId, NvId = nvId });
@@ -1856,7 +1865,7 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DKHOHANG k ON d.KHOXUATID = k.ID
                     WHERE d.LOAI = 2
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
                     GROUP BY d.NGAY, k.NAME
                     ORDER BY d.NGAY";
 
@@ -1902,8 +1911,8 @@ namespace QuanLyBar.Client.Services
                     LEFT JOIN DNHANVIEN nv ON d.NHANVIENID = nv.ID
                     WHERE d.LOAI = 2
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NvId AS VARCHAR(255)) = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId)
                     GROUP BY nv.NAME, k.NAME
                     ORDER BY nv.NAME";
 
@@ -1947,8 +1956,14 @@ namespace QuanLyBar.Client.Services
                         ncc.NAME as NhaCungCap,
                         k.NAME as KhoHang,
                         nv.NAME as NhanVien,
+                        COALESCE(d.NOTE, '') as GhiChu,
+                        CASE WHEN d.LOAI = 1 THEN 'Nhập hàng' ELSE CAST(d.LOAI AS VARCHAR(20)) END as Loai,
                         COALESCE(d.TIENHANG, 0) as TienHang,
                         COALESCE(d.TIENGIAMGIA, 0) as GiamGia,
+                        COALESCE(d.TILEGIAMGIA, 0) as TiLeGiamGia,
+                        COALESCE(d.PHIVANCHUYEN, 0) as PhiVanChuyen,
+                        COALESCE(d.TIENTHUE, 0) as TienThue,
+                        COALESCE(d.TILETHUE, 0) as TiLeThue,
                         COALESCE(d.TONGCONG, 0) as TongCong
                     FROM TDONHANG d
                     LEFT JOIN DNHACUNGCAP ncc ON CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(ncc.ID AS VARCHAR(50))
@@ -1957,9 +1972,9 @@ namespace QuanLyBar.Client.Services
                     WHERE d.LOAI = 1
                       AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NvId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@NccId AS VARCHAR(50)) = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(@NccId AS VARCHAR(50)))
+                      AND (CAST(@KhoId AS VARCHAR(50)) = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(@KhoId AS VARCHAR(50)))
+                      AND (CAST(@NvId AS VARCHAR(50)) = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(@NvId AS VARCHAR(50)))
                     ORDER BY d.NGAY DESC, d.NAME";
 
                 var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId, NvId = nvId });
@@ -1974,8 +1989,15 @@ namespace QuanLyBar.Client.Services
                         NhaCungCap = r.NHACUNGCAP?.ToString() ?? "",
                         KhoHang = r.KHOHANG?.ToString() ?? "",
                         NhanVien = r.NHANVIEN?.ToString() ?? "",
+                        GhiChu = r.GHICHU?.ToString() ?? "",
+                        DienGiai = r.GHICHU?.ToString() ?? "",
+                        Loai = r.LOAI?.ToString() ?? "Nhập hàng",
                         TienHang = Convert.ToDecimal(r.TIENHANG ?? 0),
                         GiamGia = Convert.ToDecimal(r.GIAMGIA ?? 0),
+                        TiLeGiamGia = Convert.ToDecimal(r.TILEGIAMGIA ?? 0),
+                        PhiVanChuyen = Convert.ToDecimal(r.PHIVANCHUYEN ?? 0),
+                        TienThue = Convert.ToDecimal(r.TIENTHUE ?? 0),
+                        TiLeThue = Convert.ToDecimal(r.TILETHUE ?? 0),
                         TongCong = Convert.ToDecimal(r.TONGCONG ?? 0)
                     });
                 }
@@ -2022,10 +2044,10 @@ namespace QuanLyBar.Client.Services
                     WHERE d.LOAI = 1
                       AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NhomId = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@NvId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@NccId AS VARCHAR(50)) = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(@NccId AS VARCHAR(50)))
+                      AND (CAST(@KhoId AS VARCHAR(50)) = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(@KhoId AS VARCHAR(50)))
+                      AND (CAST(@NhomId AS VARCHAR(50)) = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = CAST(@NhomId AS VARCHAR(50)))
+                      AND (CAST(@NvId AS VARCHAR(50)) = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(@NvId AS VARCHAR(50)))
                     GROUP BY d.NGAY, ncc.NAME, nv.NAME, m.CODE, m.NAME, dv.NAME
                     ORDER BY d.NGAY, m.NAME";
 
@@ -2072,18 +2094,21 @@ namespace QuanLyBar.Client.Services
                         COUNT(d.ID) as SoPhieu,
                         SUM(COALESCE(d.TIENHANG, 0)) as TienHang,
                         SUM(COALESCE(d.TIENGIAMGIA, 0)) as GiamGia,
+                        SUM(COALESCE(d.PHIVANCHUYEN, 0)) as PhiVanChuyen,
+                        SUM(COALESCE(d.TIENTHUE, 0)) as TienThue,
                         SUM(COALESCE(d.TONGCONG, 0)) as TongCong
                     FROM TDONHANG d
                     LEFT JOIN DKHOHANG k ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(k.ID AS VARCHAR(50))
                     WHERE d.LOAI = 1
                       AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NccId AS VARCHAR(50)) = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(@NccId AS VARCHAR(50)))
+                      AND (CAST(@KhoId AS VARCHAR(50)) = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(@KhoId AS VARCHAR(50)))
+                      AND (CAST(@NvId AS VARCHAR(50)) = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(@NvId AS VARCHAR(50)))
                     GROUP BY d.NGAY, k.NAME
                     ORDER BY d.NGAY";
 
-                var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId });
+                var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId, NvId = nvId });
                 int stt = 1;
                 foreach (var r in rows)
                 {
@@ -2096,6 +2121,8 @@ namespace QuanLyBar.Client.Services
                         SoPhieu = Convert.ToInt32(r.SOPHIEU ?? 0),
                         TienHang = Convert.ToDecimal(r.TIENHANG ?? 0),
                         GiamGia = Convert.ToDecimal(r.GIAMGIA ?? 0),
+                        PhiVanChuyen = Convert.ToDecimal(r.PHIVANCHUYEN ?? 0),
+                        TienThue = Convert.ToDecimal(r.TIENTHUE ?? 0),
                         TongCong = Convert.ToDecimal(r.TONGCONG ?? 0)
                     });
                 }
@@ -2119,6 +2146,8 @@ namespace QuanLyBar.Client.Services
                         COUNT(d.ID) as SoPhieu,
                         SUM(COALESCE(d.TIENHANG, 0)) as TienHang,
                         SUM(COALESCE(d.TIENGIAMGIA, 0)) as GiamGia,
+                        SUM(COALESCE(d.PHIVANCHUYEN, 0)) as PhiVanChuyen,
+                        SUM(COALESCE(d.TIENTHUE, 0)) as TienThue,
                         SUM(COALESCE(d.TONGCONG, 0)) as TongCong
                     FROM TDONHANG d
                     LEFT JOIN DNHACUNGCAP ncc ON CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(ncc.ID AS VARCHAR(50))
@@ -2126,12 +2155,13 @@ namespace QuanLyBar.Client.Services
                     WHERE d.LOAI = 1
                       AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@NccId = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = @NccId)
-                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NccId AS VARCHAR(50)) = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(@NccId AS VARCHAR(50)))
+                      AND (CAST(@KhoId AS VARCHAR(50)) = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(@KhoId AS VARCHAR(50)))
+                      AND (CAST(@NvId AS VARCHAR(50)) = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(@NvId AS VARCHAR(50)))
                     GROUP BY ncc.NAME, k.NAME
                     ORDER BY ncc.NAME";
 
-                var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId });
+                var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId, NvId = nvId });
                 int stt = 1;
                 foreach (var r in rows)
                 {
@@ -2143,6 +2173,8 @@ namespace QuanLyBar.Client.Services
                         SoPhieu = Convert.ToInt32(r.SOPHIEU ?? 0),
                         TienHang = Convert.ToDecimal(r.TIENHANG ?? 0),
                         GiamGia = Convert.ToDecimal(r.GIAMGIA ?? 0),
+                        PhiVanChuyen = Convert.ToDecimal(r.PHIVANCHUYEN ?? 0),
+                        TienThue = Convert.ToDecimal(r.TIENTHUE ?? 0),
                         TongCong = Convert.ToDecimal(r.TONGCONG ?? 0)
                     });
                 }
@@ -2166,6 +2198,8 @@ namespace QuanLyBar.Client.Services
                         COUNT(d.ID) as SoPhieu,
                         SUM(COALESCE(d.TIENHANG, 0)) as TienHang,
                         SUM(COALESCE(d.TIENGIAMGIA, 0)) as GiamGia,
+                        SUM(COALESCE(d.PHIVANCHUYEN, 0)) as PhiVanChuyen,
+                        SUM(COALESCE(d.TIENTHUE, 0)) as TienThue,
                         SUM(COALESCE(d.TONGCONG, 0)) as TongCong
                     FROM TDONHANG d
                     LEFT JOIN DNHANVIEN nv ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
@@ -2173,12 +2207,13 @@ namespace QuanLyBar.Client.Services
                     WHERE d.LOAI = 1
                       AND (d.STATUS IS NULL OR d.STATUS = 30 OR d.STATUS <> 0)
                       AND CAST(d.NGAY AS DATE) >= @TuNgay AND CAST(d.NGAY AS DATE) <= @DenNgay
-                      AND (@KhoId = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoId)
-                      AND (@NvId = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
+                      AND (CAST(@NccId AS VARCHAR(50)) = '' OR CAST(d.DNHACUNGCAPID AS VARCHAR(50)) = CAST(@NccId AS VARCHAR(50)))
+                      AND (CAST(@KhoId AS VARCHAR(50)) = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(@KhoId AS VARCHAR(50)))
+                      AND (CAST(@NvId AS VARCHAR(50)) = '' OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(@NvId AS VARCHAR(50)))
                     GROUP BY nv.NAME, k.NAME
                     ORDER BY nv.NAME";
 
-                var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, KhoId = khoId, NvId = nvId });
+                var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, NccId = nccId, KhoId = khoId, NvId = nvId });
                 int stt = 1;
                 foreach (var r in rows)
                 {
@@ -2190,6 +2225,8 @@ namespace QuanLyBar.Client.Services
                         SoPhieu = Convert.ToInt32(r.SOPHIEU ?? 0),
                         TienHang = Convert.ToDecimal(r.TIENHANG ?? 0),
                         GiamGia = Convert.ToDecimal(r.GIAMGIA ?? 0),
+                        PhiVanChuyen = Convert.ToDecimal(r.PHIVANCHUYEN ?? 0),
+                        TienThue = Convert.ToDecimal(r.TIENTHUE ?? 0),
                         TongCong = Convert.ToDecimal(r.TONGCONG ?? 0)
                     });
                 }
@@ -2216,24 +2253,25 @@ namespace QuanLyBar.Client.Services
                         d.NGAY as Ngay,
                         nvNhan.NAME as NhanVienNhan,
                         nvChuyen.NAME as NhanVienChuyen,
-                        m.MA as MaHang,
+                        COALESCE(m.CODE, '') as MaHang,
                         m.NAME as TenHang,
-                        m.DONVITINH as DVT,
-                        SUM(COALESCE(ct.SOLUONG, 0)) as SoLuong,
+                        COALESCE(dvt.NAME, '') as DVT,
+                        SUM(COALESCE(ct.SLXUAT, ct.SLNHAP, 0)) as SoLuong,
                         AVG(COALESCE(ct.DONGIA, 0)) as DonGia,
                         SUM(COALESCE(ct.THANHTIEN, 0)) as ThanhTien
                     FROM TDONHANG d
-                    JOIN TDONHANGCHITIET ct ON d.ID = ct.DONHANGID
-                    JOIN DMATHANG m ON ct.MATHANGID = m.ID
-                    LEFT JOIN DNHANVIEN nvNhan ON d.NHANVIENNHAPID = nvNhan.ID
-                    LEFT JOIN DNHANVIEN nvChuyen ON d.NHANVIENID = nvChuyen.ID
+                    JOIN TDONHANGCHITIET ct ON CAST(ct.TDONHANGID AS VARCHAR(50)) = CAST(d.ID AS VARCHAR(50))
+                    JOIN DMATHANG m ON CAST(ct.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50))
+                    LEFT JOIN DDONVITINH dvt ON CAST(COALESCE(ct.DDONVITINHID, m.DDONVITINHID) AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                    LEFT JOIN DNHANVIEN nvNhan ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nvNhan.ID AS VARCHAR(50))
+                    LEFT JOIN DNHANVIEN nvChuyen ON CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nvChuyen.ID AS VARCHAR(50))
                     WHERE d.LOAI = 3
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoXuatId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoXuatId)
-                      AND (@KhoNhapId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoNhapId)
-                      AND (@NhomId = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId OR CAST(d.NHANVIENNHAPID AS VARCHAR(50)) = @NvId)
-                    GROUP BY d.NGAY, nvNhan.NAME, nvChuyen.NAME, m.MA, m.NAME, m.DONVITINH
+                      AND (CAST(@KhoXuatId AS VARCHAR(255)) = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
+                      AND (CAST(@KhoNhapId AS VARCHAR(255)) = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
+                      AND (CAST(@NhomId AS VARCHAR(255)) = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (CAST(@NvId AS VARCHAR(255)) = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NvId OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
+                    GROUP BY d.NGAY, nvNhan.NAME, nvChuyen.NAME, m.CODE, m.NAME, dvt.NAME
                     ORDER BY d.NGAY, m.NAME";
 
                 var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, KhoXuatId = khoXuatId, KhoNhapId = khoNhapId, NhomId = nhomId, NvId = nvId });
@@ -2279,24 +2317,24 @@ namespace QuanLyBar.Client.Services
 
                 string sql = @"
                     SELECT 
-                        d.SOPHIEU as SoPhieu,
+                        COALESCE(d.NAME, d.SOPHIEU) as SoPhieu,
                         d.NGAY as Ngay,
                         kx.NAME as KhoXuat,
                         kn.NAME as KhoNhap,
                         nvx.NAME as NhanVienXuat,
                         nvn.NAME as NhanVienNhap,
-                        COALESCE(d.THANHTOAN, d.TONGTIEN, 0) as TongCong
+                        COALESCE(d.TONGCONG, d.TIENHANG, 0) as TongCong
                     FROM TDONHANG d
-                    LEFT JOIN DKHOHANG kx ON d.KHOXUATID = kx.ID
-                    LEFT JOIN DKHOHANG kn ON d.KHONHAPID = kn.ID
-                    LEFT JOIN DNHANVIEN nvx ON d.NHANVIENID = nvx.ID
-                    LEFT JOIN DNHANVIEN nvn ON d.NHANVIENNHAPID = nvn.ID
+                    LEFT JOIN DKHOHANG kx ON CAST(d.DKHOXUATID AS VARCHAR(50)) = CAST(kx.ID AS VARCHAR(50))
+                    LEFT JOIN DKHOHANG kn ON CAST(d.DKHONHAPID AS VARCHAR(50)) = CAST(kn.ID AS VARCHAR(50))
+                    LEFT JOIN DNHANVIEN nvx ON CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nvx.ID AS VARCHAR(50))
+                    LEFT JOIN DNHANVIEN nvn ON CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = CAST(nvn.ID AS VARCHAR(50))
                     WHERE d.LOAI = 3
                       AND d.NGAY >= @TuNgay AND d.NGAY <= @DenNgay
-                      AND (@KhoXuatId = '' OR CAST(d.KHOXUATID AS VARCHAR(50)) = @KhoXuatId)
-                      AND (@KhoNhapId = '' OR CAST(d.KHONHAPID AS VARCHAR(50)) = @KhoNhapId)
-                      AND (@NvId = '' OR CAST(d.NHANVIENID AS VARCHAR(50)) = @NvId OR CAST(d.NHANVIENNHAPID AS VARCHAR(50)) = @NvId)
-                    ORDER BY d.NGAY, d.SOPHIEU";
+                      AND (CAST(@KhoXuatId AS VARCHAR(255)) = '' OR CAST(d.DKHOXUATID AS VARCHAR(50)) = @KhoXuatId)
+                      AND (CAST(@KhoNhapId AS VARCHAR(255)) = '' OR CAST(d.DKHONHAPID AS VARCHAR(50)) = @KhoNhapId)
+                      AND (CAST(@NvId AS VARCHAR(255)) = '' OR CAST(d.DNHANVIENXUATID AS VARCHAR(50)) = @NvId OR CAST(d.DNHANVIENNHAPID AS VARCHAR(50)) = @NvId)
+                    ORDER BY d.NGAY, d.NAME";
 
                 var rows = await conn.QueryAsync(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date, KhoXuatId = khoXuatId, KhoNhapId = khoNhapId, NvId = nvId });
                 int stt = 1;
@@ -2349,8 +2387,8 @@ namespace QuanLyBar.Client.Services
                     FROM DMATHANG m
                     WHERE (m.STATUS IS NULL OR m.STATUS <> 0)
                       AND m.HANDUNG IS NOT NULL
-                      AND (@NhomId = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@MhId = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
+                      AND (CAST(@NhomId AS VARCHAR(255)) = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (CAST(@MhId AS VARCHAR(255)) = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
                     ORDER BY m.HANDUNG, m.NAME";
 
                 var rows = await conn.QueryAsync(sql, new { NhomId = nhomId, MhId = mhId });
@@ -2416,9 +2454,9 @@ namespace QuanLyBar.Client.Services
                     FROM DMATHANG m
                     LEFT JOIN DKHOHANG k ON m.KHOHANGID = k.ID
                     WHERE (m.STATUS IS NULL OR m.STATUS <> 0)
-                      AND (@KhoId = '' OR CAST(m.KHOHANGID AS VARCHAR(50)) = @KhoId)
-                      AND (@NhomId = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
-                      AND (@MhId = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
+                      AND (CAST(@KhoId AS VARCHAR(255)) = '' OR CAST(m.KHOHANGID AS VARCHAR(50)) = @KhoId)
+                      AND (CAST(@NhomId AS VARCHAR(255)) = '' OR CAST(m.NHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (CAST(@MhId AS VARCHAR(255)) = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
                     ORDER BY m.NAME";
 
                 var rows = await conn.QueryAsync(sql, new { KhoId = khoId, NhomId = nhomId, MhId = mhId });
@@ -2653,6 +2691,75 @@ namespace QuanLyBar.Client.Services
             }
             catch (Exception ex) { Console.WriteLine("GetBaoCaoTheKhoAsync error: " + ex.Message); }
             return list;
+        }
+
+        public async Task<List<BaoCaoHsdItem>> GetBaoCaoHangHoaTheoHsdAsync(DateTime tuNgay, DateTime denNgay, string khoId = "", string nhomId = "", string mhId = "")
+        {
+            var list = new List<BaoCaoHsdItem>();
+            try
+            {
+                using var conn = DbConnectionManager.GetConnection();
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                string sql = @"
+                    SELECT 
+                        m.CODE AS MaHang,
+                        m.NAME AS TenHang,
+                        COALESCE(dvt.NAME, '') AS DVT,
+                        COALESCE(m.SOLO, '') AS SoLo,
+                        m.NGAYSX AS NgaySx,
+                        m.HANDUNG AS HanDung,
+                        COALESCE(m.TONKHO, 0) AS TonKho
+                    FROM DMATHANG m
+                    LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50))
+                    WHERE (m.STATUS IS NULL OR m.STATUS <> 0)
+                      AND (CAST(@NhomId AS VARCHAR(255)) = '' OR CAST(m.DNHOMMATHANGID AS VARCHAR(50)) = @NhomId)
+                      AND (CAST(@MhId AS VARCHAR(255)) = '' OR CAST(m.ID AS VARCHAR(50)) = @MhId)
+                    ORDER BY m.HANDUNG, m.NAME";
+
+                var rows = await conn.QueryAsync(sql, new { KhoId = khoId, NhomId = nhomId, MhId = mhId });
+                int stt = 1;
+                foreach (var r in rows)
+                {
+                    DateTime? hd = r.HanDung != null ? Convert.ToDateTime(r.HanDung) : (DateTime?)null;
+                    string tt = "Bình thường";
+                    if (hd.HasValue)
+                    {
+                        if (hd.Value < DateTime.Today) tt = "Đã hết hạn";
+                        else if ((hd.Value - DateTime.Today).TotalDays <= 30) tt = "Sắp hết hạn";
+                    }
+
+                    list.Add(new BaoCaoHsdItem
+                    {
+                        STT = stt++,
+                        MaHang = r.MaHang?.ToString() ?? "",
+                        TenHang = r.TenHang?.ToString() ?? "",
+                        DVT = r.DVT?.ToString() ?? "",
+                        SoLo = r.SoLo?.ToString() ?? "",
+                        NgaySx = r.NgaySx != null ? Convert.ToDateTime(r.NgaySx) : (DateTime?)null,
+                        HanDung = hd,
+                        TonKho = Convert.ToDecimal(r.TonKho ?? 0),
+                        TrangThai = tt
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetBaoCaoHangHoaTheoHsdAsync error: " + ex.Message);
+            }
+            return list;
+        }
+
+        public async Task<List<BaoCaoHsdItem>> GetBaoCaoHangHoaHetHanAsync(DateTime tuNgay, DateTime denNgay, string khoId = "", string nhomId = "", string mhId = "")
+        {
+            var all = await GetBaoCaoHangHoaTheoHsdAsync(tuNgay, denNgay, khoId, nhomId, mhId);
+            return all.Where(x => x.HanDung.HasValue && x.HanDung.Value < DateTime.Today).ToList();
+        }
+
+        public async Task<List<BaoCaoHsdItem>> GetBaoCaoHangTonKhoCoHsdAsync(DateTime denNgay, string khoId = "", string nhomId = "", string mhId = "")
+        {
+            var all = await GetBaoCaoHangHoaTheoHsdAsync(DateTime.MinValue, denNgay, khoId, nhomId, mhId);
+            return all.Where(x => x.HanDung.HasValue).ToList();
         }
         #endregion
         #endregion

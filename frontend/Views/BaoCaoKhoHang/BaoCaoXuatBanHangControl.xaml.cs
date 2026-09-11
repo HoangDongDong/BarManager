@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +15,7 @@ using static QuanLyBar.Client.Services.LocalBaoCaoKhoHangService;
 
 namespace QuanLyBar.Client.Views.BaoCaoKhoHang
 {
-    public partial class BaoCaoXuatBanHangControl : UserControl
+    public partial class BaoCaoXuatBanHangControl : UserControl, QuanLyBar.Client.Models.IReportWithFilters
     {
         public enum ReportMode
         {
@@ -27,6 +27,9 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
         private readonly LocalBaoCaoKhoHangService _reportService = new LocalBaoCaoKhoHangService();
         private readonly ReportMode _mode;
         private bool _isLoaded = false;
+        private QuanLyBar.Client.Models.ReportFilterParams? _pendingParams;
+        private QuanLyBar.Client.Services.ReportPaperLayout? _currentLayout;
+        private List<QuanLyBar.Client.Services.ReportColumnConfigItem>? _colConfigs;
 
         private List<BaoCaoXuatBanHangTheoNgayItem> _dataTheoNgay = new List<BaoCaoXuatBanHangTheoNgayItem>();
         private List<BaoCaoXuatBanHangTheoDonItem> _dataTheoDon = new List<BaoCaoXuatBanHangTheoDonItem>();
@@ -37,6 +40,88 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             InitializeComponent();
             _mode = mode;
             UpdateTitle();
+        }
+
+        public void ApplyFilterParams(QuanLyBar.Client.Models.ReportFilterParams p)
+        {
+            if (p == null) return;
+            _pendingParams = p;
+
+            if (p.TuNgay.HasValue) DpTuNgay.SelectedDate = p.TuNgay.Value;
+            if (p.DenNgay.HasValue) DpDenNgay.SelectedDate = p.DenNgay.Value;
+
+            SelectCombo(CboKhoHang, p.KhoXuatId ?? p.KhoId);
+            SelectCombo(CboNhomHang, p.NhomHangId);
+            SelectCombo(CboMatHang, p.MatHangId);
+
+            if (_isLoaded)
+            {
+                _ = LoadDataAsync();
+            }
+        }
+
+        private void SelectCombo(ComboBox cbo, string? id)
+        {
+            if (string.IsNullOrEmpty(id) || cbo == null) return;
+            cbo.SelectedValue = id;
+            if (cbo.SelectedItem == null && cbo.ItemsSource != null)
+            {
+                foreach (var item in cbo.ItemsSource)
+                {
+                    if (item is FilterComboItem fi && fi.Id == id)
+                    {
+                        cbo.SelectedItem = fi;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private async Task LoadTemplateConfigAsync(QuanLyBar.Client.Services.ReportPaperLayout? immediateLayout = null)
+        {
+            try
+            {
+                if (immediateLayout == null)
+                {
+                    var fullConfig = await QuanLyBar.Client.Services.ReportTemplateConfigService.GetFullTemplateConfigAsync(TxtReportTitle.Text);
+                    _colConfigs = fullConfig.Columns;
+                    _currentLayout = fullConfig.Layout;
+                }
+                else
+                {
+                    _currentLayout = immediateLayout;
+                }
+                ReportPaperLayoutHelper.ApplyReportPaperLayout(
+                    reportPaper: ReportPaper,
+                    layout: _currentLayout,
+                    colLogo: ColLogo,
+                    brdLogo: BrdLogo,
+                    pnlCompanyText: PnlCompanyText,
+                    txtCompanyName: TxtCompanyName,
+                    txtCompanyAddress: TxtCompanyAddress,
+                    txtCompanyContact: TxtCompanyContact,
+                    gridTitleArea: GridReportTitleArea,
+                    colTitleLeft: ColTitleLeft,
+                    colTitleRight: ColTitleRight,
+                    txtReportTitle: TxtReportTitle,
+                    pnlDateAndFilter: PnlDateAndFilter,
+                    txtSubTitleDate: TxtSubTitleDate,
+                    txtFilterSummary: TxtFilterSummary,
+                    gridSignatures: GridSignatures,
+                    sigCol0: SigCol0,
+                    sigCol1: SigCol1,
+                    sigCol2: SigCol2,
+                    sigCol3: SigCol3,
+                    sigBlock0: SigBlock0,
+                    sigBlock1: SigBlock1,
+                    sigBlock2: SigBlock2,
+                    sigBlock3: SigBlock3
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("LoadTemplateConfigAsync error: " + ex.Message);
+            }
         }
 
         private void UpdateTitle()
@@ -65,9 +150,16 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             DpDenNgay.SelectedDate = today;
             TxtSignDate.Text = $"Ngày {today:dd} tháng {today:MM} năm {today:yyyy}";
 
+            await LoadTemplateConfigAsync();
             BuildTableHeader();
             await LoadCompanyInfoAndLogoAsync();
             await LoadFiltersAsync();
+
+            if (_pendingParams != null)
+            {
+                ApplyFilterParams(_pendingParams);
+            }
+
             await LoadDataAsync();
         }
 
@@ -113,23 +205,41 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             catch { }
         }
 
+        private List<double> GetBaseColumnWidths()
+        {
+            switch (_mode)
+            {
+                case ReportMode.TheoNgay:
+                    return new List<double> { 35, 80, 215, 60, 80, 110, 140 };
+                case ReportMode.TheoDon:
+                    return new List<double> { 35, 85, 100, 70, 70, 110, 80, 80, 90 };
+                case ReportMode.DinhLuong:
+                    return new List<double> { 35, 80, 215, 60, 100, 100, 130 };
+                default:
+                    return new List<double> { 35, 80, 215, 60, 80, 110, 140 };
+            }
+        }
+
+        private void ApplyColumnDefinitions(Grid grid)
+        {
+            grid.ColumnDefinitions.Clear();
+            double scale = _currentLayout != null ? _currentLayout.GetScaleFactor() : 1.0;
+            var baseWidths = GetBaseColumnWidths();
+            foreach (var w in baseWidths)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Round(w * scale)) });
+            }
+        }
+
         private void BuildTableHeader()
         {
             BrdTableHeader.Child = null;
             Grid grid = new Grid { Height = 28 };
+            ApplyColumnDefinitions(grid);
 
             switch (_mode)
             {
                 case ReportMode.TheoNgay:
-                    // STT(35), Mã hàng(80), Tên mặt hàng(215), ĐVT(60), Số lượng(80), Đơn giá(110), Thành tiền(140) = 720
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(215) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
-
                     grid.Children.Add(CreateHeaderCell("STT", 0));
                     grid.Children.Add(CreateHeaderCell("Mã hàng", 1));
                     grid.Children.Add(CreateHeaderCell("Tên mặt hàng", 2));
@@ -140,17 +250,6 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                     break;
 
                 case ReportMode.TheoDon:
-                    // STT(35), Số phiếu(85), Bàn/Khu vực(100), Giờ vào(70), Giờ ra(70), Thu ngân(110), Tiền hàng(80), Giảm giá(80), Thanh toán(90) = 720
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(85) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(90) });
-
                     grid.Children.Add(CreateHeaderCell("STT", 0));
                     grid.Children.Add(CreateHeaderCell("Số phiếu", 1));
                     grid.Children.Add(CreateHeaderCell("Bàn / Vị trí", 2));
@@ -163,15 +262,6 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                     break;
 
                 case ReportMode.DinhLuong:
-                    // STT(35), Mã NVL(80), Tên NVL(215), ĐVT(60), SL định lượng(100), Đơn giá(100), Thành tiền(130) = 720
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(215) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
-
                     grid.Children.Add(CreateHeaderCell("STT", 0));
                     grid.Children.Add(CreateHeaderCell("Mã NVL", 1));
                     grid.Children.Add(CreateHeaderCell("Tên nguyên vật liệu", 2));
@@ -196,6 +286,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             b.Child = new TextBlock
             {
                 Text = text,
+                FontSize = _currentLayout?.HeaderFontSize ?? 11.0,
                 FontWeight = FontWeights.Bold,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -216,6 +307,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             b.Child = new TextBlock
             {
                 Text = text,
+                FontSize = _currentLayout?.CellFontSize ?? 10.5,
                 FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
                 HorizontalAlignment = align,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -330,13 +422,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                         };
 
                         Grid rowGrid = new Grid();
-                        rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                        rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                        rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(215) });
-                        rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-                        rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                        rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-                        rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
+                        ApplyColumnDefinitions(rowGrid);
 
                         rowGrid.Children.Add(CreateCell(item.STT.ToString(), 0, HorizontalAlignment.Center));
                         rowGrid.Children.Add(CreateCell(item.MaHang, 1, HorizontalAlignment.Center));
@@ -360,13 +446,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                     Height = 28
                 };
                 Grid sumGrid = new Grid();
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(215) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
+                ApplyColumnDefinitions(sumGrid);
 
                 Border span = new Border
                 {
@@ -379,6 +459,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                 span.Child = new TextBlock
                 {
                     Text = "TỔNG CỘNG",
+                    FontSize = _currentLayout?.CellFontSize ?? 10.5,
                     FontWeight = FontWeights.Bold,
                     HorizontalAlignment = HorizontalAlignment.Right,
                     VerticalAlignment = VerticalAlignment.Center
@@ -407,8 +488,8 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                 decimal totalTienHang = 0;
                 decimal totalGiamGia = 0;
                 decimal totalThanhToan = 0;
-
                 int stt = 1;
+
                 foreach (var item in filtered)
                 {
                     item.STT = stt++;
@@ -425,15 +506,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                     };
 
                     Grid rowGrid = new Grid();
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(85) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(90) });
+                    ApplyColumnDefinitions(rowGrid);
 
                     rowGrid.Children.Add(CreateCell(item.STT.ToString(), 0, HorizontalAlignment.Center));
                     rowGrid.Children.Add(CreateCell(item.SoPhieu, 1, HorizontalAlignment.Center));
@@ -458,15 +531,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                     Height = 28
                 };
                 Grid sumGrid = new Grid();
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(85) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(90) });
+                ApplyColumnDefinitions(sumGrid);
 
                 Border span = new Border
                 {
@@ -479,6 +544,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                 span.Child = new TextBlock
                 {
                     Text = "TỔNG CỘNG",
+                    FontSize = _currentLayout?.CellFontSize ?? 10.5,
                     FontWeight = FontWeights.Bold,
                     HorizontalAlignment = HorizontalAlignment.Right,
                     VerticalAlignment = VerticalAlignment.Center
@@ -523,13 +589,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                     };
 
                     Grid rowGrid = new Grid();
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(215) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+                    ApplyColumnDefinitions(rowGrid);
 
                     rowGrid.Children.Add(CreateCell(item.STT.ToString(), 0, HorizontalAlignment.Center));
                     rowGrid.Children.Add(CreateCell(item.MaNvl, 1, HorizontalAlignment.Center));
@@ -552,13 +612,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                     Height = 28
                 };
                 Grid sumGrid = new Grid();
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(35) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(215) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-                sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+                ApplyColumnDefinitions(sumGrid);
 
                 Border span = new Border
                 {
@@ -571,6 +625,7 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                 span.Child = new TextBlock
                 {
                     Text = "TỔNG CỘNG",
+                    FontSize = _currentLayout?.CellFontSize ?? 10.5,
                     FontWeight = FontWeights.Bold,
                     HorizontalAlignment = HorizontalAlignment.Right,
                     VerticalAlignment = VerticalAlignment.Center
@@ -675,6 +730,100 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
             {
                 MessageBox.Show($"Lỗi xuất file: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void BtnThietKeMau_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var win = new QuanLyBar.Client.Views.InAn.ThietKeMauInWindow(
+                    TxtReportTitle.Text,
+                    null,
+                    async (cols) =>
+                    {
+                        await LoadTemplateConfigAsync();
+                        BuildTableHeader();
+                        await LoadDataAsync();
+                    },
+                    onLayoutCallback: layout => _ = LoadTemplateConfigAsync(layout));
+                win.Owner = Window.GetWindow(this);
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi mở thiết kế mẫu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnThamSoTuyChinh_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var win = new QuanLyBar.Client.Views.InAn.TuyChonThamSoBaoCaoWindow(
+                    TxtReportTitle.Text,
+                    async () =>
+                    {
+                        await LoadFiltersAsync();
+                        await LoadDataAsync();
+                    });
+                win.Owner = Window.GetWindow(this);
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tùy chọn tham số: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnXemDuLieuTho_Click(object sender, RoutedEventArgs e)
+        {
+            if (InlineDataBorder.Visibility == Visibility.Visible)
+            {
+                InlineDataBorder.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var fields = this.GetType().GetFields(
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            object? dataSource = null;
+            int maxCount = 0;
+            foreach (var f in fields)
+            {
+                var val = f.GetValue(this);
+                if (val is System.Collections.IList list && list.Count > maxCount)
+                {
+                    maxCount = list.Count;
+                    dataSource = val;
+                }
+            }
+
+            if (dataSource != null)
+                InlineDataGrid.ItemsSource = (System.Collections.IEnumerable)dataSource;
+            else
+                InlineDataGrid.ItemsSource = new[] { new { ThongBao = "Không có dữ liệu. Hãy tải dữ liệu trước (F5) rồi mở lại." } };
+
+            TxtSoBanGhi.Text = $"Tổng số: {maxCount} bản ghi";
+            InlineDataBorder.Visibility = Visibility.Visible;
+
+            var scrollViewer = FindVisualChild<ScrollViewer>(this);
+            scrollViewer?.ScrollToEnd();
+        }
+
+        private void BtnDongDuLieuTho_Click(object sender, RoutedEventArgs e)
+        {
+            InlineDataBorder.Visibility = Visibility.Collapsed;
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t) return t;
+                var result = FindVisualChild<T>(child);
+                if (result != null) return result;
+            }
+            return null;
         }
     }
 }

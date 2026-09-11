@@ -1,4 +1,4 @@
-<UserControl x:Class="QuanLyBar.Client.Views.NhanSu.ThuongPhatControl"
+﻿<UserControl x:Class="QuanLyBar.Client.Views.NhanSu.ThuongPhatControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -264,30 +264,33 @@
                                 <TextBlock Text="Xuất excel" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                    
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
 
-                        <!-- In -->
-                        <Button x:Name="BtnIn" Style="{StaticResource ToolbarActionBtnStyle}" Click="BtnIn_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🖨️" FontSize="11" Margin="0,0,3,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="In" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                    <Button x:Name="BtnThietKeMau" Style="{StaticResource ActionButtonStyle}" Click="BtnThietKeMau_Click" ToolTip="Thiet ke mau bao cao" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#127912;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Thiết kế mẫu" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
 
-                        <!-- Tổng -->
-                        <Button x:Name="BtnTong" Style="{StaticResource ToolbarActionBtnStyle}" Click="BtnTong_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="∑" FontSize="13" FontWeight="Bold" Margin="0,0,2,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Tổng" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
 
-                        <!-- P.tích -->
-                        <Button x:Name="BtnPhanTich" Style="{StaticResource ToolbarActionBtnStyle}" Click="BtnPhanTich_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📊" FontSize="11" Margin="0,0,3,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="P.tích" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                    <Button x:Name="BtnThamSoTuyChinh" Style="{StaticResource ActionButtonStyle}" Click="BtnThamSoTuyChinh_Click" ToolTip="Tham so tuy chinh bao cao" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#9881;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Tham số" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnXemDuLieuTho" Style="{StaticResource ActionButtonStyle}" Click="BtnXemDuLieuTho_Click" ToolTip="Xem du lieu tho dang luoi" Margin="0,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#128203;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Dữ liệu thô" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
                     </StackPanel>
                 </DockPanel>
             </Border>

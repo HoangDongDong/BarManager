@@ -72,7 +72,8 @@
             <RowDefinition Height="Auto"/>
             <!-- 2: Khung Hiển Thị Báo Cáo Trang A4 -->
             <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
         <!-- 0. Thanh Lọc 1 -->
         <Border Grid.Row="0" Background="#e3eaf5" Padding="6,4" BorderBrush="#b6c1cd" BorderThickness="0,0,0,1">
@@ -140,6 +141,33 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📊" Margin="0,0,4,0" FontSize="11" Foreground="#1e7145"/>
                             <TextBlock Text="(F12)" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnThietKeMau" Style="{StaticResource ActionButtonStyle}" Click="BtnThietKeMau_Click" ToolTip="Thiết kế mẫu bao cao" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#127912;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Thiết kế mẫu" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnThamSoTuyChinh" Style="{StaticResource ActionButtonStyle}" Click="BtnThamSoTuyChinh_Click" ToolTip="Tham số tùy chỉnh báo cáo" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#9881;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Tham số" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnXemDuLieuTho" Style="{StaticResource ActionButtonStyle}" Click="BtnXemDuLieuTho_Click" ToolTip="Xem du lieu tho dang luoi" Margin="0,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#128203;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Dữ liệu thô" VerticalAlignment="Center" FontWeight="SemiBold"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -278,5 +306,36 @@
                 </Border>
             </Grid>
         </ScrollViewer>
+    
+        <!-- Inline Du Lieu Tho Panel -->
+        <Border x:Name="InlineDataBorder" Grid.Row="3" Visibility="Collapsed"
+                Background="#f8fafc" BorderBrush="#4a90d9" BorderThickness="0,2,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="260"/>
+                </Grid.RowDefinitions>
+                <!-- Header -->
+                <Border Grid.Row="0" Background="#1e3a5f" Padding="12,6">
+                    <DockPanel LastChildFill="False">
+                        <TextBlock Text="&#128203; Dữ liệu thô - Dữ liệu hiển thị trong báo cáo" Foreground="White"
+                                   FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnDongDuLieuTho" DockPanel.Dock="Right" Content="&#x2715; Dong"
+                                Click="BtnDongDuLieuTho_Click" Background="#c0392b" Foreground="White"
+                                BorderThickness="0" Padding="10,4" FontWeight="SemiBold" Cursor="Hand"/>
+                        <TextBlock x:Name="TxtSoBanGhi" DockPanel.Dock="Right" Foreground="#aaccee"
+                                   FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    </DockPanel>
+                </Border>
+                <!-- DataGrid -->
+                <DataGrid x:Name="InlineDataGrid" Grid.Row="1"
+                          IsReadOnly="True" AutoGenerateColumns="True"
+                          CanUserSortColumns="True" CanUserResizeColumns="True"
+                          GridLinesVisibility="All"
+                          AlternatingRowBackground="#edf2f9"
+                          HeadersVisibility="Column"
+                          FontSize="12" Margin="0"/>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

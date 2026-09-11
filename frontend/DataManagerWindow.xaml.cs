@@ -49,7 +49,20 @@ namespace QuanLyBar.Client
                 {
                     string json = File.ReadAllText(DATA_FILE);
                     var list = JsonSerializer.Deserialize<ObservableCollection<DatabaseInfo>>(json);
-                    if (list != null) Databases = list;
+                    if (list != null)
+                    {
+                        var uniqueList = new ObservableCollection<DatabaseInfo>();
+                        var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        foreach (var db in list)
+                        {
+                            string p = db.Path?.Trim() ?? "";
+                            if (!string.IsNullOrEmpty(p) && seenPaths.Add(p))
+                            {
+                                uniqueList.Add(db);
+                            }
+                        }
+                        Databases = uniqueList;
+                    }
                 }
                 else
                 {
@@ -100,8 +113,8 @@ namespace QuanLyBar.Client
                         Username = "SYSDBA",
                         Password = "masterkey"
                     });
-                    SaveDatabases();
                 }
+                SaveDatabases();
             }
         }
 
@@ -116,6 +129,39 @@ namespace QuanLyBar.Client
             catch { }
         }
 
+        private void AddOrUpdateDatabase(DatabaseInfo newDb)
+        {
+            if (newDb == null || string.IsNullOrWhiteSpace(newDb.Path)) return;
+
+            string normNewPath = newDb.Path.Trim();
+
+            // Kiểm tra xem đường dẫn này đã tồn tại trong danh sách chưa
+            var existing = Databases.FirstOrDefault(d => 
+                string.Equals(d.Path?.Trim(), normNewPath, StringComparison.OrdinalIgnoreCase));
+
+            if (existing != null)
+            {
+                // Cập nhật thông tin bản ghi hiện có thay vì thêm trùng dòng
+                if (!string.IsNullOrEmpty(newDb.Name)) existing.Name = newDb.Name;
+                existing.ConnectionType = newDb.ConnectionType;
+                if (!string.IsNullOrEmpty(newDb.Server)) existing.Server = newDb.Server;
+                if (!string.IsNullOrEmpty(newDb.Username)) existing.Username = newDb.Username;
+                if (!string.IsNullOrEmpty(newDb.Password)) existing.Password = newDb.Password;
+
+                dgDatabases.SelectedItem = existing;
+                dgDatabases.ScrollIntoView(existing);
+            }
+            else
+            {
+                Databases.Add(newDb);
+                dgDatabases.SelectedIndex = Databases.Count - 1;
+                dgDatabases.ScrollIntoView(newDb);
+            }
+
+            SaveDatabases();
+            dgDatabases.Items.Refresh();
+        }
+
         private void BtnOpenFile_Click(object sender, RoutedEventArgs e)
         {
             var dbWindow = new DbConnectionWindow();
@@ -125,9 +171,7 @@ namespace QuanLyBar.Client
                 var newDb = dbWindow.ResultData;
                 if (newDb != null && !string.IsNullOrEmpty(newDb.Path))
                 {
-                    Databases.Add(newDb);
-                    SaveDatabases();
-                    dgDatabases.SelectedIndex = Databases.Count - 1;
+                    AddOrUpdateDatabase(newDb);
                 }
             }
         }
@@ -136,12 +180,23 @@ namespace QuanLyBar.Client
         {
             if (dgDatabases.SelectedItem is DatabaseInfo selectedDb)
             {
-                var dbWindow = new DbConnectionWindow();
-                dbWindow.ShowDialog();
+                var dbWindow = new DbConnectionWindow(selectedDb);
+                if (dbWindow.ShowDialog() == true && dbWindow.ResultData != null)
+                {
+                    selectedDb.Name = dbWindow.ResultData.Name;
+                    selectedDb.Path = dbWindow.ResultData.Path;
+                    selectedDb.ConnectionType = dbWindow.ResultData.ConnectionType;
+                    selectedDb.Server = dbWindow.ResultData.Server;
+                    selectedDb.Username = dbWindow.ResultData.Username;
+                    selectedDb.Password = dbWindow.ResultData.Password;
+
+                    SaveDatabases();
+                    dgDatabases.Items.Refresh();
+                }
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn dữ liệu cần sửa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Chưa chọn dữ liệu! Vui lòng chọn một cơ sở dữ liệu trong danh sách để sửa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -159,11 +214,26 @@ namespace QuanLyBar.Client
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn dữ liệu cần xóa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Chưa chọn dữ liệu! Vui lòng chọn một cơ sở dữ liệu trong danh sách để xóa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
         private void DgDatabases_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            SelectCurrentDatabase();
+        }
+
+        private void BtnSelect_Click(object sender, RoutedEventArgs e)
+        {
+            SelectCurrentDatabase();
+        }
+
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void SelectCurrentDatabase()
         {
             if (dgDatabases.SelectedItem is DatabaseInfo selectedDb)
             {
@@ -180,6 +250,10 @@ namespace QuanLyBar.Client
                 {
                     MessageBox.Show(ex.Message, "Lỗi kết nối", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+            else
+            {
+                MessageBox.Show("Chưa chọn dữ liệu! Vui lòng chọn một cơ sở dữ liệu trong danh sách.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -202,8 +276,16 @@ namespace QuanLyBar.Client
 
                 try
                 {
-                    // Copy từ file template nếu có
-                    string templatePath = @"D:\taifirebird\new.fdb";
+                    // Copy từ file template CSDL trắng
+                    string templatePath = @"D:\QuanLyBar\frontend\CSDL\TEMPLATE.FDB";
+                    if (!File.Exists(templatePath))
+                    {
+                        templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CSDL", "TEMPLATE.FDB");
+                    }
+                    if (!File.Exists(templatePath))
+                    {
+                        templatePath = @"D:\taifirebird\new.fdb";
+                    }
                     if (!File.Exists(templatePath))
                     {
                         templatePath = @"D:\taifirebird\DEMO.FDB";
@@ -212,6 +294,10 @@ namespace QuanLyBar.Client
                     if (File.Exists(templatePath))
                     {
                         File.Copy(templatePath, filename, true);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Không tìm thấy file CSDL mẫu tại:\nD:\\QuanLyBar\\frontend\\CSDL\\TEMPLATE.FDB", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
                 }
                 catch (Exception ex)
@@ -229,10 +315,7 @@ namespace QuanLyBar.Client
                     Password = "masterkey"
                 };
 
-                Databases.Add(newDb);
-                SaveDatabases();
-                
-                dgDatabases.SelectedIndex = Databases.Count - 1;
+                AddOrUpdateDatabase(newDb);
                 
                 MessageBox.Show($"Đã tạo mới cơ sở dữ liệu trắng thành công tại:\n{filename}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }

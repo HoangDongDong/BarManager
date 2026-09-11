@@ -1,0 +1,288 @@
+<Window x:Class="QuanLyBar.Client.Views.InAn.ThietKeMauInWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MẪU IN" 
+        Width="880" Height="580" 
+        MinWidth="780" MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        Background="#dbe5f2">
+
+    <Window.Resources>
+        <Style x:Key="TabItemStyle" TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border" BorderBrush="#a4bce3" BorderThickness="1,1,1,0" CornerRadius="2,2,0,0" Margin="1,0,1,0" Padding="10,3">
+                            <ContentPresenter ContentSource="Header" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="#e2ebf6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style for Action Buttons -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#f8fafc"/>
+            <Setter Property="BorderBrush" Value="#a4bce3"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,3"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#1e293b"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#e0f2fe"/>
+                    <Setter Property="BorderBrush" Value="#38bdf8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border Padding="10" Background="#edf3f9">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Title -->
+                <RowDefinition Height="Auto"/> <!-- Header Form Row 1 -->
+                <RowDefinition Height="Auto"/> <!-- Header Form Row 2 -->
+                <RowDefinition Height="Auto"/> <!-- Section Title -->
+                <RowDefinition Height="*"/>    <!-- DataGrid of Columns -->
+                <RowDefinition Height="Auto"/> <!-- Bottom Tabs -->
+                <RowDefinition Height="Auto"/> <!-- Action Buttons -->
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: Title -->
+            <TextBlock Grid.Row="0" Text="Chi tiết mẫu in" FontSize="13" FontWeight="Bold" Foreground="#1e3f66" Margin="0,0,0,8"/>
+
+            <!-- Row 1: Tên mẫu, Biểu tượng, Ghi chú -->
+            <Grid Grid.Row="1" Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Tên mẫu:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#1e293b" FontWeight="SemiBold"/>
+                <TextBox x:Name="TxtTenMau" Grid.Column="1" Height="24" Background="#fef9c3" BorderBrush="#a4bce3" Padding="4,2" VerticalContentAlignment="Center" Text="Mẫu A4" FontWeight="SemiBold"/>
+
+                <TextBlock Grid.Column="2" Text="Biểu tượng:" VerticalAlignment="Center" Margin="12,0,6,0" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboBieuTuong" Grid.Column="3" Height="24" BorderBrush="#a4bce3" VerticalContentAlignment="Center" SelectedIndex="0">
+                    <ComboBoxItem Content="🔷 Kim cương tím" Tag="🔷"/>
+                    <ComboBoxItem Content="💎 Kim cương xanh" Tag="💎"/>
+                    <ComboBoxItem Content="⭐ Ngôi sao" Tag="⭐"/>
+                    <ComboBoxItem Content="📊 Biểu đồ" Tag="📊"/>
+                    <ComboBoxItem Content="📄 Báo cáo" Tag="📄"/>
+                    <ComboBoxItem Content="0️⃣ Số 0" Tag="0️⃣"/>
+                    <ComboBoxItem Content="1️⃣ Số 1" Tag="1️⃣"/>
+                    <ComboBoxItem Content="2️⃣ Số 2" Tag="2️⃣"/>
+                    <ComboBoxItem Content="3️⃣ Số 3" Tag="3️⃣"/>
+                    <ComboBoxItem Content="👤 Người dùng" Tag="👤"/>
+                    <ComboBoxItem Content="👥 Nhóm người" Tag="👥"/>
+                    <ComboBoxItem Content="&lt;Không&gt;" Tag=""/>
+                </ComboBox>
+
+                <TextBlock Grid.Column="4" Text="Ghi chú:" VerticalAlignment="Center" Margin="12,0,6,0" Foreground="#1e293b"/>
+                <TextBox x:Name="TxtGhiChu" Grid.Column="5" Height="24" BorderBrush="#a4bce3" Padding="4,2" VerticalContentAlignment="Center"/>
+            </Grid>
+
+            <!-- Row 2: Báo cáo tự động sinh theo mẫu, Thiết kế mẫu, Mẫu cơ bản -->
+            <Grid Grid.Row="2" Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="220"/>
+                </Grid.ColumnDefinitions>
+
+                <CheckBox x:Name="ChkTuDongSinh" Grid.Column="0" Content="Báo cáo tự động sinh theo mẫu" IsChecked="True" 
+                          VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1e293b"/>
+
+                <Button x:Name="BtnThietKeMauNangCao" Grid.Column="1" Content="Thiết kế mẫu" Margin="16,0,0,0"
+                        Background="Transparent" BorderThickness="0" Foreground="#2563eb" Cursor="Hand" 
+                        VerticalAlignment="Center" Click="BtnThietKeMauNangCao_Click"/>
+
+                <TextBlock Grid.Column="3" Text="Mẫu cơ bản:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#1e293b"/>
+                <ComboBox x:Name="CboMauCoBan" Grid.Column="4" Height="24" BorderBrush="#a4bce3" 
+                          VerticalContentAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="Id"
+                          SelectionChanged="CboMauCoBan_SelectionChanged"/>
+            </Grid>
+
+            <!-- Row 3: Section Header -->
+            <TextBlock Grid.Row="3" Text="Các cột hiển thị trên báo cáo" FontWeight="SemiBold" Foreground="#1e3f66" Margin="0,4,0,4"/>
+
+            <!-- Row 4: DataGrid of Columns -->
+            <Border Grid.Row="4" Background="White" BorderBrush="#a4bce3" BorderThickness="1">
+                <DataGrid x:Name="DgCacCot" BorderThickness="0" AutoGenerateColumns="False" CanUserAddRows="False"
+                          AlternatingRowBackground="#f0f7fc" RowHeight="25" SelectionMode="Single"
+                          GridLinesVisibility="All" HorizontalGridLinesBrush="#e2e8f0" VerticalGridLinesBrush="#e2e8f0"
+                          LoadingRow="DgCacCot_LoadingRow">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Cột" Binding="{Binding Cot}" IsReadOnly="True" Width="120" FontWeight="SemiBold"/>
+                        
+                        <DataGridTextColumn Header="Tiêu đề" Binding="{Binding TieuDe, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+
+                        <DataGridTemplateColumn Header="Hiển thị" Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding HienThi, UpdateSourceTrigger=PropertyChanged}" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Click="ColCheckbox_Click"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Nhóm 1" Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Nhom1, UpdateSourceTrigger=PropertyChanged}" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Click="ColCheckbox_Click"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Tổng nhóm 1" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding TongNhom1, UpdateSourceTrigger=PropertyChanged}" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Click="ColCheckbox_Click"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Nhóm 2" Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Nhom2, UpdateSourceTrigger=PropertyChanged}" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Click="ColCheckbox_Click"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Tổng nhóm 2" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding TongNhom2, UpdateSourceTrigger=PropertyChanged}" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Click="ColCheckbox_Click"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Tổng cộng" Width="70">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding TongCong, UpdateSourceTrigger=PropertyChanged}" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Click="ColCheckbox_Click"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Căn lề" Width="75">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox SelectedValue="{Binding CanLe, UpdateSourceTrigger=PropertyChanged}" 
+                                              SelectedValuePath="Content" Height="22" BorderThickness="0" Background="Transparent">
+                                        <ComboBoxItem Content="TRÁI"/>
+                                        <ComboBoxItem Content="PHẢI"/>
+                                        <ComboBoxItem Content="GIỮA"/>
+                                    </ComboBox>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Định dạng" Binding="{Binding DinhDang, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Row 5: Bottom Tabs (Chi tiết | Nhóm 1 | Nhóm 2) -->
+            <TabControl x:Name="TabNhomChiTiet" Grid.Row="5" Height="78" Margin="0,6,0,0" BorderBrush="#a4bce3">
+                <TabItem Header="Chi tiết" Style="{StaticResource TabItemStyle}">
+                    <Border Background="White" Padding="6,4">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="IcChiTietColumns">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#94a3b8" BorderThickness="1" CornerRadius="2" Margin="0,0,6,0" Padding="8,3" Background="#f1f5f9">
+                                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#0f172a" FontWeight="Medium"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+
+                <TabItem Header="Nhóm 1" Style="{StaticResource TabItemStyle}">
+                    <Border Background="White" Padding="6,4">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="IcNhom1Columns">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#94a3b8" BorderThickness="1" CornerRadius="2" Margin="0,0,6,0" Padding="8,3" Background="#f1f5f9">
+                                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#0f172a" FontWeight="Medium"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+
+                <TabItem Header="Nhóm 2" Style="{StaticResource TabItemStyle}">
+                    <Border Background="White" Padding="6,4">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="IcNhom2Columns">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#94a3b8" BorderThickness="1" CornerRadius="2" Margin="0,0,6,0" Padding="8,3" Background="#f1f5f9">
+                                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#0f172a" FontWeight="Medium"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+            </TabControl>
+
+            <!-- Row 6: Action Buttons at Bottom Right -->
+            <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button x:Name="BtnGhiDuLieu" Content="Ghi dữ liệu" Style="{StaticResource ActionButtonStyle}" 
+                        Width="95" Height="26" Margin="0,0,6,0" Click="BtnGhiDuLieu_Click"/>
+                <Button x:Name="BtnThoat" Content="Thoát" Style="{StaticResource ActionButtonStyle}" 
+                        Width="80" Height="26" Click="BtnThoat_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

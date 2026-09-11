@@ -11,7 +11,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
         <!-- Top Filter Toolbar -->
         <Border Grid.Row="0" Background="#dbe5f1" BorderBrush="#a4bce3" BorderThickness="0,0,0,1" Padding="6,4">
@@ -49,6 +50,33 @@
                     </Button>
                     <Button x:Name="BtnExcel" Margin="4,0" Padding="8,2" Height="22" Background="#f0f4fc" BorderBrush="#7096c8" Click="BtnExcel_Click" ToolTip="Xuất tập tin Excel/CSV (F12)">
                         <TextBlock Text="📊 (F12)" FontSize="11"/>
+                    </Button>
+                    
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnThietKeMau" Style="{StaticResource ActionButtonStyle}" Click="BtnThietKeMau_Click" ToolTip="Thiết kế mẫu bao cao" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#127912;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Thiết kế mẫu" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnThamSoTuyChinh" Style="{StaticResource ActionButtonStyle}" Click="BtnThamSoTuyChinh_Click" ToolTip="Tham số tùy chỉnh báo cáo" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#9881;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Tham số" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Width="1" Height="16" Margin="6,0" Background="#b0c4de"/>
+
+                    <Button x:Name="BtnXemDuLieuTho" Style="{StaticResource ActionButtonStyle}" Click="BtnXemDuLieuTho_Click" ToolTip="Xem du lieu tho dang luoi" Margin="0,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#128203;" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Dữ liệu thô" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
                     </Button>
                 </StackPanel>
             </DockPanel>
@@ -149,9 +177,40 @@
                                 <TextBlock Text="(Ký, họ tên)" FontSize="10" FontStyle="Italic" HorizontalAlignment="Center" Margin="0,2,0,45"/>
                             </StackPanel>
                         </Grid>
-                    </Grid>
+</Grid>
                 </Border>
             </ScrollViewer>
         </Grid>
+    
+        <!-- Inline Du Lieu Tho Panel -->
+        <Border x:Name="InlineDataBorder" Grid.Row="3" Visibility="Collapsed"
+                Background="#f8fafc" BorderBrush="#4a90d9" BorderThickness="0,2,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="260"/>
+                </Grid.RowDefinitions>
+                <!-- Header -->
+                <Border Grid.Row="0" Background="#1e3a5f" Padding="12,6">
+                    <DockPanel LastChildFill="False">
+                        <TextBlock Text="&#128203; Dữ liệu thô - Dữ liệu hiển thị trong báo cáo" Foreground="White"
+                                   FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnDongDuLieuTho" DockPanel.Dock="Right" Content="&#x2715; Dong"
+                                Click="BtnDongDuLieuTho_Click" Background="#c0392b" Foreground="White"
+                                BorderThickness="0" Padding="10,4" FontWeight="SemiBold" Cursor="Hand"/>
+                        <TextBlock x:Name="TxtSoBanGhi" DockPanel.Dock="Right" Foreground="#aaccee"
+                                   FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    </DockPanel>
+                </Border>
+                <!-- DataGrid -->
+                <DataGrid x:Name="InlineDataGrid" Grid.Row="1"
+                          IsReadOnly="True" AutoGenerateColumns="True"
+                          CanUserSortColumns="True" CanUserResizeColumns="True"
+                          GridLinesVisibility="All"
+                          AlternatingRowBackground="#edf2f9"
+                          HeadersVisibility="Column"
+                          FontSize="12" Margin="0"/>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

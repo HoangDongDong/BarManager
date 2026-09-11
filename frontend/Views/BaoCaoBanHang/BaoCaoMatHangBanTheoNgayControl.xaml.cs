@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,12 +14,93 @@ using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client.Views.BaoCaoBanHang
 {
-    public partial class BaoCaoMatHangBanTheoNgayControl : UserControl
+    public partial class BaoCaoMatHangBanTheoNgayControl : UserControl, QuanLyBar.Client.Models.IReportWithFilters
     {
         private readonly LocalHoaDonService _hoaDonService;
         private readonly string _reportType;
         private bool _isLoaded = false;
         private List<TongHopMatHangBanItem> _rawItems = new List<TongHopMatHangBanItem>();
+        private QuanLyBar.Client.Models.ReportFilterParams? _pendingParams;
+        private QuanLyBar.Client.Services.ReportPaperLayout? _currentLayout;
+        private List<QuanLyBar.Client.Services.ReportColumnConfigItem>? _colConfigs;
+
+        public void ApplyFilterParams(QuanLyBar.Client.Models.ReportFilterParams p)
+        {
+            _pendingParams = p;
+            if (!_isLoaded) return;
+
+            if (p.TuNgay.HasValue) DpTuNgay.SelectedDate = p.TuNgay.Value;
+            if (p.DenNgay.HasValue) DpDenNgay.SelectedDate = p.DenNgay.Value;
+
+            SelectCombo(CboKhoXuat, p.KhoId);
+            SelectCombo(CboNhanVienXuat, p.NhanVienId);
+
+            _ = LoadDataAsync();
+        }
+
+        private void SelectCombo(ComboBox cbo, string? id)
+        {
+            if (string.IsNullOrEmpty(id) || cbo == null) return;
+            cbo.SelectedValue = id;
+            if (cbo.SelectedItem == null && cbo.ItemsSource != null)
+            {
+                foreach (var item in cbo.ItemsSource)
+                {
+                    if (item is ComboLookupItem ci && ci.Id == id)
+                    {
+                        cbo.SelectedItem = ci;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private async Task LoadTemplateConfigAsync(QuanLyBar.Client.Services.ReportPaperLayout? immediateLayout = null)
+        {
+            try
+            {
+                if (immediateLayout == null)
+                {
+                    var fullConfig = await QuanLyBar.Client.Services.ReportTemplateConfigService.GetFullTemplateConfigAsync(TxtReportTitle.Text);
+                    _colConfigs = fullConfig.Columns;
+                    _currentLayout = fullConfig.Layout;
+                }
+                else
+                {
+                    _currentLayout = immediateLayout;
+                }
+                ReportPaperLayoutHelper.ApplyReportPaperLayout(
+                    reportPaper: ReportPaper,
+                    layout: _currentLayout,
+                    colLogo: ColLogo,
+                    brdLogo: BrdLogo,
+                    pnlCompanyText: PnlCompanyText,
+                    txtCompanyName: TxtCompanyName,
+                    txtCompanyAddress: TxtCompanyAddress,
+                    txtCompanyContact: TxtCompanyContact,
+                    gridTitleArea: GridReportTitleArea,
+                    colTitleLeft: ColTitleLeft,
+                    colTitleRight: ColTitleRight,
+                    txtReportTitle: TxtReportTitle,
+                    pnlDateAndFilter: PnlDateAndFilter,
+                    txtSubTitleDate: TxtSubTitleDate,
+                    txtFilterSummary: TxtFilterSummary,
+                    gridSignatures: GridSignatures,
+                    sigCol0: SigCol0,
+                    sigCol1: SigCol1,
+                    sigCol2: SigCol2,
+                    sigCol3: SigCol3,
+                    sigBlock0: SigBlock0,
+                    sigBlock1: SigBlock1,
+                    sigBlock2: SigBlock2,
+                    sigBlock3: SigBlock3
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("LoadTemplateConfigAsync error: " + ex.Message);
+            }
+        }
 
         public BaoCaoMatHangBanTheoNgayControl(string reportType = "TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY")
         {
@@ -64,16 +145,20 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             if (_isLoaded) return;
+            _isLoaded = true;
 
             // Initial date: today
             var now = DateTime.Now;
             DpTuNgay.SelectedDate = now;
             DpDenNgay.SelectedDate = now;
 
+            await LoadTemplateConfigAsync();
             await LoadCompanyInfoAndLogoAsync();
             await LoadFiltersAsync();
-
-            _isLoaded = true;
+            if (_pendingParams != null)
+            {
+                ApplyFilterParams(_pendingParams);
+            }
             await LoadDataAsync();
         }
 
@@ -485,7 +570,7 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                 PrintDialog printDlg = new PrintDialog();
                 if (printDlg.ShowDialog() == true)
                 {
-                    printDlg.PrintVisual(A4PageBorder, "In Tổng Hợp Mặt Hàng Bán Theo Ngày");
+                    printDlg.PrintVisual(ReportPaper, "In Tổng Hợp Mặt Hàng Bán Theo Ngày");
                 }
             }
             catch (Exception ex)
@@ -552,6 +637,87 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             {
                 MessageBox.Show($"Lỗi khi xuất CSV: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void BtnThietKeMau_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var win = new QuanLyBar.Client.Views.InAn.ThietKeMauInWindow(
+                TxtReportTitle.Text,
+                null,
+                onSaveCallback: async (cols) =>
+                {
+                    await LoadTemplateConfigAsync();
+                    await LoadDataAsync();
+                },
+                onLayoutCallback: layout => _ = LoadTemplateConfigAsync(layout));
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void BtnThamSoTuyChinh_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var win = new QuanLyBar.Client.Views.InAn.TuyChonThamSoBaoCaoWindow(
+                TxtReportTitle.Text,
+                onSavedCallback: async () =>
+                {
+                    await LoadFiltersAsync();
+                    await LoadDataAsync();
+                });
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
+        }
+
+        private void BtnXemDuLieuTho_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (InlineDataBorder.Visibility == System.Windows.Visibility.Visible)
+            {
+                InlineDataBorder.Visibility = System.Windows.Visibility.Collapsed;
+                return;
+            }
+
+            // Use reflection to find the largest data list in this control
+            var fields = this.GetType().GetFields(
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            object? dataSource = null;
+            int maxCount = 0;
+            foreach (var f in fields)
+            {
+                var val = f.GetValue(this);
+                if (val is System.Collections.IList list && list.Count > maxCount)
+                {
+                    maxCount = list.Count;
+                    dataSource = val;
+                }
+            }
+
+            if (dataSource != null)
+                InlineDataGrid.ItemsSource = (System.Collections.IEnumerable)dataSource;
+            else
+                InlineDataGrid.ItemsSource = new[] { new { ThongBao = "Không có dữ liệu. Hãy tải dữ liệu trước (F5) roi mo lai." } };
+
+            TxtSoBanGhi.Text = $"Tổng số: {maxCount} bản ghi";
+            InlineDataBorder.Visibility = System.Windows.Visibility.Visible;
+
+            // Scroll to bottom so user can see the panel
+            var scrollViewer = FindVisualChild<System.Windows.Controls.ScrollViewer>(this);
+            scrollViewer?.ScrollToEnd();
+        }
+
+        private void BtnDongDuLieuTho_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            InlineDataBorder.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
+        private static T? FindVisualChild<T>(System.Windows.DependencyObject parent) where T : System.Windows.DependencyObject
+        {
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                if (child is T t) return t;
+                var result = FindVisualChild<T>(child);
+                if (result != null) return result;
+            }
+            return null;
         }
     }
 }
