@@ -767,9 +767,27 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
         private void SbTableTiles_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) { }
 
-        private void BtnConfigTables_Click(object sender, RoutedEventArgs e) { }
+        private void BtnConfigTables_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var win = new CauHinhHeThong.ThietLapDinhDangThanhPhanWindow("Ban");
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch { }
+        }
 
-        private void BtnConfigAreas_Click(object sender, RoutedEventArgs e) { }
+        private void BtnConfigAreas_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var win = new CauHinhHeThong.ThietLapDinhDangThanhPhanWindow("KhuVuc");
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch { }
+        }
 
         private void BtnOpenTablesList_Click(object sender, RoutedEventArgs e)
         {
