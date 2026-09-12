@@ -70,21 +70,102 @@ namespace QuanLyBar.Client.Views.TouchPOS
             LoadMenuItems();
         }
 
-        private void LoadTables()
+        private List<DBAN> _allBanList = new();
+        private List<DKHUVUC> _allKhuVucList = new();
+        private string? _selectedAreaId = null;
+        private bool _filterOnlyOpened = false;
+
+        private async void LoadTables()
         {
             try
             {
-                var bans = LocalDatabaseService.GetAll<DBAN>("SELECT T.ID, T.NAME, T.STATUS, T.ID AS MABAN, T.NAME AS TENBAN FROM DBAN T WHERE T.STATUS = 1 ORDER BY T.NAME");
-                IcTableTiles.ItemsSource = bans;
+                TxtCurrentPOSUser.Text = SessionContext.CurrentUser?.TenHienThi ?? "Administrator";
 
-                var khuVucList = LocalDatabaseService.GetAll<DKHUVUC>("SELECT T.ID, T.NAME, T.STATUS, T.NAME AS TenKhuVuc FROM DKHUVUC T WHERE T.STATUS = 1 ORDER BY T.SORTORDER");
-                IcAreaButtons.ItemsSource = khuVucList;
+                var service = new LocalSuDungDichVuService();
+                var kvBanList = await service.GetKhuVucBanListAsync();
 
-                TxtCurrentPOSUser.Text = $"👤 {SessionContext.CurrentUser?.TenHienThi}";
+                _allKhuVucList = new List<DKHUVUC>();
+                _allBanList = new List<DBAN>();
+
+                string[] presetColors = new string[] { "#E65100", "#414BEA", "#00C800", "#00838F", "#C2185B", "#6A1B9A", "#D84315" };
+                int colorIndex = 0;
+
+                foreach (var kv in kvBanList)
+                {
+                    _allKhuVucList.Add(new DKHUVUC
+                    {
+                        Id = kv.Id,
+                        MAKHUVUC = kv.Id,
+                        Name = kv.Name,
+                        TenKhuVuc = kv.Name,
+                        ColorHex = presetColors[colorIndex % presetColors.Length]
+                    });
+                    colorIndex++;
+
+                    foreach (var b in kv.BanList)
+                    {
+                        _allBanList.Add(new DBAN
+                        {
+                            Id = b.Id,
+                            MABAN = b.Id,
+                            Name = b.Name,
+                            TENBAN = b.Name,
+                            MAKHUVUC = kv.Id,
+                            IsOpened = b.IsOccupied
+                        });
+                    }
+                }
+
+                IcAreaButtons.ItemsSource = _allKhuVucList;
+                ApplyTableFilters();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi tải bàn: {ex.Message}");
+            }
+        }
+
+        private void ApplyTableFilters()
+        {
+            var query = _allBanList.AsEnumerable();
+
+            if (!string.IsNullOrEmpty(_selectedAreaId))
+            {
+                query = query.Where(x => x.MAKHUVUC == _selectedAreaId);
+            }
+
+            if (_filterOnlyOpened)
+            {
+                query = query.Where(x => x.IsOpened);
+            }
+
+            IcTableTiles.ItemsSource = query.ToList();
+        }
+
+        private void BtnAreaSelect_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is DKHUVUC kv)
+            {
+                if (_selectedAreaId == kv.MAKHUVUC)
+                    _selectedAreaId = null;
+                else
+                    _selectedAreaId = kv.MAKHUVUC;
+
+                ApplyTableFilters();
+            }
+        }
+
+        private void BtnFilterDangMo_Click(object sender, RoutedEventArgs e)
+        {
+            _filterOnlyOpened = !_filterOnlyOpened;
+            ApplyTableFilters();
+        }
+
+        private void TableTile_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement elem && elem.DataContext is DBAN ban)
+            {
+                ShowOrderScreen(ban);
             }
         }
 
@@ -680,21 +761,11 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
 
         // ===== TABLE EVENTS =====
-        private void SvTableTiles_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-            SbTableTiles.Maximum = SvTableTiles.ScrollableHeight;
-            SbTableTiles.Value = SvTableTiles.VerticalOffset;
-        }
+        private void SvTableTiles_ScrollChanged(object sender, ScrollChangedEventArgs e) { }
 
-        private void SvTableTiles_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            SbTableTiles.ViewportSize = SvTableTiles.ViewportHeight;
-        }
+        private void SvTableTiles_SizeChanged(object sender, SizeChangedEventArgs e) { }
 
-        private void SbTableTiles_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            SvTableTiles.ScrollToVerticalOffset(e.NewValue);
-        }
+        private void SbTableTiles_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) { }
 
         private void BtnConfigTables_Click(object sender, RoutedEventArgs e) { }
 
@@ -763,9 +834,29 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
     }
 
-    // Simple model classes for TouchPOS context
-    public class DBAN { public string MABAN { get; set; } = ""; public string TENBAN { get; set; } = ""; public string MauNen { get; set; } = "#16213E"; public string TrangThai { get; set; } = "Trống"; public DateTime? ThoiGianMo { get; set; } }
-    public class DKHUVUC { public string MAKHUVUC { get; set; } = ""; public string TenKhuVuc { get; set; } = ""; public int THUTU { get; set; } }
+    // Simple model classes / helpers for TouchPOS context
+    public class DBAN 
+    { 
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string MABAN { get; set; } = ""; 
+        public string TENBAN { get; set; } = ""; 
+        public string MAKHUVUC { get; set; } = "";
+        public string MauNen { get; set; } = "#16213E"; 
+        public string TrangThai { get; set; } = "Trống"; 
+        public bool IsOpened { get; set; } = false;
+        public DateTime? ThoiGianMo { get; set; } 
+    }
+    public class DKHUVUC 
+    { 
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string MAKHUVUC { get; set; } = ""; 
+        public string TenKhuVuc { get; set; } = ""; 
+        public string ColorHex { get; set; } = "#E65100";
+        public SolidColorBrush ColorBrush => (SolidColorBrush)new BrushConverter().ConvertFrom(ColorHex);
+        public int THUTU { get; set; } 
+    }
     public class DNHOMMATHANG { public string MANHOММATHANG { get; set; } = ""; public string TenNhom { get; set; } = ""; public int THUTU { get; set; } }
     public class DMATHANG { public string MAMATHANG { get; set; } = ""; public string TenMatHang { get; set; } = ""; public decimal GiaBan { get; set; } public string MauNen { get; set; } = "#1976D2"; public string? ANH { get; set; } }
     public class TDONHANGCHITIET { public string MAMATHANG { get; set; } = ""; public string TenMatHang { get; set; } = ""; public decimal SoLuong { get; set; } public decimal DonGia { get; set; } public decimal THANHTIEN { get; set; } }

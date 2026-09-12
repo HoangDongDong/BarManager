@@ -1,9 +1,8 @@
 <Window x:Class="QuanLyBar.Client.Views.CauHinhHeThong.ThietLapDinhDangThanhPhanWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Thiết lập cột hiển thị" WindowState="Maximized"
-        WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
-        Background="#0D4B5B">
+        Title="Thiết lập cột hiển thị" WindowStyle="None" WindowState="Maximized"
+        WindowStartupLocation="CenterScreen" Background="#0D4B5B">
     <Window.Resources>
         <Style x:Key="DarkButton" TargetType="Button">
             <Setter Property="Height" Value="42"/>
@@ -15,11 +14,92 @@
             <Setter Property="BorderBrush" Value="#B6D1DC"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
+        <Style x:Key="ColumnTileStyle" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="2,3"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="#004D40"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="ListBoxStyle" TargetType="ListBox">
-            <Setter Property="Background" Value="#89A9C0"/>
-            <Setter Property="BorderBrush" Value="#C1D7E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#0A3340"/>
+            <Setter Property="BorderBrush" Value="#1C4B6B"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="Padding" Value="6"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ColumnTileStyle}"/>
+        </Style>
+
+        <!-- Custom ScrollBar & ScrollViewer Style matching ThietKeGiaoDienCamUng -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid x:Name="Bg" SnapsToDevicePixels="true">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true" HorizontalAlignment="Center">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{x:Null}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Rectangle Fill="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#1C5E73" BorderBrush="#659BB0" BorderThickness="1.5" CornerRadius="12" Width="22"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Style="{x:Null}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Rectangle Fill="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollViewer">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Column="0" CanContentScroll="{TemplateBinding CanContentScroll}"/>
+                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" 
+                                       Cursor="Hand" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" 
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                       ViewportSize="{TemplateBinding ViewportHeight}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
     <Grid x:Name="LayoutRoot" Margin="8">
@@ -29,7 +109,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" Background="#5C91AE" CornerRadius="8" Padding="12">
+        <Border Grid.Row="0" Background="#1B4D5C" CornerRadius="4" Padding="12">
             <TextBlock Text="THIẾT LẬP CỘT HIỂN THỊ" Foreground="White" FontSize="19"
                        FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
@@ -49,45 +129,140 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="140"/>
             </Grid.ColumnDefinitions>
-            <ListBox x:Name="LstUnused" Grid.Column="0" Style="{StaticResource ListBoxStyle}" DisplayMemberPath="Name"/>
-            <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="4,88,4,0">
-                <Button Content="THÊM  >>" Click="BtnAdd_Click" Style="{StaticResource DarkButton}"/>
-                <Button Content="&lt;&lt; XÓA" Click="BtnRemove_Click" Style="{StaticResource DarkButton}"/>
-                <Button Content="&lt;&lt; XÓA HẾT" Click="BtnRemoveAll_Click" Style="{StaticResource DarkButton}" Background="#116B1B"/>
+            
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ListBox x:Name="LstUnused" Grid.Row="0" Style="{StaticResource ListBoxStyle}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Viewbox StretchDirection="DownOnly" MaxHeight="24" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Viewbox>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Margin" Value="2,3"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                            <Setter Property="Background" Value="#004D40"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="#D35400"/>
+                                                <Setter TargetName="border" Property="BorderBrush" Value="#F39C12"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+                <!-- PREVIEW BOX AT BOTTOM LEFT MATCHING REFERENCE SCREENSHOT -->
+                <Border Grid.Row="1" Margin="0,10,0,0" Height="95" Background="#004D40" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6" Padding="12,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- LEFT STACK: All non-numeric columns like Mã hàng, Mặt hàng, ĐVT... -->
+                        <Viewbox Grid.Column="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <ItemsControl x:Name="IcPreviewLeft" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="12" FontWeight="Bold" Margin="0,1"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Viewbox>
+
+                        <!-- RIGHT STACK: Numeric columns like Tồn, Giá trị vốn, Giá bán... -->
+                        <Viewbox Grid.Column="1" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
+                            <ItemsControl x:Name="IcPreviewRight" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,1"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Viewbox>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="4,40,4,0">
+                <Button Content="THÊM  >>" Click="BtnAdd_Click" Style="{StaticResource DarkButton}" Background="#6C757D"/>
+                <Button Content="&lt;&lt; XÓA" Click="BtnRemove_Click" Style="{StaticResource DarkButton}" Background="#6C757D"/>
+                <Button Content="&lt;&lt; XÓA HẾT" Click="BtnRemoveAll_Click" Style="{StaticResource DarkButton}" Background="#1E7333"/>
             </StackPanel>
-            <ListBox x:Name="LstUsed" Grid.Column="2" Style="{StaticResource ListBoxStyle}" DisplayMemberPath="Name">
+            <ListBox x:Name="LstUsed" Grid.Column="2" Style="{StaticResource ListBoxStyle}" SelectionChanged="LstUsed_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Viewbox StretchDirection="DownOnly" MaxHeight="24" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Viewbox>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="10"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Margin" Value="2,3"/>
+                        <Setter Property="Padding" Value="10,8"/>
+                        <Setter Property="Background" Value="#004D40"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="#D35400"/>
+                                            <Setter TargetName="border" Property="BorderBrush" Value="#F39C12"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </ListBox.ItemContainerStyle>
             </ListBox>
-            <StackPanel x:Name="MoveButtonsPanel" Grid.Column="3" VerticalAlignment="Top" Margin="4,88,0,0">
-                <Button Content="LÊN" Click="BtnMoveUp_Click" Style="{StaticResource DarkButton}"/>
-                <Button Content="XUỐNG" Click="BtnMoveDown_Click" Style="{StaticResource DarkButton}"/>
+            <StackPanel x:Name="MoveButtonsPanel" Grid.Column="3" VerticalAlignment="Top" Margin="4,40,0,0">
+                <Button Content="LÊN" Click="BtnMoveUp_Click" Style="{StaticResource DarkButton}" Background="#1E7333"/>
+                <Button Content="XUỐNG" Click="BtnMoveDown_Click" Style="{StaticResource DarkButton}" Background="#1E7333"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="3" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="180"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Content="ĐỊNH DẠNG" Click="BtnFormat_Click" Style="{StaticResource DarkButton}" Background="#C95B16"/>
-            <StackPanel Grid.Column="1" Grid.ColumnSpan="5" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button x:Name="BtnColumnCount" Content="SỐ CỘT: 5" Click="BtnColumnCount_Click" Style="{StaticResource DarkButton}" Background="#6A6715" Width="130"/>
-                <Button x:Name="BtnRowCount" Content="SỐ DÒNG: 5" Click="BtnRowCount_Click" Style="{StaticResource DarkButton}" Background="#6A6715" Width="140"/>
-                <Button x:Name="BtnCellColor" Content="MÀU Ô" Click="BtnCellColor_Click" Style="{StaticResource DarkButton}" Background="#6A6715" Width="120"/>
-                <Button Content="HIỆN TIÊU ĐỀ" Style="{StaticResource DarkButton}" Background="#6A6715" Width="150"/>
+            <Button Grid.Column="0" x:Name="BtnFormatToggle" Content="ĐỊNH DẠNG" Click="BtnFormat_Click" Style="{StaticResource DarkButton}" Background="#C95B16"/>
+            <StackPanel x:Name="PanelFormatOptions" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,0,0,0" Visibility="Collapsed">
+                <Button x:Name="BtnColumnCount" Content="SỐ CỘT: 3" Click="BtnColumnCount_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="130"/>
+                <Button x:Name="BtnRowCount" Content="SỐ DÒNG: 8" Click="BtnRowCount_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="140"/>
+                <Button x:Name="BtnCellColor" Content="MÀU Ô" Click="BtnCellColor_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="120"/>
+                <Button Content="HIỆN TIÊU ĐỀ" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="150"/>
             </StackPanel>
-            <Button Grid.Column="6" Content="CẬP NHẬT" Click="BtnApply_Click" Style="{StaticResource DarkButton}" Background="#126B1A" Width="110"/>
-            <Button Grid.Column="7" Content="THOÁT" Click="BtnCancel_Click" Style="{StaticResource DarkButton}" Background="#A91515" Width="90"/>
+            <Button Grid.Column="2" Content="CẬP NHẬT" Click="BtnApply_Click" Style="{StaticResource DarkButton}" Background="#126B1A" Width="120"/>
+            <Button Grid.Column="3" Content="THOÁT" Click="BtnCancel_Click" Style="{StaticResource DarkButton}" Background="#A91515" Width="110"/>
         </Grid>
 
         <Border x:Name="NumericPadOverlay" Grid.RowSpan="4" Width="420" Height="530"

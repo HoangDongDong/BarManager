@@ -23,7 +23,6 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         {
             InitializeComponent();
             TargetType = targetType;
-            LoadColumns();
             LstUnused.ItemsSource = _unusedColumns;
             LstUsed.ItemsSource = _usedColumns;
             Loaded += Window_Loaded;
@@ -49,20 +48,106 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
             BtnColumnCount.Content = $"SỐ CỘT: {_columnCount}";
             BtnRowCount.Content = $"SỐ DÒNG: {_rowCount}";
+            BtnFormatToggle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#5B1647")!;
+
+            await LoadColumnsAsync();
         }
 
         private string GetSettingsKey() => $"TOUCH_LAYOUT_{TargetType}";
+        private string GetColumnsKey() => $"TOUCH_COLUMNS_{TargetType}";
 
-        private void LoadColumns()
+        private async Task LoadColumnsAsync()
         {
-            string name = TargetType switch
-            {
-                "KhuVuc" => "Khu vực",
-                "NhomHang" => "Nhóm món",
-                _ => "Mặt hàng"
-            };
+            _unusedColumns.Clear();
+            _usedColumns.Clear();
 
-            _usedColumns.Add(new DisplayColumnItem(name));
+            if (TargetType == "TonKho")
+            {
+                List<string> allColumns = new()
+                {
+                    "GHI CHÚ", "GIÁ TRỊ BÁN", "GIÁ VỐN", "TỒN 2 ĐVT", "TỒN", "HÃNG SX",
+                    "GIÁ BÁN", "TỒN TỐI THIỂU", "GIÁ TRỊ VỐN", "ĐVT", "MẶT HÀNG", "MÃ HÀNG"
+                };
+
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
+                List<string> usedColNames;
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    usedColNames = new List<string> { "GHI CHÚ", "GIÁ TRỊ BÁN", "GIÁ VỐN", "TỒN 2 ĐVT", "TỒN", "HÃNG SX" };
+                }
+
+                foreach (var col in usedColNames)
+                {
+                    if (allColumns.Contains(col))
+                    {
+                        _usedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+
+                foreach (var col in allColumns)
+                {
+                    if (!_usedColumns.Any(x => x.Name == col))
+                    {
+                        _unusedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+            }
+            else if (TargetType == "ChiTietTonKho")
+            {
+                List<string> allColumns = new()
+                {
+                    "ĐƠN GIÁ", "THÀNH TIỀN", "ĐVT", "SỐ LƯỢNG XUẤT", "SỐ LƯỢNG NHẬP",
+                    "SỐ PHIẾU", "ĐỐI TƯỢNG", "NGÀY", "GIẢM GIÁ %", "DIỄN GIẢI"
+                };
+
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
+                List<string> usedColNames;
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    usedColNames = new List<string>
+                    {
+                        "ĐƠN GIÁ", "THÀNH TIỀN", "ĐVT", "SỐ LƯỢNG XUẤT", "SỐ LƯỢNG NHẬP",
+                        "SỐ PHIẾU", "ĐỐI TƯỢNG", "NGÀY", "GIẢM GIÁ %", "DIỄN GIẢI"
+                    };
+                }
+
+                foreach (var col in usedColNames)
+                {
+                    if (allColumns.Contains(col))
+                    {
+                        _usedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+
+                foreach (var col in allColumns)
+                {
+                    if (!_usedColumns.Any(x => x.Name == col))
+                    {
+                        _unusedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+            }
+            else
+            {
+                string name = TargetType switch
+                {
+                    "KhuVuc" => "Khu vực",
+                    "NhomHang" => "Nhóm món",
+                    _ => "Mặt hàng"
+                };
+
+                _usedColumns.Add(new DisplayColumnItem(name));
+            }
+
+            UpdateLivePreview();
         }
 
         private void BtnAdd_Click(object sender, RoutedEventArgs e)
@@ -71,6 +156,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             {
                 _unusedColumns.Remove(column);
                 _usedColumns.Add(column);
+                UpdateLivePreview();
             }
         }
 
@@ -80,6 +166,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             {
                 _usedColumns.Remove(column);
                 _unusedColumns.Add(column);
+                UpdateLivePreview();
             }
         }
 
@@ -91,6 +178,33 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 _usedColumns.RemoveAt(0);
                 _unusedColumns.Add(column);
             }
+            UpdateLivePreview();
+        }
+
+        private void LstUsed_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateLivePreview();
+        }
+
+        private void UpdateLivePreview()
+        {
+            try
+            {
+                var leftColumns = _usedColumns.Where(x => !IsRightAlignedColumn(x.Name)).ToList();
+                var rightColumns = _usedColumns.Where(x => IsRightAlignedColumn(x.Name)).ToList();
+
+                IcPreviewLeft.ItemsSource = leftColumns;
+                IcPreviewRight.ItemsSource = rightColumns;
+            }
+            catch { }
+        }
+
+        private bool IsRightAlignedColumn(string colName)
+        {
+            if (string.IsNullOrEmpty(colName)) return false;
+            string upper = colName.Trim().ToUpperInvariant();
+            // Tồn để bên phải, Hãng & các thuộc tính khác (Ghi chú, Giá trị bán, Giá vốn, Tồn 2 dvt...) để bên trái
+            return upper == "TỒN";
         }
 
         private void BtnMoveUp_Click(object sender, RoutedEventArgs e)
@@ -101,6 +215,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 if (index > 0)
                 {
                     _usedColumns.Move(index, index - 1);
+                    UpdateLivePreview();
                 }
             }
         }
@@ -113,13 +228,23 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 if (index >= 0 && index < _usedColumns.Count - 1)
                 {
                     _usedColumns.Move(index, index + 1);
+                    UpdateLivePreview();
                 }
             }
         }
 
         private void BtnFormat_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Số cột, số dòng và màu ô đã hiển thị sẵn ở thanh dưới.", "Định dạng", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (PanelFormatOptions.Visibility == Visibility.Visible)
+            {
+                PanelFormatOptions.Visibility = Visibility.Collapsed;
+                BtnFormatToggle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#5B1647")!; // Tím sẫm khi đóng
+            }
+            else
+            {
+                PanelFormatOptions.Visibility = Visibility.Visible;
+                BtnFormatToggle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#C95B16")!; // Cam rực khi mở
+            }
         }
 
         private void BtnColumnCount_Click(object sender, RoutedEventArgs e)
@@ -191,12 +316,17 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private async void BtnApply_Click(object sender, RoutedEventArgs e)
         {
-            bool saved = await LocalCauHinhService.SaveSingleConfigAsync(
+            string usedColsStr = string.Join(",", _usedColumns.Select(x => x.Name));
+            bool saved1 = await LocalCauHinhService.SaveSingleConfigAsync(
                 GetSettingsKey(),
                 $"{_columnCount}|{_rowCount}|{SelectedColor}");
-            if (!saved)
+            bool saved2 = await LocalCauHinhService.SaveSingleConfigAsync(
+                GetColumnsKey(),
+                usedColsStr);
+
+            if (!saved1 || !saved2)
             {
-                MessageBox.Show("Không thể lưu số cột và số dòng vào cơ sở dữ liệu.", "Lỗi lưu cấu hình", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Không thể lưu cấu hình vào cơ sở dữ liệu.", "Lỗi lưu cấu hình", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -211,6 +341,25 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         public sealed class DisplayColumnItem
         {
             public string Name { get; }
+            public string DisplayName => Name switch
+            {
+                "GHI CHÚ" => "Ghi chú",
+                "GIÁ TRỊ BÁN" => "Giá trị bán",
+                "GIÁ VỐN" => "Giá vốn",
+                "TỒN 2 ĐVT" => "Tồn 2 dvt",
+                "TỒN" => "Tồn",
+                "HÃNG SX" => "Hãng sx",
+                "MÃ HÀNG" => "Mã hàng",
+                "MẶT HÀNG" => "Mặt hàng",
+                "ĐVT" => "ĐVT",
+                "GIÁ BÁN" => "Giá bán",
+                "TỒN TỐI THIỂU" => "Tồn tối thiểu",
+                "GIÁ TRỊ VỐN" => "Giá trị vốn",
+                _ => Name
+            };
+            public HorizontalAlignment Alignment { get; set; } = HorizontalAlignment.Left;
+            public bool IsBold { get; set; } = true;
+            public bool IsItalic { get; set; } = false;
 
             public DisplayColumnItem(string name)
             {

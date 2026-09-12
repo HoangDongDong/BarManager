@@ -735,105 +735,240 @@
             </Border>
         </Grid>
 
-        <!-- TABLE SELECTION SCREEN -->
-        <Grid x:Name="GridTouchTables" Visibility="Collapsed" Background="#1A1A2E">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <!-- TABLE SELECTION SCREEN (SỬ DỤNG DỊCH VỤ - CHỌN BÀN CHUẨN GIAO DIỆN ẢNH MẪU) -->
+        <Grid x:Name="GridTouchTables" Visibility="Collapsed" Background="#3A75A4">
+            <Grid.Resources>
+                <!-- Custom ScrollBar Style matching Touch POS design -->
+                <Style TargetType="ScrollBar">
+                    <Setter Property="Width" Value="22"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ScrollBar">
+                                <Grid x:Name="Bg" SnapsToDevicePixels="true">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="true" HorizontalAlignment="Center">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{x:Null}">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Rectangle Fill="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb>
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="Thumb">
+                                                        <Border Background="#1C5E73" BorderBrush="#659BB0" BorderThickness="1.5" CornerRadius="11" Width="20"/>
+                                                    </ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Track.Thumb>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Style="{x:Null}">
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Rectangle Fill="Transparent"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.IncreaseRepeatButton>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
 
-            <!-- Header -->
-            <Border Grid.Row="0" Background="#16213E" Padding="12,8">
-                <Grid>
-                    <TextBlock Text="CHỌN BÀN" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="TxtCurrentPOSUser" HorizontalAlignment="Right" 
-                               Foreground="#90CAF9" FontSize="13" VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
+                <Style TargetType="ScrollViewer">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ScrollViewer">
+                                <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Column="0" CanContentScroll="{TemplateBinding CanContentScroll}"/>
+                                    <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" 
+                                               Cursor="Hand" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" 
+                                               Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                               ViewportSize="{TemplateBinding ViewportHeight}"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <!-- LEFT/CENTER: TABLE TILES GRID -->
+                <ColumnDefinition Width="*"/>
+                <!-- RIGHT SIDEBAR: USER BADGE, AREA BUTTONS & ACTION BUTTONS -->
+                <ColumnDefinition Width="170"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Area Filter Buttons -->
-            <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Hidden">
-                <StackPanel Orientation="Horizontal" Margin="8,4">
-                    <ItemsControl x:Name="IcAreaButtons">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="#16213E" CornerRadius="6" Margin="4,2" Cursor="Hand"
-                                        Padding="16,8">
-                                    <TextBlock Text="{Binding TenKhuVuc}" Foreground="White" FontSize="13"/>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <Button x:Name="BtnConfigAreas" Content="⚙" Width="36" Height="36" 
-                            Style="{StaticResource TouchBtn}" Margin="4,2"
-                            Click="BtnConfigAreas_Click"/>
-                </StackPanel>
-            </ScrollViewer>
-
-            <!-- Table Tiles -->
-            <Grid Grid.Row="1">
+            <!-- LEFT AREA: TABLE TILES LIST WITH SCROLLVIEWER -->
+            <Grid Grid.Column="0" Margin="6,6,4,6">
                 <ScrollViewer x:Name="SvTableTiles" 
-                              HorizontalScrollBarVisibility="Hidden"
-                              VerticalScrollBarVisibility="Hidden"
-                              ScrollChanged="SvTableTiles_ScrollChanged"
-                              SizeChanged="SvTableTiles_SizeChanged">
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="IcTableTiles">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
+                                <UniformGrid Columns="{Binding ColumnCount, ElementName=ThisWindow, FallbackValue=1}"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="160" Height="120" Style="{StaticResource TableTileStyle}">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="{Binding MauNen, TargetNullValue='#16213E'}"/>
-                                    </Border.Background>
-                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding TenBan}" FontSize="18" FontWeight="Bold"
-                                                   Foreground="White" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="{Binding TrangThai}" FontSize="12"
-                                                   Foreground="#90CAF9" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="{Binding ThoiGianMo, StringFormat=HH:mm}" FontSize="11"
-                                                   Foreground="#FFB74D" HorizontalAlignment="Center"/>
-                                    </StackPanel>
+                                <Border Margin="4" CornerRadius="4" Height="{Binding TileHeight, ElementName=ThisWindow, FallbackValue=85}" 
+                                        BorderBrush="#FFFFFF" BorderThickness="1.5" Cursor="Hand" MouseLeftButtonDown="TableTile_MouseLeftButtonDown">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#808080"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsOpened}" Value="True">
+                                                    <Setter Property="Background" Value="#FF0000"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsOpened}" Value="False">
+                                                    <Setter Property="Background" Value="#808080"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding TENBAN}" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <ScrollBar x:Name="SbTableTiles" Orientation="Vertical" 
-                           HorizontalAlignment="Right" Width="16"
-                           ValueChanged="SbTableTiles_ValueChanged"/>
             </Grid>
 
-            <!-- Footer -->
-            <Border Grid.Row="3" Background="#16213E" Padding="12,8">
-                <StackPanel Orientation="Horizontal">
-                    <Button x:Name="BtnConfigTables" Content="⚙ Cấu hình bàn" 
-                            Style="{StaticResource TouchBtn}" Padding="16,8" Margin="0,0,8,0"
-                            Click="BtnConfigTables_Click"/>
-                    <Button Content="📋 Danh sách HĐ" Style="{StaticResource TouchBtn}" 
-                            Padding="16,8" Margin="0,0,8,0"
-                            Click="BtnOpenTablesList_Click"/>
-                    <Button Content="📊 Thống kê ca" Style="{StaticResource TouchBtn}"
-                            Padding="16,8" Margin="0,0,8,0"
-                            Click="BtnShiftStats_Click"/>
-                    <Button Content="🏁 Đóng ca" Style="{StaticResource TouchBtn}"
-                            Padding="16,8" Margin="0,0,8,0" Background="#D32F2F"
-                            Click="BtnClosePOS_Click"/>
-                    <Button x:Name="BtnLogoutPOS" Content="🚪 Đăng xuất"
-                            Style="{StaticResource TouchBtn}" Padding="16,8" Background="#455A64"
-                            Click="BtnLogoutPOS_Click"/>
+            <!-- RIGHT SIDEBAR (Column 1) -->
+            <Grid Grid.Column="1" Margin="2,6,6,6">
+                <Grid.RowDefinitions>
+                    <!-- 1. USER BADGE AT TOP -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 2. AREA LIST (KHU VỰC) + GEAR BUTTON -->
+                    <RowDefinition Height="*"/>
+                    <!-- 3. ACTION BUTTONS STACK (ĐANG MỞ, THỐNG KÊ, ĐÓNG, ĐĂNG XUẤT + GEAR) -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 1. USER BADGE (Administrator) -->
+                <Border Grid.Row="0" Background="#006400" CornerRadius="4" Padding="8,6" Margin="0,0,0,6">
+                    <TextBlock x:Name="TxtCurrentPOSUser" Text="Administrator" Foreground="White" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- 2. AREA BUTTONS LIST -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ItemsControl x:Name="IcAreaButtons">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding TenKhuVuc}" Height="44" Margin="0,3" Cursor="Hand" Tag="{Binding}" Click="BtnAreaSelect_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{Binding ColorBrush, FallbackValue='#D96414'}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="8">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <Button.Foreground>White</Button.Foreground>
+                                        <Button.FontWeight>Bold</Button.FontWeight>
+                                        <Button.FontSize>13</Button.FontSize>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <!-- GEAR BUTTON FOR AREA CONFIG (Đặt dưới danh sách khu vực trong scroll) -->
+                        <Button x:Name="BtnConfigAreas" Width="36" Height="32" HorizontalAlignment="Right" Margin="0,6,0,6" Cursor="Hand" Click="BtnConfigAreas_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="3">
+                                        <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- 3. BOTTOM RIGHT ACTION BUTTONS -->
+                <StackPanel Grid.Row="2" Margin="0,6,0,0">
+                    <!-- ĐANG MỞ -->
+                    <Button x:Name="BtnFilterDangMo" Height="42" Margin="0,0,0,6" Cursor="Hand" Click="BtnFilterDangMo_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#948B00" BorderBrush="#B5AE00" BorderThickness="1.5" CornerRadius="6" Padding="6,0">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="🔍 " Foreground="White" FontSize="14" FontWeight="Bold"/>
+                                        <TextBlock Text="ĐANG MỞ" Foreground="White" FontSize="12.5" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- THỐNG KÊ -->
+                    <Button x:Name="BtnShiftStats" Height="42" Margin="0,0,0,6" Cursor="Hand" Click="BtnShiftStats_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#0B1B47" BorderBrush="#1E3575" BorderThickness="1.5" CornerRadius="6" Padding="6,0">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="📋 " Foreground="White" FontSize="14" FontWeight="Bold"/>
+                                        <TextBlock Text="THỐNG KÊ" Foreground="White" FontSize="12.5" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- ĐÓNG -->
+                    <Button x:Name="BtnClosePOS" Height="42" Margin="0,0,0,6" Cursor="Hand" Click="BtnClosePOS_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#4A0A0A" BorderBrush="#7A1212" BorderThickness="1.5" CornerRadius="6" Padding="6,0">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="🛈 " Foreground="White" FontSize="14" FontWeight="Bold"/>
+                                        <TextBlock Text="ĐÓNG" Foreground="White" FontSize="12.5" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- ĐĂNG XUẤT & GEAR ICON -->
+                    <Grid Height="42">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" x:Name="BtnLogoutPOS" Cursor="Hand" Click="BtnLogoutPOS_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="#0A4A17" BorderBrush="#127A27" BorderThickness="1.5" CornerRadius="6" Padding="6,0">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="🔒 " Foreground="White" FontSize="14" FontWeight="Bold"/>
+                                            <TextBlock Text="ĐĂNG XUẤT" Foreground="White" FontSize="12.5" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- GEAR SETTINGS BUTTON FOR TABLES -->
+                        <Button Grid.Column="1" x:Name="BtnConfigTables" Width="36" Height="36" Margin="4,0,0,0" Cursor="Hand" Click="BtnConfigTables_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="3">
+                                        <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
                 </StackPanel>
-            </Border>
+            </Grid>
         </Grid>
 
         <!-- ORDER SCREEN -->
