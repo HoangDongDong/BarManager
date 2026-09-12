@@ -201,7 +201,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="120"/>
+                    <RowDefinition Height="150"/>
                 </Grid.RowDefinitions>
                 
                 <!-- Thông tin đầu phiếu của hóa đơn được chọn -->
@@ -412,6 +412,8 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="Tiền hàng" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11" FontWeight="SemiBold"/>
@@ -419,13 +421,29 @@
                             
                             <TextBlock Grid.Row="1" Grid.Column="1" Text="Giảm giá" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11" FontWeight="SemiBold"/>
                             <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="2">
-                                <TextBox x:Name="TxtGiamGiaPt" Width="40" Text="0" TextAlignment="Right" VerticalContentAlignment="Center" Background="White" BorderBrush="#a4c2e0"/>
+                                <TextBox x:Name="TxtGiamGiaPt" Width="40" Text="0" TextAlignment="Right" VerticalContentAlignment="Center" Background="White" BorderBrush="#a4c2e0" TextChanged="TxtTotals_TextChanged"/>
                                 <TextBlock Text="%" VerticalAlignment="Center" Margin="3,0,3,0" FontSize="11"/>
-                                <TextBox x:Name="TxtGiamGia" Width="80" Text="0" Background="#eef6fb" BorderBrush="#a4c2e0" BorderThickness="1" TextAlignment="Right" VerticalContentAlignment="Center"/>
+                                <TextBox x:Name="TxtGiamGia" Width="80" Text="0" Background="#eef6fb" BorderBrush="#a4c2e0" BorderThickness="1" TextAlignment="Right" VerticalContentAlignment="Center" TextChanged="TxtTotals_TextChanged"/>
+                            </StackPanel>
+
+                            <!-- Phí dịch vụ (nếu có cấu hình) -->
+                            <TextBlock x:Name="LblPhiDichVu" Grid.Row="2" Grid.Column="1" Text="Phí dịch vụ" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11" FontWeight="SemiBold" Visibility="Collapsed"/>
+                            <StackPanel x:Name="PanelPhiDichVuInput" Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="2" Visibility="Collapsed">
+                                <TextBox x:Name="TxtPhiDichVuPt" Width="40" Text="0" TextAlignment="Right" VerticalContentAlignment="Center" Background="White" BorderBrush="#a4c2e0" TextChanged="TxtTotals_TextChanged"/>
+                                <TextBlock Text="%" VerticalAlignment="Center" Margin="3,0,3,0" FontSize="11"/>
+                                <TextBox x:Name="TxtPhiDichVu" Width="80" Text="0" Background="#eef6fb" BorderBrush="#a4c2e0" BorderThickness="1" IsReadOnly="True" TextAlignment="Right" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Thuế VAT (nếu có cấu hình) -->
+                            <TextBlock x:Name="LblThueVAT" Grid.Row="3" Grid.Column="1" Text="Thuế VAT" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11" FontWeight="SemiBold" Visibility="Collapsed"/>
+                            <StackPanel x:Name="PanelThueVATInput" Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="2" Visibility="Collapsed">
+                                <TextBox x:Name="TxtThueVATPt" Width="40" Text="0" TextAlignment="Right" VerticalContentAlignment="Center" Background="White" BorderBrush="#a4c2e0" TextChanged="TxtTotals_TextChanged"/>
+                                <TextBlock Text="%" VerticalAlignment="Center" Margin="3,0,3,0" FontSize="11"/>
+                                <TextBox x:Name="TxtThueVAT" Width="80" Text="0" Background="#eef6fb" BorderBrush="#a4c2e0" BorderThickness="1" IsReadOnly="True" TextAlignment="Right" VerticalContentAlignment="Center"/>
                             </StackPanel>
                             
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Tổng cộng" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBox x:Name="TxtTongCong" Grid.Row="2" Grid.Column="2" Text="0" Background="#fffdc2" BorderBrush="#d48806" BorderThickness="1" FontWeight="Bold" FontSize="15" Foreground="Red" IsReadOnly="True" TextAlignment="Right" VerticalContentAlignment="Center" Margin="2"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="Tổng cộng" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox x:Name="TxtTongCong" Grid.Row="4" Grid.Column="2" Text="0" Background="#fffdc2" BorderBrush="#d48806" BorderThickness="1" FontWeight="Bold" FontSize="15" Foreground="Red" IsReadOnly="True" TextAlignment="Right" VerticalContentAlignment="Center" Margin="2"/>
                         </Grid>
                     </TabItem>
                 </TabControl>

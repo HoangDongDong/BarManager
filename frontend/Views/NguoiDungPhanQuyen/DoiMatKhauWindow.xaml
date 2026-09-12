@@ -1,79 +1,136 @@
 <Window x:Class="QuanLyBar.Client.Views.NguoiDungPhanQuyen.DoiMatKhauWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Đổi mật khẩu" Height="275" Width="480"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        Background="#D5E3F5" FontFamily="Segoe UI" FontSize="12">
+        Title="Đổi mật khẩu" WindowState="Maximized" WindowStyle="None" ResizeMode="NoResize"
+        Background="#002D3A" FontFamily="Segoe UI" FontSize="13">
 
-    <Grid Margin="18,15,18,15">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="45"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
 
-        <!-- Header: Lock icon & Account title -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,10">
-            <!-- Golden Padlock Icon -->
-            <Viewbox Width="32" Height="32" Margin="0,0,10,0" VerticalAlignment="Center">
-                <Canvas Width="32" Height="32">
-                    <!-- Shackle -->
-                    <Path Fill="#8A6615" Data="M 10,14 L 10,9 C 10,5.7 12.7,3 16,3 C 19.3,3 22,5.7 22,9 L 22,14 L 19.5,14 L 19.5,9 C 19.5,7.1 17.9,5.5 16,5.5 C 14.1,5.5 12.5,7.1 12.5,9 L 12.5,14 Z"/>
-                    <!-- Lock Body -->
-                    <Rectangle Canvas.Left="7" Canvas.Top="13" Width="18" Height="15" RadiusX="2.5" RadiusY="2.5" Fill="#E6A100"/>
-                    <Rectangle Canvas.Left="8" Canvas.Top="14" Width="16" Height="13" RadiusX="2" RadiusY="2" Fill="#FFC233"/>
-                    <!-- Keyhole -->
-                    <Ellipse Canvas.Left="14.5" Canvas.Top="17" Width="3" Height="3" Fill="#664400"/>
-                    <Polygon Points="15,19.5 17,19.5 16.5,23.5 15.5,23.5" Fill="#664400"/>
-                </Canvas>
-            </Viewbox>
+        <!-- 1. HEADER BANNER TOP -->
+        <Border Grid.Row="0" Background="#1B4D5C" BorderBrush="#2C6B7C" BorderThickness="0,0,0,1.5">
+            <TextBlock x:Name="TxtHeaderAccount" Text="ĐỔI MẬT KHẨU CHO TÀI KHOẢN: ADMIN" 
+                       Foreground="White" FontWeight="Bold" FontSize="15"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
 
-            <TextBlock x:Name="TxtHeaderAccount" Text="Đổi mật khẩu cho tài khoản: Admin" 
-                       FontWeight="Bold" FontSize="14" Foreground="#111111" VerticalAlignment="Center"/>
-        </StackPanel>
+        <!-- 2. MAIN FORM CONTENT -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="30,24,30,20">
+                <!-- Instruction 1 -->
+                <TextBlock Text="ĐỂ THAY ĐỔI MẬT KHẨU, mỜI BẠN NHẬP MẬT KHẨU CŨ" 
+                           Foreground="#FFD700" FontWeight="Bold" FontSize="13" Margin="0,0,0,14"/>
 
-        <!-- Subtitle instructions -->
-        <TextBlock Grid.Row="1" 
-                   Text="Để thay đổi mật khẩu, mời bạn nhập mật khẩu cũ, điền mật khẩu mới và nhắc lại mật khẩu mới một lần nữa"
-                   TextWrapping="Wrap" Foreground="#222222" FontSize="11.5" Margin="4,0,0,14"/>
+                <!-- Field 1: Mật khẩu cũ -->
+                <Grid Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="MẬT KHẨU CŨ:" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                    <PasswordBox x:Name="TxtOldPassword" Grid.Column="1" Height="36" Padding="8,0"
+                                 Background="White" Foreground="#111111" BorderBrush="#CCCCCC" BorderThickness="1"
+                                 FontSize="15" VerticalContentAlignment="Center"/>
+                    <Button x:Name="BtnKbOldPass" Grid.Column="2" Width="44" Height="36" Margin="6,0,0,0"
+                            Background="#005A69" BorderBrush="#36B5B0" BorderThickness="1.5" Cursor="Hand" Click="BtnKbOldPass_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                    <TextBlock Text="⌨" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
 
-        <!-- Form fields -->
-        <Grid Grid.Row="2" Margin="10,0,10,10" VerticalAlignment="Center">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="30"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+                <!-- Instruction 2 -->
+                <TextBlock Text="SAU ĐÓ NHẬP MẬT KHẨU MỚI VÀ NHẬP LẠI MỘT LẦN NỮA ĐỂ ĐẢM BẢO KHÔNG BỊ NHẰM" 
+                           Foreground="#FFD700" FontWeight="Bold" FontSize="13" Margin="0,0,0,14"/>
 
-            <!-- Mật khẩu cũ -->
-            <TextBlock Text="Mật khẩu cũ:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Foreground="#111111"/>
-            <PasswordBox x:Name="TxtOldPassword" Grid.Row="0" Grid.Column="1" Height="24" 
-                         VerticalContentAlignment="Center" Background="White" BorderBrush="#7a9ebf" BorderThickness="1"/>
+                <!-- Field 2: Mật khẩu mới -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="MẬT KHẨU MỚI:" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                    <PasswordBox x:Name="TxtNewPassword" Grid.Column="1" Height="36" Padding="8,0"
+                                 Background="White" Foreground="#111111" BorderBrush="#CCCCCC" BorderThickness="1"
+                                 FontSize="15" VerticalContentAlignment="Center"/>
+                    <Button x:Name="BtnKbNewPass" Grid.Column="2" Width="44" Height="36" Margin="6,0,0,0"
+                            Background="#005A69" BorderBrush="#36B5B0" BorderThickness="1.5" Cursor="Hand" Click="BtnKbNewPass_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                    <TextBlock Text="⌨" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
 
-            <!-- Mật khẩu mới -->
-            <TextBlock Text="Mật khẩu mới:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Foreground="#111111"/>
-            <PasswordBox x:Name="TxtNewPassword" Grid.Row="1" Grid.Column="1" Height="24" 
-                         VerticalContentAlignment="Center" Background="White" BorderBrush="#7a9ebf" BorderThickness="1"/>
+                <!-- Field 3: Nhập lại -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="NHẬP LẠI:" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                    <PasswordBox x:Name="TxtConfirmPassword" Grid.Column="1" Height="36" Padding="8,0"
+                                 Background="White" Foreground="#111111" BorderBrush="#CCCCCC" BorderThickness="1"
+                                 FontSize="15" VerticalContentAlignment="Center"/>
+                    <Button x:Name="BtnKbConfirmPass" Grid.Column="2" Width="44" Height="36" Margin="6,0,0,0"
+                            Background="#005A69" BorderBrush="#36B5B0" BorderThickness="1.5" Cursor="Hand" Click="BtnKbConfirmPass_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                    <TextBlock Text="⌨" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
 
-            <!-- Nhập lại -->
-            <TextBlock Text="Nhập lại:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Foreground="#111111"/>
-            <PasswordBox x:Name="TxtConfirmPassword" Grid.Row="2" Grid.Column="1" Height="24" 
-                         VerticalContentAlignment="Center" Background="White" BorderBrush="#7a9ebf" BorderThickness="1"/>
-        </Grid>
+        <!-- 3. ACTION BUTTONS AT BOTTOM RIGHT -->
+        <Border Grid.Row="2" Background="#00212C" BorderBrush="#2C6B7C" BorderThickness="0,1,0,0" Padding="16,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <!-- NÚT CHẤP NHẬN (Xanh lá) -->
+                <Button x:Name="BtnGhiDuLieu" Content="CHẤP NHẬN" Width="140" Height="40" Margin="0,0,12,0" Cursor="Hand" Click="BtnGhiDuLieu_Click" IsDefault="True">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#008822" BorderBrush="#2E8B46" BorderThickness="1.5" CornerRadius="6">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Foreground>White</Button.Foreground>
+                    <Button.FontWeight>Bold</Button.FontWeight>
+                    <Button.FontSize>14</Button.FontSize>
+                </Button>
 
-        <!-- Bottom Action Buttons -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,10,0">
-            <Button x:Name="BtnGhiDuLieu" Content="Ghi dữ liệu" Width="88" Height="26" Margin="0,0,10,0" 
-                    Background="White" BorderBrush="#8899aa" BorderThickness="1" 
-                    Click="BtnGhiDuLieu_Click" IsDefault="True" Cursor="Hand"/>
-            <Button x:Name="BtnThoat" Content="Thoát" Width="78" Height="26" 
-                    Background="White" BorderBrush="#8899aa" BorderThickness="1" 
-                    Click="BtnThoat_Click" IsCancel="True" Cursor="Hand"/>
-        </StackPanel>
+                <!-- NÚT HỦY BỎ (Đỏ) -->
+                <Button x:Name="BtnThoat" Content="HỦY BỎ" Width="120" Height="40" Cursor="Hand" Click="BtnThoat_Click" IsCancel="True">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#880000" BorderBrush="#AA1111" BorderThickness="1.5" CornerRadius="6">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Foreground>White</Button.Foreground>
+                    <Button.FontWeight>Bold</Button.FontWeight>
+                    <Button.FontSize>14</Button.FontSize>
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

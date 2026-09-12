@@ -51,159 +51,687 @@
     </Window.Resources>
 
     <Grid>
-        <!-- LOGIN SCREEN -->
-        <Grid x:Name="GridTouchLogin" Background="#1A1A2E" Visibility="Visible">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            
-            <!-- Power Off button top right -->
-            <Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                    Content="⏻" FontSize="22" Foreground="#E53935" Background="Transparent"
-                    BorderThickness="0" Margin="16" Cursor="Hand"
-                    Click="BtnPowerOff_Click"/>
-
-            <!-- Login Form -->
-            <Border Grid.Row="1" Background="#16213E" CornerRadius="16" Padding="40"
-                    HorizontalAlignment="Center" MinWidth="400">
-                <Border.Effect>
-                    <DropShadowEffect Color="#000000" BlurRadius="20" ShadowDepth="0" Opacity="0.5"/>
-                </Border.Effect>
-                <StackPanel>
-                    <TextBlock Text="🍸 QUẢN LÝ BAR" FontSize="28" FontWeight="Bold" 
-                               Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                    <TextBlock Text="Đăng nhập POS cảm ứng" FontSize="14" 
-                               Foreground="#90CAF9" HorizontalAlignment="Center" Margin="0,0,0,32"/>
-
-                    <!-- Username -->
-                    <TextBlock Text="Tên đăng nhập" Foreground="#90CAF9" FontSize="13" Margin="0,0,0,6"/>
-                    <Grid Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox x:Name="TxtLoginUser" Height="44" Padding="12,0"
-                                 Background="#0F3460" Foreground="White" BorderBrush="#1976D2"
-                                 FontSize="15" VerticalContentAlignment="Center"/>
-                        <Button x:Name="BtnTouchKbUser" Grid.Column="1" Content="⌨" 
-                                Width="44" Height="44" Margin="4,0,0,0"
-                                Style="{StaticResource TouchBtn}"
-                                Click="BtnTouchKbUser_Click"/>
-                    </Grid>
-
-                    <!-- Password -->
-                    <TextBlock Text="Mật khẩu" Foreground="#90CAF9" FontSize="13" Margin="0,0,0,6"/>
-                    <Grid Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <PasswordBox x:Name="TxtLoginPass" Height="44" Padding="12,0"
-                                     Background="#0F3460" Foreground="White" BorderBrush="#1976D2"
-                                     FontSize="15" VerticalContentAlignment="Center"/>
-                        <Button x:Name="BtnTouchKbPass" Grid.Column="1" Content="⌨"
-                                Width="44" Height="44" Margin="4,0,0,0"
-                                Style="{StaticResource TouchBtn}"
-                                Click="BtnTouchKbPass_Click"/>
-                    </Grid>
-
-                    <!-- Options -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
-                        <CheckBox x:Name="ChkRememberPass" Content="Nhớ mật khẩu" 
-                                  Foreground="#B0BEC5" FontSize="13" Margin="0,0,16,0"/>
-                        <CheckBox x:Name="ChkAutoLogin" Content="Tự động đăng nhập"
-                                  Foreground="#B0BEC5" FontSize="13"/>
-                    </StackPanel>
-
-                    <!-- Buttons -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="8"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="BtnSubmitLogin" Grid.Column="0" Content="ĐĂNG NHẬP" 
-                                Height="50" FontSize="15" FontWeight="Bold"
-                                Background="#1976D2" Foreground="White" BorderThickness="0"
-                                Click="BtnSubmitLogin_Click"/>
-                        <Button x:Name="BtnResetLogin" Grid.Column="2" Content="Xóa" 
-                                Height="50" Width="70" FontSize="14"
-                                Background="#37474F" Foreground="White" BorderThickness="0"
-                                Click="BtnResetLogin_Click"/>
-                    </Grid>
-                    
-                    <!-- Power Off bottom -->
-                    <Button Content="Tắt ứng dụng" Height="40" Margin="0,16,0,0"
-                            Background="#B71C1C" Foreground="White" BorderThickness="0" FontSize="13"
-                            Click="BtnPowerOff_Click"/>
-                </StackPanel>
-            </Border>
-        </Grid>
-
-        <!-- MAIN MENU SCREEN -->
-        <Grid x:Name="GridTouchMenu" Visibility="Collapsed">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="50"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="160"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Header -->
-            <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#16213E">
-                <Grid>
-                    <TextBlock x:Name="TxtMenuCompanyName" Text="QUẢN LÝ BAR" 
-                               FontSize="20" FontWeight="Bold" Foreground="White"
-                               VerticalAlignment="Center" Margin="16,0"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="16,0">
-                        <TextBlock x:Name="TxtMenuStatusLeft" Foreground="#90CAF9" FontSize="13" Margin="0,0,16,0" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="TxtMenuStatusRight" Foreground="#90CAF9" FontSize="13" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Grid>
+        <!-- LOGIN SCREEN (GIAO DIỆN ĐĂNG NHẬP MÁY POS TẬN DỤNG HÌNH ẢNH MẪU) -->
+        <Grid x:Name="GridTouchLogin" Background="#3D0A0A" Visibility="Visible">
+            <!-- Nút Nguồn Tắt Máy ở góc dưới cùng bên phải -->
+            <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24">
+                <Button x:Name="BtnPowerOff" Width="50" Height="50" Cursor="Hand" Click="BtnPowerOff_Click" ToolTip="Tắt ứng dụng">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#2B0505" BorderBrush="#801010" BorderThickness="2" CornerRadius="8">
+                                <TextBlock Text="⏻" Foreground="White" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
             </Border>
 
-            <!-- Left Menu Panel -->
-            <StackPanel x:Name="PanelMenuLeft" Grid.Row="1" Grid.Column="0" 
-                        Background="#0F3460" Margin="0">
-                <Button x:Name="BtnMenuHeThong" Content="🏠 Hệ Thống" Height="60"
-                        Style="{StaticResource TouchBtn}" Margin="8,4"
-                        Click="BtnMenuCategory_Click" Tag="HeThong"/>
-                <Button x:Name="BtnMenuQuanTri" Content="⚙ Quản Trị" Height="60"
-                        Style="{StaticResource TouchBtn}" Margin="8,4"
-                        Click="BtnMenuCategory_Click" Tag="QuanTri"/>
-                <Button x:Name="BtnMenuBaoCao" Content="📊 Báo Cáo" Height="60"
-                        Style="{StaticResource TouchBtn}" Margin="8,4"
-                        Click="BtnMenuCategory_Click" Tag="BaoCao"/>
-                <Button x:Name="BtnMenuTroGiup" Content="❓ Trợ Giúp" Height="60"
-                        Style="{StaticResource TouchBtn}" Margin="8,4"
-                        Click="BtnMenuCategory_Click" Tag="TroGiup"/>
+            <!-- Thông tin phiên bản & Cơ sở dữ liệu ở góc dưới cùng bên phải -->
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,84,24">
+                <Border Background="#2B0505" Padding="12,4" CornerRadius="4,4,0,0" Margin="0,0,0,2">
+                    <TextBlock Text="PHIÊN BẢN 6.0.0.0" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                </Border>
+                <Border Background="#2B0505" Padding="12,4" CornerRadius="0,0,4,4">
+                    <TextBlock x:Name="TxtDbInfo" Text="CƠ SỞ DỮ LIỆU: DEMO" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                </Border>
             </StackPanel>
 
-            <!-- Center Menu -->
-            <WrapPanel x:Name="PanelMenuCenter" Grid.Row="1" Grid.Column="1"
-                       Orientation="Horizontal" Margin="16" VerticalAlignment="Top">
-                <Button Content="🍽 Sử Dụng Dịch Vụ" Width="180" Height="100" Margin="8"
-                        Style="{StaticResource TouchBtn}" Background="#1976D2"
-                        Click="BtnMenuSuDungDichVu_Click"/>
-                <Button Content="📦 Tồn Kho" Width="180" Height="100" Margin="8"
-                        Style="{StaticResource TouchBtn}" Background="#388E3C"
-                        Click="BtnMenuTonKho_Click"/>
-                <Button Content="📝 Ghi Chú" Width="180" Height="100" Margin="8"
-                        Style="{StaticResource TouchBtn}" Background="#7B1FA2"
-                        Click="BtnMenuGhiChu_Click"/>
-                <Button Content="🚪 Đăng Xuất" Width="180" Height="100" Margin="8"
-                        Style="{StaticResource TouchBtn}" Background="#D32F2F"
-                        Click="BtnMenuDangXuat_Click"/>
-            </WrapPanel>
+            <!-- KHUNG TRUNG TÂM ĐĂNG NHẬP (Bên Phải) -->
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,120,0" Width="600">
+                <!-- BANNER ĐỎ TRÊN CÙNG -->
+                <Border Background="#CC0000" CornerRadius="6" Padding="16,8" Margin="0,0,0,24">
+                    <TextBlock Text="MỜI BẠN NHẬP THÔNG TIN ĐỂ ĐĂNG NHẬP" Foreground="White" FontWeight="Bold" FontSize="15" HorizontalAlignment="Center"/>
+                </Border>
 
-            <!-- Status Bar -->
-            <Border Grid.Row="2" Grid.ColumnSpan="2" Background="#16213E">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <!-- Cột 1: 3 Nút icon tính năng bên trái -->
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="20"/>
+                        <!-- Cột 2: Form đăng nhập chính -->
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 3 NÚT ICON TÍNH NĂNG BÊN TRÁI -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <!-- Nút 1: Thẻ Hash # -->
+                        <Border Background="#681515" BorderBrush="#8A2525" BorderThickness="1.5" CornerRadius="10" Height="70" Margin="0,0,0,14">
+                            <TextBlock Text="#" Foreground="White" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <!-- Nút 2: Thẻ Mật Mã ** -->
+                        <Border Background="#D97706" BorderBrush="#F59E0B" BorderThickness="1.5" CornerRadius="10" Height="70" Margin="0,0,0,14">
+                            <Border BorderBrush="White" BorderThickness="2" CornerRadius="4" Width="42" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="**|" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Border>
+                        <!-- Nút 3: Thẻ Từ -->
+                        <Border Background="#681515" BorderBrush="#8A2525" BorderThickness="1.5" CornerRadius="10" Height="70">
+                            <Border Background="White" CornerRadius="4" Width="38" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="#681515" Height="6" Margin="0,4,0,0" VerticalAlignment="Top"/>
+                            </Border>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- FORM ĐĂNG NHẬP CHÍNH -->
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <!-- TÀI KHOẢN -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="TÀI KHOẢN:" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBox x:Name="TxtLoginUser" Grid.Column="1" Text="admin" Height="36" Padding="8,0"
+                                     Background="White" Foreground="#111111" BorderBrush="#CCCCCC" BorderThickness="1"
+                                     FontSize="15" FontWeight="SemiBold" VerticalContentAlignment="Center"
+                                     KeyDown="TxtLoginInput_KeyDown"/>
+                            <Button x:Name="BtnTouchKbUser" Grid.Column="2" Width="42" Height="36" Margin="6,0,0,0"
+                                    Background="#500A0A" BorderBrush="#801515" BorderThickness="1.5" Cursor="Hand" Click="BtnTouchKbUser_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                            <TextBlock Text="⌨" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
+                        <!-- MẬT KHẨU -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="MẬT KHẨU:" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                            <PasswordBox x:Name="TxtLoginPass" Grid.Column="1" Height="36" Padding="8,0"
+                                         Background="White" Foreground="#111111" BorderBrush="#CCCCCC" BorderThickness="1"
+                                         FontSize="15" VerticalContentAlignment="Center"/>
+                            <Button x:Name="BtnTouchKbPass" Grid.Column="2" Width="42" Height="36" Margin="6,0,0,0"
+                                    Background="#500A0A" BorderBrush="#801515" BorderThickness="1.5" Cursor="Hand" Click="BtnTouchKbPass_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                            <TextBlock Text="⌨" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
+                        <!-- GHI NHỚ MẬT KHẨU & TỰ ĐỘNG ĐĂNG NHẬP -->
+                        <StackPanel Margin="110,0,0,8">
+                            <CheckBox x:Name="ChkRememberPass" Content="Ghi nhớ mật khẩu" IsChecked="True"
+                                      Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,0,0,8"/>
+                            <CheckBox x:Name="ChkAutoLogin" Content="Tự động đăng nhập" IsChecked="True"
+                                      Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,0,0,6"/>
+                            <TextBlock Text="(Mật khẩu mặc định: để trống)" Foreground="#CCCCCC" FontSize="12" Margin="0,0,0,16"/>
+                        </StackPanel>
+
+                        <!-- NÚT ĐĂNG NHẬP & NHẬP LẠI -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <!-- NÚT ĐĂNG NHẬP (Xanh lá) -->
+                            <Button x:Name="BtnSubmitLogin" Content="Đăng nhập" Width="120" Height="36" Margin="0,0,12,0" Cursor="Hand" Click="BtnSubmitLogin_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#1E7333" BorderBrush="#2E8B46" BorderThickness="1.5" CornerRadius="18">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.Foreground>White</Button.Foreground>
+                                <Button.FontWeight>Bold</Button.FontWeight>
+                                <Button.FontSize>13</Button.FontSize>
+                            </Button>
+
+                            <!-- NÚT NHẬP LẠI (Tím đậm) -->
+                            <Button x:Name="BtnResetLogin" Content="Nhập lại" Width="120" Height="36" Cursor="Hand" Click="BtnResetLogin_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#581845" BorderBrush="#7D2363" BorderThickness="1.5" CornerRadius="18">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.Foreground>White</Button.Foreground>
+                                <Button.FontWeight>Bold</Button.FontWeight>
+                                <Button.FontSize>13</Button.FontSize>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <!-- MAIN MENU SCREEN (GIAO DIỆN CHÍNH MÁY POS THEO 5 ẢNH MẪU THAM KHẢO) -->
+        <Grid x:Name="GridTouchMenu" Visibility="Collapsed" Background="#002533">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="38"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="28"/>
+            </Grid.RowDefinitions>
+
+            <!-- 1. HEADER THANH TIÊU ĐỀ TRÊN CÙNG -->
+            <Border Grid.Row="0" Background="#1B4D5C" BorderBrush="#2C6B7C" BorderThickness="0,0,0,1.5">
+                <TextBlock x:Name="TxtMenuHeaderTitle" Text="PHẦN MỀM QUẢN LÝ BAR, NHÀ HÀNG V6.0 TÂN AN PHÁT - HOTLINE: 0967041111" 
+                           Foreground="White" FontWeight="Bold" FontSize="13"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- 2. NỘI DUNG CHÍNH (3 CỘT NÚT THAO TÁC) -->
+            <Grid Grid.Row="1" Margin="4">
+                <Grid.ColumnDefinitions>
+                    <!-- Cột 1: Danh mục chính (HỆ THỐNG, QUẢN TRỊ, BÁO CÁO, TRỢ GIÚP) -->
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="4"/>
+                    <!-- Cột 2: Các nút tính năng con của danh mục đang chọn -->
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="*"/>
+                    <!-- Cột 3: Nút chức năng trực tiếp bên phải (SỬ DỤNG DỊCH VỤ, TỒN KHO, GHI CHÚ, ĐĂNG XUẤT) -->
+                    <ColumnDefinition Width="220"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- STYLE NÚT CHỨC NĂNG CHUẨN MẪU -->
+                <Grid.Resources>
+                    <Style x:Key="PosMainCategoryBtn" TargetType="Button">
+                        <Setter Property="Margin" Value="4,3"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+
+                    <Style x:Key="PosSubFunctionBtn" TargetType="Button">
+                        <Setter Property="Margin" Value="4,3"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="FontSize" Value="12"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="#009688" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+
+                    <Style x:Key="PosRightDirectBtn" TargetType="Button">
+                        <Setter Property="Margin" Value="4,3"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="#009688" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Grid.Resources>
+
+                <!-- CỘT 1: CONTAINER XÁM XANH BÊN TRÁI PHỦ 100% CHIỀU CAO, 4 NÚT CHIẾM 50% CHIỀU CAO (4 HÀNG TRÊN 8 HÀNG) -->
+                <Border Grid.Column="0" Background="#7293A9" CornerRadius="4" Padding="2">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" x:Name="BtnMenuHeThong" Content="HỆ THỐNG" Style="{StaticResource PosMainCategoryBtn}" Background="#009688" Click="BtnMenuCategory_Click" Tag="HeThong"/>
+                        <Button Grid.Row="1" x:Name="BtnMenuQuanTri" Content="QUẢN TRỊ" Style="{StaticResource PosMainCategoryBtn}" Background="#009688" Click="BtnMenuCategory_Click" Tag="QuanTri"/>
+                        <Button Grid.Row="2" x:Name="BtnMenuBaoCao" Content="BÁO CÁO" Style="{StaticResource PosMainCategoryBtn}" Background="#009688" Click="BtnMenuCategory_Click" Tag="BaoCao"/>
+                        <Button Grid.Row="3" x:Name="BtnMenuTroGiup" Content="TRỢ GIÚP" Style="{StaticResource PosMainCategoryBtn}" Background="#009688" Click="BtnMenuCategory_Click" Tag="TroGiup"/>
+                    </Grid>
+                </Border>
+
+                <!-- CỘT 2: CÁC NÚT CON TƯƠNG ỨNG KHI CHỌN DANH MỤC -->
+                <!-- 2.1 HỆ THỐNG -->
+                <Border x:Name="PanelCenterHeThong" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Content="CƠ SỞ DỮ LIỆU..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuCoSoDuLieuSub_Click"/>
+                        <Button Grid.Row="1" Content="ĐỔI MẬT KHẨU ĐĂNG NHẬP" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuDoiMatKhau_Click"/>
+                        <Button Grid.Row="2" Content="ĐĂNG XUẤT KHỎI HỆ THỐNG" Style="{StaticResource PosSubFunctionBtn}" Click="BtnLogoutPOS_Click"/>
+                        <Button Grid.Row="3" Content="THOÁT KHỎI HỆ THỐNG" Style="{StaticResource PosSubFunctionBtn}" Click="BtnPowerOff_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- 2.1.1 SUB-MENU CƠ SỞ DỮ LIỆU -->
+                <Border x:Name="PanelCenterCoSoDuLieu" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Content="..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuBackHeThong_Click"/>
+                        <Button Grid.Row="1" Content="TẠO MỚI CƠ SỞ DỮ LIỆU" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuTaoMoiCsdl_Click"/>
+                        <Button Grid.Row="2" Content="SAO LƯU CƠ SỞ DỮ LIỆU" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuSaoLuuCsdl_Click"/>
+                        <Button Grid.Row="3" Content="PHỤC HỒI CƠ SỞ DỮ LIỆU" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuPhucHoiCsdl_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- 2.2 QUẢN TRỊ -->
+                <Border x:Name="PanelCenterQuanTri" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Content="XÓA DỮ LIỆU" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuXoaDuLieu_Click"/>
+                        <Button Grid.Row="1" Content="CÔNG CỤ NHÀ PHÁT TRIỂN" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuCongCuDeveloper_Click"/>
+                        <Button Grid.Row="2" Content="NGƯỜI DÙNG VÀ PHÂN QUYỀN" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuNguoiDungPhanQuyen_Click"/>
+                        <Button Grid.Row="3" Content="CẤU HÌNH TOÀN HỆ THỐNG" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuCauHinhHeThong_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- 2.3 BÁO CÁO MAIN MENU -->
+                <Border x:Name="PanelCenterBaoCao" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Content="BÁO CÁO QUỸ..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoQuy"/>
+                        <Button Grid.Row="1" Content="BÁO CÁO DANH MỤC..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoDanhMuc"/>
+                        <Button Grid.Row="2" Content="BÁO CÁO BÁN HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoBanHang"/>
+                        <Button Grid.Row="3" Content="BÁO CÁO ĐẶT HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoDatHang"/>
+                        <Button Grid.Row="4" Content="BÁO CÁO KHO HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoKhoHang"/>
+                        <Button Grid.Row="5" Content="BÁO CÁO CÔNG NỢ..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoCongNo"/>
+                        <Button Grid.Row="6" Content="BÁO CÁO QUẢN TRỊ..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoQuanTri"/>
+                        <Button Grid.Row="7" Content="BÁO CÁO BIỂU ĐỒ..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnSubReportGroup_Click" Tag="BaoCaoBieuDo"/>
+                    </Grid>
+                </Border>
+
+                <!-- 2.3.1 SUB BÁO CÁO QUỸ -->
+                <Border x:Name="PanelSubBaoCaoQuy" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="DANH SÁCH PHIẾU THU THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU THU THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI"/>
+                            <Button Content="DANH SÁCH PHIẾU CHI THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHI THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI"/>
+                            <Button Content="TỔNG HỢP THU CHI THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP THU CHI THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP THU CHI THEO LÝ DO" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP THU CHI THEO LÝ DO"/>
+                            <Button Content="BÁO CÁO TỒN QUỸ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỒN QUỸ"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.2 SUB BÁO CÁO DANH MỤC -->
+                <Border x:Name="PanelSubBaoCaoDanhMuc" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="DANH SÁCH KHÁCH HÀNG THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH KHÁCH HÀNG THEO NHÓM"/>
+                            <Button Content="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM"/>
+                            <Button Content="DANH SÁCH ĐỢT KHUYẾN MẠI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐỢT KHUYẾN MẠI"/>
+                            <Button Content="DANH SÁCH MẶT HÀNG THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH MẶT HÀNG THEO NHÓM"/>
+                            <Button Content="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT"/>
+                            <Button Content="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT"/>
+                            <Button Content="BÁO CÁO CẤU HÌNH BÀN KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CẤU HÌNH BÀN KHU VỰC"/>
+                            <Button Content="CÔNG THỨC ĐỊNH LƯỢNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="CÔNG THỨC ĐỊNH LƯỢNG"/>
+                            <Button Content="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.3 SUB BÁO CÁO BÁN HÀNG (CẤP 2) -->
+                <Border x:Name="PanelSubBaoCaoBanHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY"/>
+                            <Button Content="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP DOANH THU THEO LOẠI ĐỒ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP DOANH THU THEO LOẠI ĐỒ"/>
+                            <Button Content="TỔNG HỢP DOANH THU CHƯA THANH TOÁN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP DOANH THU CHƯA THANH TOÁN"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO NGÀY"/>
+                            <Button Content="THEO NHÂN VIÊN PHỤC VỤ..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoNhanVienPhucVu"/>
+                            <Button Content="THEO KHU VỰC..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoKhuVuc"/>
+                            <Button Content="THEO THU NGÂN..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoThuNgan"/>
+                            <Button Content="THEO KHÁCH HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoKhachHang"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG KHÁC..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoBanHangKhac"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.3.1 CẤP 3: THEO NHÂN VIÊN PHỤC VỤ -->
+                <Border x:Name="PanelSubBaoCaoTheoNhanVienPhucVu" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP BÁN THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.3.2 CẤP 3: THEO KHU VỰC -->
+                <Border x:Name="PanelSubBaoCaoTheoKhuVuc" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO KHU VỰC"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG"/>
+                            <Button Content="DANH SÁCH HÓA ĐƠN THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO KHU VỰC"/>
+                            <Button Content="DANH SÁCH HÓA ĐƠN THEO BÀN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO BÀN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO BÀN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO BÀN"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ"/>
+                            <Button Content="DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.3.3 CẤP 3: THEO THU NGÂN -->
+                <Border x:Name="PanelSubBaoCaoTheoThuNgan" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP BÁN THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO THU NGÂN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO THU NGÂN"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.3.4 CẤP 3: THEO KHÁCH HÀNG -->
+                <Border x:Name="PanelSubBaoCaoTheoKhachHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP BÁN THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO KHÁCH HÀNG"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.3.5 CẤP 3: BÁO CÁO BÁN HÀNG KHÁC -->
+                <Border x:Name="PanelSubBaoCaoBanHangKhac" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP HOA HỒNG THEO NVKD" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP HOA HỒNG THEO NVKD"/>
+                            <Button Content="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN"/>
+                            <Button Content="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.4 SUB BÁO CÁO ĐẶT HÀNG -->
+                <Border x:Name="PanelSubBaoCaoDatHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="DANH SÁCH ĐẶT HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐẶT HÀNG THEO NGÀY"/>
+                            <Button Content="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP ĐẶT HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP ĐẶT HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.5 SUB BÁO CÁO KHO HÀNG (CẤP 2) -->
+                <Border x:Name="PanelSubBaoCaoKhoHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BÁO CÁO XUẤT BÁN HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoXuatBanHang"/>
+                            <Button Content="BÁO CÁO KIỂM KÊ..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoKiemKe"/>
+                            <Button Content="BÁO CÁO XUẤT KHÁC..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoXuatKhac"/>
+                            <Button Content="BÁO CÁO NHẬP HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoNhapHang"/>
+                            <Button Content="BÁO CÁO CHUYỂN KHO..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoChuyenKho"/>
+                            <Button Content="BÁO CÁO THEO HSD..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoHSD"/>
+                            <Button Content="BÁO CÁO HÀNG TỒN KHO" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG TỒN KHO"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT"/>
+                            <Button Content="THẺ KHO" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="THẺ KHO"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.5.1 CẤP 3: BÁO CÁO XUẤT BÁN HÀNG -->
+                <Border x:Name="PanelSubBaoCaoXuatBanHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY"/>
+                            <Button Content="BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG"/>
+                            <Button Content="BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.5.2 CẤP 3: BÁO CÁO KIỂM KÊ -->
+                <Border x:Name="PanelSubBaoCaoKiemKe" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.5.3 CẤP 3: BÁO CÁO XUẤT KHÁC -->
+                <Border x:Name="PanelSubBaoCaoXuatKhac" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP XUẤT KHÁC THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.5.4 CẤP 3: BÁO CÁO NHẬP HÀNG -->
+                <Border x:Name="PanelSubBaoCaoNhapHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP"/>
+                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP"/>
+                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.5.5 CẤP 3: BÁO CÁO CHUYỂN KHO -->
+                <Border x:Name="PanelSubBaoCaoChuyenKho" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT"/>
+                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP"/>
+                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.5.6 CẤP 3: BÁO CÁO THEO HSD -->
+                <Border x:Name="PanelSubBaoCaoTheoHSD" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="BÁO CÁO HÀNG HÓA THEO HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG HÓA THEO HẠN DÙNG"/>
+                            <Button Content="BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG"/>
+                            <Button Content="BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.6 SUB BÁO CÁO CÔNG NỢ -->
+                <Border x:Name="PanelSubBaoCaoCongNo" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BÁO CÁO CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CÔNG NỢ KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG"/>
+                            <Button Content="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG"/>
+                            <Button Content="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP"/>
+                            <Button Content="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP"/>
+                            <Button Content="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.7 SUB BÁO CÁO QUẢN TRỊ -->
+                <Border x:Name="PanelSubBaoCaoQuanTri" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BÁO CÁO KẾT QUẢ KINH DOANH" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO KẾT QUẢ KINH DOANH"/>
+                            <Button Content="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)"/>
+                            <Button Content="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)"/>
+                            <Button Content="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)"/>
+                            <Button Content="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO GIỜ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO GIỜ"/>
+                            <Button Content="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.3.8 SUB BÁO CÁO BIỂU ĐỒ -->
+                <Border x:Name="PanelSubBaoCaoBieuDo" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BIỂU ĐỒ DOANH SỐ THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH SỐ THEO NHÓM"/>
+                            <Button Content="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG"/>
+                            <Button Content="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM"/>
+                            <Button Content="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 2.4 TRỢ GIÚP -->
+                <Border x:Name="PanelCenterTroGiup" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Content="HƯỚNG DẪN SỬ DỤNG" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuHuongDanSuDung_Click"/>
+                        <Button Grid.Row="1" Content="HỖ TRỢ TỪ XA TEAMVIEWER" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuHoTroTeamViewer_Click"/>
+                        <Button Grid.Row="2" Content="ĐĂNG KÝ BẢN QUYỀN..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuDangKyBanQuyen_Click"/>
+                        <Button Grid.Row="3" Content="THÔNG TIN PHẦN MỀM" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuThongTinPhanMem_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- CỘT 3: CONTAINER XÁM XANH BÊN PHẢI PHỦ 100% CHIỀU CAO, 4 NÚT CHIẾM 50% CHIỀU CAO -->
+                <Border Grid.Column="4" Background="#7293A9" CornerRadius="4" Padding="2">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" x:Name="BtnMenuSuDungDichVu" Content="SỬ DỤNG DỊCH VỤ" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuSuDungDichVu_Click"/>
+                        <Button Grid.Row="1" x:Name="BtnMenuTonKho" Content="TỒN KHO" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuTonKho_Click"/>
+                        <Button Grid.Row="2" x:Name="BtnMenuGhiChu" Content="GHI CHÚ" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuGhiChu_Click"/>
+                        <Button Grid.Row="3" x:Name="BtnMenuDangXuat" Content="ĐĂNG XUẤT" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuDangXuat_Click"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- 3. FOOTER THANH TRẠNG THÁI DƯỚI CÙNG -->
+            <Border Grid.Row="2" Background="#1B4D5C" BorderBrush="#2C6B7C" BorderThickness="0,1.5,0,0">
+                <Grid Margin="12,0">
+                    <TextBlock Text="Đăng ký bản quyền: TTS TEST" Foreground="White" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Border Background="#2C6B7C" Padding="12,2" CornerRadius="3" Margin="0,0,6,0">
+                            <TextBlock x:Name="TxtFooterUser" Text="Administrator" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                        </Border>
+                        <Border Background="#2C6B7C" Padding="12,2" CornerRadius="3">
+                            <TextBlock x:Name="TxtFooterDb" Text="DEMO" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
             </Border>
         </Grid>
 

@@ -24,8 +24,38 @@ namespace QuanLyBar.Client.Views.NguoiDungPhanQuyen
                 TenHienThi = "Admin"
             };
 
-            TxtHeaderAccount.Text = $"Đổi mật khẩu cho tài khoản: {_currentUser.TenDangNhap}";
+            TxtHeaderAccount.Text = $"ĐỔI MẬT KHẨU CHO TÀI KHOẢN: {(_currentUser.TenDangNhap ?? "ADMIN").ToUpper()}";
             Loaded += (s, e) => TxtOldPassword.Focus();
+        }
+
+        private void BtnKbOldPass_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new TouchPOS.TouchKeyboardWindow(TxtOldPassword.Password ?? "", isPasswordMode: true);
+            win.Owner = this;
+            if (win.ShowDialog() == true)
+            {
+                TxtOldPassword.Password = win.ResultText;
+            }
+        }
+
+        private void BtnKbNewPass_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new TouchPOS.TouchKeyboardWindow(TxtNewPassword.Password ?? "", isPasswordMode: true);
+            win.Owner = this;
+            if (win.ShowDialog() == true)
+            {
+                TxtNewPassword.Password = win.ResultText;
+            }
+        }
+
+        private void BtnKbConfirmPass_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new TouchPOS.TouchKeyboardWindow(TxtConfirmPassword.Password ?? "", isPasswordMode: true);
+            win.Owner = this;
+            if (win.ShowDialog() == true)
+            {
+                TxtConfirmPassword.Password = win.ResultText;
+            }
         }
 
         private async void BtnGhiDuLieu_Click(object sender, RoutedEventArgs e)

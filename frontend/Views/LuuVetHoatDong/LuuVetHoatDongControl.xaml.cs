@@ -41,9 +41,9 @@ namespace QuanLyBar.Client.Views
                     return;
                 }
 
-                // Mặc định khoảng thời gian như ảnh mẫu (15/05/2010 đến 31/08/2026)
+                // Mặc định khoảng thời gian lọc (Từ 2010 đến ngày hiện tại)
                 dpTuNgay.SelectedDate = new DateTime(2010, 5, 15);
-                dpDenNgay.SelectedDate = new DateTime(2026, 8, 31);
+                dpDenNgay.SelectedDate = DateTime.Today.AddDays(1);
 
                 // Nạp danh sách tài khoản
                 var tkList = await _luuVetService.GetDanhSachTaiKhoanAsync();
@@ -87,7 +87,7 @@ namespace QuanLyBar.Client.Views
             try
             {
                 var tuNgay = dpTuNgay.SelectedDate ?? new DateTime(2010, 5, 15);
-                var denNgay = dpDenNgay.SelectedDate ?? new DateTime(2026, 8, 31);
+                var denNgay = dpDenNgay.SelectedDate ?? DateTime.Today.AddDays(1);
                 string soHd = txtSoHd?.Text?.Trim();
 
                 var hdList = await _luuVetService.GetHoaDonListForLuuVetAsync(tuNgay, denNgay, soHd);

@@ -26,7 +26,7 @@ namespace QuanLyBar.Client.Views
             if (_isLoaded) return;
             _isLoaded = true;
 
-            dpTuNgay.SelectedDate = DateTime.Today;
+            dpTuNgay.SelectedDate = new DateTime(1980, 1, 1);
             dpDenNgay.SelectedDate = DateTime.Today;
 
             await LoadCuaHangListAsync();
@@ -160,39 +160,54 @@ namespace QuanLyBar.Client.Views
                 // Tính toán tổng hợp
                 decimal tongTienHang = 0;
                 decimal tongGiamGiaTienHang = 0;
+                decimal tongGiamGiaTienGio = 0;
                 decimal tongTienMat = 0;
                 decimal tongTienThe = 0;
+                decimal tongChuyenKhoan = 0;
+                decimal tongPhiDichVu = 0;
+                decimal tongThue = 0;
+                decimal tongCongNo = 0;
                 decimal tongTongDoanhThu = 0;
 
                 foreach (var hd in list)
                 {
                     tongTienHang += hd.TienHang;
                     tongGiamGiaTienHang += hd.TienGiamGia;
+                    tongGiamGiaTienGio += hd.TienGiamGiaGio;
                     tongTienMat += hd.TienMat;
-                    tongTienThe += hd.TheThanhToan;
+                    tongTienThe += hd.The;
+                    tongChuyenKhoan += hd.ChuyenKhoan;
+                    tongPhiDichVu += hd.TienPhiDichVu;
+                    tongThue += hd.TienThue;
+                    tongCongNo += hd.ConNo;
                     tongTongDoanhThu += hd.TongCong;
                 }
+
+                decimal tongGiamGia = tongGiamGiaTienHang + tongGiamGiaTienGio;
 
                 TxtTienHang.Text = tongTienHang.ToString("N0");
                 TxtTienGio.Text = "0";
                 TxtGiamGiaTienHang.Text = tongGiamGiaTienHang > 0 ? ("-" + tongGiamGiaTienHang.ToString("N0")) : "-0";
-                TxtGiamGiaTienGio.Text = "-0";
-                TxtTongGiamGia.Text = tongGiamGiaTienHang > 0 ? ("-" + tongGiamGiaTienHang.ToString("N0")) : "-0";
-                TxtPhiDichVu.Text = "0";
-                TxtThue.Text = "0";
+                TxtGiamGiaTienGio.Text = tongGiamGiaTienGio > 0 ? ("-" + tongGiamGiaTienGio.ToString("N0")) : "-0";
+                TxtTongGiamGia.Text = tongGiamGia > 0 ? ("-" + tongGiamGia.ToString("N0")) : "-0";
+                TxtPhiDichVu.Text = tongPhiDichVu.ToString("N0");
+                TxtThue.Text = tongThue.ToString("N0");
                 TxtTongDoanhThu.Text = tongTongDoanhThu.ToString("N0");
                 
+                // Tải Thu Khác và Chi Khác từ TTHUCHI
+                var (thuKhac, chiKhac) = await _hoaDonService.GetThuChiSummaryAsync(tuNgay, denNgay);
+
                 TxtTienMat.Text = tongTienMat.ToString("N0");
                 TxtTienThe.Text = tongTienThe.ToString("N0");
-                TxtChuyenKhoan.Text = "0";
+                TxtChuyenKhoan.Text = tongChuyenKhoan.ToString("N0");
                 TxtTruTichLuy.Text = "0";
                 TxtTheTraTruoc.Text = "0";
                 TxtVoucher.Text = "0";
-                TxtCongNo.Text = "0";
-                TxtThuKhac.Text = "0";
-                TxtChiKhac.Text = "0";
+                TxtCongNo.Text = tongCongNo.ToString("N0");
+                TxtThuKhac.Text = thuKhac.ToString("N0");
+                TxtChiKhac.Text = chiKhac.ToString("N0");
                 
-                decimal tongThucThu = tongTienMat + tongTienThe;
+                decimal tongThucThu = tongTienMat + tongTienThe + tongChuyenKhoan + thuKhac - chiKhac;
                 TxtTongThucThu.Text = tongThucThu.ToString("N0");
 
                 if (list.Count > 0)

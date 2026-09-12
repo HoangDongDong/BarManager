@@ -215,6 +215,11 @@ namespace QuanLyBar.Client.Views.QuanLyBanHang
         private void AddMatHangToOrder(PosMatHangViewModel mon, decimal soLuong)
         {
             if (mon == null) return;
+            if (mon.IsTamKhoa)
+            {
+                MessageBox.Show($"Mặt hàng '{mon.Name}' đang bị tạm khóa, không thể thêm vào bàn!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
             if (soLuong <= 0) soLuong = 1;
 
             var existing = _chiTietList.FirstOrDefault(x => x.MatHangId == mon.Id || (!string.IsNullOrEmpty(mon.Code) && x.MaHang == mon.Code));
@@ -451,9 +456,63 @@ namespace QuanLyBar.Client.Views.QuanLyBanHang
             }
         }
 
-        private void BtnThanhToan_Click(object sender, RoutedEventArgs e)
+        private async void BtnThanhToan_Click(object sender, RoutedEventArgs e)
         {
-            BtnLuu_Click(sender, e);
+            if (_hoaDon == null) return;
+
+            if (await SaveDataAsync())
+            {
+                var tempBan = new PosBanViewModel
+                {
+                    Name = string.IsNullOrEmpty(_hoaDon.Ban) ? _hoaDon.SoPhieu : _hoaDon.Ban,
+                    ActiveOrderId = _hoaDon.Id,
+                    TongCong = _hoaDon.TongCong,
+                    TienHang = _hoaDon.TienHang,
+                    GiamGia = _hoaDon.TienGiamGia,
+                    TienThue = _hoaDon.TienThue,
+                    ThueSuatPt = _hoaDon.TiLeThue,
+                    TienPhiDichVu = _hoaDon.TienPhiDichVu,
+                    PhiDichVuPt = _hoaDon.TiLePhiDichVu
+                };
+
+                var win = new XacNhanThanhToanWindow(tempBan);
+                win.Owner = this;
+                if (win.ShowDialog() == true)
+                {
+                    decimal khachDua = win.KhachDua;
+                    decimal traLai = win.TraLai;
+                    decimal theATM = win.TheATM;
+                    decimal chuyenKhoan = win.ChuyenKhoan;
+                    bool isNo = win.IsKhachNo;
+
+                    bool ok = await _hoaDonService.ThanhToanLaiHoaDonAsync(
+                        _hoaDon.Id,
+                        _hoaDon.TongCong,
+                        _hoaDon.TiLeThue,
+                        _hoaDon.TienThue,
+                        _hoaDon.TiLePhiDichVu,
+                        _hoaDon.TienPhiDichVu,
+                        _hoaDon.TiLeGiamGia,
+                        _hoaDon.TienGiamGia,
+                        khachDua: khachDua,
+                        theATM: theATM,
+                        chuyenKhoan: chuyenKhoan,
+                        traLai: traLai,
+                        isNo: isNo,
+                        chucNang: "Quản lý bán hàng");
+
+                    if (ok)
+                    {
+                        MessageBox.Show("Thanh toán hóa đơn thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                        DialogResult = true;
+                        Close();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Có lỗi xảy ra khi thực hiện thanh toán!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
         }
 
         private async Task<bool> SaveDataAsync()

@@ -171,6 +171,13 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="Thanh toán bởi" Binding="{Binding ThanhToanBoi}" Width="100"/>
+                        <DataGridTextColumn Header="Còn nợ" Binding="{Binding ConNo, StringFormat={}{0:N0}}" Width="70">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTextColumn Header="Tiền hàng" Binding="{Binding TienHang, StringFormat={}{0:N0}}" Width="80">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
@@ -179,7 +186,6 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="Ghi chú" Binding="{Binding GhiChu}" Width="80"/>
-                        <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi}" Width="80"/>
                         <DataGridTextColumn Header="Mã khách" Binding="{Binding MaKhach}" Width="75"/>
                         <DataGridTextColumn Header="Tỉ lệ giảm giá" Binding="{Binding TiLeGiamGia, StringFormat={}{0:N0}}" Width="80">
                             <DataGridTextColumn.ElementStyle>
@@ -197,6 +203,74 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="Trả lại" Binding="{Binding TraLai, StringFormat={}{0:N0}}" Width="65">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Số phiếu đặt hàng" Binding="{Binding SoPhieuDatHang}" Width="110"/>
+                        <DataGridTextColumn Header="Nhân viên" Binding="{Binding NhanVien}" Width="90"/>
+                        <DataGridTextColumn Header="Tiền mặt" Binding="{Binding TienMat, StringFormat={}{0:N0}}" Width="80">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Mã thẻ trả trước" Binding="{Binding MaTheTraTruoc}" Width="105"/>
+                        <DataGridTextColumn Header="Điện thoại" Binding="{Binding DienThoai}" Width="85"/>
+                        <DataGridTextColumn Header="Tỉ lệ giảm giá giờ" Binding="{Binding TiLeGiamGiaGio, StringFormat={}{0:N0}}" Width="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Tiền giảm giá giờ" Binding="{Binding TienGiamGiaGio, StringFormat={}{0:N0}}" Width="105">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Số khách" Binding="{Binding SoKhach}" Width="65">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Đặt trước" Binding="{Binding DatTruoc, StringFormat={}{0:N0}}" Width="75">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Thẻ tt" Binding="{Binding TheTT, StringFormat={}{0:N0}}" Width="65">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Thẻ" Binding="{Binding The, StringFormat={}{0:N0}}" Width="65">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi}" Width="85"/>
+                        <DataGridTextColumn Header="Giảm mặt hàng" Binding="{Binding GiamMatHang, StringFormat={}{0:N0}}" Width="95">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Chuyển khoản" Binding="{Binding ChuyenKhoan, StringFormat={}{0:N0}}" Width="90">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Right"/>

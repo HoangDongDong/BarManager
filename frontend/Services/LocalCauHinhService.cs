@@ -200,6 +200,11 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        public static async Task RefreshConfigCacheAsync()
+        {
+            await LoadAllConfigsAsync();
+        }
+
         public static async Task<Dictionary<string, string>> LoadAllConfigsAsync()
         {
             var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -447,13 +452,12 @@ namespace QuanLyBar.Client.Services
 
         public static async Task<CompanyInfoModel> GetCompanyInfoAsync(string branchNameOrId = null)
         {
-            var configs = await LoadAllConfigsAsync();
-            string cName = configs.TryGetValue("CompanyName", out var cn) && !string.IsNullOrWhiteSpace(cn) ? cn.Trim() : "";
-            string cAddr = configs.TryGetValue("CompanyAddress", out var ca) && !string.IsNullOrWhiteSpace(ca) ? ca.Trim() : "";
-            string cPhone = configs.TryGetValue("CompanyPhone", out var cp) && !string.IsNullOrWhiteSpace(cp) ? cp.Trim() : "";
-            string cEmail = configs.TryGetValue("CompanyEmail", out var ce) && !string.IsNullOrWhiteSpace(ce) ? ce.Trim() : "";
-            string cFax = configs.TryGetValue("CompanyFax", out var cf) && !string.IsNullOrWhiteSpace(cf) ? cf.Trim() : "";
-            string cTax = configs.TryGetValue("CompanyTaxCode", out var ct) && !string.IsNullOrWhiteSpace(ct) ? ct.Trim() : "";
+            string cName = "";
+            string cAddr = "";
+            string cPhone = "";
+            string cEmail = "";
+            string cFax = "";
+            string cTax = "";
 
             try
             {
@@ -461,44 +465,49 @@ namespace QuanLyBar.Client.Services
                 {
                     if (conn.State != ConnectionState.Open) conn.Open();
 
-                    if (!string.IsNullOrWhiteSpace(branchNameOrId) && branchNameOrId != "Tất cả" && branchNameOrId != "[Tất cả]")
+                    if (!string.IsNullOrWhiteSpace(branchNameOrId))
                     {
                         var storeRow = await conn.QueryFirstOrDefaultAsync("SELECT FIRST 1 * FROM DCUAHANG WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(@Name)) OR CAST(ID AS VARCHAR(50)) = @Name", new { Name = branchNameOrId.Trim() });
                         if (storeRow != null)
                         {
                             var d = storeRow as IDictionary<string, object>;
-                            string sName = GetValue(d, "NAME")?.ToString()?.Trim();
-                            string sAddr = GetValue(d, "DIACHI")?.ToString()?.Trim();
-                            string sPhone = GetValue(d, "DIENTHOAI")?.ToString()?.Trim();
-                            if (!string.IsNullOrWhiteSpace(sName)) cName = sName;
-                            if (!string.IsNullOrWhiteSpace(sAddr)) cAddr = sAddr;
-                            if (!string.IsNullOrWhiteSpace(sPhone)) cPhone = sPhone;
+                            cName = GetValue(d, "NAME")?.ToString()?.Trim();
+                            cAddr = GetValue(d, "DIACHI")?.ToString()?.Trim();
+                            cPhone = GetValue(d, "DIENTHOAI")?.ToString()?.Trim();
                         }
                     }
-                    else
+
+                    if (string.IsNullOrWhiteSpace(cName))
                     {
-                        if (string.IsNullOrWhiteSpace(cName) || string.IsNullOrWhiteSpace(cAddr))
+                        var firstStore = await conn.QueryFirstOrDefaultAsync("SELECT FIRST 1 * FROM DCUAHANG WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY ID");
+                        if (firstStore != null)
                         {
-                            var storeRow = await conn.QueryFirstOrDefaultAsync("SELECT FIRST 1 * FROM DCUAHANG WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY ID");
-                            if (storeRow != null)
-                            {
-                                var d = storeRow as IDictionary<string, object>;
-                                string sName = GetValue(d, "NAME")?.ToString()?.Trim();
-                                string sAddr = GetValue(d, "DIACHI")?.ToString()?.Trim();
-                                string sPhone = GetValue(d, "DIENTHOAI")?.ToString()?.Trim();
-                                if (string.IsNullOrWhiteSpace(cName) && !string.IsNullOrWhiteSpace(sName)) cName = sName;
-                                if (string.IsNullOrWhiteSpace(cAddr) && !string.IsNullOrWhiteSpace(sAddr)) cAddr = sAddr;
-                                if (string.IsNullOrWhiteSpace(cPhone) && !string.IsNullOrWhiteSpace(sPhone)) cPhone = sPhone;
-                            }
+                            var d = firstStore as IDictionary<string, object>;
+                            cName = GetValue(d, "NAME")?.ToString()?.Trim();
+                            cAddr = GetValue(d, "DIACHI")?.ToString()?.Trim();
+                            cPhone = GetValue(d, "DIENTHOAI")?.ToString()?.Trim();
                         }
                     }
                 }
             }
             catch { }
 
-            if (string.IsNullOrWhiteSpace(cName)) cName = "TRỤ SỞ CHÍNH";
-            if (string.IsNullOrWhiteSpace(cAddr)) cAddr = "Số 28 Giang Văn Minh - Đội Cấn - Ba Đình - Hà Nội";
-            if (string.IsNullOrWhiteSpace(cPhone)) cPhone = "0909090880";
+            var configs = await LoadAllConfigsAsync();
+            string companyConfigName = configs.TryGetValue("CompanyName", out var cn) && !string.IsNullOrWhiteSpace(cn) ? cn.Trim() : "";
+            
+            if (!string.IsNullOrWhiteSpace(companyConfigName) && (string.IsNullOrWhiteSpace(cName) || cName.Equals("TRỤ SỞ CHÍNH", StringComparison.OrdinalIgnoreCase)))
+            {
+                cName = companyConfigName;
+            }
+            if (string.IsNullOrWhiteSpace(cName)) cName = companyConfigName;
+
+            if (string.IsNullOrWhiteSpace(cAddr)) cAddr = configs.TryGetValue("CompanyAddress", out var ca) && !string.IsNullOrWhiteSpace(ca) ? ca.Trim() : "";
+            if (string.IsNullOrWhiteSpace(cPhone)) cPhone = configs.TryGetValue("CompanyPhone", out var cp) && !string.IsNullOrWhiteSpace(cp) ? cp.Trim() : "";
+            if (string.IsNullOrWhiteSpace(cEmail)) cEmail = configs.TryGetValue("CompanyEmail", out var ce) && !string.IsNullOrWhiteSpace(ce) ? ce.Trim() : "";
+            if (string.IsNullOrWhiteSpace(cFax)) cFax = configs.TryGetValue("CompanyFax", out var cf) && !string.IsNullOrWhiteSpace(cf) ? cf.Trim() : "";
+            if (string.IsNullOrWhiteSpace(cTax)) cTax = configs.TryGetValue("CompanyTaxCode", out var ct) && !string.IsNullOrWhiteSpace(ct) ? ct.Trim() : "";
+
+            if (string.IsNullOrWhiteSpace(cName)) cName = "NÀNG HƯƠNG QUÁN";
 
             var logo = await LoadCompanyLogoAsync();
 
@@ -545,10 +554,10 @@ namespace QuanLyBar.Client.Services
                         catch { }
                     }
 
-                    // Fallback logo có tên CompanyLogo
+                    // Fallback logo có tên CompanyLogo hoặc bất kỳ hình ảnh nào trong SIMAGE
                     try
                     {
-                        var compLogo = await conn.ExecuteScalarAsync<byte[]>("SELECT FIRST 1 IMAGE FROM SIMAGE WHERE UPPER(TRIM(NAME)) = 'COMPANYLOGO' AND IMAGE IS NOT NULL");
+                        var compLogo = await conn.ExecuteScalarAsync<byte[]>("SELECT FIRST 1 IMAGE FROM SIMAGE WHERE IMAGE IS NOT NULL ORDER BY ID");
                         if (compLogo != null && compLogo.Length > 0) return compLogo;
                     }
                     catch { }

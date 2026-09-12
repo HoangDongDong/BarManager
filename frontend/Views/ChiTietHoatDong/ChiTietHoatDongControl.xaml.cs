@@ -336,35 +336,110 @@ namespace QuanLyBar.Client.Views
             var denNgay = dpDenNgay.SelectedDate ?? DateTime.Today;
             string storeName = string.IsNullOrEmpty(TxtSelectedCuaHang.Text) ? "NÀNG HƯƠNG QUÁN" : TxtSelectedCuaHang.Text.ToUpper();
 
-            // Trang 1 A4
-            var page1 = CreateA4PageBase();
-            var p1Stack = (StackPanel)page1.Child;
-            p1Stack.Children.Add(CreateHeaderBlock(storeName, tuNgay, denNgay));
-            p1Stack.Children.Add(new TextBlock { Text = "BÁN HÀNG", FontWeight = FontWeights.Bold, FontSize = 11, Margin = new Thickness(0, 0, 0, 3) });
-            p1Stack.Children.Add(CreateBanHangTable(_cachedBanHangs));
-            p1Stack.Children.Add(CreateFooterPageNumber("1", "2"));
-            _pageBorders.Add(page1);
-            PagesStackPanel.Children.Add(page1);
+            // A standard A4 page with header holds about 32-35 rows in Bán Hàng table. Subsequent pages hold about 40 rows.
+            const int maxRowsFirstPage = 32;
+            const int maxRowsSubsequentPage = 38;
 
-            // Trang 2 A4
-            var page2 = CreateA4PageBase();
-            var p2Stack = (StackPanel)page2.Child;
-            p2Stack.Children.Add(new TextBlock { Text = "MẶT HÀNG BÁN", FontWeight = FontWeights.Bold, FontSize = 11, Margin = new Thickness(0, 0, 0, 3) });
-            p2Stack.Children.Add(CreateMatHangTable(_cachedMatHangs));
-            p2Stack.Children.Add(CreateMatHangSummary());
+            var pages = new List<Border>();
 
-            if (_cachedNhapHangs.Count > 0)
+            // 1. Paginate BÁN HÀNG table
+            int totalBanHang = _cachedBanHangs.Count;
+            int bhProcessed = 0;
+            bool isFirstPage = true;
+
+            while (bhProcessed < totalBanHang || isFirstPage)
             {
-                p2Stack.Children.Add(new TextBlock { Text = "NHẬP HÀNG", FontWeight = FontWeights.Bold, FontSize = 11, Margin = new Thickness(0, 8, 0, 3) });
-                p2Stack.Children.Add(CreateNhapHangTable(_cachedNhapHangs));
+                var page = CreateA4PageBase();
+                var pStack = (StackPanel)page.Child;
+
+                if (isFirstPage)
+                {
+                    pStack.Children.Add(CreateHeaderBlock(storeName, tuNgay, denNgay));
+                    pStack.Children.Add(new TextBlock { Text = "BÁN HÀNG", FontWeight = FontWeights.Bold, FontSize = 11, Margin = new Thickness(0, 0, 0, 3) });
+                }
+                else
+                {
+                    pStack.Children.Add(new TextBlock { Text = "BÁN HÀNG (tiếp theo)", FontWeight = FontWeights.Bold, FontSize = 11, Margin = new Thickness(0, 0, 0, 3) });
+                }
+
+                int limit = isFirstPage ? maxRowsFirstPage : maxRowsSubsequentPage;
+                int chunkCount = Math.Min(limit, totalBanHang - bhProcessed);
+
+                if (chunkCount > 0)
+                {
+                    var chunk = _cachedBanHangs.Skip(bhProcessed).Take(chunkCount).ToList();
+                    pStack.Children.Add(CreateBanHangTable(chunk));
+                    bhProcessed += chunkCount;
+                }
+                else if (isFirstPage && totalBanHang == 0)
+                {
+                    pStack.Children.Add(CreateBanHangTable(_cachedBanHangs));
+                }
+
+                pages.Add(page);
+                isFirstPage = false;
+
+                if (bhProcessed >= totalBanHang)
+                    break;
             }
 
-            p2Stack.Children.Add(CreatePage2SummaryBlock());
-            p2Stack.Children.Add(CreateFooterPageNumber("2", "2"));
-            _pageBorders.Add(page2);
-            PagesStackPanel.Children.Add(page2);
+            // 2. Paginate MẶT HÀNG BÁN table dynamically
+            int totalMatHang = _cachedMatHangs.Count;
+            int mhProcessed = 0;
+            const int maxRowsMatHangPage = 35;
 
-            _totalA4Pages = 2;
+            while (mhProcessed < totalMatHang || totalMatHang == 0)
+            {
+                var pageMh = CreateA4PageBase();
+                var pStack = (StackPanel)pageMh.Child;
+
+                string titleText = mhProcessed == 0 ? "MẶT HÀNG BÁN" : "MẶT HÀNG BÁN (tiếp theo)";
+                pStack.Children.Add(new TextBlock { Text = titleText, FontWeight = FontWeights.Bold, FontSize = 11, Margin = new Thickness(0, 0, 0, 3) });
+
+                int chunkCount = Math.Min(maxRowsMatHangPage, totalMatHang - mhProcessed);
+                if (chunkCount > 0)
+                {
+                    var chunk = _cachedMatHangs.Skip(mhProcessed).Take(chunkCount).ToList();
+                    pStack.Children.Add(CreateMatHangTable(chunk));
+                    mhProcessed += chunkCount;
+                }
+                else
+                {
+                    pStack.Children.Add(CreateMatHangTable(_cachedMatHangs));
+                }
+
+                // If this is the last chunk of MatHang, add summary, NhapHang table and signature block
+                if (mhProcessed >= totalMatHang)
+                {
+                    pStack.Children.Add(CreateMatHangSummary());
+
+                    if (_cachedNhapHangs.Count > 0)
+                    {
+                        pStack.Children.Add(new TextBlock { Text = "NHẬP HÀNG", FontWeight = FontWeights.Bold, FontSize = 11, Margin = new Thickness(0, 8, 0, 3) });
+                        pStack.Children.Add(CreateNhapHangTable(_cachedNhapHangs));
+                    }
+
+                    pStack.Children.Add(CreatePage2SummaryBlock());
+                    pages.Add(pageMh);
+                    break;
+                }
+                else
+                {
+                    pages.Add(pageMh);
+                }
+            }
+
+            // Now append page footers and add to DOM
+            _totalA4Pages = pages.Count;
+            for (int i = 0; i < pages.Count; i++)
+            {
+                var p = pages[i];
+                var stack = (StackPanel)p.Child;
+                stack.Children.Add(CreateFooterPageNumber((i + 1).ToString(), _totalA4Pages.ToString()));
+                _pageBorders.Add(p);
+                PagesStackPanel.Children.Add(p);
+            }
+
             _currentA4Page = 1;
             TxtPageInfo.Text = $"{_currentA4Page} of {_totalA4Pages}";
         }
@@ -374,13 +449,12 @@ namespace QuanLyBar.Client.Views
             var border = new Border
             {
                 Background = Brushes.White,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(230, 149, 0)),
-                BorderThickness = new Thickness(2),
+                BorderBrush = Brushes.LightGray,
+                BorderThickness = new Thickness(1),
                 Padding = new Thickness(20),
                 Width = 720,
-                MinHeight = 1020,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 0, 20, 0),
+                Margin = new Thickness(0, 0, 0, 25),
                 Effect = new DropShadowEffect
                 {
                     BlurRadius = 15,
@@ -421,7 +495,11 @@ namespace QuanLyBar.Client.Views
             Grid.SetColumn(logoBorder, 0);
 
             var spInfo = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-            string displayName = !string.IsNullOrWhiteSpace(storeName) && storeName != "Tất cả" && storeName != "[Tất cả]" ? storeName : (_companyInfo?.Name ?? "TRỤ SỞ CHÍNH");
+            string displayName = _companyInfo?.Name;
+            if (string.IsNullOrWhiteSpace(displayName) || displayName.Equals("TRỤ SỞ CHÍNH", StringComparison.OrdinalIgnoreCase))
+            {
+                displayName = !string.IsNullOrWhiteSpace(storeName) && storeName != "TRỤ SỞ CHÍNH" && storeName != "Tất cả" && storeName != "[Tất cả]" ? storeName : (_companyInfo?.Name ?? "NÀNG HƯƠNG QUÁN");
+            }
             spInfo.Children.Add(new TextBlock { Text = displayName, FontWeight = FontWeights.Bold, FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
             
             string addr = _companyInfo?.FormattedAddress ?? "";
@@ -755,11 +833,22 @@ namespace QuanLyBar.Client.Views
 
         #region TOOLBAR NAVIGATION & EXPORT
 
+        private void ScrollToPage(int pageIndex)
+        {
+            if (pageIndex >= 0 && pageIndex < _pageBorders.Count)
+            {
+                var targetBorder = _pageBorders[pageIndex];
+                GeneralTransform transform = targetBorder.TransformToVisual(PagesStackPanel);
+                Point point = transform.Transform(new Point(0, 0));
+                ReportScrollViewer.ScrollToVerticalOffset(point.Y);
+            }
+        }
+
         private void BtnFirstPage_Click(object sender, RoutedEventArgs e)
         {
             _currentA4Page = 1;
             TxtPageInfo.Text = $"{_currentA4Page} of {_totalA4Pages}";
-            ReportScrollViewer.ScrollToLeftEnd();
+            ScrollToPage(0);
         }
 
         private void BtnPrevPage_Click(object sender, RoutedEventArgs e)
@@ -768,7 +857,7 @@ namespace QuanLyBar.Client.Views
             {
                 _currentA4Page--;
                 TxtPageInfo.Text = $"{_currentA4Page} of {_totalA4Pages}";
-                ReportScrollViewer.ScrollToHorizontalOffset((_currentA4Page - 1) * 740);
+                ScrollToPage(_currentA4Page - 1);
             }
         }
 
@@ -778,7 +867,7 @@ namespace QuanLyBar.Client.Views
             {
                 _currentA4Page++;
                 TxtPageInfo.Text = $"{_currentA4Page} of {_totalA4Pages}";
-                ReportScrollViewer.ScrollToHorizontalOffset((_currentA4Page - 1) * 740);
+                ScrollToPage(_currentA4Page - 1);
             }
         }
 
@@ -786,7 +875,7 @@ namespace QuanLyBar.Client.Views
         {
             _currentA4Page = _totalA4Pages;
             TxtPageInfo.Text = $"{_currentA4Page} of {_totalA4Pages}";
-            ReportScrollViewer.ScrollToRightEnd();
+            ScrollToPage(_totalA4Pages - 1);
         }
 
         private void BtnPrint_Click(object sender, RoutedEventArgs e)

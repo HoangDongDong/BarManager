@@ -29,5 +29,19 @@ namespace QuanLyBar.Client.Models
         public string DiaChi { get; set; }
         public string MaKhach { get; set; }
         public string DienGiai { get; set; }
+        public decimal TienThue { get; set; }
+        public decimal TiLeThue { get; set; }
+        public decimal TienPhiDichVu { get; set; }
+        public decimal TiLePhiDichVu { get; set; }
+        public string NhanVien { get; set; }
+        public string MaTheTraTruoc { get; set; }
+        public string DienThoai { get; set; }
+        public decimal DatTruoc { get; set; }
+        public decimal TheTT { get; set; }
+        public decimal The { get; set; }
+        public decimal GiamMatHang { get; set; }
+        public decimal ChuyenKhoan { get; set; }
+        public decimal ConNo { get; set; }
+        public string SoPhieuDatHang { get; set; }
     }
 }

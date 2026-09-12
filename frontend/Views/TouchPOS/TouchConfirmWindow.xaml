@@ -1,0 +1,72 @@
+<Window x:Class="QuanLyBar.Views.TouchPOS.TouchConfirmWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="XÁC NHẬN" Height="220" Width="480"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+
+    <Border Background="#2E6893" BorderBrush="#7293A9" BorderThickness="2" CornerRadius="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="38"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="55"/>
+            </Grid.RowDefinitions>
+
+            <!-- HEADER BANNER -->
+            <Border Grid.Row="0" Background="#6588A6" BorderBrush="#7293A9" BorderThickness="0,0,0,1">
+                <TextBlock Text="XÁC NHẬN" Foreground="#FDE047" FontWeight="Bold" FontSize="15"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- CONTENT BODY WITH QUESTION ICON AND TEXT -->
+            <Grid Grid.Row="1" Margin="25,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- QUESTION ICON SHAPE -->
+                <Border Width="46" Height="46" CornerRadius="6" Background="#3E759E" BorderBrush="White" BorderThickness="1.5"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="?" Foreground="White" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <TextBlock x:Name="TxtMessage" Grid.Column="1" Text="BẠN CÓ MUỐN THOÁT KHỎI HỆ THỐNG KHÔNG?"
+                           Foreground="White" FontWeight="Bold" FontSize="14" TextWrapping="Wrap"
+                           VerticalAlignment="Center" Margin="15,0,0,0"/>
+            </Grid>
+
+            <!-- BUTTONS AREA (YES / NO) -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,12">
+                <!-- YES BUTTON -->
+                <Button x:Name="BtnYes" Content="YES" Width="100" Height="36" Margin="0,0,12,0" Cursor="Hand" Click="BtnYes_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#1E7333" BorderBrush="#4ade80" BorderThickness="1" CornerRadius="4">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Foreground>White</Button.Foreground>
+                    <Button.FontWeight>Bold</Button.FontWeight>
+                    <Button.FontSize>14</Button.FontSize>
+                </Button>
+
+                <!-- NO BUTTON -->
+                <Button x:Name="BtnNo" Content="NO" Width="100" Height="36" Cursor="Hand" Click="BtnNo_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#8B0000" BorderBrush="#ef4444" BorderThickness="1" CornerRadius="4">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Foreground>White</Button.Foreground>
+                    <Button.FontWeight>Bold</Button.FontWeight>
+                    <Button.FontSize>14</Button.FontSize>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

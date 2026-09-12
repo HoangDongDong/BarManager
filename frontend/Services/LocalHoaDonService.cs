@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using QuanLyBar.Client.Models;
 
 namespace QuanLyBar.Client.Services
@@ -31,21 +32,35 @@ namespace QuanLyBar.Client.Services
                         h.TIENGIAMGIA as TienGiamGia, 
                         h.TILEGIAMGIA as TiLeGiamGia, 
                         h.TIENHANG as TienHang, 
+                        CAST(COALESCE(h.TIENTHUE, '0') AS DECIMAL(18,0)) as TienThue,
+                        CAST(COALESCE(h.TILETHUE, '0') AS DECIMAL(18,2)) as TiLeThue,
+                        CAST(COALESCE(h.PHIDICHVU, '0') AS DECIMAL(18,0)) as TienPhiDichVu,
+                        CAST(COALESCE(h.TILEPHIDICHVU, '0') AS DECIMAL(18,2)) as TiLePhiDichVu,
                         CAST(COALESCE(h.KHACHDUA, '0') AS DECIMAL(18,0)) as KhachDua, 
                         CAST(COALESCE(h.TRALAI, '0') AS DECIMAL(18,0)) as TraLai, 
                         CAST(COALESCE(h.THE, '0') AS DECIMAL(18,0)) as TheThanhToan, 
+                        CAST(COALESCE(h.THE, '0') AS DECIMAL(18,0)) as The, 
+                        CAST(COALESCE(h.THETRATRUOC, '0') AS DECIMAL(18,0)) as TheTT,
+                        CAST(COALESCE(h.CHUYENKHOAN, '0') AS DECIMAL(18,0)) as ChuyenKhoan,
+                        CAST(COALESCE(h.DATTRUOC, '0') AS DECIMAL(18,0)) as DatTruoc,
+                        CAST(COALESCE(h.CONNO, '0') AS DECIMAL(18,0)) as ConNo,
+                        CAST(COALESCE(h.GIAMGIAMATHANG, '0') AS DECIMAL(18,0)) as GiamMatHang,
                         h.TIENMAT as TienMat, 
                         CAST(COALESCE(h.SOKHACH, '0') AS INTEGER) as SoKhach, 
                         CAST(COALESCE(h.TILEGIAMGIAGIO, '0') AS DECIMAL(18,2)) as TiLeGiamGiaGio,
                         h.SOORDER as SoOrder, 
+                        h.SOORDER as SoPhieuDatHang,
                         h.TIENGIAMGIAGIO as TienGiamGiaGio,
                         h.NOTE as GhiChu,
                         COALESCE(u.NAME, u.USERNAME, 'Administrator') as ThanhToanBoi,
+                        COALESCE(nv.NAME, '') as NhanVien,
+                        CAST(k.DIENTHOAI AS VARCHAR(50)) as DienThoai,
                         h.DIENGIAI as DienGiai
                     FROM TDONHANG h
                     LEFT JOIN DBAN b ON h.DBANID = b.ID
                     LEFT JOIN DKHACHHANG k ON h.DKHACHHANGID = k.ID
                     LEFT JOIN SUSER u ON CAST(h.USERCREATEDID AS VARCHAR(50)) = CAST(u.ID AS VARCHAR(50))
+                    LEFT JOIN DNHANVIEN nv ON CAST(h.DNHANVIENXUATID AS VARCHAR(50)) = CAST(nv.ID AS VARCHAR(50))
                     WHERE CAST(h.NGAY AS DATE) >= @TuNgay 
                       AND CAST(h.NGAY AS DATE) <= @DenNgay
                     ORDER BY h.NGAY DESC, h.TIMECREATED DESC
@@ -60,6 +75,34 @@ namespace QuanLyBar.Client.Services
                 var list = (await conn.QueryAsync<HoaDonViewModel>(sql, parameters)).ToList();
                 return list;
             }
+        }
+
+        public async Task<(decimal ThuKhac, decimal ChiKhac)> GetThuChiSummaryAsync(DateTime tuNgay, DateTime denNgay)
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    await conn.OpenAsync();
+                    string sql = @"
+                        SELECT 
+                            COALESCE(SUM(CAST(THU AS DECIMAL(18,0))), 0) as ThuKhac,
+                            COALESCE(SUM(CAST(CHI AS DECIMAL(18,0))), 0) as ChiKhac
+                        FROM TTHUCHI
+                        WHERE CAST(NGAY AS DATE) >= @TuNgay 
+                          AND CAST(NGAY AS DATE) <= @DenNgay
+                    ";
+                    var result = await conn.QueryFirstOrDefaultAsync<dynamic>(sql, new { TuNgay = tuNgay.Date, DenNgay = denNgay.Date });
+                    if (result != null)
+                    {
+                        decimal thu = Convert.ToDecimal(result.THUKHAC ?? result.ThuKhac ?? 0);
+                        decimal chi = Convert.ToDecimal(result.CHIKHAC ?? result.ChiKhac ?? 0);
+                        return (thu, chi);
+                    }
+                }
+            }
+            catch { }
+            return (0, 0);
         }
 
         public async Task<HoaDonViewModel> GetHoaDonByIdOrSoPhieuAsync(string idOrSoPhieu)
@@ -571,8 +614,50 @@ namespace QuanLyBar.Client.Services
                         tongBienPhi += (decimal)g.GIAVON;
                     }
 
+                    // Query TTHUCHI for Chi phí (CHI > 0)
+                    string sqlChi = @"
+                        SELECT 
+                            COALESCE(l.NAME, t.NAME, 'Chi khác') as TenLyDo,
+                            CAST(SUM(COALESCE(t.CHI, 0)) AS DECIMAL(18,0)) as TongChi
+                        FROM TTHUCHI t
+                        LEFT JOIN DLYDOTHUCHI l ON CAST(t.DLYDOTHUCHIID AS VARCHAR(50)) = CAST(l.ID AS VARCHAR(50))
+                        WHERE (t.STATUS IS NULL OR t.STATUS <> 0)
+                          AND COALESCE(t.CHI, 0) > 0
+                          AND CAST(t.NGAY AS DATE) >= @TuNgay 
+                          AND CAST(t.NGAY AS DATE) <= @DenNgay
+                        GROUP BY COALESCE(l.NAME, t.NAME, 'Chi khác')";
+
+                    var chiRows = (await conn.QueryAsync(sqlChi, parameters)).ToList();
+                    var chiDict = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var c in chiRows)
+                    {
+                        string k = (string)c.TENLYDO;
+                        decimal val = (decimal)c.TONGCHI;
+                        chiDict[k] = val;
+                    }
+
+                    string[] dinhPhiItems = { "Tiền nhà", "Tiền điện thoại", "Tiền nước", "Tiền điện", "Lương nhân viên", "Lương quản lý", "Thưởng nhân viên", "Chi lương nhân viên" };
                     decimal tongDinhPhi = 0;
+                    foreach (var item in dinhPhiItems)
+                    {
+                        if (chiDict.TryGetValue(item, out decimal val)) tongDinhPhi += val;
+                    }
+
+                    string[] chiKhacItems = { "Văn phòng phẩm, in ấn", "Xây dựng, sửa chữa, thiết kế", "Đồ dùng, dụng cụ", "Vận chuyển", "Ngoại giao", "Chi khác", "Đặt trước" };
                     decimal tongChiKhac = 0;
+                    foreach (var item in chiKhacItems)
+                    {
+                        if (chiDict.TryGetValue(item, out decimal val)) tongChiKhac += val;
+                    }
+                    foreach (var kv in chiDict)
+                    {
+                        if (!dinhPhiItems.Contains(kv.Key, StringComparer.OrdinalIgnoreCase) &&
+                            !chiKhacItems.Contains(kv.Key, StringComparer.OrdinalIgnoreCase))
+                        {
+                            tongChiKhac += kv.Value;
+                        }
+                    }
+
                     decimal tongChiPhi = tongDinhPhi + tongBienPhi + tongChiKhac;
                     decimal laiLo = tongDoanhThu - tongChiPhi;
 
@@ -636,26 +721,42 @@ namespace QuanLyBar.Client.Services
                     });
 
                     // A. Định phí
+                    decimal ptDinhPhiCp = tongChiPhi > 0 ? Math.Round((tongDinhPhi / tongChiPhi) * 100, 0) : 0;
+                    decimal ptDinhPhiDt = tongDoanhThu > 0 ? Math.Round((tongDinhPhi / tongDoanhThu) * 100, 0) : 0;
                     list.Add(new KqkdRowViewModel
                     {
                         Stt = "A.",
                         ChiTieu = "Định phí",
-                        PhanTramDt = "",
-                        GiaTri = "0",
+                        PhanTramDt = ptDinhPhiDt > 0 ? $"{ptDinhPhiDt}%" : "",
+                        GiaTri = tongDinhPhi.ToString("N0"),
                         PhanTram = "",
-                        PhanTramCp = "100%",
-                        TangGiam = "0",
+                        PhanTramCp = ptDinhPhiCp > 0 ? $"{ptDinhPhiCp}%" : "",
+                        TangGiam = tongDinhPhi.ToString("N0"),
                         KqThangTruoc = "0",
                         IsBold = true
                     });
 
-                    string[] dinhPhiItems = { "Tiền nhà", "Tiền điện thoại", "Tiền nước", "Tiền điện", "Lương nhân viên", "Lương quản lý", "Thưởng nhân viên", "Chi lương nhân viên" };
                     for (int i = 0; i < dinhPhiItems.Length; i++)
                     {
-                        list.Add(new KqkdRowViewModel { Stt = (i + 1).ToString(), ChiTieu = dinhPhiItems[i], GiaTri = "0", PhanTram = "-", TangGiam = "0", KqThangTruoc = "0" });
+                        string itemName = dinhPhiItems[i];
+                        chiDict.TryGetValue(itemName, out decimal val);
+                        decimal ptCp = tongChiPhi > 0 ? Math.Round((val / tongChiPhi) * 100, 0) : 0;
+                        decimal ptDt = tongDoanhThu > 0 ? Math.Round((val / tongDoanhThu) * 100, 0) : 0;
+                        list.Add(new KqkdRowViewModel
+                        {
+                            Stt = (i + 1).ToString(),
+                            ChiTieu = itemName,
+                            PhanTramDt = ptDt > 0 ? $"{ptDt}%" : "",
+                            GiaTri = val.ToString("N0"),
+                            PhanTram = val > 0 ? $"{ptCp}%" : "-",
+                            PhanTramCp = ptCp > 0 ? $"{ptCp}%" : "",
+                            TangGiam = val.ToString("N0"),
+                            KqThangTruoc = "0"
+                        });
                     }
 
                     // B. Biến phí
+                    decimal ptBienPhiCp = tongChiPhi > 0 ? Math.Round((tongBienPhi / tongChiPhi) * 100, 0) : 0;
                     list.Add(new KqkdRowViewModel
                     {
                         Stt = "B.",
@@ -663,7 +764,7 @@ namespace QuanLyBar.Client.Services
                         PhanTramDt = ptCpTrenDt > 0 ? $"{ptCpTrenDt}%" : "",
                         GiaTri = tongBienPhi.ToString("N0"),
                         PhanTram = "100%",
-                        PhanTramCp = "100%",
+                        PhanTramCp = ptBienPhiCp > 0 ? $"{ptBienPhiCp}%" : "",
                         TangGiam = tongBienPhi.ToString("N0"),
                         KqThangTruoc = "0",
                         IsBold = true
@@ -692,23 +793,38 @@ namespace QuanLyBar.Client.Services
                     }
 
                     // C. Chi khác
+                    decimal ptChiKhacCp = tongChiPhi > 0 ? Math.Round((tongChiKhac / tongChiPhi) * 100, 0) : 0;
+                    decimal ptChiKhacDt = tongDoanhThu > 0 ? Math.Round((tongChiKhac / tongDoanhThu) * 100, 0) : 0;
                     list.Add(new KqkdRowViewModel
                     {
                         Stt = "C.",
                         ChiTieu = "Chi khác",
-                        PhanTramDt = "",
-                        GiaTri = "0",
+                        PhanTramDt = ptChiKhacDt > 0 ? $"{ptChiKhacDt}%" : "",
+                        GiaTri = tongChiKhac.ToString("N0"),
                         PhanTram = "",
-                        PhanTramCp = "100%",
-                        TangGiam = "0",
+                        PhanTramCp = ptChiKhacCp > 0 ? $"{ptChiKhacCp}%" : "",
+                        TangGiam = tongChiKhac.ToString("N0"),
                         KqThangTruoc = "0",
                         IsBold = true
                     });
 
-                    string[] chiKhacItems = { "Văn phòng phẩm, in ấn", "Xây dựng, sửa chữa, thiết kế", "Đồ dùng, dụng cụ", "Vận chuyển", "Ngoại giao", "Chi khác", "Đặt trước" };
                     for (int i = 0; i < chiKhacItems.Length; i++)
                     {
-                        list.Add(new KqkdRowViewModel { Stt = (i + 1).ToString(), ChiTieu = chiKhacItems[i], GiaTri = "0", PhanTram = "-", TangGiam = "0", KqThangTruoc = "0" });
+                        string itemName = chiKhacItems[i];
+                        chiDict.TryGetValue(itemName, out decimal val);
+                        decimal ptCp = tongChiPhi > 0 ? Math.Round((val / tongChiPhi) * 100, 0) : 0;
+                        decimal ptDt = tongDoanhThu > 0 ? Math.Round((val / tongDoanhThu) * 100, 0) : 0;
+                        list.Add(new KqkdRowViewModel
+                        {
+                            Stt = (i + 1).ToString(),
+                            ChiTieu = itemName,
+                            PhanTramDt = ptDt > 0 ? $"{ptDt}%" : "",
+                            GiaTri = val.ToString("N0"),
+                            PhanTram = val > 0 ? $"{ptCp}%" : "-",
+                            PhanTramCp = ptCp > 0 ? $"{ptCp}%" : "",
+                            TangGiam = val.ToString("N0"),
+                            KqThangTruoc = "0"
+                        });
                     }
 
                     // III. LÃI/LỖ
@@ -813,6 +929,12 @@ namespace QuanLyBar.Client.Services
         public async Task<bool> AddMonToHoaDonAsync(string donHangId, PosMatHangViewModel matHang, decimal soLuong = 1, string chucNang = "Điều chỉnh hóa đơn")
         {
             if (string.IsNullOrEmpty(donHangId) || matHang == null || soLuong <= 0) return false;
+
+            if (matHang.IsTamKhoa)
+            {
+                MessageBox.Show($"Mặt hàng '{matHang.Name}' đang bị tạm khóa, không thể thêm vào bàn!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
 
             int userCreatedId = 1;
             if (SessionContext.CurrentUser != null && int.TryParse(SessionContext.CurrentUser.Id, out int parsedUserId))
@@ -1213,27 +1335,136 @@ namespace QuanLyBar.Client.Services
             string sqlOrderInfo = @"
                 SELECT 
                     CAST(COALESCE(TILEGIAMGIA, 0) AS DECIMAL(18,2)) as TiLeGiamGia,
-                    CAST(COALESCE(TIENGIAMGIA, 0) AS DECIMAL(18,0)) as TienGiamGia
+                    CAST(COALESCE(TIENGIAMGIA, 0) AS DECIMAL(18,0)) as TienGiamGia,
+                    CAST(COALESCE(TILETHUE, 0) AS DECIMAL(18,2)) as TiLeThue,
+                    CAST(COALESCE(TILEPHIDICHVU, 0) AS DECIMAL(18,2)) as TiLePhiDichVu
                 FROM TDONHANG 
                 WHERE CAST(ID AS VARCHAR(50)) = @DonHangId";
             var orderInfo = await conn.QueryFirstOrDefaultAsync(sqlOrderInfo, new { DonHangId = donHangId }, trans);
 
             decimal tiLeGiam = orderInfo?.TILEGIAMGIA ?? 0;
             decimal tienGiam = orderInfo?.TIENGIAMGIA ?? 0;
-            decimal newTongCong = Math.Max(0, newTienHang - (newTienHang * tiLeGiam / 100m) - tienGiam);
+            decimal tiLeThue = orderInfo?.TILETHUE ?? 0;
+            decimal tiLePhiDichVu = orderInfo?.TILEPHIDICHVU ?? 0;
+
+            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+            bool coThue = configs.TryGetValue("CoThueSuat", out var cts) && (cts == "1" || cts.Equals("true", StringComparison.OrdinalIgnoreCase));
+            if (tiLeThue == 0 && coThue && configs.TryGetValue("MacDinhThueSuat", out var mdts) && decimal.TryParse(mdts.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var thueVal))
+            {
+                tiLeThue = thueVal;
+            }
+
+            bool coPhi = configs.TryGetValue("CoPhiDichVu", out var cpdv) && (cpdv == "1" || cpdv.Equals("true", StringComparison.OrdinalIgnoreCase));
+            if (tiLePhiDichVu == 0 && coPhi && configs.TryGetValue("MacDinhPhiDichVu", out var mdpdv) && decimal.TryParse(mdpdv.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var phiVal))
+            {
+                tiLePhiDichVu = phiVal;
+            }
+
+            decimal sauGiam = Math.Max(0, newTienHang - (newTienHang * tiLeGiam / 100m) - tienGiam);
+            decimal tienPhiDichVu = (coPhi && tiLePhiDichVu > 0) ? Math.Round(sauGiam * (tiLePhiDichVu / 100m)) : 0;
+            decimal tienThue = (coThue && tiLeThue > 0) ? Math.Round((sauGiam + tienPhiDichVu) * (tiLeThue / 100m)) : 0;
+
+            decimal newTongCong = sauGiam + tienPhiDichVu + tienThue;
+
+            if (configs.TryGetValue("LamTronTien", out var lt) && decimal.TryParse(lt.Replace(",", "").Replace(".", "").Trim(), out var ltVal) && ltVal > 1 && newTongCong > 0)
+            {
+                newTongCong = Math.Round(newTongCong / ltVal, MidpointRounding.AwayFromZero) * ltVal;
+            }
 
             string sqlUpdateOrder = @"
                 UPDATE TDONHANG 
                 SET TIENHANG = @TienHang, 
+                    TILETHUE = @TiLeThue,
+                    TIENTHUE = @TienThue,
+                    TILEPHIDICHVU = @TiLePhiDichVu,
+                    PHIDICHVU = @TienPhiDichVu,
                     TONGCONG = @TongCong,
                     KHACHDUA = @TongCong
                 WHERE CAST(ID AS VARCHAR(50)) = @DonHangId";
             await conn.ExecuteAsync(sqlUpdateOrder, new 
             { 
                 TienHang = newTienHang, 
+                TiLeThue = tiLeThue,
+                TienThue = tienThue,
+                TiLePhiDichVu = tiLePhiDichVu,
+                TienPhiDichVu = tienPhiDichVu,
                 TongCong = newTongCong, 
                 DonHangId = donHangId 
             }, trans);
+        }
+
+        public async Task<bool> ThanhToanLaiHoaDonAsync(string donHangId, decimal tongCong, decimal tiLeThue = 0, decimal tienThue = 0, decimal tiLePhiDichVu = 0, decimal tienPhiDichVu = 0, decimal tiLeGiamGia = 0, decimal tienGiamGia = 0, decimal khachDua = 0, decimal theATM = 0, decimal chuyenKhoan = 0, decimal traLai = 0, bool isNo = false, string chucNang = "Điều chỉnh hóa đơn")
+        {
+            if (string.IsNullOrEmpty(donHangId)) return false;
+
+            int userCreatedId = 1;
+            if (SessionContext.CurrentUser != null && int.TryParse(SessionContext.CurrentUser.Id, out int parsedUserId))
+            {
+                userCreatedId = parsedUserId;
+            }
+
+            decimal khachDuaVal = khachDua > 0 ? khachDua : tongCong;
+            decimal tienMat = (!isNo && theATM == 0 && chuyenKhoan == 0) ? (khachDua > 0 ? Math.Min(khachDua - traLai, tongCong) : tongCong) : 0;
+
+            using (var conn = DbConnectionManager.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var trans = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string sqlUpdate = @"
+                            UPDATE TDONHANG 
+                            SET TONGCONG = @TongCong,
+                                KHACHDUA = @KhachDua,
+                                TIENMAT = @TienMat,
+                                THE = @TheATM,
+                                CHUYENKHOAN = @ChuyenKhoan,
+                                TRALAI = @TraLai,
+                                TILETHUE = @TiLeThue,
+                                TIENTHUE = @TienThue,
+                                TILEPHIDICHVU = @TiLePhiDichVu,
+                                PHIDICHVU = @TienPhiDichVu,
+                                TILEGIAMGIA = @TiLeGiamGia,
+                                TIENGIAMGIA = @TienGiamGia,
+                                GIOTHANHTOAN = CURRENT_TIMESTAMP,
+                                USERCREATEDID = @UserCreatedId
+                            WHERE CAST(ID AS VARCHAR(50)) = @DonHangId";
+
+                        await conn.ExecuteAsync(sqlUpdate, new
+                        {
+                            TongCong = tongCong,
+                            KhachDua = khachDuaVal,
+                            TienMat = tienMat,
+                            TheATM = theATM,
+                            ChuyenKhoan = chuyenKhoan,
+                            TraLai = traLai,
+                            TiLeThue = tiLeThue,
+                            TienThue = tienThue,
+                            TiLePhiDichVu = tiLePhiDichVu,
+                            TienPhiDichVu = tienPhiDichVu,
+                            TiLeGiamGia = tiLeGiamGia,
+                            TienGiamGia = tienGiamGia,
+                            UserCreatedId = userCreatedId,
+                            DonHangId = donHangId
+                        }, trans);
+
+                        trans.Commit();
+
+                        _ = LocalLuuVetService.GhiLuuVetAsync(
+                            donHangId, null, chucNang, 
+                            $"Thanh toán lại hóa đơn, Tổng cộng: {tongCong:N0}", 
+                            4, 0, 0, tongCong, "");
+
+                        return true;
+                    }
+                    catch
+                    {
+                        trans.Rollback();
+                        return false;
+                    }
+                }
+            }
         }
 
         public async Task<List<TongHopBanHangTheoNgayItem>> GetTongHopBanHangTheoNgayAsync(DateTime tuNgay, DateTime denNgay, string khoId = null, string nhanVienId = null, string khachHangId = null)

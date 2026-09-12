@@ -10,210 +10,302 @@
     <UserControl.Resources>
         <Style x:Key="TouchGroupHeader" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#145DA0"/>
-            <Setter Property="Padding" Value="6,4"/>
-            <Setter Property="Background" Value="#E8F2FB"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="4,4,4,4"/>
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
-        <Style x:Key="TileButton" TargetType="Border">
-            <Setter Property="Background" Value="#2F6F9F"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Margin" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                    <Setter Property="BorderBrush" Value="#F29F05"/>
-                    <Setter Property="BorderThickness" Value="3"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Padding" Value="16,0"/>
-            <Setter Property="FontSize" Value="13"/>
+
+        <Style x:Key="SettingGearButton" TargetType="Button">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTip" Value="Cài đặt thuộc tính &amp; vị trí"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="12">
+                            <TextBlock Text="⚙" FontSize="15" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#3A7080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RightSideButton" TargetType="Button">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#659BB0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.88"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Custom ScrollBar & ScrollViewer Style -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid x:Name="Bg" SnapsToDevicePixels="true">
+                            <!-- Track Track Container -->
+                            <Track x:Name="PART_Track" IsDirectionReversed="true" HorizontalAlignment="Center">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{x:Null}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Rectangle Fill="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#1C5E73" BorderBrush="#659BB0" BorderThickness="1.5" CornerRadius="12" Width="22"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Style="{x:Null}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Rectangle Fill="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollViewer">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Column="0" CanContentScroll="{TemplateBinding CanContentScroll}"/>
+                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" 
+                                       Cursor="Hand" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" 
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                       ViewportSize="{TemplateBinding ViewportHeight}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
-    <Grid Background="#F2F6F9">
+    <Grid Background="#004052">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#1769AA" Padding="12,8">
-            <TextBlock Text="THIẾT KẾ GIAO DIỆN MÀN CẢM ỨNG" 
-                       FontSize="15" FontWeight="Bold" Foreground="White"/>
-        </Border>
-
-        <!-- Main Content -->
-        <Grid Grid.Row="1" Margin="8">
+        <!-- Main Content Layout -->
+        <Grid Margin="6">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="170"/>
                 <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="200"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Column 1: Khu Vực -->
-            <Border Grid.Column="0" Margin="4" Background="#FFFFFF" BorderBrush="#C7D7E5" BorderThickness="1" CornerRadius="4">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top">
-                        <TextBlock x:Name="TxtHeaderKhuVuc" Text="KHU VỰC" Style="{StaticResource TouchGroupHeader}"/>
+            <!-- CỘT 1: KHU VỰC -->
+            <Grid Grid.Column="0" Margin="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <Grid Grid.Row="0" Margin="0,0,0,4">
+                    <TextBlock Text="KHU VỰC" Style="{StaticResource TouchGroupHeader}" HorizontalAlignment="Left"/>
+                    <Button x:Name="BtnSettingKhuVuc" Style="{StaticResource SettingGearButton}" HorizontalAlignment="Right" Click="BtnSettingKhuVuc_Click"/>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" x:Name="SvKhuVuc" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="ScrollViewer_SizeChanged">
+                    <ItemsControl x:Name="IcKhuVuc">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Height="{Binding ItemHeight, FallbackValue=75}" CornerRadius="12" Margin="0,0,0,6" Tag="KhuVuc"
+                                        Background="{Binding MauNenBrush}" MouseDown="Item_MouseDown" Cursor="Hand">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderBrush" Value="#A0D0E0"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#FFDF00"/>
+                                                    <Setter Property="BorderThickness" Value="3"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="13"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               TextWrapping="Wrap" TextAlignment="Center" Margin="6"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- CỘT 2: NHÓM HÀNG -->
+            <Grid Grid.Column="1" Margin="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,4">
+                    <TextBlock Text="NHÓM HÀNG" Style="{StaticResource TouchGroupHeader}" HorizontalAlignment="Left"/>
+                    <Button x:Name="BtnSettingNhomHang" Style="{StaticResource SettingGearButton}" HorizontalAlignment="Right" Click="BtnSettingNhomHang_Click"/>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" x:Name="SvNhomHang" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="ScrollViewer_SizeChanged">
+                    <ItemsControl x:Name="IcNhomHang">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Height="{Binding ItemHeight, FallbackValue=68}" CornerRadius="12" Margin="0,0,0,6" Tag="NhomHang"
+                                        Background="{Binding MauNenBrush}" MouseDown="Item_MouseDown" Cursor="Hand">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderBrush" Value="#A0D0E0"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#FFDF00"/>
+                                                    <Setter Property="BorderThickness" Value="3"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="Bold" FontSize="12"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               TextWrapping="Wrap" TextAlignment="Center" Margin="6"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- CỘT 3: MẶT HÀNG -->
+            <Grid Grid.Column="2" Margin="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,4">
+                    <TextBlock Text="MẶT HÀNG" Style="{StaticResource TouchGroupHeader}" HorizontalAlignment="Left"/>
+                    <Button x:Name="BtnSettingMatHang" Style="{StaticResource SettingGearButton}" HorizontalAlignment="Right" Click="BtnSettingMatHang_Click"/>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" x:Name="SvMatHang" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="ScrollViewer_SizeChanged">
+                    <ItemsControl x:Name="IcMatHang">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Height="{Binding ItemHeight, FallbackValue=62}" CornerRadius="10" Margin="3" Tag="MatHang"
+                                        Background="{Binding MauNenBrush}" MouseDown="Item_MouseDown" Cursor="Hand">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderBrush" Value="#B0E0F0"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#FFDF00"/>
+                                                    <Setter Property="BorderThickness" Value="3"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid Margin="4">
+                                        <DockPanel LastChildFill="True" Visibility="{Binding HasImageVisibility}">
+                                            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Name}" Foreground="White" FontSize="11" FontWeight="Bold"
+                                                       HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,2,0,0"/>
+                                            <Image Source="{Binding AnhImageSource}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </DockPanel>
+                                        <TextBlock Visibility="{Binding NoImageVisibility}" Text="{Binding Name}" Foreground="White" FontSize="12" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="4"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- CỘT 4: THUỘC TÍNH & NÚT THAO TÁC PHẢI -->
+            <Grid Grid.Column="3" Margin="6,3,3,3">
+                <DockPanel LastChildFill="True">
+                    <!-- Ảnh đại diện Box ở trên cùng -->
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                        <TextBlock Text="Ảnh:" Foreground="White" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="34"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" BorderBrush="#659BB0" BorderThickness="1" Height="140" Background="#002D3A" CornerRadius="4">
+                                <Image x:Name="ImgItemPreview" Stretch="Uniform" Margin="4"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Margin="4,0,0,0" VerticalAlignment="Top">
+                                <Button x:Name="BtnBrowseImage" Width="28" Height="28" Margin="0,0,0,4" 
+                                        Background="#1C5E73" BorderBrush="#659BB0" ToolTip="Chọn ảnh" Click="BtnBrowseImage_Click" Cursor="Hand">
+                                    <TextBlock Text="🖼" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                                <Button x:Name="BtnDeleteImage" Width="28" Height="28" Margin="0,0,0,4"
+                                        Background="#8B2626" BorderBrush="#D32F2F" ToolTip="Xóa ảnh" Click="BtnDeleteImage_Click" Cursor="Hand">
+                                    <TextBlock Text="✖" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
-                    <DockPanel DockPanel.Dock="Bottom" Background="#F3F7FA" LastChildFill="False">
-                        <Button x:Name="BtnSettingKhuVuc" DockPanel.Dock="Right" 
-                                Content="⚙ Cài đặt" Click="BtnSettingKhuVuc_Click"
-                                Margin="4" Padding="8,4" FontSize="12" Background="#E8F2FB" BorderBrush="#2F6F9F"/>
-                    </DockPanel>
-                    <ScrollViewer x:Name="SvKhuVuc" Background="#F3F8FC" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
-                        <ItemsControl x:Name="IcKhuVuc" Margin="4">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                        <Border Style="{StaticResource TileButton}" Height="50"
-                                            Background="{Binding MauNenBrush}"
-                                                Tag="KhuVuc"
-                                            MouseDown="Item_MouseDown">
-                                        <TextBlock Text="{Binding Name}" 
-                                                   Foreground="White" FontWeight="SemiBold"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   TextWrapping="Wrap" TextAlignment="Center" Margin="4"/>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
 
-            <!-- Column 2: Nhóm Hàng -->
-            <Border Grid.Column="1" Margin="4" Background="#FFFFFF" BorderBrush="#C7D7E5" BorderThickness="1" CornerRadius="4">
-                <DockPanel>
+                    <!-- Màu sắc Palette Popover nếu mở -->
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock x:Name="TxtHeaderNhomHang" Text="NHÓM MÓN" Style="{StaticResource TouchGroupHeader}"/>
-                    </StackPanel>
-                    <DockPanel DockPanel.Dock="Bottom" Background="#F3F7FA" LastChildFill="False">
-                        <Button x:Name="BtnSettingNhomHang" DockPanel.Dock="Right"
-                                Content="⚙ Cài đặt" Click="BtnSettingNhomHang_Click"
-                                Margin="4" Padding="8,4" FontSize="12" Background="#E8F2FB" BorderBrush="#2F6F9F"/>
-                    </DockPanel>
-                    <ScrollViewer x:Name="SvNhomHang" Background="#F5F8FC" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
-                        <ItemsControl x:Name="IcNhomHang" Margin="4">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                        <Border CornerRadius="6" Margin="4" Height="70" Tag="NhomHang"
-                                            Background="{Binding MauNenBrush}"
-                                            MouseDown="Item_MouseDown" Cursor="Hand">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                <Setter Property="BorderThickness" Value="1"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="#F29F05"/>
-                                                        <Setter Property="BorderThickness" Value="3"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" 
-                                                       Foreground="White" FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center" TextWrapping="Wrap" 
-                                                       TextAlignment="Center" Margin="4,0"/>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
-
-            <!-- Column 3: Mặt Hàng (main area) -->
-            <Border Grid.Column="2" Margin="4" Background="#FFFFFF" BorderBrush="#C7D7E5" BorderThickness="1" CornerRadius="4">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top">
-                        <TextBlock x:Name="TxtHeaderMatHang" Text="MẶT HÀNG" Style="{StaticResource TouchGroupHeader}"/>
-                    </StackPanel>
-                    <DockPanel DockPanel.Dock="Bottom" Background="#F3F7FA" LastChildFill="False">
-                        <Button x:Name="BtnSettingMatHang" DockPanel.Dock="Right"
-                                Content="⚙ Cài đặt" Click="BtnSettingMatHang_Click"
-                                Margin="4" Padding="8,4" FontSize="12" Background="#E8F2FB" BorderBrush="#2F6F9F"/>
-                    </DockPanel>
-                    <ScrollViewer x:Name="SvMatHang" Background="#F7FAFC" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
-                        <ItemsControl x:Name="IcMatHang" Margin="4">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Height="145" CornerRadius="6" Margin="4" Tag="MatHang"
-                                            MouseDown="Item_MouseDown" Cursor="Hand">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                <Setter Property="BorderThickness" Value="1"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="#F29F05"/>
-                                                        <Setter Property="BorderThickness" Value="3"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <Border.Background>
-                                            <Binding Path="MauNenBrush"/>
-                                        </Border.Background>
-                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Image Source="{Binding Anh}" Width="40" Height="40" Margin="0,4,0,4"
-                                                   Stretch="Uniform"/>
-                                            <TextBlock Text="{Binding Name}" 
-                                                       Foreground="White" FontSize="11" FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center" TextWrapping="Wrap" 
-                                                       TextAlignment="Center" Margin="4,0"/>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
-
-            <!-- Column 4: Thuộc tính / Preview -->
-            <Border Grid.Column="3" Margin="4" Background="#FFFFFF" BorderBrush="#C7D7E5" BorderThickness="1" CornerRadius="4">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="THUỘC TÍNH" Style="{StaticResource TouchGroupHeader}"/>
-                    <StackPanel Margin="8" VerticalAlignment="Top">
-                        <!-- Image Preview -->
-                        <TextBlock Text="Ảnh đại diện:" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <Border BorderBrush="#C7D7E5" BorderThickness="1" Width="160" Height="120" Margin="0,0,0,8" HorizontalAlignment="Left" Background="#F8FBFD">
-                            <Image x:Name="ImgItemPreview" Stretch="Uniform" Margin="4"/>
-                        </Border>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <Button x:Name="BtnBrowseImage" Content="📷 Chọn ảnh" Click="BtnBrowseImage_Click"
-                                    Padding="8,4" FontSize="12" Background="#E8F2FB" BorderBrush="#2F6F9F" Margin="0,0,4,0"/>
-                            <Button x:Name="BtnDeleteImage" Content="🗑 Xóa ảnh" Click="BtnDeleteImage_Click"
-                                    Padding="8,4" FontSize="12" Background="#FFEBEE" BorderBrush="#E53935"/>
-                        </StackPanel>
-
-                        <!-- Màu sắc -->
-                        <TextBlock Text="Màu nền:" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <Button x:Name="BtnMauSac" Content="🎨 Chọn màu" Click="BtnMauSac_Click"
-                                HorizontalAlignment="Left" Padding="8,4" FontSize="12" 
-                            Background="#E8F2FB" BorderBrush="#2F6F9F" Margin="0,0,0,8"/>
+                        <Button x:Name="BtnMauSac" Content="Màu sắc" Style="{StaticResource RightSideButton}" Background="#1C5E73" Click="BtnMauSac_Click"/>
                         
-                        <!-- Color Palette (hidden by default) -->
                         <Border x:Name="BorderColorPalette" Visibility="Collapsed" 
-                                BorderBrush="#C7D7E5" BorderThickness="1" CornerRadius="4" Padding="4" Margin="0,0,0,8" Background="#F8FBFD">
+                                BorderBrush="#659BB0" BorderThickness="1" CornerRadius="6" Padding="4" Margin="0,0,0,8" Background="#002D3A">
                             <ItemsControl x:Name="IcColorMatrix">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -222,7 +314,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Width="28" Height="28" CornerRadius="3" Margin="2"
+                                        <Border Width="26" Height="26" CornerRadius="3" Margin="2"
                                                 Background="{Binding}" Cursor="Hand"
                                                 MouseDown="ColorTile_MouseDown"/>
                                     </DataTemplate>
@@ -230,30 +322,13 @@
                             </ItemsControl>
                         </Border>
 
-                        <Separator Margin="0,8"/>
-
-                        <!-- Thiết kế vị trí -->
-                        <Button x:Name="BtnThietKeViTri" Content="📐 Thiết kế vị trí" Click="BtnThietKeViTri_Click"
-                                HorizontalAlignment="Stretch" Padding="8,6" FontSize="12" Margin="0,0,0,4"
-                                Background="#E8F5F1" BorderBrush="#2C8A72"/>
-                        <Button x:Name="BtnThietLapMauNhanh" Content="⚡ THIẾT LẬP MÀU NHANH" Click="BtnThietLapMauNhanh_Click"
-                                HorizontalAlignment="Stretch" Padding="8,6" FontSize="12" Margin="0,0,0,4"
-                                Background="#FFF4DE" BorderBrush="#D98900"/>
+                        <Button x:Name="BtnThietKeViTri" Content="THIẾT KẾ VỊ TRÍ" Style="{StaticResource RightSideButton}" Background="#C95B16" Click="BtnThietKeViTri_Click"/>
+                        <Button x:Name="BtnThietLapMauNhanh" Content="THIẾT LẬP MÀU NHANH" Style="{StaticResource RightSideButton}" Background="#005A44" Click="BtnThietLapMauNhanh_Click"/>
                     </StackPanel>
-                </DockPanel>
-            </Border>
-        </Grid>
 
-        <!-- Footer Buttons -->
-        <Border Grid.Row="2" Background="#E8F0F5" Padding="8,6">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="BtnRefreshLayout" Content="🔄 Tải lại" Click="BtnRefreshLayout_Click"
-                        Padding="16,6" FontSize="13" Margin="0,0,8,0"
-                        Background="#E8F2FB" BorderBrush="#2F6F9F" Foreground="#145DA0"/>
-                <Button x:Name="BtnSaveLayout" Content="💾 Lưu bố cục" Click="BtnSaveLayout_Click"
-                        Padding="16,6" FontSize="13" FontWeight="SemiBold"
-                        Background="#1769AA" Foreground="White" BorderThickness="0"/>
-            </StackPanel>
-        </Border>
+                    <Grid/>
+                </DockPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </UserControl>

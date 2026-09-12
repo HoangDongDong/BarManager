@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client.Views.TouchPOS
@@ -37,12 +38,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
             try
             {
-                var configs = LocalCauHinhService.LoadAllConfigsAsync().GetAwaiter().GetResult();
-                TxtMenuCompanyName.Text = configs.TryGetValue("TEN_CUAHANG", out var companyName)
-                    ? companyName
-                    : "QUẢN LÝ BAR";
-                TxtMenuStatusLeft.Text = $"Nhân viên: {SessionContext.CurrentUser?.TenHienThi}";
-                TxtMenuStatusRight.Text = DateTime.Now.ToString("HH:mm dd/MM/yyyy");
+                TxtMenuHeaderTitle.Text = "PHẦN MỀM QUẢN LÝ BAR, NHÀ HÀNG V6.0 TÂN AN PHÁT - HOTLINE: 0967041111";
+                TxtFooterUser.Text = SessionContext.CurrentUser?.TenHienThi ?? "Administrator";
+                TxtFooterDb.Text = "DEMO";
+                SelectMenuCategory(null);
             }
             catch { }
         }
@@ -131,11 +130,11 @@ namespace QuanLyBar.Client.Views.TouchPOS
             TxtTotalFinal.Text = (tamTinh - giamGia).ToString("N0") + "đ";
         }
 
-        private void DoLogin(string userName, string password)
+        private async void DoLogin(string userName, string password)
         {
             try
             {
-                var user = LocalAuthService.LoginAsync(userName, password).GetAwaiter().GetResult();
+                var user = await LocalAuthService.LoginAsync(userName, password);
                 if (user != null)
                 {
                     SessionContext.CurrentUser = user;
@@ -156,18 +155,41 @@ namespace QuanLyBar.Client.Views.TouchPOS
         // ===== LOGIN EVENTS =====
         private void BtnPowerOff_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Tắt ứng dụng?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (QuanLyBar.Views.TouchPOS.TouchConfirmWindow.Show(this, "BẠN CÓ MUỐN THOÁT KHỎI HỆ THỐNG KHÔNG?"))
                 Application.Current.Shutdown();
         }
 
         private void BtnTouchKbUser_Click(object sender, RoutedEventArgs e)
         {
-            // Show touch keyboard for username
+            TxtLoginUser.Focus();
+            OpenOSK();
         }
 
         private void BtnTouchKbPass_Click(object sender, RoutedEventArgs e)
         {
-            // Show touch keyboard for password
+            TxtLoginPass.Focus();
+            OpenOSK();
+        }
+
+        private void OpenOSK()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "osk.exe",
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
+
+        private void TxtLoginInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                DoLogin(TxtLoginUser.Text.Trim(), TxtLoginPass.Password);
+            }
         }
 
         private void BtnSubmitLogin_Click(object sender, RoutedEventArgs e)
@@ -182,20 +204,479 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
 
         // ===== MENU EVENTS =====
-        private void BtnMenuCategory_Click(object sender, RoutedEventArgs e) { }
+        private string? _currentSelectedCategory = null;
 
+        private void BtnMenuCategory_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string categoryTag)
+            {
+                if (_currentSelectedCategory == categoryTag)
+                {
+                    SelectMenuCategory(null);
+                }
+                else
+                {
+                    SelectMenuCategory(categoryTag);
+                }
+            }
+        }
+
+        private void SelectMenuCategory(string? categoryTag)
+        {
+            _currentSelectedCategory = categoryTag;
+
+            // Reset styles
+            var tealBrush = (Brush)new BrushConverter().ConvertFromString("#009688")!;
+            var orangeBrush = (Brush)new BrushConverter().ConvertFromString("#E65100")!;
+
+            BtnMenuHeThong.Background = categoryTag == "HeThong" ? orangeBrush : tealBrush;
+            BtnMenuQuanTri.Background = categoryTag == "QuanTri" ? orangeBrush : tealBrush;
+            BtnMenuBaoCao.Background = categoryTag == "BaoCao" ? orangeBrush : tealBrush;
+            BtnMenuTroGiup.Background = categoryTag == "TroGiup" ? orangeBrush : tealBrush;
+
+            // Show center panel corresponding to category
+            PanelCenterHeThong.Visibility = categoryTag == "HeThong" ? Visibility.Visible : Visibility.Collapsed;
+            PanelCenterCoSoDuLieu.Visibility = Visibility.Collapsed;
+            PanelCenterQuanTri.Visibility = categoryTag == "QuanTri" ? Visibility.Visible : Visibility.Collapsed;
+            PanelCenterBaoCao.Visibility = categoryTag == "BaoCao" ? Visibility.Visible : Visibility.Collapsed;
+            HideAllSubReportPanels();
+            PanelCenterTroGiup.Visibility = categoryTag == "TroGiup" ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void HideAllSubReportPanels()
+        {
+            PanelSubBaoCaoQuy.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoDanhMuc.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoBanHang.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoDatHang.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoKhoHang.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoCongNo.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoQuanTri.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoBieuDo.Visibility = Visibility.Collapsed;
+
+            // Sub-level 3 panels (Kho hàng)
+            PanelSubBaoCaoXuatBanHang.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoKiemKe.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoXuatKhac.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoNhapHang.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoChuyenKho.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoTheoHSD.Visibility = Visibility.Collapsed;
+
+            // Sub-level 3 panels (Bán hàng)
+            PanelSubBaoCaoTheoNhanVienPhucVu.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoTheoKhuVuc.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoTheoThuNgan.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoTheoKhachHang.Visibility = Visibility.Collapsed;
+            PanelSubBaoCaoBanHangKhac.Visibility = Visibility.Collapsed;
+        }
+
+        // ===== HỆ THỐNG HANDLERS =====
+        private void BtnMenuCoSoDuLieuSub_Click(object sender, RoutedEventArgs e)
+        {
+            PanelCenterHeThong.Visibility = Visibility.Collapsed;
+            PanelCenterCoSoDuLieu.Visibility = Visibility.Visible;
+        }
+
+        private void BtnMenuBackHeThong_Click(object sender, RoutedEventArgs e)
+        {
+            PanelCenterCoSoDuLieu.Visibility = Visibility.Collapsed;
+            PanelCenterHeThong.Visibility = Visibility.Visible;
+        }
+        private void BtnMenuCoSoDuLieu_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Cấu hình hệ thống", "View", this)) return;
+            try
+            {
+                var win = new QuanLyBar.Client.DataManagerWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi quản lý CSDL: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnMenuTaoMoiCsdl_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Cấu hình hệ thống", "View", this)) return;
+            try
+            {
+                var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Database file (*.fdb)|*.fdb|All files (*.*)|*.*",
+                    Title = "Tạo mới cơ sở dữ liệu trắng",
+                    DefaultExt = ".fdb",
+                    FileName = ""
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    string filename = saveFileDialog.FileName;
+                    string dbName = System.IO.Path.GetFileNameWithoutExtension(filename);
+
+                    string templatePath = @"D:\QuanLyBar\frontend\CSDL\TEMPLATE.FDB";
+                    if (!System.IO.File.Exists(templatePath))
+                    {
+                        templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CSDL", "TEMPLATE.FDB");
+                    }
+
+                    if (System.IO.File.Exists(templatePath))
+                    {
+                        System.IO.File.Copy(templatePath, filename, true);
+                        MessageBox.Show($"Đã tạo mới cơ sở dữ liệu trắng thành công tại:\n{filename}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Không tìm thấy file CSDL mẫu TEMPLATE.FDB!", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tạo mới CSDL: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnMenuSaoLuuCsdl_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Cấu hình hệ thống", "View", this)) return;
+            try
+            {
+                var saveDlg = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Backup file (*.fbk;*.gbk)|*.fbk;*.gbk|All files (*.*)|*.*",
+                    Title = "Sao lưu cơ sở dữ liệu",
+                    FileName = $"SAOLUU_CSDL_{DateTime.Now:yyyyMMdd_HHmmss}.fbk"
+                };
+
+                if (saveDlg.ShowDialog() == true)
+                {
+                    string currentDbPath = QuanLyBar.Client.Services.DbConnectionManager.CurrentConfig?.Path ?? "";
+                    if (string.IsNullOrEmpty(currentDbPath) || !System.IO.File.Exists(currentDbPath))
+                    {
+                        currentDbPath = @"D:\taifirebird\HIHI.FDB";
+                    }
+
+                    if (System.IO.File.Exists(currentDbPath))
+                    {
+                        System.IO.File.Copy(currentDbPath, saveDlg.FileName, true);
+                        MessageBox.Show($"Sao lưu cơ sở dữ liệu thành công!\nFile lưu tại: {saveDlg.FileName}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Không tìm thấy file CSDL hiện tại để sao lưu!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi sao lưu CSDL: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnMenuPhucHoiCsdl_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Cấu hình hệ thống", "View", this)) return;
+            try
+            {
+                var win = new QuanLyBar.Client.Views.KhoiPhucCsdlWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khôi phục CSDL: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnMenuDoiMatKhau_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var win = new QuanLyBar.Client.Views.NguoiDungPhanQuyen.DoiMatKhauWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi Đổi mật khẩu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ===== QUẢN TRỊ HANDLERS =====
+        private void BtnMenuXoaDuLieu_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Xóa dữ liệu", "View", this)) return;
+            MessageBox.Show("Chức năng Xóa dữ liệu hệ thống.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnMenuCongCuDeveloper_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Công cụ nhà phát triển", "View", this)) return;
+            MessageBox.Show("Công cụ nhà phát triển hệ thống.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnMenuNguoiDungPhanQuyen_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Quản lý người dùng", "View", this)) return;
+            try
+            {
+                var win = new QuanLyBar.Client.Views.NguoiDungPhanQuyen.NguoiDungPhanQuyenWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi Người dùng & Phân quyền: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnMenuCauHinhHeThong_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Cấu hình hệ thống", "View", this)) return;
+            try
+            {
+                var win = new QuanLyBar.Client.Views.CauHinhHeThong.CauHinhToanHeThongWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi Cấu hình hệ thống: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ===== BÁO CÁO HANDLERS =====
+        private void BtnSubReportGroup_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string group)
+            {
+                PanelCenterBaoCao.Visibility = Visibility.Collapsed;
+                HideAllSubReportPanels();
+
+                switch (group)
+                {
+                    case "BaoCaoQuy": PanelSubBaoCaoQuy.Visibility = Visibility.Visible; break;
+                    case "BaoCaoDanhMuc": PanelSubBaoCaoDanhMuc.Visibility = Visibility.Visible; break;
+                    case "BaoCaoBanHang": PanelSubBaoCaoBanHang.Visibility = Visibility.Visible; break;
+                    case "BaoCaoDatHang": PanelSubBaoCaoDatHang.Visibility = Visibility.Visible; break;
+                    case "BaoCaoKhoHang": PanelSubBaoCaoKhoHang.Visibility = Visibility.Visible; break;
+                    case "BaoCaoCongNo": PanelSubBaoCaoCongNo.Visibility = Visibility.Visible; break;
+                    case "BaoCaoQuanTri": PanelSubBaoCaoQuanTri.Visibility = Visibility.Visible; break;
+                    case "BaoCaoBieuDo": PanelSubBaoCaoBieuDo.Visibility = Visibility.Visible; break;
+
+                    // Level 3 (Kho hàng)
+                    case "BaoCaoXuatBanHang": PanelSubBaoCaoXuatBanHang.Visibility = Visibility.Visible; break;
+                    case "BaoCaoKiemKe": PanelSubBaoCaoKiemKe.Visibility = Visibility.Visible; break;
+                    case "BaoCaoXuatKhac": PanelSubBaoCaoXuatKhac.Visibility = Visibility.Visible; break;
+                    case "BaoCaoNhapHang": PanelSubBaoCaoNhapHang.Visibility = Visibility.Visible; break;
+                    case "BaoCaoChuyenKho": PanelSubBaoCaoChuyenKho.Visibility = Visibility.Visible; break;
+                    case "BaoCaoTheoHSD": PanelSubBaoCaoTheoHSD.Visibility = Visibility.Visible; break;
+
+                    // Level 3 (Bán hàng)
+                    case "BaoCaoTheoNhanVienPhucVu": PanelSubBaoCaoTheoNhanVienPhucVu.Visibility = Visibility.Visible; break;
+                    case "BaoCaoTheoKhuVuc": PanelSubBaoCaoTheoKhuVuc.Visibility = Visibility.Visible; break;
+                    case "BaoCaoTheoThuNgan": PanelSubBaoCaoTheoThuNgan.Visibility = Visibility.Visible; break;
+                    case "BaoCaoTheoKhachHang": PanelSubBaoCaoTheoKhachHang.Visibility = Visibility.Visible; break;
+                    case "BaoCaoBanHangKhac": PanelSubBaoCaoBanHangKhac.Visibility = Visibility.Visible; break;
+                }
+            }
+        }
+
+        private void BtnBackBaoCaoMain_Click(object sender, RoutedEventArgs e)
+        {
+            HideAllSubReportPanels();
+            PanelCenterBaoCao.Visibility = Visibility.Visible;
+        }
+
+        private void BtnBackBaoCaoBanHang_Click(object sender, RoutedEventArgs e)
+        {
+            HideAllSubReportPanels();
+            PanelSubBaoCaoBanHang.Visibility = Visibility.Visible;
+        }
+
+        private void BtnBackBaoCaoKhoHang_Click(object sender, RoutedEventArgs e)
+        {
+            HideAllSubReportPanels();
+            PanelSubBaoCaoKhoHang.Visibility = Visibility.Visible;
+        }
+
+        private void BtnOpenReport_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string reportTitle)
+            {
+                if (!LocalPhanQuyenService.CheckPermissionAndAlert(reportTitle, "View", this)) return;
+
+                UIElement? content = null;
+                switch (reportTitle)
+                {
+                    case "DANH SÁCH PHIẾU THU THEO NGÀY":
+                    case "DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI":
+                    case "DANH SÁCH PHIẾU CHI THEO NGÀY":
+                    case "DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI":
+                    case "TỔNG HỢP THU CHI THEO NGÀY":
+                    case "TỔNG HỢP THU CHI THEO LÝ DO":
+                    case "BÁO CÁO TỒN QUỸ":
+                        content = new QuanLyBar.Client.Views.BaoCaoQuy.BaoCaoPhieuThuChiControl(reportTitle);
+                        break;
+
+                    case "DANH SÁCH KHÁCH HÀNG THEO NHÓM":
+                    case "DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN":
+                    case "DANH SÁCH NHÀ CUNG CẤP THEO NHÓM":
+                    case "DANH SÁCH ĐỢT KHUYẾN MẠI":
+                    case "DANH SÁCH MẶT HÀNG THEO NHÓM":
+                    case "DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT":
+                    case "KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT":
+                    case "BÁO CÁO CẤU HÌNH BÀN KHU VỰC":
+                    case "CÔNG THỨC ĐỊNH LƯỢNG":
+                    case "BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG":
+                        content = new QuanLyBar.Client.Views.BaoCaoDanhMuc.BaoCaoMatHangControl(reportTitle);
+                        break;
+
+                    case "TỔNG HỢP BÁN HÀNG THEO NGÀY":
+                    case "TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY":
+                    case "BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY":
+                    case "TỔNG HỢP DOANH THU THEO LOẠI ĐỒ":
+                    case "TỔNG HỢP DOANH THU CHƯA THANH TOÁN":
+                    case "BÁO CÁO BÁN HÀNG THEO NGÀY":
+                    case "TỔNG HỢP BÁN THEO NHÂN VIÊN":
+                    case "TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN":
+                    case "TỔNG HỢP BÁN HÀNG THEO KHU VỰC":
+                    case "TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG":
+                        content = new QuanLyBar.Client.Views.BaoCaoBanHang.BaoCaoBanHangTheoNgayControl(reportTitle);
+                        break;
+
+                    case "DANH SÁCH ĐẶT HÀNG THEO NGÀY":
+                    case "DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG":
+                    case "TỔNG HỢP ĐẶT HÀNG THEO NGÀY":
+                    case "TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG":
+                    case "TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG":
+                    case "TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY":
+                        content = new QuanLyBar.Client.Views.BaoCaoDatHang.BaoCaoDanhSachDatHangTheoNgayControl(reportTitle);
+                        break;
+
+                    case "BÁO CÁO HÀNG TỒN KHO":
+                    case "BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN":
+                    case "BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT":
+                    case "THẺ KHO":
+                    case "DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY":
+                    case "DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY":
+                        content = new QuanLyBar.Client.Views.BaoCaoKhoHang.BaoCaoHangTonKhoControl();
+                        break;
+
+                    case "BÁO CÁO CÔNG NỢ KHÁCH HÀNG":
+                    case "TỔNG HỢP CÔNG NỢ KHÁCH HÀNG":
+                    case "ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG":
+                    case "BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP":
+                    case "TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP":
+                    case "ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP":
+                        content = new QuanLyBar.Client.Views.BaoCaoCongNo.BaoCaoTongHopCongNoKhachHangControl();
+                        break;
+
+                    case "BÁO CÁO KẾT QUẢ KINH DOANH":
+                    case "TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)":
+                    case "TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)":
+                    case "CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)":
+                    case "BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT":
+                    case "BÁO CÁO BÁN HÀNG THEO GIỜ":
+                    case "DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI":
+                        content = new QuanLyBar.Client.Views.TongHopKqkdControl();
+                        break;
+
+                    default:
+                        MessageBox.Show($"Báo cáo '{reportTitle}' đang được mở.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                        return;
+                }
+
+                if (content != null)
+                {
+                    OpenReportWindow(content, reportTitle);
+                }
+            }
+        }
+
+        private void OpenReportWindow(UIElement content, string title)
+        {
+            try
+            {
+                var win = new QuanLyBar.Views.TouchPOS.TouchReportViewerWindow(content, title);
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi hiển thị báo cáo: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ===== TRỢ GIÚP HANDLERS =====
+        private void BtnMenuHuongDanSuDung_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Hướng dẫn sử dụng Phần mềm Quản Lý Bar / Nhà Hàng V6.0.", "Hướng dẫn sử dụng", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnMenuHoTroTeamViewer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = "https://teamviewer.com", UseShellExecute = true });
+            }
+            catch
+            {
+                MessageBox.Show("Hỗ trợ kỹ thuật từ xa qua TeamViewer / UltraViewer.\nHotline: 0967041111", "Hỗ trợ kỹ thuật", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void BtnMenuDangKyBanQuyen_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Đăng ký bản quyền Phần mềm Quản Lý Bar V6.0 Tân An Phát.\nHotline hỗ trợ: 0967041111", "Đăng ký bản quyền", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnMenuThongTinPhanMem_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("PHẦN MỀM QUẢN LÝ BAR, NHÀ HÀNG V6.0 TÂN AN PHÁT\nHotline: 0967041111\nPhiên bản: 6.0.0.0", "Thông tin phần mềm", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        // ===== CỘT BÊN PHẢI HANDLERS =====
         private void BtnMenuSuDungDichVu_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Hóa đơn bán hàng", "View", this)) return;
             ShowTableScreen();
         }
 
-        private void BtnMenuTonKho_Click(object sender, RoutedEventArgs e) { }
-        private void BtnMenuGhiChu_Click(object sender, RoutedEventArgs e) { }
+        private void BtnMenuTonKho_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Tồn kho", "View", this)) return;
+            try
+            {
+                var win = new TouchTonKhoWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi mở giao diện Tồn kho: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnMenuGhiChu_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var win = new QuanLyBar.Client.Views.TienIch.GhiChuNhanhWindow();
+                win.Owner = this;
+                win.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi Ghi chú nhanh: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
         private void BtnMenuDangXuat_Click(object sender, RoutedEventArgs e)
         {
-            SessionContext.CurrentUser = null;
-            ShowLoginScreen();
+            BtnLogoutPOS_Click(sender, e);
         }
 
         // ===== TABLE EVENTS =====
@@ -240,8 +721,11 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
         private void BtnLogoutPOS_Click(object sender, RoutedEventArgs e)
         {
-            SessionContext.CurrentUser = null;
-            ShowLoginScreen();
+            if (QuanLyBar.Views.TouchPOS.TouchConfirmWindow.Show(this, "BẠN CÓ MUỐN ĐĂNG XUẤT KHỎI HỆ THỐNG KHÔNG?"))
+            {
+                SessionContext.CurrentUser = null;
+                ShowLoginScreen();
+            }
         }
 
         // ===== ORDER EVENTS =====

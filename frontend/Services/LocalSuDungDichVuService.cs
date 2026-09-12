@@ -1075,7 +1075,8 @@ namespace QuanLyBar.Client.Services
                             COALESCE(dvt.NAME, 'đĩa') as DonViTinh,
                             m.DNHOMMATHANGID as NhomMatHangId,
                             COALESCE(n.DLOAIDOID, 1) as LoaiDoId,
-                            COALESCE(ld.NAME, 'Đồ ăn') as LoaiDoName
+                            COALESCE(ld.NAME, 'Đồ ăn') as LoaiDoName,
+                            m.TAMKHOA as Tamkhoa
                         FROM DMATHANG m
                         LEFT JOIN DDONVITINH dvt ON m.DDONVITINHID = dvt.ID
                         LEFT JOIN DNHOMMATHANG n ON m.DNHOMMATHANGID = n.ID

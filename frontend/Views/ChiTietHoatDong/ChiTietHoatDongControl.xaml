@@ -120,19 +120,6 @@
                             <TextBlock Text="Save" VerticalAlignment="Center" FontWeight="SemiBold"/>
                         </StackPanel>
                     </Button>
-                    <Separator Width="1" Margin="6,2" Background="#b0c4de"/>
-                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Gửi Email">
-                        <TextBlock Text="✉️" FontSize="14"/>
-                    </Button>
-                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Tìm kiếm">
-                        <TextBlock Text="🔍" FontSize="14"/>
-                    </Button>
-                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Sao chép">
-                        <TextBlock Text="📑" FontSize="14"/>
-                    </Button>
-                    <Button Margin="2,0" Padding="4,2" Background="Transparent" BorderThickness="0" ToolTip="Cài đặt trang">
-                        <TextBlock Text="📄" FontSize="14"/>
-                    </Button>
                 </StackPanel>
 
                 <!-- Phân trang ở giữa -->
@@ -157,8 +144,8 @@
                 </LinearGradientBrush>
             </ScrollViewer.Background>
 
-            <!-- Container chứa các trang A4 -->
-            <StackPanel x:Name="PagesStackPanel" Orientation="Horizontal" HorizontalAlignment="Center" Margin="25"/>
+            <!-- Container chứa các trang A4 xếp dọc cách trang rời -->
+            <StackPanel x:Name="PagesStackPanel" Orientation="Vertical" HorizontalAlignment="Center" Margin="25"/>
         </ScrollViewer>
     </Grid>
 </UserControl>

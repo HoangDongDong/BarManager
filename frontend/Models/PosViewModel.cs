@@ -215,6 +215,8 @@ namespace QuanLyBar.Client.Models
         public string NhomMatHangId { get; set; }
         public int LoaiDoId { get; set; } = 1;
         public string LoaiDoName { get; set; } = "Đồ ăn";
+        public string Tamkhoa { get; set; }
+        public bool IsTamKhoa => Tamkhoa == "1" || Tamkhoa == "True" || Tamkhoa == "true";
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string prop = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));

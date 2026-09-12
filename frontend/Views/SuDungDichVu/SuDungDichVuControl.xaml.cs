@@ -1031,6 +1031,14 @@ namespace QuanLyBar.Client.Views
 
         private async void AddItemToCurrentOrder(PosMatHangViewModel matHang)
         {
+            if (matHang == null) return;
+
+            if (matHang.IsTamKhoa)
+            {
+                MessageBox.Show($"Mặt hàng '{matHang.Name}' đang bị tạm khóa, không thể thêm vào bàn!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (_currentBan == null)
             {
                 MessageBox.Show("Vui lòng chọn một bàn trước khi thêm món!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);

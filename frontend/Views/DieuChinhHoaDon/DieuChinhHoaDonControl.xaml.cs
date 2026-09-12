@@ -21,6 +21,13 @@ namespace QuanLyBar.Client.Views
         private ObservableCollection<DichVuYeuCauViewModel> _dichVuList = new ObservableCollection<DichVuYeuCauViewModel>();
         private string _selectedNhomId;
 
+        private bool _coThueSuat = false;
+        private decimal _macDinhThueSuat = 0;
+        private bool _coPhiDichVu = false;
+        private decimal _macDinhPhiDichVu = 0;
+        private decimal _lamTronTien = 0;
+        private bool _isUpdatingTotals = false;
+
         public DieuChinhHoaDonControl()
         {
             InitializeComponent();
@@ -33,8 +40,43 @@ namespace QuanLyBar.Client.Views
             dpTuNgay.SelectedDate = DateTime.Today;
             dpDenNgay.SelectedDate = DateTime.Today;
 
+            await RefreshSystemConfigsAsync();
             await LoadDataAsync();
             await LoadMenuTreeAsync();
+        }
+
+        private async Task RefreshSystemConfigsAsync()
+        {
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                _coThueSuat = configs.TryGetValue("CoThueSuat", out var cts) && (cts == "1" || cts.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (configs.TryGetValue("MacDinhThueSuat", out var mdts) && decimal.TryParse(mdts.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var thueVal))
+                {
+                    _macDinhThueSuat = thueVal;
+                }
+                else _macDinhThueSuat = 0;
+
+                _coPhiDichVu = configs.TryGetValue("CoPhiDichVu", out var cpdv) && (cpdv == "1" || cpdv.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (configs.TryGetValue("MacDinhPhiDichVu", out var mdpdv) && decimal.TryParse(mdpdv.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var phiVal))
+                {
+                    _macDinhPhiDichVu = phiVal;
+                }
+                else _macDinhPhiDichVu = 0;
+
+                if (configs.TryGetValue("LamTronTien", out var lt) && decimal.TryParse(lt.Replace(",", "").Replace(".", "").Trim(), out var ltVal) && ltVal > 0)
+                {
+                    _lamTronTien = ltVal;
+                }
+                else _lamTronTien = 0;
+
+                if (LblThueVAT != null) LblThueVAT.Visibility = _coThueSuat ? Visibility.Visible : Visibility.Collapsed;
+                if (PanelThueVATInput != null) PanelThueVATInput.Visibility = _coThueSuat ? Visibility.Visible : Visibility.Collapsed;
+
+                if (LblPhiDichVu != null) LblPhiDichVu.Visibility = _coPhiDichVu ? Visibility.Visible : Visibility.Collapsed;
+                if (PanelPhiDichVuInput != null) PanelPhiDichVuInput.Visibility = _coPhiDichVu ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch { }
         }
 
         private async void BtnTaiDuLieu_Click(object sender, RoutedEventArgs e)
@@ -153,6 +195,7 @@ namespace QuanLyBar.Client.Views
         {
             if (DgHoaDon.SelectedItem is HoaDonViewModel selectedHoaDon)
             {
+                _isUpdatingTotals = true;
                 try
                 {
                     // 1. Hiển thị thông tin chung lên phần Header
@@ -168,10 +211,26 @@ namespace QuanLyBar.Client.Views
                     if (TxtSoKhach != null) TxtSoKhach.Text = selectedHoaDon.SoKhach > 0 ? selectedHoaDon.SoKhach.ToString() : "0";
                     if (TxtKhachHang != null) TxtKhachHang.Text = selectedHoaDon.KhachHang ?? "";
 
+                    if (selectedHoaDon.TiLeThue == 0 && _coThueSuat && _macDinhThueSuat > 0)
+                    {
+                        selectedHoaDon.TiLeThue = _macDinhThueSuat;
+                    }
+                    if (selectedHoaDon.TiLePhiDichVu == 0 && _coPhiDichVu && _macDinhPhiDichVu > 0)
+                    {
+                        selectedHoaDon.TiLePhiDichVu = _macDinhPhiDichVu;
+                    }
+
                     // 2. Hiển thị thông tin Tổng kết ở Footer
                     TxtTienHang.Text = selectedHoaDon.TienHang.ToString("N0");
-                    TxtGiamGiaPt.Text = selectedHoaDon.TiLeGiamGia.ToString("N0");
+                    TxtGiamGiaPt.Text = selectedHoaDon.TiLeGiamGia.ToString("0.##");
                     TxtGiamGia.Text = selectedHoaDon.TienGiamGia.ToString("N0");
+
+                    if (TxtPhiDichVuPt != null) TxtPhiDichVuPt.Text = selectedHoaDon.TiLePhiDichVu.ToString("0.##");
+                    if (TxtPhiDichVu != null) TxtPhiDichVu.Text = selectedHoaDon.TienPhiDichVu.ToString("N0");
+
+                    if (TxtThueVATPt != null) TxtThueVATPt.Text = selectedHoaDon.TiLeThue.ToString("0.##");
+                    if (TxtThueVAT != null) TxtThueVAT.Text = selectedHoaDon.TienThue.ToString("N0");
+
                     TxtTongCong.Text = selectedHoaDon.TongCong.ToString("N0");
                     TxtGhiChu.Text = selectedHoaDon.GhiChu ?? "";
 
@@ -180,6 +239,11 @@ namespace QuanLyBar.Client.Views
                     {
                         var chiTietList = await _hoaDonService.GetChiTietHoaDonAsync(selectedHoaDon.Id);
                         DgChiTiet.ItemsSource = chiTietList;
+                        if (chiTietList != null)
+                        {
+                            decimal tienHang = chiTietList.Sum(x => x.ThanhTien);
+                            CalculateTotalsForSelectedHoaDon(selectedHoaDon, tienHang);
+                        }
                     }
                     else
                     {
@@ -189,6 +253,10 @@ namespace QuanLyBar.Client.Views
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Lỗi tải chi tiết hóa đơn: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    _isUpdatingTotals = false;
                 }
             }
         }
@@ -237,17 +305,91 @@ namespace QuanLyBar.Client.Views
                 if (chiTietList != null)
                 {
                     decimal tienHang = chiTietList.Sum(x => x.ThanhTien);
-                    selectedHoaDon.TienHang = tienHang;
-                    
-                    decimal giamPt = selectedHoaDon.TiLeGiamGia;
-                    decimal giamTien = selectedHoaDon.TienGiamGia;
-                    decimal tongCong = Math.Max(0, tienHang - (tienHang * giamPt / 100m) - giamTien);
-                    selectedHoaDon.TongCong = tongCong;
-
-                    TxtTienHang.Text = tienHang.ToString("N0");
-                    TxtTongCong.Text = tongCong.ToString("N0");
+                    CalculateTotalsForSelectedHoaDon(selectedHoaDon, tienHang);
                 }
             }
+        }
+
+        private void CalculateTotalsForSelectedHoaDon(HoaDonViewModel selectedHoaDon, decimal? inputTienHang = null)
+        {
+            if (selectedHoaDon == null) return;
+            bool wasUpdating = _isUpdatingTotals;
+            _isUpdatingTotals = true;
+            try
+            {
+                decimal tienHang = inputTienHang ?? selectedHoaDon.TienHang;
+                decimal giamPt = ParseNumber(TxtGiamGiaPt?.Text, true);
+                decimal giamTien = ParseNumber(TxtGiamGia?.Text);
+                
+                decimal sauGiam = Math.Max(0, tienHang - (tienHang * giamPt / 100m) - giamTien);
+                
+                decimal phiPt = _coPhiDichVu ? (TxtPhiDichVuPt != null ? ParseNumber(TxtPhiDichVuPt.Text, true) : selectedHoaDon.TiLePhiDichVu) : 0;
+                decimal tienPhi = 0;
+                if (_coPhiDichVu && phiPt > 0)
+                {
+                    tienPhi = Math.Round(sauGiam * (phiPt / 100m));
+                }
+
+                decimal thuePt = _coThueSuat ? (TxtThueVATPt != null ? ParseNumber(TxtThueVATPt.Text, true) : selectedHoaDon.TiLeThue) : 0;
+                decimal tienThue = 0;
+                if (_coThueSuat && thuePt > 0)
+                {
+                    tienThue = Math.Round((sauGiam + tienPhi) * (thuePt / 100m));
+                }
+
+                decimal tongCong = sauGiam + tienPhi + tienThue;
+                if (_lamTronTien > 1 && tongCong > 0)
+                {
+                    tongCong = Math.Round(tongCong / _lamTronTien, MidpointRounding.AwayFromZero) * _lamTronTien;
+                }
+
+                selectedHoaDon.TienHang = tienHang;
+                selectedHoaDon.TiLeGiamGia = giamPt;
+                selectedHoaDon.TienGiamGia = giamTien;
+                selectedHoaDon.TiLePhiDichVu = phiPt;
+                selectedHoaDon.TienPhiDichVu = tienPhi;
+                selectedHoaDon.TiLeThue = thuePt;
+                selectedHoaDon.TienThue = tienThue;
+                selectedHoaDon.TongCong = tongCong;
+
+                if (TxtTienHang != null) TxtTienHang.Text = tienHang.ToString("N0");
+                if (TxtPhiDichVu != null) TxtPhiDichVu.Text = tienPhi.ToString("N0");
+                if (TxtThueVAT != null) TxtThueVAT.Text = tienThue.ToString("N0");
+                if (TxtTongCong != null) TxtTongCong.Text = tongCong.ToString("N0");
+            }
+            finally
+            {
+                _isUpdatingTotals = wasUpdating;
+            }
+        }
+
+        private void TxtTotals_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingTotals) return;
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon)
+            {
+                CalculateTotalsForSelectedHoaDon(selectedHoaDon);
+            }
+        }
+
+        private decimal ParseNumber(string text, bool isPercent = false)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return 0;
+            if (isPercent)
+            {
+                string cleanPt = text.Replace(",", ".").Trim();
+                if (decimal.TryParse(cleanPt, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal resPt))
+                {
+                    return resPt;
+                }
+                return 0;
+            }
+            string clean = text.Replace(",", "").Replace(".", "").Trim();
+            if (decimal.TryParse(clean, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal res))
+            {
+                return res;
+            }
+            return 0;
         }
 
         private async void BtnTangSoLuong_Click(object sender, RoutedEventArgs e)
@@ -432,9 +574,68 @@ namespace QuanLyBar.Client.Views
             }
         }
 
-        private void BtnThanhToan_Click(object sender, RoutedEventArgs e)
+        private async void BtnThanhToan_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Hóa đơn này đã được thanh toán!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (DgHoaDon?.SelectedItem is HoaDonViewModel selectedHoaDon)
+            {
+                var tempBan = new PosBanViewModel
+                {
+                    Name = string.IsNullOrEmpty(selectedHoaDon.Ban) ? selectedHoaDon.SoPhieu : selectedHoaDon.Ban,
+                    ActiveOrderId = selectedHoaDon.Id,
+                    TongCong = selectedHoaDon.TongCong,
+                    TienHang = selectedHoaDon.TienHang,
+                    GiamGia = selectedHoaDon.TienGiamGia,
+                    TienThue = selectedHoaDon.TienThue,
+                    ThueSuatPt = selectedHoaDon.TiLeThue,
+                    TienPhiDichVu = selectedHoaDon.TienPhiDichVu,
+                    PhiDichVuPt = selectedHoaDon.TiLePhiDichVu
+                };
+
+                var win = new XacNhanThanhToanWindow(tempBan);
+                win.Owner = Window.GetWindow(this);
+                if (win.ShowDialog() == true)
+                {
+                    decimal khachDua = win.KhachDua;
+                    decimal traLai = win.TraLai;
+                    decimal theATM = win.TheATM;
+                    decimal chuyenKhoan = win.ChuyenKhoan;
+                    bool isNo = win.IsKhachNo;
+
+                    bool ok = await _hoaDonService.ThanhToanLaiHoaDonAsync(
+                        selectedHoaDon.Id, 
+                        selectedHoaDon.TongCong, 
+                        selectedHoaDon.TiLeThue, 
+                        selectedHoaDon.TienThue, 
+                        selectedHoaDon.TiLePhiDichVu, 
+                        selectedHoaDon.TienPhiDichVu, 
+                        selectedHoaDon.TiLeGiamGia, 
+                        selectedHoaDon.TienGiamGia,
+                        khachDua: khachDua,
+                        theATM: theATM,
+                        chuyenKhoan: chuyenKhoan,
+                        traLai: traLai,
+                        isNo: isNo);
+
+                    if (ok)
+                    {
+                        MessageBox.Show($"Thanh toán lại thành công cho số phiếu '{selectedHoaDon.SoPhieu}'!\nTổng tiền: {selectedHoaDon.TongCong:N0} đ", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                        int selectedIndex = DgHoaDon.SelectedIndex;
+                        await LoadDataAsync();
+                        if (selectedIndex >= 0 && selectedIndex < DgHoaDon.Items.Count)
+                        {
+                            DgHoaDon.SelectedIndex = selectedIndex;
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Thanh toán lại thất bại! Vui lòng thử lại.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một hóa đơn cần thanh toán!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         #region MENU CHUỘT PHẢI (CONTEXT MENU)
