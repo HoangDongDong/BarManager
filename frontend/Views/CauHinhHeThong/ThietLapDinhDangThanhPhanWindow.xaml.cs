@@ -1,21 +1,66 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows;
 using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client.Views.CauHinhHeThong
 {
-    public partial class ThietLapDinhDangThanhPhanWindow : Window
+    public partial class ThietLapDinhDangThanhPhanWindow : Window, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private readonly ObservableCollection<DisplayColumnItem> _unusedColumns = new();
         private readonly ObservableCollection<DisplayColumnItem> _usedColumns = new();
         private int _columnCount = 5;
         private int _rowCount = 5;
+        private string _selectedColor = "#0D4B5B";
         private string _numericTarget = "";
 
         public string TargetType { get; }
-        public string SelectedColor { get; private set; } = "#0D4B5B";
-        public int SelectedColumnCount => _columnCount;
+
+        public string SelectedColor
+        {
+            get => _selectedColor;
+            private set
+            {
+                _selectedColor = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SelectedColorBrush));
+            }
+        }
+
+        public Brush SelectedColorBrush
+        {
+            get
+            {
+                try
+                {
+                    return (Brush)new BrushConverter().ConvertFromString(SelectedColor)!;
+                }
+                catch
+                {
+                    return new SolidColorBrush(Color.FromRgb(0x00, 0x4D, 0x40));
+                }
+            }
+        }
+
+        public int SelectedColumnCount
+        {
+            get => _columnCount;
+            private set
+            {
+                _columnCount = value;
+                OnPropertyChanged();
+            }
+        }
+
         public int SelectedRowCount => _rowCount;
         public ObservableCollection<DisplayColumnItem> SelectedColumns => _usedColumns;
 
@@ -28,14 +73,24 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             Loaded += Window_Loaded;
         }
 
+        private bool _showTitle = true;
+
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded -= Window_Loaded;
-            string value = await LocalCauHinhService.GetConfigValueAsync(GetSettingsKey(), "5|5|#0D4B5B");
+            string defaultVal = TargetType switch
+            {
+                "MatHang" => "4|4|#0D4B5B|1",
+                "Nhom" or "NhomHang" => "2|2|#0D4B5B|1",
+                "GioHang" or "Cart" or "HoaDon" => "1|10|#0D4B5B|1",
+                _ => "5|5|#0D4B5B|1"
+            };
+
+            string value = await LocalCauHinhService.GetConfigValueAsync(GetSettingsKey(), defaultVal);
             string[] parts = value.Split('|');
             if (parts.Length > 0 && int.TryParse(parts[0], out int columns) && columns is >= 1 and <= 99)
             {
-                _columnCount = columns;
+                SelectedColumnCount = columns;
             }
             if (parts.Length > 1 && int.TryParse(parts[1], out int rows) && rows is >= 1 and <= 99)
             {
@@ -45,9 +100,19 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             {
                 SelectedColor = parts[2];
             }
+            if (parts.Length > 3 && int.TryParse(parts[3], out int showTitle))
+            {
+                _showTitle = showTitle == 1;
+            }
 
             BtnColumnCount.Content = $"SỐ CỘT: {_columnCount}";
             BtnRowCount.Content = $"SỐ DÒNG: {_rowCount}";
+            BtnShowTitle.Content = _showTitle ? "HIỆN TIÊU ĐỀ: ON" : "HIỆN TIÊU ĐỀ: OFF";
+            try
+            {
+                BtnCellColor.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(SelectedColor)!;
+            }
+            catch { }
             BtnFormatToggle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#5B1647")!;
 
             await LoadColumnsAsync();
@@ -135,15 +200,82 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     }
                 }
             }
-            else
+            else if (TargetType == "GioHang" || TargetType == "Cart" || TargetType == "HoaDon")
             {
-                string name = TargetType switch
+                List<string> allColumns = new()
                 {
-                    "KhuVuc" => "Khu vực",
-                    "NhomHang" => "Nhóm món",
-                    _ => "Mặt hàng"
+                    "SỐ LƯỢNG", "ĐẾN GIỜ", "TỪ GIỜ", "ĐƠN GIÁ", "TÊN HÀNG", "GIẢM GIÁ %", "THÀNH TIỀN", "GHI CHÚ"
                 };
 
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
+                List<string> usedColNames;
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    // Default matching reference screenshot 3
+                    usedColNames = new List<string>
+                    {
+                        "ĐẾN GIỜ", "TỪ GIỜ", "ĐƠN GIÁ", "TÊN HÀNG", "GIẢM GIÁ %", "THÀNH TIỀN", "GHI CHÚ"
+                    };
+                }
+
+                foreach (var col in usedColNames)
+                {
+                    if (allColumns.Contains(col))
+                    {
+                        _usedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+
+                foreach (var col in allColumns)
+                {
+                    if (!_usedColumns.Any(x => x.Name == col))
+                    {
+                        _unusedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+            }
+            else if (TargetType == "MatHang")
+            {
+                List<string> allColumns = new() { "MẶT HÀNG", "GIÁ BÁN" };
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
+                List<string> usedColNames = !string.IsNullOrWhiteSpace(savedColsStr)
+                    ? savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+                    : new List<string> { "MẶT HÀNG", "GIÁ BÁN" };
+
+                foreach (var col in usedColNames)
+                {
+                    if (allColumns.Contains(col))
+                    {
+                        _usedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+                foreach (var col in allColumns)
+                {
+                    if (!_usedColumns.Any(x => x.Name == col))
+                    {
+                        _unusedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+            }
+            else if (TargetType == "Nhom" || TargetType == "NhomHang")
+            {
+                _usedColumns.Add(new DisplayColumnItem("NHÓM"));
+            }
+            else if (TargetType == "KhuVuc")
+            {
+                _usedColumns.Add(new DisplayColumnItem("KHU VỰC"));
+            }
+            else if (TargetType == "Ban")
+            {
+                _usedColumns.Add(new DisplayColumnItem("BÀN"));
+            }
+            else
+            {
+                string name = TargetType.ToUpperInvariant();
                 _usedColumns.Add(new DisplayColumnItem(name));
             }
 
@@ -190,11 +322,6 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         {
             try
             {
-                var leftColumns = _usedColumns.Where(x => !IsRightAlignedColumn(x.Name)).ToList();
-                var rightColumns = _usedColumns.Where(x => IsRightAlignedColumn(x.Name)).ToList();
-
-                IcPreviewLeft.ItemsSource = leftColumns;
-                IcPreviewRight.ItemsSource = rightColumns;
             }
             catch { }
         }
@@ -238,11 +365,13 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             if (PanelFormatOptions.Visibility == Visibility.Visible)
             {
                 PanelFormatOptions.Visibility = Visibility.Collapsed;
+                PanelFormatSubOptions.Visibility = Visibility.Collapsed;
                 BtnFormatToggle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#5B1647")!; // Tím sẫm khi đóng
             }
             else
             {
                 PanelFormatOptions.Visibility = Visibility.Visible;
+                PanelFormatSubOptions.Visibility = Visibility.Visible;
                 BtnFormatToggle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#C95B16")!; // Cam rực khi mở
             }
         }
@@ -259,7 +388,37 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private void BtnCellColor_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Màu ô được thiết lập từ bảng màu của thành phần đang chọn.", "Màu ô", MessageBoxButton.OK, MessageBoxImage.Information);
+            ColorPaletteOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void ColorTile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string colorHex)
+            {
+                SelectedColor = colorHex;
+                try
+                {
+                    BtnCellColor.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(colorHex)!;
+                }
+                catch { }
+                ColorPaletteOverlay.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void BtnColorCancel_Click(object sender, RoutedEventArgs e)
+        {
+            ColorPaletteOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnShowTitle_Click(object sender, RoutedEventArgs e)
+        {
+            _showTitle = !_showTitle;
+            BtnShowTitle.Content = _showTitle ? "HIỆN TIÊU ĐỀ: ON" : "HIỆN TIÊU ĐỀ: OFF";
+            try
+            {
+                BtnShowTitle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(_showTitle ? "#5C5C00" : "#505050")!;
+            }
+            catch { }
         }
 
         private void OpenNumericPad(string target, int value)
@@ -297,7 +456,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
             if (_numericTarget == "Số cột")
             {
-                _columnCount = value;
+                SelectedColumnCount = value;
                 BtnColumnCount.Content = $"SỐ CỘT: {value}";
             }
             else
@@ -319,7 +478,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             string usedColsStr = string.Join(",", _usedColumns.Select(x => x.Name));
             bool saved1 = await LocalCauHinhService.SaveSingleConfigAsync(
                 GetSettingsKey(),
-                $"{_columnCount}|{_rowCount}|{SelectedColor}");
+                $"{_columnCount}|{_rowCount}|{SelectedColor}|{(_showTitle ? 1 : 0)}");
             bool saved2 = await LocalCauHinhService.SaveSingleConfigAsync(
                 GetColumnsKey(),
                 usedColsStr);

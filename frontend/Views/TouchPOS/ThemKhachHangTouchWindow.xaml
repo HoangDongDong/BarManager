@@ -1,8 +1,10 @@
 <Window x:Class="QuanLyBar.Client.Views.TouchPOS.ThemKhachHangTouchWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Thêm/Sửa Khách Hàng" Width="600" Height="700"
-        WindowStartupLocation="CenterOwner"
+        Title="Thêm/Sửa Khách Hàng"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
         Background="#1A1A2E"
         Loaded="Window_Loaded">
     <Grid Margin="16">
@@ -58,8 +60,8 @@
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
                     <TextBlock Text="Nhóm khách:" Foreground="#90CAF9" FontSize="13" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="CboNhomKhach" Grid.Column="1" Background="#16213E" Foreground="White"
-                              Height="38" FontSize="13"/>
+                    <ComboBox x:Name="CboNhomKhach" Grid.Column="1" Background="#16213E" Foreground="Black"
+                              Height="38" FontSize="13" Cursor="Hand" PreviewMouseDown="CboNhomKhach_PreviewMouseDown"/>
                     <Button Grid.Column="2" Content="🔍" Width="40" Height="38" Margin="4,0,0,0"
                             Background="#0F3460" Foreground="White" BorderThickness="0" Cursor="Hand"
                             Click="BtnSearchNhomKhach_Click"/>
@@ -108,7 +110,7 @@
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
                     <TextBlock Text="Nhân viên QT:" Foreground="#90CAF9" FontSize="13" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="CboNhanVien" Grid.Column="1" Background="#16213E" Foreground="White" Height="38" FontSize="13"/>
+                    <ComboBox x:Name="CboNhanVien" Grid.Column="1" Background="#16213E" Foreground="Black" Height="38" FontSize="13" Cursor="Hand" PreviewMouseDown="CboNhanVien_PreviewMouseDown"/>
                     <Button Grid.Column="2" Content="🔍" Width="40" Height="38" Margin="4,0,0,0"
                             Background="#0F3460" Foreground="White" BorderThickness="0" Cursor="Hand"
                             Click="BtnSearchNhanVien_Click"/>
@@ -137,7 +139,7 @@
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
                     <TextBlock Text="Tỉnh/Thành:" Foreground="#90CAF9" FontSize="13" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="CboTinhThanh" Grid.Column="1" Background="#16213E" Foreground="White" Height="38" FontSize="13"/>
+                    <ComboBox x:Name="CboTinhThanh" Grid.Column="1" Background="#16213E" Foreground="Black" Height="38" FontSize="13" Cursor="Hand" PreviewMouseDown="CboTinhThanh_PreviewMouseDown"/>
                     <Button Grid.Column="2" Content="🔍" Width="40" Height="38" Margin="4,0,0,0"
                             Background="#0F3460" Foreground="White" BorderThickness="0" Cursor="Hand"
                             Click="BtnSearchTinhThanh_Click"/>

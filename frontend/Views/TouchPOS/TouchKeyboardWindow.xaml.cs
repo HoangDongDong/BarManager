@@ -9,11 +9,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
         private bool _isPasswordMode;
         private bool _isCapsLock;
 
-        public TouchKeyboardWindow(string initialText = "", bool isPasswordMode = false)
+        public TouchKeyboardWindow(string initialText = "", bool isPasswordMode = false, string title = "MỜI BẠN NHẬP TÀI KHOẢN ĐĂNG NHẬP")
         {
             InitializeComponent();
             _isPasswordMode = isPasswordMode;
             ResultText = initialText ?? "";
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                TxtTitle.Text = title;
+            }
 
             if (_isPasswordMode)
             {
