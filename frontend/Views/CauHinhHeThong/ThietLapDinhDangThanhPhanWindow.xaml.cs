@@ -311,6 +311,62 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             {
                 _usedColumns.Add(new DisplayColumnItem("BÀN"));
             }
+            else if (TargetType == "QuyenSuDung" || TargetType == "FuncRoles")
+            {
+                List<string> allColumns = new()
+                {
+                    "TÊN CHỨC NĂNG", "KHÓA", "XEM", "THÊM", "SỬA", "XÓA", "TẤT CẢ"
+                };
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
+                List<string> usedColNames = !string.IsNullOrWhiteSpace(savedColsStr)
+                    ? savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+                    : new List<string> { "TÊN CHỨC NĂNG", "KHÓA", "XEM", "THÊM", "SỬA", "XÓA", "TẤT CẢ" };
+
+                foreach (var col in usedColNames)
+                {
+                    if (allColumns.Contains(col))
+                    {
+                        _usedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+                foreach (var col in allColumns)
+                {
+                    if (!_usedColumns.Any(x => x.Name == col))
+                    {
+                        _unusedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+            }
+            else if (TargetType == "Users" || TargetType == "NguoiDung")
+            {
+                List<string> allColumns = new()
+                {
+                    "TÀI KHOẢN", "HỌ TÊN", "NHÓM NGƯỜI DÙNG"
+                };
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
+                List<string> usedColNames = !string.IsNullOrWhiteSpace(savedColsStr)
+                    ? savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+                    : new List<string> { "TÀI KHOẢN", "HỌ TÊN", "NHÓM NGƯỜI DÙNG" };
+
+                foreach (var col in usedColNames)
+                {
+                    if (allColumns.Contains(col))
+                    {
+                        _usedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+                foreach (var col in allColumns)
+                {
+                    if (!_usedColumns.Any(x => x.Name == col))
+                    {
+                        _unusedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+            }
+            else if (TargetType == "QuyenBaoCao" || TargetType == "BaoCao" || TargetType == "ReportRoles")
+            {
+                // Riêng phần báo cáo không hiện cột nào
+            }
             else
             {
                 string name = TargetType.ToUpperInvariant();

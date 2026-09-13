@@ -1,53 +1,53 @@
 <Window x:Class="QuanLyBar.Client.Views.TouchPOS.TouchDatePickerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="NHẬP NGÀY" Height="480" Width="820"
-        WindowStartupLocation="CenterOwner" WindowStyle="None" ResizeMode="NoResize"
+        Title="NHẬP NGÀY"
+        WindowState="Maximized" WindowStyle="None" ResizeMode="NoResize"
         ShowInTaskbar="False" Background="#0C3442" KeyDown="Window_KeyDown">
 
-    <Border BorderBrush="#1C5E73" BorderThickness="2" CornerRadius="6">
-        <Grid Margin="12">
+    <Border BorderBrush="#1C5E73" BorderThickness="2" CornerRadius="0">
+        <Grid Margin="16">
             <Grid.RowDefinitions>
                 <!-- 1. HEADER -->
-                <RowDefinition Height="38"/>
+                <RowDefinition Height="46"/>
                 <!-- 2. DATE DISPLAY -->
-                <RowDefinition Height="55"/>
+                <RowDefinition Height="65"/>
                 <!-- 3. SELECTOR COLUMNS (NGÀY, THÁNG, NĂM) -->
                 <RowDefinition Height="*"/>
                 <!-- 4. BOTTOM ACTION BUTTONS -->
-                <RowDefinition Height="46"/>
+                <RowDefinition Height="54"/>
             </Grid.RowDefinitions>
 
             <!-- 1. HEADER -->
-            <Border Grid.Row="0" Background="#185163" CornerRadius="4" Margin="0,0,0,8">
-                <TextBlock Text="NHẬP NGÀY" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border Grid.Row="0" Background="#185163" CornerRadius="4" Margin="0,0,0,10">
+                <TextBlock Text="NHẬP NGÀY" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
 
             <!-- 2. DATE DISPLAY -->
-            <Border Grid.Row="1" Background="#FFFFFF" CornerRadius="4" Margin="0,0,0,10">
-                <TextBlock x:Name="TxtSelectedDateDisplay" Text="13/09/2026" Foreground="#000000" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border Grid.Row="1" Background="#FFFFFF" CornerRadius="4" Margin="0,0,0,12">
+                <TextBlock x:Name="TxtSelectedDateDisplay" Text="13/09/2026" Foreground="#000000" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
 
             <!-- 3. SELECTOR COLUMNS (NGÀY, THÁNG, NĂM) -->
-            <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid Grid.Row="2" Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                     <!-- COL 1: NGÀY -->
-                    <ColumnDefinition Width="380"/>
-                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="2.2*"/>
+                    <ColumnDefinition Width="16"/>
                     <!-- COL 2: THÁNG -->
-                    <ColumnDefinition Width="180"/>
-                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="16"/>
                     <!-- COL 3: NĂM -->
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- COLUMN 1: NGÀY -->
                 <Grid Grid.Column="0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="24"/>
+                        <RowDefinition Height="28"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="Ngày" Foreground="White" FontSize="13" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <TextBlock Grid.Row="0" Text="Ngày" Foreground="White" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
                     
                     <!-- UniformGrid 5 cols for Days 1..31 -->
                     <UniformGrid x:Name="UgDays" Grid.Row="1" Columns="5" Rows="7"/>
@@ -56,10 +56,10 @@
                 <!-- COLUMN 2: THÁNG -->
                 <Grid Grid.Column="2">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="24"/>
+                        <RowDefinition Height="28"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="Tháng" Foreground="White" FontSize="13" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <TextBlock Grid.Row="0" Text="Tháng" Foreground="White" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
                     
                     <!-- UniformGrid 2 cols for Months 1..12 -->
                     <UniformGrid x:Name="UgMonths" Grid.Row="1" Columns="2" Rows="6"/>
@@ -68,26 +68,26 @@
                 <!-- COLUMN 3: NĂM -->
                 <Grid Grid.Column="4">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="24"/>
+                        <RowDefinition Height="28"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="Năm" Foreground="White" FontSize="13" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <TextBlock Grid.Row="0" Text="Năm" Foreground="White" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
                     
                     <Grid Grid.Row="1">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="34"/>
+                            <RowDefinition Height="46"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="34"/>
+                            <RowDefinition Height="46"/>
                         </Grid.RowDefinitions>
 
                         <!-- UP ARROW -->
-                        <Button Grid.Row="0" x:Name="BtnYearPrev" Content="▲" Foreground="White" FontSize="14" FontWeight="Bold" Background="#7A0000" BorderBrush="#9E0000" Cursor="Hand" Click="BtnYearPrev_Click"/>
+                        <Button Grid.Row="0" x:Name="BtnYearPrev" Content="▲" Foreground="White" FontSize="18" FontWeight="Bold" Background="#7A0000" BorderBrush="#9E0000" Cursor="Hand" Click="BtnYearPrev_Click"/>
 
                         <!-- YEAR BUTTONS -->
                         <UniformGrid x:Name="UgYears" Grid.Row="1" Columns="1" Rows="4" Margin="0,4"/>
 
                         <!-- DOWN ARROW -->
-                        <Button Grid.Row="2" x:Name="BtnYearNext" Content="▼" Foreground="White" FontSize="14" FontWeight="Bold" Background="#7A0000" BorderBrush="#9E0000" Cursor="Hand" Click="BtnYearNext_Click"/>
+                        <Button Grid.Row="2" x:Name="BtnYearNext" Content="▼" Foreground="White" FontSize="18" FontWeight="Bold" Background="#7A0000" BorderBrush="#9E0000" Cursor="Hand" Click="BtnYearNext_Click"/>
                     </Grid>
                 </Grid>
             </Grid>
@@ -95,10 +95,10 @@
             <!-- 4. BOTTOM ACTION BUTTONS -->
             <Grid Grid.Row="3">
                 <!-- LEFT: XÓA TRỐNG -->
-                <Button x:Name="BtnClear" Content="XÓA TRỐNG" Width="140" Height="40" HorizontalAlignment="Left" Foreground="White" FontSize="13" FontWeight="Bold" Background="#8E24AA" BorderBrush="#AB47BC" Cursor="Hand" Click="BtnClear_Click">
+                <Button x:Name="BtnClear" Content="XÓA TRỐNG" Width="160" Height="48" HorizontalAlignment="Left" Foreground="White" FontSize="15" FontWeight="Bold" Background="#8E24AA" BorderBrush="#AB47BC" Cursor="Hand" Click="BtnClear_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="4">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="6">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </ControlTemplate>
@@ -107,19 +107,19 @@
 
                 <!-- RIGHT: CHẤP NHẬN & HỦY BỎ -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="BtnConfirm" Content="CHẤP NHẬN" Width="140" Height="40" Margin="0,0,10,0" Foreground="White" FontSize="13" FontWeight="Bold" Background="#008800" BorderBrush="#2E7D32" Cursor="Hand" Click="BtnConfirm_Click">
+                    <Button x:Name="BtnConfirm" Content="CHẤP NHẬN" Width="160" Height="48" Margin="0,0,12,0" Foreground="White" FontSize="15" FontWeight="Bold" Background="#008800" BorderBrush="#2E7D32" Cursor="Hand" Click="BtnConfirm_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="4">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="6">
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    <Button x:Name="BtnCancel" Content="HỦY BỎ" Width="120" Height="40" Foreground="White" FontSize="13" FontWeight="Bold" Background="#C62828" BorderBrush="#D32F2F" Cursor="Hand" Click="BtnCancel_Click">
+                    <Button x:Name="BtnCancel" Content="HỦY BỎ" Width="140" Height="48" Foreground="White" FontSize="15" FontWeight="Bold" Background="#C62828" BorderBrush="#D32F2F" Cursor="Hand" Click="BtnCancel_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="4">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="6">
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </ControlTemplate>

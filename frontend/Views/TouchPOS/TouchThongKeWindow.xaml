@@ -143,49 +143,108 @@
         </Grid>
 
         <!-- 4. CARDS / GRID MAIN AREA -->
-        <Grid Grid.Row="3" Margin="0,0,0,8">
-            <!-- TAB 1: HÓA ĐƠN CARDS -->
-            <Grid x:Name="GridTabHoaDon" Visibility="Visible">
-                <ScrollViewer x:Name="SvHoaDonCards" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvHoaDonCards_SizeChanged">
-                    <ItemsControl x:Name="IcHoaDonCards">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <UniformGrid Columns="{Binding ColumnCount, ElementName=ThisWindow}" Rows="0" VerticalAlignment="Top"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Height="{Binding CardHeight, ElementName=ThisWindow}"
-                                        Background="{Binding CardBackgroundBrush}"
-                                        BorderBrush="{Binding BorderBrushColor}" BorderThickness="{Binding BorderThicknessVal}"
-                                        CornerRadius="6" Margin="4" Padding="12,10" Cursor="Hand"
-                                        MouseLeftButtonDown="InvoiceCard_Click">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
+        <Border Grid.Row="3" Background="#D4D8DC" BorderBrush="#B0B8C0" BorderThickness="1.5" CornerRadius="4" Margin="0,0,0,8" Padding="6">
+            <Grid>
+                <!-- TAB 1: HÓA ĐƠN CARDS -->
+                <Grid x:Name="GridTabHoaDon" Visibility="Visible">
+                    <ScrollViewer x:Name="SvHoaDonCards" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvHoaDonCards_SizeChanged">
+                        <ItemsControl x:Name="IcHoaDonCards">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="{Binding ColumnCount, ElementName=ThisWindow}" Rows="0" VerticalAlignment="Top"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Height="{Binding CardHeight, ElementName=ThisWindow}"
+                                            Background="{Binding CardBackgroundBrush}"
+                                            BorderBrush="{Binding BorderBrushColor}" BorderThickness="{Binding BorderThicknessVal}"
+                                            CornerRadius="6" Margin="4" Padding="12,10" Cursor="Hand"
+                                            MouseLeftButtonDown="InvoiceCard_Click">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
 
-                                        <!-- TABLE NAME -->
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding BanName}" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Top"/>
+                                            <!-- TABLE NAME -->
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding BanName}" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Top"/>
 
-                                        <!-- TOTAL AMOUNT -->
-                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TongCongDisplay}" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                                            <!-- TOTAL AMOUNT -->
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TongCongDisplay}" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Top"/>
 
-                                        <!-- ORDER CODE / INVOICE NO -->
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding SoPhieuDisplay}" Foreground="#D0E4EC" FontSize="13" VerticalAlignment="Bottom"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                                            <!-- ORDER CODE / INVOICE NO -->
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding SoPhieuDisplay}" Foreground="#D0E4EC" FontSize="13" VerticalAlignment="Bottom"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
 
-                <!-- BOTTOM RIGHT GEAR ICON FOR SETTINGS -->
+                <!-- TAB 2: THU CHI GRID -->
+                <Grid x:Name="GridTabThuChi" Visibility="Collapsed">
+                    <DataGrid x:Name="DgThuChi" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" GridLinesVisibility="All" Background="#16394C" Foreground="White" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Tên đối tượng" Binding="{Binding TenDoiTuong}" Width="200"/>
+                            <DataGridTextColumn Header="Diễn giải" Binding="{Binding DienGiai}" Width="*"/>
+                            <DataGridTextColumn Header="Thu" Binding="{Binding Thu, StringFormat={}{0:N0}}" Width="120"/>
+                            <DataGridTextColumn Header="Chi" Binding="{Binding Chi, StringFormat={}{0:N0}}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+
+                <!-- TAB 3: MẶT HÀNG CARDS -->
+                <Grid x:Name="GridTabMatHang" Visibility="Collapsed">
+                    <ScrollViewer x:Name="SvMatHangCards" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvMatHangCards_SizeChanged">
+                        <ItemsControl x:Name="IcMatHangCards">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="{Binding ColumnCount, ElementName=ThisWindow}" Rows="0" VerticalAlignment="Top"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Height="{Binding CardHeight, ElementName=ThisWindow}"
+                                            Background="{Binding CardBackgroundBrush}"
+                                            BorderBrush="#5F8F93" BorderThickness="1.5"
+                                            CornerRadius="6" Margin="4" Padding="12,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- TOP LEFT: TEN HANG -->
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TenHang}" Foreground="White" FontSize="15" FontWeight="Bold" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                            <!-- TOP RIGHT: SO LUONG -->
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SoLuongDisplay}" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8,0,0,0"/>
+
+                                            <!-- BOTTOM LEFT: DON GIA -->
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding DonGiaDisplay}" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Bottom"/>
+
+                                            <!-- BOTTOM RIGHT: THANH TIEN -->
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ThanhTienDisplay}" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- BOTTOM RIGHT GEAR ICON FOR SETTINGS (ALWAYS VISIBLE OVER MAIN AREA) -->
                 <Button x:Name="BtnSettings" Width="40" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12" Cursor="Hand" Click="BtnSettings_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
@@ -196,33 +255,7 @@
                     </Button.Template>
                 </Button>
             </Grid>
-
-            <!-- TAB 2: THU CHI GRID -->
-            <Grid x:Name="GridTabThuChi" Visibility="Collapsed">
-                <DataGrid x:Name="DgThuChi" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" GridLinesVisibility="All" Background="#16394C" Foreground="White" HeadersVisibility="Column">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120" FontWeight="Bold"/>
-                        <DataGridTextColumn Header="Tên đối tượng" Binding="{Binding TenDoiTuong}" Width="200"/>
-                        <DataGridTextColumn Header="Diễn giải" Binding="{Binding DienGiai}" Width="*"/>
-                        <DataGridTextColumn Header="Thu" Binding="{Binding Thu, StringFormat={}{0:N0}}" Width="120"/>
-                        <DataGridTextColumn Header="Chi" Binding="{Binding Chi, StringFormat={}{0:N0}}" Width="120"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-
-            <!-- TAB 3: MẶT HÀNG GRID -->
-            <Grid x:Name="GridTabMatHang" Visibility="Collapsed">
-                <DataGrid x:Name="DgMatHang" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" GridLinesVisibility="All" Background="#16394C" Foreground="White" HeadersVisibility="Column">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Tên hàng" Binding="{Binding TenHang}" Width="*" FontWeight="Bold"/>
-                        <DataGridTextColumn Header="ĐVT" Binding="{Binding DonViTinh}" Width="80"/>
-                        <DataGridTextColumn Header="Số lượng" Binding="{Binding SoLuong, StringFormat={}{0:N0}}" Width="100"/>
-                        <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0}}" Width="120"/>
-                        <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien, StringFormat={}{0:N0}}" Width="140" FontWeight="Bold"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </Grid>
+        </Border>
 
         <!-- 5. BOTTOM ACTION BAR -->
         <Grid Grid.Row="4">

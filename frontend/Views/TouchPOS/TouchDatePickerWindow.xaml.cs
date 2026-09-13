@@ -160,10 +160,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
             var btn = new Button
             {
                 Content = text,
-                Margin = new Thickness(2),
+                Margin = new Thickness(3),
                 Cursor = Cursors.Hand,
                 Foreground = Brushes.White,
-                FontSize = 13,
+                FontSize = 16,
                 FontWeight = FontWeights.Bold
             };
 

@@ -1,0 +1,410 @@
+<Window x:Class="QuanLyBar.Client.Views.TouchPOS.TouchNguoiDungPhanQuyenWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NGƯỜI DÙNG VÀ PHÂN QUYỀN"
+        WindowState="Maximized" WindowStyle="None" ResizeMode="NoResize"
+        ShowInTaskbar="False" Background="#0A3342" KeyDown="Window_KeyDown" Loaded="Window_Loaded">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <!-- 1. TOP HEADER ACTION BAR -->
+            <RowDefinition Height="44"/>
+            <!-- 2. TOP HALF: USER GROUPS & USERS -->
+            <RowDefinition Height="220"/>
+            <!-- 3. SUB-TABS ROW (QUYỀN SỬ DỤNG / QUYỀN BÁO CÁO) -->
+            <RowDefinition Height="38"/>
+            <!-- 4. BOTTOM HALF: PERMISSION GRID OR PROMPT -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. TOP HEADER ACTION BAR -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <!-- NHÓM NGƯỜI DÙNG LABEL / BUTTON -->
+                <Border Background="#800000" CornerRadius="4" Padding="12,6" Margin="0,0,6,0">
+                    <TextBlock Text="NHÓM NGƯỜI DÙNG" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                </Border>
+                <!-- QUẢN LÝ NHÓM BUTTON -->
+                <Button x:Name="BtnQuanLyNhom" Content="QUẢN LÝ" Foreground="White" FontSize="12" FontWeight="Bold" Background="#008000" BorderBrush="#006400" Cursor="Hand" Click="BtnQuanLyNhom_Click" Margin="0,0,16,0" Padding="12,6">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- NGƯỜI DÙNG LABEL / BUTTON -->
+                <Border Background="#800000" CornerRadius="4" Padding="12,6" Margin="0,0,6,0">
+                    <TextBlock Text="NGƯỜI DÙNG" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                </Border>
+                <!-- THÊM MỚI -->
+                <Button x:Name="BtnAddUser" Content="THÊM MỚI" Foreground="White" FontSize="12" FontWeight="Bold" Background="#008000" BorderBrush="#006400" Cursor="Hand" Click="BtnAddUser_Click" Margin="0,0,6,0" Padding="12,6">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <!-- CHỈNH SỬA -->
+                <Button x:Name="BtnEditUser" Content="CHỈNH SỬA" Foreground="White" FontSize="12" FontWeight="Bold" Background="#6C757D" BorderBrush="#5A6268" Cursor="Hand" Click="BtnEditUser_Click" Margin="0,0,6,0" Padding="12,6">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <!-- XÓA -->
+                <Button x:Name="BtnDeleteUser" Content="XÓA" Foreground="White" FontSize="12" FontWeight="Bold" Background="#6C757D" BorderBrush="#5A6268" Cursor="Hand" Click="BtnDeleteUser_Click" Padding="12,6">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+
+            <!-- RIGHT: THOÁT BUTTON -->
+            <Button x:Name="BtnThoat" Content="THOÁT" Width="100" Height="36" HorizontalAlignment="Right" Foreground="White" FontSize="14" FontWeight="Bold" Background="#C62828" BorderBrush="#D32F2F" Cursor="Hand" Click="BtnThoat_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+
+        <!-- 2. TOP HALF: USER GROUPS (LEFT) & USERS (RIGHT) -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <!-- COL 1: NHÓM NGƯỜI DÙNG LIST -->
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="8"/>
+                <!-- COL 2: NGƯỜI DÙNG TILES -->
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: NHÓM NGƯỜI DÙNG LIST -->
+            <Border Grid.Column="0" Background="#16394C" BorderBrush="#1C5E73" BorderThickness="1.5" CornerRadius="4" Padding="6">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="IcGroups">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Name}" Height="40" Margin="0,0,0,6" Cursor="Hand" Click="BtnGroup_Click" Tag="{Binding}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{Binding GroupBtnBrush}" BorderBrush="#2B7B8E" BorderThickness="1.5" CornerRadius="4" Padding="8,0">
+                                                <TextBlock Text="{TemplateBinding Content}" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- RIGHT: NGƯỜI DÙNG TILES CONTAINER -->
+            <Border Grid.Column="2" Background="#134E54" BorderBrush="#1C5E73" BorderThickness="1.5" CornerRadius="4" Padding="8">
+                <Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="IcUsers">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="4" VerticalAlignment="Top"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding UserBtnBrush}" BorderBrush="{Binding BorderBrushColor}" BorderThickness="{Binding BorderThicknessVal}" CornerRadius="6" Margin="4" Padding="8" MinHeight="60" Cursor="Hand" MouseLeftButtonDown="UserCard_Click">
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding TenHienThi}" Foreground="White" FontSize="14" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- BOTTOM RIGHT GEAR ICON FOR SETTINGS -->
+                    <Button Width="32" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4" Cursor="Hand" Click="BtnSettings_Click" Tag="Users">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4">
+                                    <TextBlock Text="⚙" Foreground="#333333" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 3. SUB-TABS ROW (QUYỀN SỬ DỤNG / QUYỀN BÁO CÁO) -->
+        <Grid Grid.Row="2" Margin="0,0,0,6">
+            <StackPanel x:Name="PanelSubTabs" Orientation="Horizontal" VerticalAlignment="Center" Visibility="Collapsed">
+                <!-- TAB QUYỀN SỬ DỤNG -->
+                <Button x:Name="BtnTabQuyenSuDung" Content="QUYỀN SỬ DỤNG" Height="32" Margin="0,0,6,0" Cursor="Hand" Click="BtnTabQuyenSuDung_Click" Padding="14,0"/>
+                <!-- TAB QUYỀN BÁO CÁO -->
+                <Button x:Name="BtnTabQuyenBaoCao" Content="QUYỀN BÁO CÁO" Height="32" Cursor="Hand" Click="BtnTabQuyenBaoCao_Click" Padding="14,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 4. BOTTOM HALF: PERMISSION GRID OR PROMPT -->
+        <Grid Grid.Row="3">
+            <!-- PROMPT WHEN NO GROUP SELECTED -->
+            <Border x:Name="BorderPromptNoGroup" Background="#0A3342" Visibility="Visible">
+                <TextBlock Text="MỜI BẠN CHỌN NHÓM NGƯỜI SỬ DỤNG ĐỂ PHÂN QUYỀN CHO NHÓM NGƯỜI DÙNG" Foreground="#FFFF33" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- MAIN PERMISSIONS CONTAINER WHEN GROUP SELECTED -->
+            <Grid x:Name="GridPermissionsContainer" Visibility="Collapsed">
+                <!-- TAB 1: QUYỀN SỬ DỤNG -->
+                <Grid x:Name="GridQuyenSuDung" Visibility="Visible">
+                    <Grid.ColumnDefinitions>
+                        <!-- CATEGORY SIDEBAR -->
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="8"/>
+                        <!-- PERMISSION ROWS GRID -->
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- CATEGORY SIDEBAR -->
+                    <Border Grid.Column="0" Background="#16394C" BorderBrush="#1C5E73" BorderThickness="1.5" CornerRadius="4" Padding="6">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="IcFuncCategories">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding Name}" Height="44" Margin="0,0,0,6" Cursor="Hand" Click="BtnFuncCategory_Click" Tag="{Binding}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{Binding CategoryBtnBrush}" BorderBrush="#2B7B8E" BorderThickness="1.5" CornerRadius="4" Padding="8,0">
+                                                        <TextBlock Text="{TemplateBinding Content}" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- PERMISSION ROWS GRID -->
+                    <Border Grid.Column="2" Background="#D4D8DC" BorderBrush="#B0B8C0" BorderThickness="1.5" CornerRadius="4" Padding="6">
+                        <Grid>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl x:Name="IcFuncRoles">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <!-- FEATURE NAME BOX -->
+                                                    <ColumnDefinition Width="*"/>
+                                                    <!-- ACTION BUTTONS -->
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- FEATURE NAME BOX -->
+                                                <Border Grid.Column="0" Background="#008000" CornerRadius="4" Padding="12,10" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding FunctionName}" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <!-- ACTION BUTTONS GRID -->
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <!-- KHÓA -->
+                                                    <Button Content="KHÓA" Width="80" Height="40" Margin="0,0,4,0" Cursor="Hand" Click="BtnFuncAction_Click" Tag="Khoa">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding KhoaBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="KHÓA" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    <!-- XEM -->
+                                                    <Button Content="XEM" Width="70" Height="40" Margin="0,0,4,0" Cursor="Hand" Click="BtnFuncAction_Click" Tag="Xem">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding XemBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="XEM" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    <!-- THÊM -->
+                                                    <Button Content="THÊM" Width="70" Height="40" Margin="0,0,4,0" Cursor="Hand" Click="BtnFuncAction_Click" Tag="Them">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding ThemBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="THÊM" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    <!-- SỬA -->
+                                                    <Button Content="SỬA" Width="70" Height="40" Margin="0,0,4,0" Cursor="Hand" Click="BtnFuncAction_Click" Tag="Sua">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding SuaBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="SỬA" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    <!-- XÓA -->
+                                                    <Button Content="XÓA" Width="70" Height="40" Margin="0,0,4,0" Cursor="Hand" Click="BtnFuncAction_Click" Tag="Xoa">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding XoaBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="XÓA" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    <!-- TẤT CẢ -->
+                                                    <Button Content="TẤT CẢ" Width="80" Height="40" Cursor="Hand" Click="BtnFuncAction_Click" Tag="TatCa">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding TatCaBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="TẤT CẢ" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- BOTTOM RIGHT GEAR ICON FOR SETTINGS -->
+                            <Button Width="32" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4" Cursor="Hand" Click="BtnSettings_Click" Tag="QuyenSuDung">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4">
+                                            <TextBlock Text="⚙" Foreground="#333333" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- TAB 2: QUYỀN BÁO CÁO -->
+                <Grid x:Name="GridQuyenBaoCao" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <!-- CATEGORY SIDEBAR -->
+                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="8"/>
+                        <!-- REPORT PERMISSIONS GRID -->
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- REPORT CATEGORY SIDEBAR -->
+                    <Border Grid.Column="0" Background="#16394C" BorderBrush="#1C5E73" BorderThickness="1.5" CornerRadius="4" Padding="6">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="IcReportCategories">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding Name}" Height="44" Margin="0,0,0,6" Cursor="Hand" Click="BtnReportCategory_Click" Tag="{Binding}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{Binding CategoryBtnBrush}" BorderBrush="#2B7B8E" BorderThickness="1.5" CornerRadius="4" Padding="8,0">
+                                                        <TextBlock Text="{TemplateBinding Content}" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- REPORT PERMISSIONS GRID -->
+                    <Border Grid.Column="2" Background="#D4D8DC" BorderBrush="#B0B8C0" BorderThickness="1.5" CornerRadius="4" Padding="6">
+                        <Grid>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl x:Name="IcReportRoles">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- REPORT NAME BOX -->
+                                                <Border Grid.Column="0" Background="#008000" CornerRadius="4" Padding="12,10" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding ReportName}" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <!-- ACTION BUTTONS -->
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <!-- KHÓA -->
+                                                    <Button Content="KHÓA" Width="90" Height="40" Margin="0,0,4,0" Cursor="Hand" Click="BtnReportAction_Click" Tag="Khoa">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding KhoaBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="KHÓA" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    <!-- XEM -->
+                                                    <Button Content="XEM" Width="80" Height="40" Margin="0,0,4,0" Cursor="Hand" Click="BtnReportAction_Click" Tag="Xem">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding XemBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="XEM" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                    <!-- TẤT CẢ -->
+                                                    <Button Content="TẤT CẢ" Width="90" Height="40" Cursor="Hand" Click="BtnReportAction_Click" Tag="TatCa">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{Binding TatCaBtnBrush}" BorderBrush="#444444" BorderThickness="1" CornerRadius="4">
+                                                                    <TextBlock Text="TẤT CẢ" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- BOTTOM RIGHT GEAR ICON FOR SETTINGS -->
+                            <Button Width="32" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4" Cursor="Hand" Click="BtnSettings_Click" Tag="QuyenBaoCao">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4">
+                                            <TextBlock Text="⚙" Foreground="#333333" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

@@ -60,6 +60,26 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public string SoPhieuDisplay => !string.IsNullOrWhiteSpace(SoHD) ? SoHD : (!string.IsNullOrWhiteSpace(SoPhieu) ? SoPhieu : "");
     }
 
+    public class MatHangThongKeVM : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public string TenHang { get; set; } = "";
+        public string DonViTinh { get; set; } = "";
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal ThanhTien { get; set; }
+        public Brush CardBackgroundBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#134E54"));
+
+        public string SoLuongDisplay => SoLuong > 0 ? SoLuong.ToString("N0") : "";
+        public string DonGiaDisplay => DonGia > 0 ? DonGia.ToString("N0") : "";
+        public string ThanhTienDisplay => ThanhTien > 0 ? ThanhTien.ToString("N0") : "";
+    }
+
     public partial class TouchThongKeWindow : Window
     {
         private int _rowsConfig = 2;
@@ -135,41 +155,72 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 // 1. Fetch Paid Orders for the selected date
                 string sqlPaidOrders = @"
                     SELECT 
-                        CAST(h.ID AS VARCHAR(50)) as OrderId, 
-                        CAST(h.DBANID AS VARCHAR(50)) as BanId,
-                        COALESCE(b.NAME, 'Bàn') as BanName, 
-                        COALESCE(h.NAME, '') as SoPhieu,
-                        COALESCE(h.SOHD, '') as SoHD,
-                        COALESCE(h.TONGCONG, 0) as TongCong,
-                        COALESCE(h.TIENMAT, 0) as TienMat,
-                        COALESCE(h.TIENCHUYENKHOAN, 0) as ChuyenKhoan,
-                        COALESCE(h.TIENTHE, 0) as TienThe,
-                        COALESCE(h.TIENCONGNO, 0) as CongNo,
-                        COALESCE(h.TIENVOUCHER, 0) as Voucher,
-                        COALESCE(h.TIENTICHLUY, 0) as TruTichLuy,
-                        COALESCE(h.TIENTHETRATRUOC, 0) as TheTraTruoc
+                        h.*,
+                        COALESCE(b.NAME, 'Bàn') as BAN_NAME_DISPLAY
                     FROM TDONHANG h 
                     LEFT JOIN DBAN b ON CAST(h.DBANID AS VARCHAR(50)) = CAST(b.ID AS VARCHAR(50)) 
                     WHERE (CAST(h.NGAY AS DATE) = CAST(@DateVal AS DATE) 
-                        OR (h.NGAY IS NULL AND CAST(h.TIMECREATED AS DATE) = CAST(@DateVal AS DATE)))
-                      AND (h.STATUS = 2 OR h.STATUS = 10 OR h.STATUS IS NULL OR h.NAME IS NOT NULL)
+                        OR (h.NGAY IS NULL AND CAST(h.TIMECREATED AS DATE) = CAST(@DateVal AS DATE))
+                        OR CAST(h.GIOTHANHTOAN AS DATE) = CAST(@DateVal AS DATE))
+                      AND (h.STATUS = 2 OR h.STATUS = 10 OR (h.STATUS IS NULL AND h.NAME IS NOT NULL AND h.TONGCONG > 0))
                     ORDER BY h.TIMECREATED DESC, h.NAME ASC";
 
-                _paidInvoiceList = (await conn.QueryAsync<PaidInvoiceItemVM>(sqlPaidOrders, new { DateVal = selectedDate.Date })).ToList();
-                foreach (var item in _paidInvoiceList)
+                var rawOrders = (await conn.QueryAsync(sqlPaidOrders, new { DateVal = selectedDate.Date })).ToList();
+                _paidInvoiceList = new List<PaidInvoiceItemVM>();
+
+                foreach (var row in rawOrders)
                 {
-                    item.CardBackgroundBrush = cardBgBrush;
-                    if (string.IsNullOrWhiteSpace(item.BanName) && !string.IsNullOrWhiteSpace(item.BanId))
+                    var dict = (IDictionary<string, object>)row;
+
+                    string orderId = GetDictString(dict, "ID");
+                    string banId = GetDictString(dict, "DBANID");
+                    string banName = GetDictString(dict, "BAN_NAME_DISPLAY");
+                    if (string.IsNullOrWhiteSpace(banName) || banName == "Bàn")
                     {
-                        item.BanName = $"Bàn {item.BanId}";
+                        banName = !string.IsNullOrWhiteSpace(banId) ? $"Bàn {banId}" : "Bàn";
                     }
+                    string soPhieu = GetDictString(dict, "NAME");
+                    string soHD = GetDictString(dict, "SOHD");
+                    decimal tongCong = GetDictDecimal(dict, "TONGCONG");
+                    decimal tienMat = GetDictDecimal(dict, "TIENMAT");
+                    decimal chuyenKhoan = GetDictDecimal(dict, "CHUYENKHOAN", "TIENCHUYENKHOAN");
+                    decimal tienThe = GetDictDecimal(dict, "THE", "TIENTHE");
+                    decimal voucher = GetDictDecimal(dict, "VOUCHER", "TIENVOUCHER");
+                    decimal truTichLuy = GetDictDecimal(dict, "TRUTICHLUY", "TIENTICHLUY");
+                    decimal theTraTruoc = GetDictDecimal(dict, "THETRATRUOC", "TIENTHETRATRUOC");
+                    decimal congNo = GetDictDecimal(dict, "CONGNO", "TIENCONGNO");
+
+                    int loaiTT = GetDictInt(dict, "LOAITHANHTOAN");
+                    if (loaiTT == 4 && congNo == 0) congNo = tongCong;
+                    if (tienMat == 0 && chuyenKhoan == 0 && tienThe == 0 && voucher == 0 && theTraTruoc == 0 && congNo == 0 && tongCong > 0)
+                    {
+                        tienMat = tongCong;
+                    }
+
+                    _paidInvoiceList.Add(new PaidInvoiceItemVM
+                    {
+                        OrderId = orderId,
+                        BanId = banId,
+                        BanName = banName,
+                        SoPhieu = soPhieu,
+                        SoHD = soHD,
+                        TongCong = tongCong,
+                        TienMat = tienMat,
+                        ChuyenKhoan = chuyenKhoan,
+                        TienThe = tienThe,
+                        CongNo = congNo,
+                        Voucher = voucher,
+                        TruTichLuy = truTichLuy,
+                        TheTraTruoc = theTraTruoc,
+                        CardBackgroundBrush = cardBgBrush
+                    });
                 }
 
                 IcHoaDonCards.ItemsSource = _paidInvoiceList;
                 UpdateCalculatedCardHeights();
 
                 // Calculate Totals for metrics panel
-                decimal totalCash = _paidInvoiceList.Sum(x => x.TienMat > 0 ? x.TienMat : (x.ChuyenKhoan == 0 && x.TienThe == 0 && x.CongNo == 0 ? x.TongCong : 0));
+                decimal totalCash = _paidInvoiceList.Sum(x => x.TienMat);
                 decimal totalBank = _paidInvoiceList.Sum(x => x.ChuyenKhoan);
                 decimal totalATM = _paidInvoiceList.Sum(x => x.TienThe);
                 decimal totalVoucher = _paidInvoiceList.Sum(x => x.Voucher);
@@ -192,16 +243,21 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 try
                 {
                     string sqlThuChi = @"
-                        SELECT 
-                            NAME as SoPhieu, 
-                            TENDOI TUONG as TenDoiTuong, 
-                            DIENGIAI as DienGiai, 
-                            COALESCE(THU, 0) as Thu, 
-                            COALESCE(CHI, 0) as Chi 
+                        SELECT *
                         FROM TTHUCHI 
                         WHERE CAST(NGAY AS DATE) = CAST(@DateVal AS DATE)
                         ORDER BY TIMECREATED DESC";
-                    var thuChiList = (await conn.QueryAsync(sqlThuChi, new { DateVal = selectedDate.Date })).ToList();
+                    var rawThuChi = (await conn.QueryAsync(sqlThuChi, new { DateVal = selectedDate.Date })).ToList();
+                    var thuChiList = rawThuChi.Select(r => {
+                        var d = (IDictionary<string, object>)r;
+                        return new {
+                            SoPhieu = GetDictString(d, "NAME", "SOPHIEU"),
+                            TenDoiTuong = GetDictString(d, "TENDOI_TUONG", "TENDOI", "DOITUONG"),
+                            DienGiai = GetDictString(d, "DIENGIAI", "NOTE"),
+                            Thu = GetDictDecimal(d, "THU"),
+                            Chi = GetDictDecimal(d, "CHI")
+                        };
+                    }).ToList();
                     DgThuChi.ItemsSource = thuChiList;
                 }
                 catch { }
@@ -221,11 +277,30 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         LEFT JOIN DMATHANG m ON CAST(c.DMATHANGID AS VARCHAR(50)) = CAST(m.ID AS VARCHAR(50)) 
                         LEFT JOIN DDONVITINH dvt ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(dvt.ID AS VARCHAR(50)) 
                         WHERE (CAST(h.NGAY AS DATE) = CAST(@DateVal AS DATE) 
-                            OR (h.NGAY IS NULL AND CAST(h.TIMECREATED AS DATE) = CAST(@DateVal AS DATE))) 
+                            OR (h.NGAY IS NULL AND CAST(h.TIMECREATED AS DATE) = CAST(@DateVal AS DATE))
+                            OR CAST(h.GIOTHANHTOAN AS DATE) = CAST(@DateVal AS DATE)) 
                         GROUP BY c.TENHANG, dvt.NAME, c.DONGIA 
                         ORDER BY c.TENHANG ASC";
-                    var matHangList = (await conn.QueryAsync(sqlMatHang, new { DateVal = selectedDate.Date })).ToList();
-                    DgMatHang.ItemsSource = matHangList;
+                    var rawMatHangList = (await conn.QueryAsync(sqlMatHang, new { DateVal = selectedDate.Date })).ToList();
+                    var matHangList = rawMatHangList.Select(r => {
+                        var d = (IDictionary<string, object>)r;
+                        string tenHang = GetDictString(d, "TENHANG", "TenHang");
+                        string dvt = GetDictString(d, "DONVITINH", "DonViTinh");
+                        decimal sl = GetDictDecimal(d, "SOLUONG", "SoLuong");
+                        decimal dg = GetDictDecimal(d, "DONGIA", "DonGia");
+                        decimal tt = GetDictDecimal(d, "THANHTIEN", "ThanhTien");
+
+                        return new MatHangThongKeVM
+                        {
+                            TenHang = tenHang,
+                            DonViTinh = dvt,
+                            SoLuong = sl,
+                            DonGia = dg,
+                            ThanhTien = tt,
+                            CardBackgroundBrush = cardBgBrush
+                        };
+                    }).ToList();
+                    IcMatHangCards.ItemsSource = matHangList;
                 }
                 catch { }
             }
@@ -235,11 +310,58 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
+        private string GetDictString(IDictionary<string, object> dict, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (dict.TryGetValue(key, out var val) && val != null)
+                {
+                    return val.ToString() ?? "";
+                }
+            }
+            return "";
+        }
+
+        private decimal GetDictDecimal(IDictionary<string, object> dict, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (dict.TryGetValue(key, out var val) && val != null)
+                {
+                    if (decimal.TryParse(val.ToString(), out decimal res))
+                        return res;
+                }
+            }
+            return 0m;
+        }
+
+        private int GetDictInt(IDictionary<string, object> dict, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (dict.TryGetValue(key, out var val) && val != null)
+                {
+                    if (int.TryParse(val.ToString(), out int res))
+                        return res;
+                }
+            }
+            return 0;
+        }
+
         private void UpdateCalculatedCardHeights()
         {
             try
             {
-                double containerHeight = SvHoaDonCards != null && SvHoaDonCards.ActualHeight > 50 ? SvHoaDonCards.ActualHeight : 500;
+                double containerHeight = 500;
+                if (SvHoaDonCards != null && SvHoaDonCards.ActualHeight > 50)
+                {
+                    containerHeight = SvHoaDonCards.ActualHeight;
+                }
+                else if (SvMatHangCards != null && SvMatHangCards.ActualHeight > 50)
+                {
+                    containerHeight = SvMatHangCards.ActualHeight;
+                }
+
                 int rows = _rowsConfig > 0 ? _rowsConfig : 2;
                 CardHeight = Math.Max(70.0, Math.Floor((containerHeight - (rows * 12.0)) / rows));
             }
@@ -247,6 +369,11 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
 
         private void SvHoaDonCards_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateCalculatedCardHeights();
+        }
+
+        private void SvMatHangCards_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdateCalculatedCardHeights();
         }

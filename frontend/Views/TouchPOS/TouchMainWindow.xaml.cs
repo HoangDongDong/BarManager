@@ -973,7 +973,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
             if (!LocalPhanQuyenService.CheckPermissionAndAlert("Quản lý người dùng", "View", this)) return;
             try
             {
-                var win = new QuanLyBar.Client.Views.NguoiDungPhanQuyen.NguoiDungPhanQuyenWindow();
+                var win = new TouchNguoiDungPhanQuyenWindow();
                 win.Owner = this;
                 win.ShowDialog();
             }
@@ -1215,7 +1215,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
         {
             try
             {
-                var win = new QuanLyBar.Client.Views.TienIch.GhiChuNhanhWindow();
+                var win = new TouchGhiChuNhanhWindow();
                 win.Owner = this;
                 win.ShowDialog();
             }
@@ -2025,7 +2025,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
                     _currentBan.ThoiGianMo = null;
 
                     UpdateTotals();
-                    LoadTables();
+                    ShowTableScreen();
                 }
             }
         }
