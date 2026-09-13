@@ -18,11 +18,31 @@ class Program
         {
             conn.Open();
 
-            var rows = conn.Query("SELECT ID, NAME, LALYDOTHU, LOAILYDO, NOTE, STATUS, SORTORDER FROM DLYDOTHUCHI ORDER BY SORTORDER, NAME");
-            foreach (var r in rows)
+            Console.WriteLine("=== DNHOMMATHANG ===");
+            var nhoms = conn.Query("SELECT ID, NAME, MAUSAC FROM DNHOMMATHANG WHERE STATUS <> 0 OR STATUS IS NULL");
+            foreach (var r in nhoms)
             {
-                Console.WriteLine($"ID: {r.ID} | NAME: {r.NAME} | LALYDOTHU: {r.LALYDOTHU} | LOAILYDO: {r.LOAILYDO} | STATUS: {r.STATUS}");
+                string hex = ColorIntToHex(r.MAUSAC);
+                Console.WriteLine($"ID: {r.ID} | NAME: {r.NAME} | MAUSAC_RAW: {r.MAUSAC} | HEX: {hex}");
+            }
+
+            Console.WriteLine("\n=== SCAUHINH TOUCH CONFIGS ===");
+            var configs = conn.Query("SELECT ID, VAL FROM SCAUHINH WHERE ID LIKE '%TOUCH%'");
+            foreach (var r in configs)
+            {
+                Console.WriteLine($"ID: {r.ID} | VAL: '{r.VAL}'");
             }
         }
+    }
+
+    static string ColorIntToHex(object colorDbValue)
+    {
+        if (colorDbValue == null || colorDbValue == DBNull.Value) return "NONE";
+        if (int.TryParse(colorDbValue.ToString(), out int argb))
+        {
+            uint uargb = (uint)argb;
+            return "#" + uargb.ToString("X8");
+        }
+        return colorDbValue.ToString();
     }
 }

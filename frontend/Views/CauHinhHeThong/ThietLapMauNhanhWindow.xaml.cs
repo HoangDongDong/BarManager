@@ -52,18 +52,34 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     Height = 20,
                     Margin = new Thickness(2),
                     CornerRadius = new CornerRadius(2),
-                    Background = (Brush)new BrushConverter().ConvertFromString(hex)!,
+                    Background = HexToBrush(hex, "#1976D2"),
                     Cursor = Cursors.Hand,
                     ToolTip = hex
                 };
                 border.MouseDown += (s, e) =>
                 {
                     SelectedColor = hex;
-                    BtnColorPreview.Background = (Brush)new BrushConverter().ConvertFromString(hex)!;
+                    BtnColorPreview.Background = HexToBrush(hex, "#1976D2");
                     RbThuCong.IsChecked = true;
                     PopupColorPicker.IsOpen = false;
                 };
                 UgColorMatrix.Children.Add(border);
+            }
+        }
+
+        private static Brush HexToBrush(string? hex, string fallbackHex)
+        {
+            try
+            {
+                string h = (hex ?? "").Trim();
+                if (string.IsNullOrEmpty(h)) h = fallbackHex;
+                if (!h.StartsWith("#")) h = "#" + h;
+                if (h.Length == 7) h = "#FF" + h.Substring(1);
+                return (Brush)new BrushConverter().ConvertFromString(h)!;
+            }
+            catch
+            {
+                return new SolidColorBrush(Color.FromRgb(25, 118, 210));
             }
         }
 

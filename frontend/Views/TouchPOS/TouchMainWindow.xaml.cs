@@ -112,6 +112,46 @@ namespace QuanLyBar.Client.Views.TouchPOS
         private string _matHangTileColorHex = "#EF4423";
         private string _nhomTileColorHex = "#FFFF33";
 
+        private bool _coThueSuat = false;
+        private decimal _macDinhThueSuat = 0;
+        private bool _coPhiDichVu = false;
+        private decimal _macDinhPhiDichVu = 0;
+        private decimal _lamTronTien = 0;
+
+        private async Task RefreshSystemConfigsAsync()
+        {
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                _coThueSuat = configs.TryGetValue("CoThueSuat", out var cts) && (cts == "1" || cts.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (configs.TryGetValue("MacDinhThueSuat", out var mdts) && decimal.TryParse(mdts.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var thueVal))
+                {
+                    _macDinhThueSuat = thueVal;
+                }
+                else _macDinhThueSuat = 0;
+
+                _coPhiDichVu = configs.TryGetValue("CoPhiDichVu", out var cpdv) && (cpdv == "1" || cpdv.Equals("true", StringComparison.OrdinalIgnoreCase));
+                if (configs.TryGetValue("MacDinhPhiDichVu", out var mdpdv) && decimal.TryParse(mdpdv.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var phiVal))
+                {
+                    _macDinhPhiDichVu = phiVal;
+                }
+                else _macDinhPhiDichVu = 0;
+
+                if (configs.TryGetValue("LamTronTien", out var lt) && decimal.TryParse(lt.Replace(",", "").Replace(".", "").Trim(), out var ltVal) && ltVal > 0)
+                {
+                    _lamTronTien = ltVal;
+                }
+                else
+                {
+                    _lamTronTien = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi RefreshSystemConfigsAsync: {ex.Message}");
+            }
+        }
+
         private async Task LoadTableLayoutConfigAsync()
         {
             try
@@ -152,7 +192,14 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 {
                     foreach (var item in _allMatHangList)
                     {
-                        item.TileColorHex = _matHangTileColorHex;
+                        if (!string.IsNullOrWhiteSpace(item.MauSac))
+                        {
+                            item.TileColorHex = QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(item.MauSac, _matHangTileColorHex);
+                        }
+                        else
+                        {
+                            item.TileColorHex = _matHangTileColorHex;
+                        }
                     }
                 }
                 if (_selectedNhom != null)
@@ -244,8 +291,9 @@ namespace QuanLyBar.Client.Views.TouchPOS
             TxtOrderGuestCount.Text = ban.SoKhach > 0 ? ban.SoKhach.ToString() : "1";
             TxtOrderCustomer.Text = ban.KhachHangName ?? "";
 
+            await RefreshSystemConfigsAsync();
             LoadOrderItems();
-            LoadMenuItems();
+            await LoadMenuItems();
             await LoadOrderLayoutConfigAsync();
         }
 
@@ -266,18 +314,23 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 _allKhuVucList = new List<DKHUVUC>();
                 _allBanList = new List<DBAN>();
 
+                string defaultKvColor = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_KhuVuc", "#E65100");
                 string[] presetColors = new string[] { "#E65100", "#414BEA", "#00C800", "#00838F", "#C2185B", "#6A1B9A", "#D84315" };
                 int colorIndex = 0;
 
                 foreach (var kv in kvBanList)
                 {
+                    string kvColor = !string.IsNullOrWhiteSpace(kv.MauSac) ? QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(kv.MauSac, defaultKvColor) :
+                                     (!string.IsNullOrWhiteSpace(defaultKvColor) ? defaultKvColor : presetColors[colorIndex % presetColors.Length]);
+
                     _allKhuVucList.Add(new DKHUVUC
                     {
                         Id = kv.Id,
                         MAKHUVUC = kv.Id,
                         Name = kv.Name,
                         TenKhuVuc = kv.Name,
-                        ColorHex = presetColors[colorIndex % presetColors.Length]
+                        ColorHex = kvColor,
+                        MAUSAC = kvColor
                     });
                     colorIndex++;
 
@@ -381,6 +434,12 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         
                         string sqlOrder = @"
                             SELECT FIRST 1 CAST(o.ID AS VARCHAR(50)) as ActiveOrderId, o.NAME as SoPhieu, o.SOKHACH as SoKhach,
+                                   CAST(COALESCE(o.TILETHUE, 0) AS DECIMAL(18,2)) as TiLeThue,
+                                   CAST(COALESCE(o.TIENTHUE, 0) AS DECIMAL(18,2)) as TienThue,
+                                   CAST(COALESCE(o.TILEPHIDICHVU, 0) AS DECIMAL(18,2)) as TiLePhiDichVu,
+                                   CAST(COALESCE(o.PHIDICHVU, 0) AS DECIMAL(18,2)) as TienPhiDichVu,
+                                   CAST(COALESCE(o.TILEGIAMGIA, 0) AS DECIMAL(18,2)) as TiLeGiamGia,
+                                   CAST(COALESCE(o.TIENGIAMGIA, 0) AS DECIMAL(18,2)) as TienGiamGia,
                                    kh.NAME as KhachHangName
                             FROM TDONHANG o
                             LEFT JOIN DKHACHHANG kh ON CAST(o.DKHACHHANGID AS VARCHAR(50)) = CAST(kh.ID AS VARCHAR(50))
@@ -400,6 +459,20 @@ namespace QuanLyBar.Client.Views.TouchPOS
                                 _currentBan.SoKhach = sk;
                             }
                             _currentBan.KhachHangName = orderRow.KhachHangName?.ToString();
+                            
+                            decimal thuePt = orderRow.TiLeThue != null ? Convert.ToDecimal(orderRow.TiLeThue) : 0;
+                            decimal tienThue = orderRow.TienThue != null ? Convert.ToDecimal(orderRow.TienThue) : 0;
+                            decimal phiPt = orderRow.TiLePhiDichVu != null ? Convert.ToDecimal(orderRow.TiLePhiDichVu) : 0;
+                            decimal tienPhi = orderRow.TienPhiDichVu != null ? Convert.ToDecimal(orderRow.TienPhiDichVu) : 0;
+                            decimal giamPt = orderRow.TiLeGiamGia != null ? Convert.ToDecimal(orderRow.TiLeGiamGia) : 0;
+                            decimal tienGiam = orderRow.TienGiamGia != null ? Convert.ToDecimal(orderRow.TienGiamGia) : 0;
+
+                            _currentBan.ThueSuatPt = thuePt;
+                            _currentBan.TienThue = tienThue;
+                            _currentBan.PhiDichVuPt = phiPt;
+                            _currentBan.TienPhiDichVu = tienPhi;
+                            _currentBan.GiamGiaPhanTram = giamPt;
+                            _currentBan.GiamGia = tienGiam;
                         }
                     }
                     catch (Exception ex)
@@ -465,7 +538,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
-        private void LoadMenuItems()
+        private async System.Threading.Tasks.Task LoadMenuItems()
         {
             _nhomList.Clear();
             _allMatHangList.Clear();
@@ -474,7 +547,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
             bool hasDbCategories = false;
             try
             {
-                var dbNhom = LocalDatabaseService.GetAll<DNHOMMATHANG>("SELECT ID, NAME as TenNhom FROM DNHOMMATHANG WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY NAME");
+                string defaultNhomColor = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_NhomHang", 
+                    await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_Nhom", "#D96414"));
+
+                var dbNhom = LocalDatabaseService.GetAll<DNHOMMATHANG>("SELECT ID, NAME as TenNhom, MAUSAC FROM DNHOMMATHANG WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY SORTORDER, NAME");
                 if (dbNhom != null && dbNhom.Any())
                 {
                     hasDbCategories = true;
@@ -484,12 +560,14 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         if (!string.IsNullOrWhiteSpace(n.TenNhom))
                         {
                             string dbId = !string.IsNullOrEmpty(n.ID) ? n.ID.Trim() : idx.ToString();
+                            string nhomColor = !string.IsNullOrWhiteSpace(n.MAUSAC) ? QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(n.MAUSAC, defaultNhomColor) : defaultNhomColor;
                             var item = new TouchNhomHangVM
                             {
                                 MANHOM = dbId,
                                 TenNhom = n.TenNhom.Trim(),
-                                ColorBrushHex = idx == 1 ? "#D96414" : "#FFFF33",
-                                TextColorHex = idx == 1 ? "#FFFFFF" : "#4A3B00"
+                                OriginalColorBrushHex = nhomColor,
+                                ColorBrushHex = nhomColor,
+                                TextColorHex = QuanLyBar.Client.Services.ColorUtils.GetContrastTextColor(nhomColor)
                             };
                             item.AssociatedIds.Add(dbId);
                             item.AssociatedIds.Add(n.TenNhom.Trim());
@@ -504,16 +582,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
             // 2. If DB has no categories, fallback to 10 master categories
             if (!hasDbCategories)
             {
-                var cat1 = new TouchNhomHangVM { MANHOM = "CAT_KHAI_VI", TenNhom = "MÓN\nKHAI\nVỊ", ColorBrushHex = "#D96414", TextColorHex = "#FFFFFF" };
-                var cat2 = new TouchNhomHangVM { MANHOM = "CAT_BO_BE", TenNhom = "BÒ -\nBÊ -\nTRÂU -\nDÊ", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat3 = new TouchNhomHangVM { MANHOM = "CAT_CA", TenNhom = "CÁC\nMÓN\nCÁ", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat4 = new TouchNhomHangVM { MANHOM = "CAT_HAI_SAN", TenNhom = "HẢI\nSẢN", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat5 = new TouchNhomHangVM { MANHOM = "CAT_DO_UONG", TenNhom = "ĐỒ\nUỐNG\nCÁC\nLOẠI", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat6 = new TouchNhomHangVM { MANHOM = "CAT_THIT_LON", TenNhom = "THỊT\nLỢN", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat7 = new TouchNhomHangVM { MANHOM = "CAT_LUON_ECH", TenNhom = "LƯƠN\n-\nCUA\n-\nỐC\n-\nẾCH", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat8 = new TouchNhomHangVM { MANHOM = "CAT_LAU", TenNhom = "CÁC\nMÓN\nLẨU\nVÀ\nMÓN\nĂN\nKÈM", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat9 = new TouchNhomHangVM { MANHOM = "CAT_COM", TenNhom = "CƠM\nVÀ\nMÓN\nNĂN", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
-                var cat10 = new TouchNhomHangVM { MANHOM = "CAT_RAU", TenNhom = "CÁC\nMÓN\nRAU", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat1 = new TouchNhomHangVM { MANHOM = "CAT_KHAI_VI", TenNhom = "MÓN\nKHAI\nVỊ", OriginalColorBrushHex = "#D96414", ColorBrushHex = "#D96414", TextColorHex = "#FFFFFF" };
+                var cat2 = new TouchNhomHangVM { MANHOM = "CAT_BO_BE", TenNhom = "BÒ -\nBÊ -\nTRÂU -\nDÊ", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat3 = new TouchNhomHangVM { MANHOM = "CAT_CA", TenNhom = "CÁC\nMÓN\nCÁ", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat4 = new TouchNhomHangVM { MANHOM = "CAT_HAI_SAN", TenNhom = "HẢI\nSẢN", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat5 = new TouchNhomHangVM { MANHOM = "CAT_DO_UONG", TenNhom = "ĐỒ\nUỐNG\nCÁC\nLOẠI", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat6 = new TouchNhomHangVM { MANHOM = "CAT_THIT_LON", TenNhom = "THỊT\nLỢN", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat7 = new TouchNhomHangVM { MANHOM = "CAT_LUON_ECH", TenNhom = "LƯƠN\n-\nCUA\n-\nỐC\n-\nẾCH", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat8 = new TouchNhomHangVM { MANHOM = "CAT_LAU", TenNhom = "CÁC\nMÓN\nLẨU\nVÀ\nMÓN\nĂN\nKÈM", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat9 = new TouchNhomHangVM { MANHOM = "CAT_COM", TenNhom = "CƠM\nVÀ\nMÓN\nNĂN", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
+                var cat10 = new TouchNhomHangVM { MANHOM = "CAT_RAU", TenNhom = "CÁC\nMÓN\nRAU", OriginalColorBrushHex = "#FFFF33", ColorBrushHex = "#FFFF33", TextColorHex = "#4A3B00" };
 
                 _nhomList.Add(cat1);
                 _nhomList.Add(cat2);
@@ -539,8 +617,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
             bool hasDbItems = false;
             try
             {
+                string defaultMhColor = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_MatHang", "#5B7F95");
+
                 string sql = @"
-                    SELECT m.ID, m.DNHOMMATHANGID, m.DLOAIMATHANGID, m.NAME as TenMatHang, m.GIABAN as GiaBan, m.ANH,
+                    SELECT m.ID, m.DNHOMMATHANGID, m.DLOAIMATHANGID, m.NAME as TenMatHang, m.GIABAN as GiaBan, m.ANH, m.MAUSAC,
                            n.NAME as NhomName, n.ID as NhomId
                     FROM DMATHANG m
                     LEFT JOIN DNHOMMATHANG n ON m.DNHOMMATHANGID = n.ID OR m.DLOAIMATHANGID = n.ID
@@ -560,6 +640,8 @@ namespace QuanLyBar.Client.Views.TouchPOS
                                                   (!string.IsNullOrWhiteSpace(m.NhomId) ? m.NhomId.Trim() : 
                                                   (!string.IsNullOrWhiteSpace(m.DLOAIMATHANGID) ? m.DLOAIMATHANGID.Trim() : ""));
 
+                            string mhColor = !string.IsNullOrWhiteSpace(m.MAUSAC) ? QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(m.MAUSAC, defaultMhColor) : defaultMhColor;
+
                             var vm = new TouchMatHangVM
                             {
                                 MAMATHANG = !string.IsNullOrEmpty(m.ID) ? m.ID.Trim() : mIdx.ToString(),
@@ -567,7 +649,8 @@ namespace QuanLyBar.Client.Views.TouchPOS
                                 NhomName = m.NhomName?.Trim() ?? "",
                                 TenMatHang = m.TenMatHang,
                                 GiaBan = m.GiaBan > 0 ? m.GiaBan : m.GIABAN,
-                                TileColorHex = _matHangTileColorHex
+                                TileColorHex = mhColor,
+                                MauSac = m.MAUSAC ?? ""
                             };
                             if (m.ANH != null && m.ANH.Length > 0)
                             {
@@ -642,8 +725,8 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 }
                 else
                 {
-                    n.ColorBrushHex = "#FFFF33";
-                    n.TextColorHex = "#4A3B00";
+                    n.ColorBrushHex = !string.IsNullOrWhiteSpace(n.OriginalColorBrushHex) ? n.OriginalColorBrushHex : "#FFFF33";
+                    n.TextColorHex = QuanLyBar.Client.Services.ColorUtils.GetContrastTextColor(n.ColorBrushHex);
                 }
             }
 
@@ -667,17 +750,76 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
         private void UpdateTotals()
         {
-            decimal tamTinh = 0, giamGia = 0;
+            decimal tienHang = 0;
             if (_cartItems != null)
             {
                 foreach (var item in _cartItems)
                 {
-                    tamTinh += item.ThanhTien;
+                    tienHang += item.ThanhTien;
                 }
             }
-            TxtTotalSub.Text = tamTinh.ToString("N0");
+
+            decimal giamGia = _currentBan != null ? _currentBan.GiamGia : 0;
+            if (_currentBan != null && _currentBan.GiamGiaPhanTram > 0)
+            {
+                giamGia = Math.Round(tienHang * (_currentBan.GiamGiaPhanTram / 100m));
+                _currentBan.GiamGia = giamGia;
+            }
+
+            decimal sauGiam = Math.Max(0, tienHang - giamGia);
+
+            // Phí dịch vụ
+            decimal phiPt = 0;
+            if (_coPhiDichVu)
+            {
+                phiPt = (_currentBan != null && _currentBan.PhiDichVuPt > 0) ? _currentBan.PhiDichVuPt : _macDinhPhiDichVu;
+            }
+            decimal tienPhi = (_coPhiDichVu && phiPt > 0) ? Math.Round(sauGiam * (phiPt / 100m)) : 0;
+
+            // Thuế VAT
+            decimal thuePt = 0;
+            if (_coThueSuat)
+            {
+                thuePt = (_currentBan != null && _currentBan.ThueSuatPt > 0) ? _currentBan.ThueSuatPt : _macDinhThueSuat;
+            }
+            decimal tienThue = (_coThueSuat && thuePt > 0) ? Math.Round((sauGiam + tienPhi) * (thuePt / 100m)) : 0;
+
+            decimal tongCong = sauGiam + tienPhi + tienThue;
+            if (_lamTronTien > 1 && tongCong > 0)
+            {
+                tongCong = Math.Round(tongCong / _lamTronTien, MidpointRounding.AwayFromZero) * _lamTronTien;
+            }
+
+            if (_currentBan != null)
+            {
+                _currentBan.TienHang = tienHang;
+                _currentBan.GiamGia = giamGia;
+                _currentBan.PhiDichVuPt = phiPt;
+                _currentBan.TienPhiDichVu = tienPhi;
+                _currentBan.ThueSuatPt = thuePt;
+                _currentBan.TienThue = tienThue;
+                _currentBan.TongCong = tongCong;
+            }
+
+            TxtTotalSub.Text = tienHang.ToString("N0");
+            if (TxtTotalDiscountPt != null) TxtTotalDiscountPt.Text = _currentBan != null && _currentBan.GiamGiaPhanTram > 0 ? $"{_currentBan.GiamGiaPhanTram:0.##}%" : "0";
             TxtTotalDiscount.Text = giamGia.ToString("N0");
-            TxtTotalFinal.Text = (tamTinh - giamGia).ToString("N0");
+
+            if (RowTotalServiceFee != null)
+            {
+                RowTotalServiceFee.Visibility = _coPhiDichVu ? Visibility.Visible : Visibility.Collapsed;
+                if (TxtTotalServiceFeePt != null) TxtTotalServiceFeePt.Text = $"{phiPt:0.##}%";
+                if (TxtTotalServiceFee != null) TxtTotalServiceFee.Text = tienPhi.ToString("N0");
+            }
+
+            if (RowTotalVAT != null)
+            {
+                RowTotalVAT.Visibility = _coThueSuat ? Visibility.Visible : Visibility.Collapsed;
+                if (TxtTotalVatPt != null) TxtTotalVatPt.Text = $"{thuePt:0.##}%";
+                if (TxtTotalVat != null) TxtTotalVat.Text = tienThue.ToString("N0");
+            }
+
+            TxtTotalFinal.Text = tongCong.ToString("N0");
         }
 
         private async void DoLogin(string userName, string password)
@@ -983,14 +1125,21 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
-        private void BtnMenuCauHinhHeThong_Click(object sender, RoutedEventArgs e)
+        private async void BtnMenuCauHinhHeThong_Click(object sender, RoutedEventArgs e)
         {
             if (!LocalPhanQuyenService.CheckPermissionAndAlert("Cấu hình hệ thống", "View", this)) return;
             try
             {
-                var win = new QuanLyBar.Client.Views.CauHinhHeThong.CauHinhToanHeThongWindow();
+                var win = new QuanLyBar.Client.Views.TouchPOS.TouchCauHinhHeThongWindow();
                 win.Owner = this;
                 win.ShowDialog();
+
+                await RefreshSystemConfigsAsync();
+                if (GridTouchOrder.Visibility == Visibility.Visible)
+                {
+                    UpdateTotals();
+                    await AutoSaveOrderAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -1723,20 +1872,29 @@ namespace QuanLyBar.Client.Views.TouchPOS
                     });
                 }
 
-                decimal tienHang = _cartItems.Sum(x => x.ThanhTien);
-                decimal tongCong = tienHang;
+                decimal tienHang = _currentBan != null ? _currentBan.TienHang : _cartItems.Sum(x => x.ThanhTien);
+                decimal giamGia = _currentBan != null ? _currentBan.GiamGia : 0;
+                decimal tongCong = _currentBan != null ? _currentBan.TongCong : tienHang;
+                decimal tienThue = _currentBan != null ? _currentBan.TienThue : 0;
+                decimal thueSuatPt = _currentBan != null ? _currentBan.ThueSuatPt : 0;
+                decimal tienPhiDichVu = _currentBan != null ? _currentBan.TienPhiDichVu : 0;
+                decimal phiDichVuPt = _currentBan != null ? _currentBan.PhiDichVuPt : 0;
 
                 int.TryParse(TxtOrderGuestCount?.Text?.Trim(), out int soKhach);
-                if (soKhach <= 0) soKhach = _currentBan.SoKhach > 0 ? _currentBan.SoKhach : 1;
+                if (soKhach <= 0) soKhach = _currentBan != null && _currentBan.SoKhach > 0 ? _currentBan.SoKhach : 1;
 
                 await service.SaveOrderAsync(
                     orderId,
                     itemsToSave,
                     tienHang,
-                    0,
+                    giamGia,
                     tongCong,
                     "",
-                    soKhach
+                    soKhach,
+                    tienThue,
+                    thueSuatPt,
+                    tienPhiDichVu,
+                    phiDichVuPt
                 );
             }
             catch (Exception ex)
@@ -1960,9 +2118,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 return;
             }
 
-            decimal tienHang = _cartItems.Sum(x => x.SoLuong * x.DonGiaGoc);
-            decimal tongCong = _cartItems.Sum(x => x.ThanhTien);
-            decimal giamGia = tienHang > tongCong ? (tienHang - tongCong) : 0;
+            UpdateTotals();
 
             var posBan = new PosBanViewModel
             {
@@ -1971,9 +2127,14 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 ActiveOrderId = _currentBan.ActiveOrderId,
                 SoPhieu = _currentBan.SoPhieu,
                 StartTime = _currentBan.ThoiGianMo,
-                TienHang = tienHang,
-                GiamGia = giamGia,
-                TongCong = tongCong,
+                TienHang = _currentBan.TienHang,
+                GiamGiaPhanTram = _currentBan.GiamGiaPhanTram,
+                GiamGia = _currentBan.GiamGia,
+                PhiDichVuPt = _currentBan.PhiDichVuPt,
+                TienPhiDichVu = _currentBan.TienPhiDichVu,
+                ThueSuatPt = _currentBan.ThueSuatPt,
+                TienThue = _currentBan.TienThue,
+                TongCong = _currentBan.TongCong,
                 KhachHangName = _currentBan.KhachHangName
             };
 
@@ -2072,10 +2233,38 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
+        private async void DgOrderItems_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            DependencyObject dep = (DependencyObject)e.OriginalSource;
+            while (dep != null && !(dep is DataGridRow) && !(dep is DataGrid))
+            {
+                if (dep is Button)
+                {
+                    return;
+                }
+                dep = System.Windows.Media.VisualTreeHelper.GetParent(dep);
+            }
+
+            if (dep is DataGridRow row && row.DataContext is TouchCartItemVM item)
+            {
+                var win = new TouchNhapSoLuongWindow(item.TenMatHang, item.SoLuong);
+                win.Owner = this;
+                if (win.ShowDialog() == true && win.NewQuantity > 0)
+                {
+                    item.SoLuong = win.NewQuantity;
+                    item.ThanhTien = item.SoLuong * item.DonGia;
+                    DgOrderItems.Items.Refresh();
+                    UpdateTotals();
+                    await AutoSaveOrderAsync();
+                }
+            }
+        }
+
     }
 
     public class TouchNhomHangVM : System.ComponentModel.INotifyPropertyChanged
     {
+        public string OriginalColorBrushHex { get; set; } = "#FFFF33";
         public string MANHOM { get; set; } = "";
         public string TenNhom { get; set; } = "";
         public HashSet<string> AssociatedIds { get; set; } = new(StringComparer.OrdinalIgnoreCase);
@@ -2121,6 +2310,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public string MANHOM { get; set; } = "";
         public string NhomName { get; set; } = "";
         public string TenMatHang { get; set; } = "";
+        public string MauSac { get; set; } = "";
         public decimal GiaBan { get; set; }
         public string GiaBanFormatted => GiaBan > 0 ? GiaBan.ToString("N0") : "0";
 
@@ -2225,7 +2415,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
             {
                 try
                 {
-                    return (System.Windows.Media.SolidColorBrush)new System.Windows.Media.BrushConverter().ConvertFrom(TileColorHex)!;
+                    string hex = TileColorHex?.Trim() ?? "#0D4B5B";
+                    if (!hex.StartsWith("#")) hex = "#" + hex;
+                    if (hex.Length == 7) hex = "#FF" + hex.Substring(1);
+                    return (System.Windows.Media.SolidColorBrush)new System.Windows.Media.BrushConverter().ConvertFromString(hex)!;
                 }
                 catch
                 {
@@ -2376,6 +2569,15 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public string? SoPhieu { get; set; }
         public int SoKhach { get; set; } = 1;
         public string? KhachHangName { get; set; }
+
+        public decimal TienHang { get; set; } = 0;
+        public decimal GiamGiaPhanTram { get; set; } = 0;
+        public decimal GiamGia { get; set; } = 0;
+        public decimal ThueSuatPt { get; set; } = 0;
+        public decimal TienThue { get; set; } = 0;
+        public decimal PhiDichVuPt { get; set; } = 0;
+        public decimal TienPhiDichVu { get; set; } = 0;
+        public decimal TongCong { get; set; } = 0;
     }
     public class DKHUVUC 
     { 
@@ -2384,10 +2586,27 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public string MAKHUVUC { get; set; } = ""; 
         public string TenKhuVuc { get; set; } = ""; 
         public string ColorHex { get; set; } = "#E65100";
-        public SolidColorBrush ColorBrush => (SolidColorBrush)new BrushConverter().ConvertFrom(ColorHex);
+        public string MAUSAC { get; set; } = "";
+        public SolidColorBrush ColorBrush
+        {
+            get
+            {
+                try
+                {
+                    string hex = ColorHex?.Trim() ?? "#E65100";
+                    if (!hex.StartsWith("#")) hex = "#" + hex;
+                    if (hex.Length == 7) hex = "#FF" + hex.Substring(1);
+                    return (SolidColorBrush)new BrushConverter().ConvertFromString(hex)!;
+                }
+                catch
+                {
+                    return new SolidColorBrush(Color.FromRgb(230, 81, 0));
+                }
+            }
+        }
         public int THUTU { get; set; } 
     }
-    public class DNHOMMATHANG { public string ID { get; set; } = ""; public string MANHOMMATHANG { get; set; } = ""; public string TenNhom { get; set; } = ""; public int THUTU { get; set; } }
-    public class DMATHANG { public string ID { get; set; } = ""; public string MAMATHANG { get; set; } = ""; public string DNHOMMATHANGID { get; set; } = ""; public string DLOAIMATHANGID { get; set; } = ""; public string NhomId { get; set; } = ""; public string NhomName { get; set; } = ""; public string TenMatHang { get; set; } = ""; public decimal GiaBan { get; set; } public decimal GIABAN { get; set; } public string MauNen { get; set; } = "#1976D2"; public byte[]? ANH { get; set; } }
+    public class DNHOMMATHANG { public string ID { get; set; } = ""; public string MANHOMMATHANG { get; set; } = ""; public string TenNhom { get; set; } = ""; public string MAUSAC { get; set; } = ""; public int THUTU { get; set; } }
+    public class DMATHANG { public string ID { get; set; } = ""; public string MAMATHANG { get; set; } = ""; public string DNHOMMATHANGID { get; set; } = ""; public string DLOAIMATHANGID { get; set; } = ""; public string NhomId { get; set; } = ""; public string NhomName { get; set; } = ""; public string TenMatHang { get; set; } = ""; public decimal GiaBan { get; set; } public decimal GIABAN { get; set; } public string MauNen { get; set; } = "#1976D2"; public string MAUSAC { get; set; } = ""; public byte[]? ANH { get; set; } }
     public class TDONHANGCHITIET { public string MAMATHANG { get; set; } = ""; public string TenMatHang { get; set; } = ""; public decimal SoLuong { get; set; } public decimal DonGia { get; set; } public decimal THANHTIEN { get; set; } }
 }

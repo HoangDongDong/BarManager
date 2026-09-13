@@ -102,22 +102,23 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         {
             try
             {
+                await LocalCauHinhService.RefreshConfigCacheAsync();
                 string kvDefaultColor = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_KhuVuc", "#3D8EAA");
                 string nhomDefaultColor = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_NhomHang", "#4E78A6");
                 string mhDefaultColor = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_MatHang", "#5B7F95");
 
                 // Load Khu Vực
-                var khuVucList = LocalDatabaseService.GetAll<TouchLayoutItem>("SELECT T.ID, T.NAME, T.STATUS, T.ANH, T.MAUSAC FROM DKHUVUC T WHERE (T.STATUS IS NULL OR T.STATUS <> 0) ORDER BY T.SORTORDER, T.NAME");
+                var khuVucList = LocalDatabaseService.GetAll<TouchLayoutItem>("SELECT CAST(T.ID AS VARCHAR(50)) AS ID, T.NAME, T.STATUS, T.ANH, T.MAUSAC FROM DKHUVUC T WHERE (T.STATUS IS NULL OR T.STATUS <> 0) ORDER BY T.SORTORDER, T.NAME");
                 foreach (var item in khuVucList) item.MauNen = GetColor(item.Mausac, kvDefaultColor);
                 IcKhuVuc.ItemsSource = khuVucList;
 
                 // Load Nhóm Hàng  
-                var nhomList = LocalDatabaseService.GetAll<TouchLayoutItem>("SELECT T.ID, T.NAME, T.STATUS, T.ANH, T.MAUSAC FROM DNHOMMATHANG T WHERE (T.STATUS IS NULL OR T.STATUS <> 0) ORDER BY T.SORTORDER, T.NAME");
+                var nhomList = LocalDatabaseService.GetAll<TouchLayoutItem>("SELECT CAST(T.ID AS VARCHAR(50)) AS ID, T.NAME, T.STATUS, T.ANH, T.MAUSAC FROM DNHOMMATHANG T WHERE (T.STATUS IS NULL OR T.STATUS <> 0) ORDER BY T.SORTORDER, T.NAME");
                 foreach (var item in nhomList) item.MauNen = GetColor(item.Mausac, nhomDefaultColor);
                 IcNhomHang.ItemsSource = nhomList;
 
                 // Load Mặt Hàng
-                _allMatHang = LocalDatabaseService.GetAll<TouchLayoutItem>("SELECT T.ID, T.NAME, T.STATUS, T.ANH, T.MAUSAC, T.DNHOMMATHANGID FROM DMATHANG T WHERE (T.STATUS IS NULL OR T.STATUS <> 0) ORDER BY T.NAME").ToList();
+                _allMatHang = LocalDatabaseService.GetAll<TouchLayoutItem>("SELECT CAST(T.ID AS VARCHAR(50)) AS ID, T.NAME, T.STATUS, T.ANH, T.MAUSAC, CAST(T.DNHOMMATHANGID AS VARCHAR(50)) AS DNHOMMATHANGID FROM DMATHANG T WHERE (T.STATUS IS NULL OR T.STATUS <> 0) ORDER BY T.NAME").ToList();
                 foreach (var item in _allMatHang) 
                 {
                     item.MauNen = GetColor(item.Mausac, mhDefaultColor);
@@ -134,7 +135,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private static string GetColor(string? color, string fallback)
         {
-            return string.IsNullOrWhiteSpace(color) ? fallback : color;
+            return ColorUtils.ColorIntToHex(color, fallback);
         }
 
         private void LoadColors()
@@ -313,29 +314,16 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 if (win.ShowDialog() == true)
                 {
                     await ApplyQuickColorAsync(win.SelectedColor, win.SelectedTarget, win.IsAutoColor);
+                    LoadData();
                 }
-            }
-            catch { }
-        }
-
-        private void ApplyColor(string targetType, string color)
-        {
-            if (_selectedItem is not TouchLayoutItem selected)
-                return;
-
-            try
-            {
-                selected.Mausac = color;
-                selected.MauNen = color;
-
-                string table = GetTableName(targetType);
-                LocalDatabaseService.Execute($"UPDATE {table} SET MAUSAC = @Color WHERE ID = @Id", new { Color = color, Id = selected.Id });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Không thể lưu màu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"Lỗi áp dụng màu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+
         private object? GetSelectedId() => _selectedItem switch
         {
             TouchLayoutItem item => item.Id,
@@ -353,7 +341,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             {
                 string table = GetTableName(_selectedType);
                 LocalDatabaseService.Execute(
-                    $"UPDATE {table} SET ANH = @Image WHERE ID = @Id",
+                    $"UPDATE {table} SET ANH = @Image WHERE CAST(ID AS VARCHAR(50)) = CAST(@Id AS VARCHAR(50))",
                     new { Image = _selectedImageBytes, Id = GetSelectedId() });
                 LoadData();
             }
@@ -397,7 +385,10 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 {
                     try
                     {
-                        return new SolidColorBrush((Color)ColorConverter.ConvertFromString(MauNen));
+                        string hex = MauNen?.Trim() ?? "#5B7F95";
+                        if (!hex.StartsWith("#")) hex = "#" + hex;
+                        if (hex.Length == 7) hex = "#FF" + hex.Substring(1);
+                        return (Brush)new BrushConverter().ConvertFromString(hex)!;
                     }
                     catch
                     {
@@ -461,6 +452,28 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             public event PropertyChangedEventHandler? PropertyChanged;
         }
 
+
+
+        private void ApplyColor(string targetType, string color)
+        {
+            if (_selectedItem is not TouchLayoutItem selected || string.IsNullOrEmpty(selected.Id))
+                return;
+
+            try
+            {
+                selected.Mausac = color;
+                selected.MauNen = color;
+
+                int colorInt = ColorUtils.HexToColorInt(color);
+                string table = GetTableName(targetType);
+                LocalDatabaseService.Execute($"UPDATE {table} SET MAUSAC = @Color WHERE CAST(ID AS VARCHAR(50)) = CAST(@Id AS VARCHAR(50))", new { Color = colorInt, Id = selected.Id });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Không thể lưu màu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
         private async System.Threading.Tasks.Task ApplyQuickColorAsync(string color, string target, bool isAutoColor)
         {
             var palette = new[]
@@ -482,7 +495,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                         string itemColor = palette[idx % palette.Length];
                         item.MauNen = itemColor;
                         item.Mausac = itemColor;
-                        LocalDatabaseService.Execute("UPDATE DMATHANG SET MAUSAC = @Color WHERE ID = @Id", new { Color = itemColor, Id = item.Id });
+                        int cInt = ColorUtils.HexToColorInt(itemColor);
+                        LocalDatabaseService.Execute("UPDATE DMATHANG SET MAUSAC = @Color WHERE CAST(ID AS VARCHAR(50)) = CAST(@Id AS VARCHAR(50))", new { Color = cInt, Id = item.Id });
                         idx++;
                     }
                     return;
@@ -496,7 +510,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                         string c = palette[index % palette.Length];
                         item.MauNen = c;
                         item.Mausac = c;
-                        LocalDatabaseService.Execute("UPDATE DKHUVUC SET MAUSAC = @Color WHERE ID = @Id", new { Color = c, Id = item.Id });
+                        int cInt = ColorUtils.HexToColorInt(c);
+                        LocalDatabaseService.Execute("UPDATE DKHUVUC SET MAUSAC = @Color WHERE CAST(ID AS VARCHAR(50)) = CAST(@Id AS VARCHAR(50))", new { Color = cInt, Id = item.Id });
                         index++;
                     }
                 }
@@ -508,7 +523,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                         string c = palette[index % palette.Length];
                         item.MauNen = c;
                         item.Mausac = c;
-                        LocalDatabaseService.Execute("UPDATE DNHOMMATHANG SET MAUSAC = @Color WHERE ID = @Id", new { Color = c, Id = item.Id });
+                        int cInt = ColorUtils.HexToColorInt(c);
+                        LocalDatabaseService.Execute("UPDATE DNHOMMATHANG SET MAUSAC = @Color WHERE CAST(ID AS VARCHAR(50)) = CAST(@Id AS VARCHAR(50))", new { Color = cInt, Id = item.Id });
                         index++;
                     }
                 }
@@ -520,7 +536,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                         string c = palette[index % palette.Length];
                         item.MauNen = c;
                         item.Mausac = c;
-                        LocalDatabaseService.Execute("UPDATE DMATHANG SET MAUSAC = @Color WHERE ID = @Id", new { Color = c, Id = item.Id });
+                        int cInt = ColorUtils.HexToColorInt(c);
+                        LocalDatabaseService.Execute("UPDATE DMATHANG SET MAUSAC = @Color WHERE CAST(ID AS VARCHAR(50)) = CAST(@Id AS VARCHAR(50))", new { Color = cInt, Id = item.Id });
                         index++;
                     }
                 }
@@ -528,6 +545,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             }
 
             // CHẾ ĐỘ CHỌN MÀU THỦ CÔNG
+            int colorIntVal = ColorUtils.HexToColorInt(color);
             if (target == "MatHangTrongNhom" && _selectedItem is TouchLayoutItem gItem && !string.IsNullOrWhiteSpace(gItem.Id))
             {
                 var groupItems = _allMatHang.Where(m => string.Equals(m.DnhommathangId, gItem.Id, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -537,8 +555,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     item.Mausac = color;
                 }
                 LocalDatabaseService.Execute(
-                    "UPDATE DMATHANG SET MAUSAC = @Color WHERE DNHOMMATHANGID = @GroupId AND (STATUS IS NULL OR STATUS <> 0)",
-                    new { Color = color, GroupId = gItem.Id });
+                    "UPDATE DMATHANG SET MAUSAC = @Color WHERE CAST(DNHOMMATHANGID AS VARCHAR(50)) = CAST(@GroupId AS VARCHAR(50)) AND (STATUS IS NULL OR STATUS <> 0)",
+                    new { Color = colorIntVal, GroupId = gItem.Id });
                 await LocalCauHinhService.SaveSingleConfigAsync("TOUCH_COLOR_MatHangTrongNhom", color);
                 return;
             }
@@ -550,7 +568,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     item.MauNen = color;
                     item.Mausac = color;
                 }
-                LocalDatabaseService.Execute("UPDATE DKHUVUC SET MAUSAC = @Color WHERE (STATUS IS NULL OR STATUS <> 0)", new { Color = color });
+                LocalDatabaseService.Execute("UPDATE DKHUVUC SET MAUSAC = @Color WHERE (STATUS IS NULL OR STATUS <> 0)", new { Color = colorIntVal });
             }
             else if (target == "NhomHang" && IcNhomHang.ItemsSource is IEnumerable<TouchLayoutItem> listNhom)
             {
@@ -559,7 +577,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     item.MauNen = color;
                     item.Mausac = color;
                 }
-                LocalDatabaseService.Execute("UPDATE DNHOMMATHANG SET MAUSAC = @Color WHERE (STATUS IS NULL OR STATUS <> 0)", new { Color = color });
+                LocalDatabaseService.Execute("UPDATE DNHOMMATHANG SET MAUSAC = @Color WHERE (STATUS IS NULL OR STATUS <> 0)", new { Color = colorIntVal });
             }
             else
             {
@@ -568,7 +586,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     item.MauNen = color;
                     item.Mausac = color;
                 }
-                LocalDatabaseService.Execute("UPDATE DMATHANG SET MAUSAC = @Color WHERE (STATUS IS NULL OR STATUS <> 0)", new { Color = color });
+                LocalDatabaseService.Execute("UPDATE DMATHANG SET MAUSAC = @Color WHERE (STATUS IS NULL OR STATUS <> 0)", new { Color = colorIntVal });
             }
 
             await LocalCauHinhService.SaveSingleConfigAsync($"TOUCH_COLOR_{target}", color);

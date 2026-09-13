@@ -51,8 +51,12 @@ namespace QuanLyBar.Client.Services
 
                     // Lấy danh sách khu vực
                     var khuvucList = (await conn.QueryAsync<PosKhuVucViewModel>(
-                        "SELECT ID as Id, NAME as Name FROM DKHUVUC WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY SORTORDER, NAME"
+                        "SELECT ID as Id, NAME as Name, MAUSAC as MauSac FROM DKHUVUC WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY SORTORDER, NAME"
                     )).ToList();
+                    foreach (var kv in khuvucList)
+                    {
+                        kv.MauSac = ColorUtils.ColorIntToHex(kv.MauSac, "#3D8EAA");
+                    }
 
                     // Lấy danh sách bàn
                     var banList = (await conn.QueryAsync<DbanRowDto>(
@@ -428,7 +432,7 @@ namespace QuanLyBar.Client.Services
                         string updateOrderSql = @"
                             UPDATE TDONHANG 
                             SET TIENHANG = @TienHang, TIENGIAMGIA = @GiamGia, TONGCONG = @TongCong, 
-                                TIENTHUE = @TienThue, TILETHUE = @ThueSuatPt, PHIDICHVU = @TienPhiDichVu,
+                                TIENTHUE = @TienThue, TILETHUE = @ThueSuatPt, PHIDICHVU = @TienPhiDichVu, TILEPHIDICHVU = @PhiDichVuPt,
                                 NOTE = @Note, SOKHACH = @SoKhach,
                                 DNHANVIENXUATID = COALESCE(@NhanVienId, DNHANVIENXUATID),
                                 USERMODIFIEDID = @UserModifiedId, TIMEMODIFIED = CURRENT_TIMESTAMP
@@ -443,6 +447,7 @@ namespace QuanLyBar.Client.Services
                             TienThue = tienThue,
                             ThueSuatPt = thueSuatPt,
                             TienPhiDichVu = tienPhiDichVu,
+                            PhiDichVuPt = phiDichVuPt,
                             Note = ghiChu,
                             SoKhach = soKhach.ToString(),
                             NhanVienId = !string.IsNullOrEmpty(nhanVienId) ? nhanVienId : null,

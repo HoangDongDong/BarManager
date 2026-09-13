@@ -1104,7 +1104,8 @@
                           AutoGenerateColumns="False" IsReadOnly="True" Margin="0,2"
                           HeadersVisibility="Column" ColumnHeaderHeight="34"
                           RowHeight="44" SelectionMode="Single"
-                          BorderBrush="#CBD5E1" BorderThickness="1">
+                          BorderBrush="#CBD5E1" BorderThickness="1"
+                          PreviewMouseLeftButtonDown="DgOrderItems_PreviewMouseLeftButtonDown">
 
                     <DataGrid.Resources>
                         <!-- Column Header Style -->
@@ -1210,6 +1211,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <!-- GEAR BUTTON AT TOP RIGHT ABOVE TIỀN HÀNG -->
@@ -1237,15 +1240,39 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="GIẢM GIÁ" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
                             <Border Grid.Column="1" Background="#2E6C99" CornerRadius="10" Padding="4,2" Margin="4,0,2,0">
-                                <TextBlock Text="0" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtTotalDiscountPt" Text="0" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
                             </Border>
                             <Border Grid.Column="2" Background="#2E6C99" CornerRadius="10" Padding="8,3" Margin="2,0,0,0">
                                 <TextBlock x:Name="TxtTotalDiscount" Text="0" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Border>
                         </Grid>
 
+                        <!-- PHÍ DỊCH VỤ -->
+                        <Grid x:Name="RowTotalServiceFee" Grid.Row="4" Margin="0,2" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="PHÍ DỊCH VỤ" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" Background="#1B4D5C" CornerRadius="10" Padding="4,2" Margin="4,0,2,0">
+                                <TextBlock x:Name="TxtTotalServiceFeePt" Text="0%" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </Border>
+                            <Border Grid.Column="2" Background="#1B4D5C" CornerRadius="10" Padding="8,3" Margin="2,0,0,0">
+                                <TextBlock x:Name="TxtTotalServiceFee" Text="0" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- THUẾ VAT -->
+                        <Grid x:Name="RowTotalVAT" Grid.Row="5" Margin="0,2" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="THUẾ VAT" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" Background="#1B4D5C" CornerRadius="10" Padding="4,2" Margin="4,0,2,0">
+                                <TextBlock x:Name="TxtTotalVatPt" Text="0%" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </Border>
+                            <Border Grid.Column="2" Background="#1B4D5C" CornerRadius="10" Padding="8,3" Margin="2,0,0,0">
+                                <TextBlock x:Name="TxtTotalVat" Text="0" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Border>
+                        </Grid>
+
                         <!-- TỔNG CỘNG -->
-                        <Grid Grid.Row="4" Margin="0,2">
+                        <Grid Grid.Row="6" Margin="0,2">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="TỔNG CỘNG" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
                             <Border Grid.Column="1" Background="#8B0000" CornerRadius="10" Padding="8,4" Margin="6,0,0,0">

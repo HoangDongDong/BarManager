@@ -12,6 +12,7 @@ namespace QuanLyBar.Client.Models
     {
         public string Id { get; set; }
         public string Name { get; set; }
+        public string MauSac { get; set; }
         public ObservableCollection<PosBanViewModel> BanList { get; set; } = new ObservableCollection<PosBanViewModel>();
 
         public event PropertyChangedEventHandler PropertyChanged;
