@@ -1066,7 +1066,6 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -1092,11 +1091,6 @@
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="KHÁCH HÀNG" Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
                             <Border Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Background="#2E6C99" CornerRadius="10" Padding="8,2" Margin="2,1" Cursor="Hand" PreviewMouseDown="BtnSelectCustomer_Click">
                                 <TextBlock x:Name="TxtOrderCustomer" Text="KHÁCH LẺ" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="SỐ ORDER" Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <Border Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Background="#2E6C99" CornerRadius="10" Padding="8,2" Margin="2,1">
-                                <TextBox x:Name="TxtOrderNoInput" Background="Transparent" Foreground="White" BorderThickness="0" FontSize="11" FontWeight="Bold" Height="20" VerticalContentAlignment="Center"/>
                             </Border>
                         </Grid>
                     </Grid>
@@ -1205,7 +1199,7 @@
                         <Button x:Name="BtnOrderMergeTable" Content="🔀 Gộp bàn" Click="BtnOrderMergeTable_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#0C3D42" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
                         <Button x:Name="BtnOrderPrintKitchen" Content="🖨 Chế biến" Click="BtnOrderPrintKitchen_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#3B0C52" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
                         <Button x:Name="BtnOrderPayment" Content="💵 Thanh toán" Click="BtnOrderPayment_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#1E8638" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
-                        <Button x:Name="BtnOrderBack" Content="🚪 Đóng cửa sổ" Click="BtnCancelOrder_Click" Height="27" Cursor="Hand" Background="#D85517" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
+                        <Button x:Name="BtnOrderBack" Content="🚪 Đóng cửa sổ" Click="BtnOrderBack_Click" Height="27" Cursor="Hand" Background="#D85517" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
                     </StackPanel>
 
                     <!-- RIGHT TOTALS SUMMARY PANEL -->

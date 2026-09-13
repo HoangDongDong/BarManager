@@ -1,0 +1,267 @@
+<Window x:Class="QuanLyBar.Client.Views.TouchPOS.TouchThongKeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Name="ThisWindow"
+        Title="THỐNG KÊ"
+        WindowState="Maximized" WindowStyle="None" ResizeMode="NoResize"
+        ShowInTaskbar="False" Background="#2B5B77"
+        Loaded="Window_Loaded" KeyDown="Window_KeyDown">
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <!-- 1. TOP HEADER BANNER -->
+            <RowDefinition Height="42"/>
+            <!-- 2. METRICS PANEL -->
+            <RowDefinition Height="Auto"/>
+            <!-- 3. TABS + TOTAL ROW -->
+            <RowDefinition Height="44"/>
+            <!-- 4. CARDS / GRID MAIN AREA -->
+            <RowDefinition Height="*"/>
+            <!-- 5. BOTTOM ACTION BAR -->
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. TOP HEADER BANNER -->
+        <Border Grid.Row="0" Background="#16394C" CornerRadius="4" Margin="0,0,0,8" Padding="12,0">
+            <Grid>
+                <TextBlock x:Name="TxtHeaderTitle" Text="THỐNG KÊ - TÀI KHOẢN: ADMINISTRATOR" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="NGÀY" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnDate" Width="140" Height="32" Foreground="#000000" FontSize="14" FontWeight="Bold" Cursor="Hand" Click="BtnDate_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#FFFDE0" BorderBrush="#FFD54F" BorderThickness="1.5" CornerRadius="4">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 2. METRICS PANEL -->
+        <Border Grid.Row="1" Background="#16394C" CornerRadius="4" Margin="0,0,0,8" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- ROW 1 -->
+                <!-- TIỀN MẶT -->
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,2,8,4" VerticalAlignment="Center">
+                    <TextBlock Text="TIỀN MẶT" Foreground="White" FontSize="12" FontWeight="Bold" Width="90" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtTienMat" Text="0" Foreground="#A31C1C" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- CHUYỂN KHOẢN -->
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,2,8,4" VerticalAlignment="Center">
+                    <TextBlock Text="CHUYỂN KHOẢN" Foreground="White" FontSize="12" FontWeight="Bold" Width="105" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtChuyenKhoan" Text="0" Foreground="#000000" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- TRỪ TÍCH LŨY -->
+                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="0,2,8,4" VerticalAlignment="Center">
+                    <TextBlock Text="TRỪ TÍCH LŨY" Foreground="White" FontSize="12" FontWeight="Bold" Width="95" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtTruTichLuy" Text="0" Foreground="#000000" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- VOUCHER -->
+                <StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal" Margin="0,2,0,4" VerticalAlignment="Center">
+                    <TextBlock Text="VOUCHER" Foreground="White" FontSize="12" FontWeight="Bold" Width="80" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtVoucher" Text="0" Foreground="#000000" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- ROW 2 -->
+                <!-- THU CHI -->
+                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,4,8,2" VerticalAlignment="Center">
+                    <TextBlock Text="THU CHI" Foreground="White" FontSize="12" FontWeight="Bold" Width="90" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtThuChi" Text="0" Foreground="#000000" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- ATM -->
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,4,8,2" VerticalAlignment="Center">
+                    <TextBlock Text="ATM" Foreground="White" FontSize="12" FontWeight="Bold" Width="105" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtATM" Text="0" Foreground="#000000" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- THẺ TRẢ TRƯỚC -->
+                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,4,8,2" VerticalAlignment="Center">
+                    <TextBlock Text="THẺ TRẢ TRƯỚC" Foreground="White" FontSize="12" FontWeight="Bold" Width="95" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtTheTraTruoc" Text="0" Foreground="#000000" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- CÔNG NỢ -->
+                <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal" Margin="0,4,0,2" VerticalAlignment="Center">
+                    <TextBlock Text="CÔNG NỢ" Foreground="White" FontSize="12" FontWeight="Bold" Width="80" VerticalAlignment="Center"/>
+                    <Border Background="#FFFDE0" CornerRadius="4" Padding="8,4" MinWidth="90">
+                        <TextBlock x:Name="TxtCongNo" Text="0" Foreground="#000000" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 3. TABS + TOTAL ROW -->
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- TAB HÓA ĐƠN -->
+                <Button x:Name="BtnTabHoaDon" Content="HÓA ĐƠN" Width="100" Height="34" Margin="0,0,6,0" Cursor="Hand" Click="BtnTabHoaDon_Click"/>
+                <!-- TAB THU CHI -->
+                <Button x:Name="BtnTabThuChi" Content="THU CHI" Width="90" Height="34" Margin="0,0,6,0" Cursor="Hand" Click="BtnTabThuChi_Click"/>
+                <!-- TAB MẶT HÀNG -->
+                <Button x:Name="BtnTabMatHang" Content="MẶT HÀNG" Width="100" Height="34" Cursor="Hand" Click="BtnTabMatHang_Click"/>
+            </StackPanel>
+
+            <!-- TỔNG SUMMARY ON RIGHT -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="TỔNG" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <Border Background="#FFFDE0" CornerRadius="4" Padding="12,5" MinWidth="110">
+                    <TextBlock x:Name="TxtTong" Text="0" Foreground="#A31C1C" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right"/>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- 4. CARDS / GRID MAIN AREA -->
+        <Grid Grid.Row="3" Margin="0,0,0,8">
+            <!-- TAB 1: HÓA ĐƠN CARDS -->
+            <Grid x:Name="GridTabHoaDon" Visibility="Visible">
+                <ScrollViewer x:Name="SvHoaDonCards" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvHoaDonCards_SizeChanged">
+                    <ItemsControl x:Name="IcHoaDonCards">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="{Binding ColumnCount, ElementName=ThisWindow}" Rows="0" VerticalAlignment="Top"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Height="{Binding CardHeight, ElementName=ThisWindow}"
+                                        Background="{Binding CardBackgroundBrush}"
+                                        BorderBrush="{Binding BorderBrushColor}" BorderThickness="{Binding BorderThicknessVal}"
+                                        CornerRadius="6" Margin="4" Padding="12,10" Cursor="Hand"
+                                        MouseLeftButtonDown="InvoiceCard_Click">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- TABLE NAME -->
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding BanName}" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Top"/>
+
+                                        <!-- TOTAL AMOUNT -->
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TongCongDisplay}" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+
+                                        <!-- ORDER CODE / INVOICE NO -->
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding SoPhieuDisplay}" Foreground="#D0E4EC" FontSize="13" VerticalAlignment="Bottom"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- BOTTOM RIGHT GEAR ICON FOR SETTINGS -->
+                <Button x:Name="BtnSettings" Width="40" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12" Cursor="Hand" Click="BtnSettings_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1.5" CornerRadius="6">
+                                <TextBlock Text="⚙" Foreground="#333333" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+
+            <!-- TAB 2: THU CHI GRID -->
+            <Grid x:Name="GridTabThuChi" Visibility="Collapsed">
+                <DataGrid x:Name="DgThuChi" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" GridLinesVisibility="All" Background="#16394C" Foreground="White" HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Số phiếu" Binding="{Binding SoPhieu}" Width="120" FontWeight="Bold"/>
+                        <DataGridTextColumn Header="Tên đối tượng" Binding="{Binding TenDoiTuong}" Width="200"/>
+                        <DataGridTextColumn Header="Diễn giải" Binding="{Binding DienGiai}" Width="*"/>
+                        <DataGridTextColumn Header="Thu" Binding="{Binding Thu, StringFormat={}{0:N0}}" Width="120"/>
+                        <DataGridTextColumn Header="Chi" Binding="{Binding Chi, StringFormat={}{0:N0}}" Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+
+            <!-- TAB 3: MẶT HÀNG GRID -->
+            <Grid x:Name="GridTabMatHang" Visibility="Collapsed">
+                <DataGrid x:Name="DgMatHang" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" GridLinesVisibility="All" Background="#16394C" Foreground="White" HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tên hàng" Binding="{Binding TenHang}" Width="*" FontWeight="Bold"/>
+                        <DataGridTextColumn Header="ĐVT" Binding="{Binding DonViTinh}" Width="80"/>
+                        <DataGridTextColumn Header="Số lượng" Binding="{Binding SoLuong, StringFormat={}{0:N0}}" Width="100"/>
+                        <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0}}" Width="120"/>
+                        <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien, StringFormat={}{0:N0}}" Width="140" FontWeight="Bold"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Grid>
+
+        <!-- 5. BOTTOM ACTION BAR -->
+        <Grid Grid.Row="4">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <!-- IN BÁO CÁO KẾT CA -->
+                <Button x:Name="BtnInBaoCaoKetCa" Width="170" Height="40" Margin="0,0,10,0" Cursor="Hand" Click="BtnInBaoCaoKetCa_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#800000" BorderBrush="#A31C1C" BorderThickness="1.5" CornerRadius="6">
+                                <TextBlock Text="IN BÁO CÁO KẾT CA" Foreground="White" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- IN LẠI -->
+                <Button x:Name="BtnInLai" Width="110" Height="40" Cursor="Hand" Click="BtnInLai_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#6C757D" BorderBrush="#8A939B" BorderThickness="1.5" CornerRadius="6">
+                                <TextBlock Text="IN LẠI" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <!-- THOÁT -->
+                <Button x:Name="BtnThoat" Width="110" Height="40" Cursor="Hand" Click="BtnThoat_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#C62828" BorderBrush="#E53935" BorderThickness="1.5" CornerRadius="6">
+                                <TextBlock Text="THOÁT" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

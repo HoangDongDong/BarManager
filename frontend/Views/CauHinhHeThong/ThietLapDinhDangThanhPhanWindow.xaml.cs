@@ -33,6 +33,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 _selectedColor = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(SelectedColorBrush));
+                UpdateLivePreview();
             }
         }
 
@@ -238,6 +239,43 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     }
                 }
             }
+            else if (TargetType == "HoaDonChuaThanhToan")
+            {
+                List<string> allColumns = new()
+                {
+                    "BÀN", "TỔNG CỘNG", "NHÂN VIÊN", "NGÀY", "KHÁCH HÀNG", "SỐ PHIẾU"
+                };
+
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
+                List<string> usedColNames;
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    usedColNames = new List<string>
+                    {
+                        "BÀN", "TỔNG CỘNG", "NHÂN VIÊN", "NGÀY", "KHÁCH HÀNG", "SỐ PHIẾU"
+                    };
+                }
+
+                foreach (var col in usedColNames)
+                {
+                    if (allColumns.Contains(col))
+                    {
+                        _usedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+
+                foreach (var col in allColumns)
+                {
+                    if (!_usedColumns.Any(x => x.Name == col))
+                    {
+                        _unusedColumns.Add(new DisplayColumnItem(col));
+                    }
+                }
+            }
             else if (TargetType == "MatHang")
             {
                 List<string> allColumns = new() { "MẶT HÀNG", "GIÁ BÁN" };
@@ -322,6 +360,74 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         {
             try
             {
+                if (TargetType == "HoaDonChuaThanhToan")
+                {
+                    if (CardPreviewBorder != null) CardPreviewBorder.Visibility = Visibility.Visible;
+
+                    var usedNames = _usedColumns.Select(x => x.Name).ToList();
+
+                    bool showBan = usedNames.Contains("BÀN");
+                    bool showTongCong = usedNames.Contains("TỔNG CỘNG");
+                    bool showNhanVien = usedNames.Contains("NHÂN VIÊN");
+                    bool showNgay = usedNames.Contains("NGÀY");
+                    bool showKhachHang = usedNames.Contains("KHÁCH HÀNG");
+                    bool showSoPhieu = usedNames.Contains("SỐ PHIẾU");
+
+                    if (TxtPreviewTongCong != null)
+                    {
+                        TxtPreviewTongCong.Visibility = showTongCong ? Visibility.Visible : Visibility.Collapsed;
+                    }
+
+                    if (StkPreviewLeft != null)
+                    {
+                        StkPreviewLeft.Children.Clear();
+                        foreach (var col in _usedColumns)
+                        {
+                            switch (col.Name)
+                            {
+                                case "BÀN":
+                                    if (TxtPreviewBan != null)
+                                    {
+                                        TxtPreviewBan.Visibility = Visibility.Visible;
+                                        StkPreviewLeft.Children.Add(TxtPreviewBan);
+                                    }
+                                    break;
+                                case "NGÀY":
+                                    if (TxtPreviewNgay != null)
+                                    {
+                                        TxtPreviewNgay.Visibility = Visibility.Visible;
+                                        StkPreviewLeft.Children.Add(TxtPreviewNgay);
+                                    }
+                                    break;
+                                case "NHÂN VIÊN":
+                                    if (TxtPreviewNhanVien != null)
+                                    {
+                                        TxtPreviewNhanVien.Visibility = Visibility.Visible;
+                                        StkPreviewLeft.Children.Add(TxtPreviewNhanVien);
+                                    }
+                                    break;
+                                case "KHÁCH HÀNG":
+                                    if (TxtPreviewKhachHang != null)
+                                    {
+                                        TxtPreviewKhachHang.Visibility = Visibility.Visible;
+                                        StkPreviewLeft.Children.Add(TxtPreviewKhachHang);
+                                    }
+                                    break;
+                                case "SỐ PHIẾU":
+                                    if (TxtPreviewSoPhieu != null)
+                                    {
+                                        TxtPreviewSoPhieu.Visibility = Visibility.Visible;
+                                        StkPreviewLeft.Children.Add(TxtPreviewSoPhieu);
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (CardPreviewBorder != null) CardPreviewBorder.Visibility = Visibility.Collapsed;
+                }
             }
             catch { }
         }

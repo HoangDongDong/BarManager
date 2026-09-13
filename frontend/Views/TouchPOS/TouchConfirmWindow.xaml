@@ -15,7 +15,7 @@
 
             <!-- HEADER BANNER -->
             <Border Grid.Row="0" Background="#6588A6" BorderBrush="#7293A9" BorderThickness="0,0,0,1">
-                <TextBlock Text="XÁC NHẬN" Foreground="#FDE047" FontWeight="Bold" FontSize="15"
+                <TextBlock x:Name="TxtTitle" Text="XÁC NHẬN" Foreground="#FDE047" FontWeight="Bold" FontSize="15"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
 
@@ -29,7 +29,7 @@
                 <!-- QUESTION ICON SHAPE -->
                 <Border Width="46" Height="46" CornerRadius="6" Background="#3E759E" BorderBrush="White" BorderThickness="1.5"
                         HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="?" Foreground="White" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TxtIcon" Text="?" Foreground="White" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <TextBlock x:Name="TxtMessage" Grid.Column="1" Text="BẠN CÓ MUỐN THOÁT KHỎI HỆ THỐNG KHÔNG?"

@@ -1,42 +1,89 @@
 <Window x:Class="QuanLyBar.Client.Views.TouchPOS.DanhSachHoaDonChuaThanhToanWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Danh Sách Hoá Đơn Chưa Thanh Toán" Width="800" Height="600"
-        WindowStartupLocation="CenterOwner"
-        Background="#1A1A2E"
-        Loaded="Window_Loaded">
+        x:Name="ThisWindow"
+        Title="DANH SÁCH CÁC HÓA ĐƠN CHƯA THANH TOÁN"
+        WindowState="Maximized" WindowStyle="None" ResizeMode="NoResize"
+        ShowInTaskbar="False" Background="#3A6D8C"
+        Loaded="Window_Loaded" KeyDown="Window_KeyDown">
+
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <!-- TOP TITLE BANNER -->
+            <RowDefinition Height="45"/>
+            <!-- CARDS GRID AREA -->
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <!-- BOTTOM ACTION BAR -->
+            <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Danh sách hoá đơn chưa thanh toán" 
-                   FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,12"/>
+        <!-- 1. TOP TITLE BANNER -->
+        <Border Grid.Row="0" Background="#800000" CornerRadius="4" Margin="0,0,0,10">
+            <TextBlock Text="DANH SÁCH CÁC HÓA ĐƠN CHƯA THANH TOÁN" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
 
-        <DataGrid Grid.Row="1" x:Name="DgHoaDon"
-                  Background="#16213E" Foreground="White"
-                  BorderBrush="#1976D2" BorderThickness="1"
-                  RowBackground="#16213E" AlternatingRowBackground="#0F3460"
-                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1976D2"
-                  AutoGenerateColumns="False" IsReadOnly="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Số HĐ" Binding="{Binding SOHOADON}" Width="80"/>
-                <DataGridTextColumn Header="Bàn" Binding="{Binding TENBAN}" Width="100"/>
-                <DataGridTextColumn Header="Khách hàng" Binding="{Binding TENKHACH}" Width="*"/>
-                <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TONGTIEN, StringFormat={}{0:N0}}" Width="120"/>
-                <DataGridTextColumn Header="Thời gian" Binding="{Binding THOIGIAN, StringFormat=HH:mm dd/MM}" Width="120"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- 2. OPEN ORDERS CARDS AREA -->
+        <ScrollViewer x:Name="SvOpenOrders" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,0,10" SizeChanged="SvOpenOrders_SizeChanged">
+            <ItemsControl x:Name="IcOpenOrders">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding ColumnCount, ElementName=ThisWindow}" Rows="0" VerticalAlignment="Top"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Height="{Binding CardHeight, ElementName=ThisWindow}" Background="{Binding CardBackgroundBrush}" BorderBrush="#5F8F93" BorderThickness="1.5" CornerRadius="6" Margin="4" Padding="12,10" Cursor="Hand" MouseLeftButtonDown="OrderCard_Click">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button Content="🔍 Tìm kiếm" Click="BtnSearch_Click"
-                    Background="#1976D2" Foreground="White" BorderThickness="0"
-                    Padding="16,8" FontSize="13" Margin="0,0,8,0"/>
-            <Button Content="✖ Đóng" Click="BtnClose_Click"
-                    Background="#455A64" Foreground="White" BorderThickness="0"
-                    Padding="16,8" FontSize="13"/>
+                                <!-- LEFT COLUMN: DYNAMIC ORDERED FIELDS -->
+                                <ItemsControl Grid.Column="0" ItemsSource="{Binding DisplayFields}" VerticalAlignment="Center">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Text}" 
+                                                       Foreground="{Binding ForegroundBrush}" 
+                                                       FontSize="{Binding FontSize}" 
+                                                       FontWeight="{Binding FontWeight}" 
+                                                       Margin="0,0,0,2"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- RIGHT COLUMN: TỔNG CỘNG -->
+                                <TextBlock Grid.Column="1" Text="{Binding TongCong, StringFormat={}{0:N0}}" Visibility="{Binding TongCongVisibility}" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- 3. BOTTOM ACTION BAR -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <!-- GEAR SETTINGS BUTTON -->
+            <Button x:Name="BtnSettings" Width="44" Height="40" Margin="0,0,12,0" Cursor="Hand" Click="BtnSettings_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1.5" CornerRadius="6">
+                            <TextBlock Text="⚙" Foreground="#333333" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <!-- CLOSE BUTTON -->
+            <Button x:Name="BtnClose" Width="110" Height="40" Cursor="Hand" Click="BtnClose_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="#C62828" BorderBrush="#E53935" BorderThickness="1.5" CornerRadius="6">
+                            <TextBlock Text="ĐÓNG" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

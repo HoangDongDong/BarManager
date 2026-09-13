@@ -22,13 +22,11 @@ namespace QuanLyBar.Client.Views
         {
             LyDo = TxtLyDo.Text?.Trim() ?? "";
             this.DialogResult = true;
-            this.Close();
         }
 
         private void BtnHuyBo_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
-            this.Close();
         }
     }
 }

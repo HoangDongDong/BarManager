@@ -1,0 +1,292 @@
+<Window x:Class="QuanLyBar.Client.Views.TouchPOS.XacNhanThanhToanTouchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="XÁC NHẬN THANH TOÁN"
+        WindowState="Maximized" WindowStyle="None" ResizeMode="NoResize"
+        ShowInTaskbar="False" Background="#0F3845"
+        Loaded="Window_Loaded" KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <Style x:Key="NumpadBtnStyle" TargetType="Button">
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="#528AA8" BorderThickness="1.5" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DenomBtnStyle" TargetType="Button">
+            <Setter Property="Margin" Value="0,3,0,3"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="#1B5E20" BorderBrush="#4CAF50" BorderThickness="1.5" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="White"/>
+                                <Setter TargetName="border" Property="Background" Value="#2E7D32"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- TOP BANNER -->
+            <RowDefinition Height="45"/>
+            <!-- MAIN CONTENT -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. TOP BANNER -->
+        <Border Grid.Row="0" Background="#2C5E7A">
+            <TextBlock Text="XÁC NHẬN THANH TOÁN" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- 2. MAIN CONTENT AREA (3 COLUMNS) -->
+        <Grid Grid.Row="1" Margin="12,12,12,12">
+            <Grid.ColumnDefinitions>
+                <!-- LEFT COLUMN: QUICK CASH DENOMINATIONS -->
+                <ColumnDefinition Width="160"/>
+                <!-- MIDDLE COLUMN: PAYMENT FIELDS -->
+                <ColumnDefinition Width="*"/>
+                <!-- RIGHT COLUMN: NUMPAD & ACTION BUTTONS -->
+                <ColumnDefinition Width="380"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ================= COLUMN 1: QUICK CASH BUTTONS ================= -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                <Button Content="10,000" Style="{StaticResource DenomBtnStyle}" Click="BtnDenom_Click" Tag="10000"/>
+                <Button Content="20,000" Style="{StaticResource DenomBtnStyle}" Click="BtnDenom_Click" Tag="20000"/>
+                <Button Content="50,000" Style="{StaticResource DenomBtnStyle}" Click="BtnDenom_Click" Tag="50000"/>
+                <Button Content="100,000" Style="{StaticResource DenomBtnStyle}" Click="BtnDenom_Click" Tag="100000"/>
+                <Button Content="200,000" Style="{StaticResource DenomBtnStyle}" Click="BtnDenom_Click" Tag="200000"/>
+                <Button Content="500,000" Style="{StaticResource DenomBtnStyle}" Click="BtnDenom_Click" Tag="500000"/>
+                <Button Content="1,000,000" Style="{StaticResource DenomBtnStyle}" Click="BtnDenom_Click" Tag="1000000"/>
+            </StackPanel>
+
+            <!-- ================= COLUMN 2: PAYMENT DETAILS FORM ================= -->
+            <Border Grid.Column="1" Background="#3E779D" BorderBrush="#255268" BorderThickness="2" CornerRadius="6" Padding="16,12" Margin="0,0,10,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel VerticalAlignment="Center">
+                        <!-- TỔNG CỘNG -->
+                        <Grid Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="TỔNG CỘNG" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" Background="#FF0000" CornerRadius="6" Height="46" Padding="12,0">
+                                <TextBlock x:Name="TxtTongCong" Text="0" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- KHÁCH ĐƯA -->
+                        <Grid Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="KHÁCH ĐƯA" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" x:Name="BorderKhachDua" Background="White" BorderBrush="#F39C12" BorderThickness="2.5" CornerRadius="6" Height="46" Padding="12,0" Margin="0,0,6,0" Cursor="Hand" MouseLeftButtonDown="Field_Click" Tag="KhachDua">
+                                <TextBox x:Name="TxtKhachDua" Text="0" FontSize="22" FontWeight="Bold" Foreground="#111111" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TextChanged="InputMoney_TextChanged"/>
+                            </Border>
+                            <Button Grid.Column="2" Content="◄" Style="{StaticResource NumpadBtnStyle}" Background="#E65100" FontSize="24" Height="46" Margin="0" Click="BtnBackspace_Click"/>
+                        </Grid>
+
+                        <!-- THẺ ATM, VISA -->
+                        <Grid x:Name="RowTheATM" Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="THẺ ATM, VISA" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" x:Name="BorderTheATM" Background="White" BorderBrush="Transparent" BorderThickness="2.5" CornerRadius="6" Height="42" Padding="12,0" Cursor="Hand" MouseLeftButtonDown="Field_Click" Tag="TheATM">
+                                <TextBox x:Name="TxtTheATM" Text="0" FontSize="18" FontWeight="Bold" Foreground="#111111" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TextChanged="InputMoney_TextChanged"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- CHUYỂN KHOẢN -->
+                        <Grid x:Name="RowChuyenKhoan" Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="CHUYỂN KHOẢN" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" x:Name="BorderChuyenKhoan" Background="White" BorderBrush="Transparent" BorderThickness="2.5" CornerRadius="6" Height="42" Padding="12,0" Cursor="Hand" MouseLeftButtonDown="Field_Click" Tag="ChuyenKhoan">
+                                <TextBox x:Name="TxtChuyenKhoan" Text="0" FontSize="18" FontWeight="Bold" Foreground="#111111" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TextChanged="InputMoney_TextChanged"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- TÀI KHOẢN -->
+                        <Grid x:Name="RowTaiKhoan" Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="TÀI KHOẢN" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" x:Name="BorderTaiKhoan" Background="White" BorderBrush="Transparent" BorderThickness="2.5" CornerRadius="6" Height="42" Padding="12,0" Cursor="Hand" MouseLeftButtonDown="Field_Click" Tag="TaiKhoan">
+                                <TextBox x:Name="TxtTaiKhoan" Text="" FontSize="18" FontWeight="Bold" Foreground="#111111" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- THẺ TRẢ TRƯỚC -->
+                        <Grid x:Name="RowTheTraTruoc" Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="THẺ TRẢ TRƯỚC" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" x:Name="BorderTheTraTruoc" Background="#0A8080" BorderBrush="Transparent" BorderThickness="2.5" CornerRadius="6" Height="42" Padding="12,0" Cursor="Hand" MouseLeftButtonDown="Field_Click" Tag="TheTraTruoc">
+                                <TextBox x:Name="TxtTheTraTruoc" Text="0" FontSize="18" FontWeight="Bold" Foreground="White" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TextChanged="InputMoney_TextChanged"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- TRẢ LẠI -->
+                        <Grid Margin="0,6,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="TRẢ LẠI" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" Background="#00BFFF" CornerRadius="6" Height="46" Padding="12,0">
+                                <TextBlock x:Name="TxtTraLai" Text="0" Foreground="#111111" FontSize="24" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- ================= COLUMN 3: NUMPAD & ACTIONS ================= -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <!-- NUMPAD MATRIX -->
+                    <RowDefinition Height="*"/>
+                    <!-- ACTION BUTTONS -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- NUMPAD MATRIX -->
+                <Border Grid.Row="0" Background="#2A526A" BorderBrush="#1C4B6B" BorderThickness="2" CornerRadius="6" Padding="6" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- ROW 1: 1, 2, 3 -->
+                        <UniformGrid Grid.Row="0" Columns="3">
+                            <Button Content="1" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="1"/>
+                            <Button Content="2" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="2"/>
+                            <Button Content="3" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="3"/>
+                        </UniformGrid>
+
+                        <!-- ROW 2: 4, 5, 6 -->
+                        <UniformGrid Grid.Row="1" Columns="3">
+                            <Button Content="4" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="4"/>
+                            <Button Content="5" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="5"/>
+                            <Button Content="6" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="6"/>
+                        </UniformGrid>
+
+                        <!-- ROW 3: 7, 8, 9 -->
+                        <UniformGrid Grid.Row="2" Columns="3">
+                            <Button Content="7" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="7"/>
+                            <Button Content="8" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="8"/>
+                            <Button Content="9" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="9"/>
+                        </UniformGrid>
+
+                        <!-- ROW 4: 0, 000 -->
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="0" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="0"/>
+                            <Button Grid.Column="1" Content="000" Style="{StaticResource NumpadBtnStyle}" Background="#255268" Click="NumpadKey_Click" Tag="000"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- ACTION BUTTONS PANEL -->
+                <StackPanel Grid.Row="1">
+                    <!-- IN TẠM TÍNH -->
+                    <Button x:Name="BtnInTamTinh" Content="IN TẠM TÍNH" Height="44" Margin="0,0,0,6" Cursor="Hand" Click="BtnInTamTinh_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#5C5C00" BorderBrush="#8C8C00" BorderThickness="1.5" CornerRadius="6">
+                                    <TextBlock Text="IN TẠM TÍNH" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- ĐÓNG BILL VÀ IN -->
+                    <Button x:Name="BtnDongBillVaIn" Content="ĐÓNG BILL VÀ IN" Height="48" Margin="0,0,0,6" Cursor="Hand" Click="BtnDongBillVaIn_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#5B0A42" BorderBrush="#8E1467" BorderThickness="1.5" CornerRadius="6">
+                                    <TextBlock Text="ĐÓNG BILL VÀ IN" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- ĐÓNG BILL KHÔNG IN -->
+                    <Button x:Name="BtnDongBillKhongIn" Content="ĐÓNG BILL KHÔNG IN" Height="44" Margin="0,0,0,6" Cursor="Hand" Click="BtnDongBillKhongIn_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#334155" BorderBrush="#475569" BorderThickness="1.5" CornerRadius="6">
+                                    <TextBlock Text="ĐÓNG BILL KHÔNG IN" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- HỦY BỎ -->
+                    <Button x:Name="BtnHuyBo" Content="HỦY BỎ" Height="44" Cursor="Hand" Click="BtnHuyBo_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#800000" BorderBrush="#B71C1C" BorderThickness="1.5" CornerRadius="6">
+                                    <TextBlock Text="HỦY BỎ" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

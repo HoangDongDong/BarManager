@@ -8,6 +8,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Dapper;
 using QuanLyBar.Client.Services;
+using QuanLyBar.Client.Models;
+using QuanLyBar.Client.Views.CauHinhHeThong;
 
 namespace QuanLyBar.Client.Views.TouchPOS
 {
@@ -288,6 +290,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
                             Name = b.Name,
                             TENBAN = b.Name,
                             MAKHUVUC = kv.Id,
+                            KhuVucName = kv.Name,
                             IsOpened = b.IsOccupied,
                             ActiveOrderId = b.ActiveOrderId,
                             SoPhieu = b.SoPhieu,
@@ -338,8 +341,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
         private void BtnFilterDangMo_Click(object sender, RoutedEventArgs e)
         {
-            _filterOnlyOpened = !_filterOnlyOpened;
-            ApplyTableFilters();
+            var win = new DanhSachHoaDonChuaThanhToanWindow();
+            win.Owner = this;
+            if (win.ShowDialog() == true && !string.IsNullOrEmpty(win.SelectedBanId))
+            {
+                var targetBan = _allBanList.FirstOrDefault(x => x.Id == win.SelectedBanId);
+                if (targetBan != null)
+                {
+                    ShowOrderScreen(targetBan);
+                }
+            }
         }
 
         private void TableTile_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -414,8 +425,13 @@ namespace QuanLyBar.Client.Views.TouchPOS
                                 MAMATHANG = d.MatHangId ?? "",
                                 TenMatHang = d.MatHangName ?? "",
                                 SoLuong = d.SoLuong,
+                                DonGiaGoc = d.DonGiaGoc > 0 ? d.DonGiaGoc : d.DonGia,
                                 DonGia = d.DonGia,
-                                ThanhTien = d.ThanhTien
+                                ChietKhauPhanTram = d.ChietKhauPhanTram,
+                                ThanhTien = d.ThanhTien,
+                                LoaiDoId = d.LoaiDoId,
+                                LoaiDoName = d.LoaiDoName ?? "",
+                                DaInCheBien = d.DaInCheBien
                             });
                         }
                     }
@@ -1302,12 +1318,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
             catch { }
         }
 
-        private void BtnShiftStats_Click(object sender, RoutedEventArgs e) { }
+        private void BtnShiftStats_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new TouchThongKeWindow();
+            win.Owner = this;
+            win.ShowDialog();
+        }
 
         private void BtnClosePOS_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Đóng ca làm việc?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                ShowMenuScreen();
+            ShowMenuScreen();
         }
 
         private void BtnLogoutPOS_Click(object sender, RoutedEventArgs e)
@@ -1320,9 +1340,272 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
 
         // ===== ORDER EVENTS =====
-        private void BtnCancelOrder_Click(object sender, RoutedEventArgs e)
+        private async void BtnOrderMoveTable_Click(object sender, RoutedEventArgs e)
         {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Chuyển bàn", "View")) return;
+
+            if (_currentBan == null || !_currentBan.IsOpened || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "BÀN HIỆN TẠI CHƯA MỞ HOẶC KHÔNG CÓ ĐƠN HÀNG ĐỂ CHUYỂN!", "THÔNG BÁO");
+                return;
+            }
+
+            try
+            {
+                var win = new ChonBanChuyenGopTouchWindow(_currentBan, isMergeMode: false);
+                win.Owner = this;
+                if (win.ShowDialog() == true && win.SelectedTargetBan != null)
+                {
+                    var targetBan = win.SelectedTargetBan;
+                    string sourceOrderId = _currentBan.ActiveOrderId;
+                    string oldName = _currentBan.Name;
+
+                    var service = new LocalSuDungDichVuService();
+                    bool success = await service.TransferTableAsync(sourceOrderId, targetBan.Id);
+                    if (success)
+                    {
+                        // Reset source table in DB
+                        try
+                        {
+                            using var conn = DbConnectionManager.GetConnection();
+                            if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                            await conn.ExecuteAsync("UPDATE DBAN SET ISOPENED = 0, ACTIVEORDERID = NULL WHERE CAST(ID AS VARCHAR(50)) = @BanId", new { BanId = _currentBan.Id });
+                        }
+                        catch { }
+
+                        // Reset source table in memory
+                        _currentBan.IsOpened = false;
+                        _currentBan.ActiveOrderId = null;
+                        _currentBan.SoPhieu = "";
+                        _currentBan.TrangThai = "Trống";
+                        _currentBan.MauNen = "#16213E";
+                        _currentBan.KhachHangName = "";
+
+                        _cartItems.Clear();
+                        UpdateTotals();
+
+                        QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, $"ĐÃ CHUYỂN TOÀN BỘ DỮ LIỆU BÀN '{oldName.ToUpper()}' SANG BÀN '{targetBan.Name.ToUpper()}' THÀNH CÔNG!", "THÔNG BÁO");
+
+                        // Return to table selection screen
+                        ShowTableScreen();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, $"LỖI CHUYỂN BÀN: {ex.Message}", "LỖI");
+            }
+        }
+
+        private async void BtnOrderMergeTable_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Gộp bàn", "View")) return;
+
+            if (_currentBan == null || !_currentBan.IsOpened || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "BÀN HIỆN TẠI CHƯA MỞ HOẶC KHÔNG CÓ ĐƠN HÀNG ĐỂ GỘP!", "THÔNG BÁO");
+                return;
+            }
+
+            try
+            {
+                var win = new ChonBanChuyenGopTouchWindow(_currentBan, isMergeMode: true);
+                win.Owner = this;
+                if (win.ShowDialog() == true && win.SelectedTargetBan != null)
+                {
+                    var targetBan = win.SelectedTargetBan;
+                    string sourceOrderId = _currentBan.ActiveOrderId;
+                    string oldName = _currentBan.Name;
+
+                    var service = new LocalSuDungDichVuService();
+
+                    // If target table is empty, start order on target table
+                    string targetOrderId = targetBan.ActiveOrderId ?? "";
+                    if (!targetBan.IsOpened || string.IsNullOrEmpty(targetOrderId))
+                    {
+                        DateTime startTime = _currentBan.ThoiGianMo ?? DateTime.Now;
+                        var startRes = await service.StartTableOrderAsync(targetBan.Id, startTime, _currentBan.SoKhach, _currentBan.KhachHangName, "");
+                        if (startRes == null || string.IsNullOrEmpty(startRes.OrderId))
+                        {
+                            QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "KHÔNG THỂ MỞ BÀN ĐÍCH ĐỂ GỘP MÓN!", "LỖI");
+                            return;
+                        }
+                        targetOrderId = startRes.OrderId;
+                    }
+
+                    // Query items from source & target order details
+                    var sourceDetails = await service.GetOrderDetailsAsync(sourceOrderId);
+                    var targetDetails = (await service.GetOrderDetailsAsync(targetOrderId))?.ToList() ?? new List<PosDonHangChiTietViewModel>();
+
+                    foreach (var sItem in sourceDetails)
+                    {
+                        var exist = targetDetails.FirstOrDefault(x => x.MatHangId == sItem.MatHangId);
+                        if (exist != null)
+                        {
+                            exist.SoLuong += sItem.SoLuong;
+                            exist.Recalculate();
+                        }
+                        else
+                        {
+                            targetDetails.Add(new PosDonHangChiTietViewModel
+                            {
+                                Id = Guid.NewGuid().ToString("N").Substring(0, 20),
+                                MatHangId = sItem.MatHangId,
+                                MatHangName = sItem.MatHangName,
+                                DonViTinh = sItem.DonViTinh,
+                                DonGia = sItem.DonGia,
+                                SoLuong = sItem.SoLuong,
+                                ChietKhauPhanTram = sItem.ChietKhauPhanTram,
+                                GhiChu = sItem.GhiChu
+                            });
+                        }
+                    }
+
+                    decimal targetTienHang = targetDetails.Sum(x => x.ThanhTien);
+                    await service.SaveOrderAsync(targetOrderId, targetDetails, targetTienHang, 0, targetTienHang, "", _currentBan.SoKhach);
+
+                    // Delete source order
+                    await service.DeleteOrderAsync(sourceOrderId);
+
+                    // Reset source table in DB
+                    try
+                    {
+                        using var conn = DbConnectionManager.GetConnection();
+                        if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                        await conn.ExecuteAsync("UPDATE DBAN SET ISOPENED = 0, ACTIVEORDERID = NULL WHERE CAST(ID AS VARCHAR(50)) = @BanId", new { BanId = _currentBan.Id });
+                    }
+                    catch { }
+
+                    // Reset source table in memory
+                    _currentBan.IsOpened = false;
+                    _currentBan.ActiveOrderId = null;
+                    _currentBan.SoPhieu = "";
+                    _currentBan.TrangThai = "Trống";
+                    _currentBan.MauNen = "#16213E";
+                    _currentBan.KhachHangName = "";
+
+                    _cartItems.Clear();
+                    UpdateTotals();
+
+                    QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, $"ĐÃ GỘP TOÀN BỘ MÓN TỪ BÀN '{oldName.ToUpper()}' VÀO BÀN '{targetBan.Name.ToUpper()}' THÀNH CÔNG!", "THÔNG BÁO");
+
+                    // Return to table selection screen
+                    ShowTableScreen();
+                }
+            }
+            catch (Exception ex)
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, $"LỖI GỘP BÀN: {ex.Message}", "LỖI");
+            }
+        }
+
+        private async void BtnOrderBack_Click(object sender, RoutedEventArgs e)
+        {
+            await AutoSaveOrderAsync();
             ShowTableScreen();
+        }
+
+        private async void BtnCancelOrder_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 1. Permission check
+                if (!LocalPhanQuyenService.CheckPermissionAndAlert("Hủy hóa đơn", "View")) return;
+
+                // 2. Validate current table & active order
+                if (_currentBan == null || !_currentBan.IsOpened || string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+                {
+                    QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "BÀN HIỆN TẠI KHÔNG CÓ ĐƠN HÀNG ĐỂ HỦY!", "THÔNG BÁO");
+                    return;
+                }
+
+                var service = new LocalSuDungDichVuService();
+
+                // 3. Time limit check from system configuration (SCONFIG: ThoiGianChoPhepHuyBill)
+                int maxMinutes = await service.GetThoiGianChoPhepHuyBillMinutesAsync();
+                DateTime? startTime = _currentBan.ThoiGianMo;
+
+                if (!startTime.HasValue && !string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+                {
+                    try
+                    {
+                        using var conn = DbConnectionManager.GetConnection();
+                        if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                        var dt = await conn.QueryFirstOrDefaultAsync<DateTime?>(
+                            "SELECT COALESCE(BATDAU, TIMECREATED) FROM TDONHANG WHERE CAST(ID AS VARCHAR(50)) = @OrderId",
+                            new { OrderId = _currentBan.ActiveOrderId });
+                        if (dt.HasValue) startTime = dt;
+                    }
+                    catch { }
+                }
+
+                if (startTime.HasValue)
+                {
+                    double elapsedMinutes = (DateTime.Now - startTime.Value).TotalMinutes;
+                    if (elapsedMinutes > maxMinutes)
+                    {
+                        QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, $"KHÔNG ĐƯỢC PHÉP HỦY HÓA ĐƠN CÓ THỜI GIAN LỚN HƠN {maxMinutes} PHÚT (THEO CẤU HÌNH HỆ THỐNG).", "CẢNH BÁO");
+                        return;
+                    }
+                }
+
+                // 4. Prompt cancellation reason configuration check
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                bool nhapLyDo = !configs.TryGetValue("NhapLyDoKhiHuyHoaDon", out var nld) || nld == "1" || nld.Equals("true", StringComparison.OrdinalIgnoreCase);
+
+                string lyDo = "Hủy hóa đơn TouchPOS";
+                if (nhapLyDo)
+                {
+                    var lyDoWin = new QuanLyBar.Client.Views.NhapLyDoHuyWindow();
+                    lyDoWin.Owner = this;
+                    if (lyDoWin.ShowDialog() != true)
+                    {
+                        return;
+                    }
+                    lyDo = string.IsNullOrWhiteSpace(lyDoWin.LyDo) ? "Hủy hóa đơn TouchPOS" : lyDoWin.LyDo;
+                }
+                else
+                {
+                    if (!QuanLyBar.Views.TouchPOS.TouchConfirmWindow.Show(this, $"BẠN CÓ CHẮC CHẮN MUỐN HỦY HÓA ĐƠN CỦA BÀN '{_currentBan.Name.ToUpper()}' KHÔNG?", "XÁC NHẬN"))
+                    {
+                        return;
+                    }
+                }
+
+                // 5. Execute CancelOrderAsync
+                bool ok = await service.CancelOrderAsync(_currentBan.ActiveOrderId, lyDo);
+                if (ok)
+                {
+                    // Update table status in database
+                    try
+                    {
+                        using var conn = DbConnectionManager.GetConnection();
+                        if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                        await conn.ExecuteAsync("UPDATE DBAN SET ISOPENED = 0, ACTIVEORDERID = NULL WHERE CAST(ID AS VARCHAR(50)) = @BanId", new { BanId = _currentBan.Id });
+                    }
+                    catch { }
+
+                    // Reset table state in memory
+                    _currentBan.IsOpened = false;
+                    _currentBan.ActiveOrderId = null;
+                    _currentBan.SoPhieu = "";
+                    _currentBan.TrangThai = "Trống";
+                    _currentBan.MauNen = "#16213E";
+                    _currentBan.KhachHangName = "";
+
+                    _cartItems.Clear();
+                    UpdateTotals();
+
+                    QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, $"ĐÃ HỦY HÓA ĐƠN CỦA BÀN '{_currentBan.Name.ToUpper()}' THÀNH CÔNG!", "THÔNG BÁO");
+
+                    // 6. Return to table grid screen
+                    ShowTableScreen();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi hủy hóa đơn: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void TxtOrderCustomer_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -1381,7 +1664,88 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
-        public void AddItemToCart(TouchMatHangVM item)
+        private async Task<string> EnsureActiveOrderAsync()
+        {
+            if (_currentBan == null) return string.Empty;
+            if (!string.IsNullOrEmpty(_currentBan.ActiveOrderId)) return _currentBan.ActiveOrderId;
+
+            try
+            {
+                var service = new LocalSuDungDichVuService();
+                DateTime startTime = _currentBan.ThoiGianMo ?? DateTime.Now;
+                int soKhach = _currentBan.SoKhach > 0 ? _currentBan.SoKhach : 1;
+                var startRes = await service.StartTableOrderAsync(_currentBan.Id, startTime, soKhach, _currentBan.KhachHangName ?? "", "");
+                if (startRes != null && !string.IsNullOrEmpty(startRes.OrderId))
+                {
+                    _currentBan.ActiveOrderId = startRes.OrderId;
+                    _currentBan.SoPhieu = startRes.SoPhieu;
+                    _currentBan.IsOpened = true;
+                    _currentBan.TrangThai = "Có khách";
+                    TxtOrderNo.Text = $"HĐ: {startRes.SoPhieu}";
+                    return startRes.OrderId;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi EnsureActiveOrderAsync: {ex.Message}");
+            }
+            return string.Empty;
+        }
+
+        private async Task AutoSaveOrderAsync()
+        {
+            if (_currentBan == null) return;
+
+            string orderId = await EnsureActiveOrderAsync();
+            if (string.IsNullOrEmpty(orderId)) return;
+
+            try
+            {
+                var service = new LocalSuDungDichVuService();
+                var itemsToSave = new List<PosDonHangChiTietViewModel>();
+
+                foreach (var ci in _cartItems)
+                {
+                    itemsToSave.Add(new PosDonHangChiTietViewModel
+                    {
+                        Id = Guid.NewGuid().ToString("N").Substring(0, 20),
+                        MatHangId = ci.MAMATHANG,
+                        MatHangName = ci.TenMatHang,
+                        SoLuong = ci.SoLuong,
+                        DonGiaGoc = ci.DonGiaGoc,
+                        DonGia = ci.DonGia,
+                        ThanhTien = ci.ThanhTien,
+                        LoaiDoId = ci.LoaiDoId,
+                        LoaiDoName = ci.LoaiDoName,
+                        ChietKhauPhanTram = ci.ChietKhauPhanTram,
+                        GhiChu = "",
+                        DaInCheBien = ci.DaInCheBien
+                    });
+                }
+
+                decimal tienHang = _cartItems.Sum(x => x.ThanhTien);
+                decimal tongCong = tienHang;
+
+                int.TryParse(TxtOrderGuestCount?.Text?.Trim(), out int soKhach);
+                if (soKhach <= 0) soKhach = _currentBan.SoKhach > 0 ? _currentBan.SoKhach : 1;
+
+                await service.SaveOrderAsync(
+                    orderId,
+                    itemsToSave,
+                    tienHang,
+                    0,
+                    tongCong,
+                    "",
+                    soKhach
+                );
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi AutoSaveOrderAsync: {ex.Message}");
+            }
+        }
+
+        public async void AddItemToCart(TouchMatHangVM item)
         {
             if (item == null) return;
             var existing = _cartItems.FirstOrDefault(x => x.TenMatHang == item.TenMatHang);
@@ -1404,6 +1768,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
             DgOrderItems.Items.Refresh();
             UpdateTotals();
+            await AutoSaveOrderAsync();
         }
 
         private void MatHangTile_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -1414,10 +1779,119 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
-        private void BtnOrderDiscount_Click(object sender, RoutedEventArgs e) { }
-        private void BtnOrderMoveTable_Click(object sender, RoutedEventArgs e) { }
-        private void BtnOrderMergeTable_Click(object sender, RoutedEventArgs e) { }
-        private void BtnOrderPrintKitchen_Click(object sender, RoutedEventArgs e) { }
+        private async void BtnOrderDiscount_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Giảm giá mặt hàng", "View")) return;
+
+            if (_currentBan == null || string.IsNullOrEmpty(_currentBan.ActiveOrderId) || _cartItems == null || _cartItems.Count == 0)
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "BÀN HIỆN TẠI CHƯA CÓ MÓN ĂN NÀO ĐỂ GIẢM GIÁ!", "THÔNG BÁO");
+                return;
+            }
+
+            var win = new QuanLyBar.Client.Views.GiamGiaTheoNhomWindow();
+            win.Owner = this;
+            if (win.ShowDialog() == true)
+            {
+                decimal doAnPt = win.DoAnPercent;
+                decimal doUongPt = win.DoUongPercent;
+                decimal dichVuPt = win.DichVuPercent;
+                decimal doKhacPt = win.DoKhacPercent;
+
+                foreach (var item in _cartItems)
+                {
+                    string cat = item.ItemCategory;
+                    if (cat == "DoAn")
+                    {
+                        item.ChietKhauPhanTram = doAnPt;
+                    }
+                    else if (cat == "DoUong")
+                    {
+                        item.ChietKhauPhanTram = doUongPt;
+                    }
+                    else if (cat == "DichVu")
+                    {
+                        item.ChietKhauPhanTram = dichVuPt;
+                    }
+                    else if (cat == "DoKhac")
+                    {
+                        item.ChietKhauPhanTram = doKhacPt;
+                    }
+                }
+
+                DgOrderItems.Items.Refresh();
+                UpdateTotals();
+                await AutoSaveOrderAsync();
+            }
+        }
+        private async void BtnOrderPrintKitchen_Click(object sender, RoutedEventArgs e)
+        {
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("In chế biến", "View")) return;
+
+            if (_currentBan == null || string.IsNullOrEmpty(_currentBan.ActiveOrderId) || _cartItems == null || _cartItems.Count == 0)
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "BÀN HIỆN TẠI CHƯA CÓ MÓN ĂN NÀO ĐỂ IN CHẾ BIẾN!", "THÔNG BÁO");
+                return;
+            }
+
+            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+            bool suDungInBep = !configs.TryGetValue("SuDungChucNangInXuongBep", out var sd) || sd == "1" || sd.Equals("true", StringComparison.OrdinalIgnoreCase);
+            if (!suDungInBep)
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "CHỨC NĂNG IN XUỐNG BẾP ĐANG BỊ TẮT TRONG CẤU HÌNH HỆ THỐNG.", "THÔNG BÁO");
+                return;
+            }
+
+            bool inDoAn = !configs.TryGetValue("InDoAn", out var ida) || ida == "1" || ida.Equals("true", StringComparison.OrdinalIgnoreCase);
+            bool inDoUong = !configs.TryGetValue("InDoUong", out var idu) || idu == "1" || idu.Equals("true", StringComparison.OrdinalIgnoreCase);
+            bool inDichVu = configs.TryGetValue("InDichVu", out var idv) && (idv == "1" || idv.Equals("true", StringComparison.OrdinalIgnoreCase));
+            bool inDoKhac = !configs.TryGetValue("InDoKhac", out var idk) || idk == "1" || idk.Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            var unprintedCartItems = _cartItems.Where(x => !x.DaInCheBien && (
+                (x.ItemCategory == "DoAn" && inDoAn) ||
+                (x.ItemCategory == "DoUong" && inDoUong) ||
+                (x.ItemCategory == "DichVu" && inDichVu) ||
+                (x.ItemCategory == "DoKhac" && inDoKhac)
+            )).ToList();
+
+            if (unprintedCartItems.Count == 0)
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "TẤT CẢ MÓN CỦA BÀN NÀY ĐÃ ĐƯỢC IN CHẾ BIẾN XUỐNG BẾP/BAR THÀNH CÔNG!", "THÔNG BÁO");
+                return;
+            }
+
+            var unprintedItems = new List<PosDonHangChiTietViewModel>();
+            foreach (var ci in unprintedCartItems)
+            {
+                unprintedItems.Add(new PosDonHangChiTietViewModel
+                {
+                    Id = Guid.NewGuid().ToString("N").Substring(0, 20),
+                    MatHangId = ci.MAMATHANG,
+                    MatHangName = ci.TenMatHang,
+                    SoLuong = ci.SoLuong,
+                    DonGiaGoc = ci.DonGiaGoc,
+                    DonGia = ci.DonGia,
+                    ThanhTien = ci.ThanhTien,
+                    LoaiDoId = ci.LoaiDoId,
+                    LoaiDoName = ci.LoaiDoName,
+                    ChietKhauPhanTram = ci.ChietKhauPhanTram,
+                    GhiChu = "",
+                    DaInCheBien = false
+                });
+            }
+
+            string banDisplay = !string.IsNullOrEmpty(_currentBan.KhuVucName) ? $"{_currentBan.Name} - {_currentBan.KhuVucName}" : _currentBan.Name;
+            var win = new InCheBienWindow(banDisplay, unprintedItems, _currentBan.ActiveOrderId, isAuto: false);
+            win.Owner = this;
+            if (win.ShowDialog() == true)
+            {
+                foreach (var ci in unprintedCartItems)
+                {
+                    ci.DaInCheBien = true;
+                }
+                await AutoSaveOrderAsync();
+            }
+        }
         
         private void BtnSearchItem_Click(object sender, RoutedEventArgs e)
         {
@@ -1436,44 +1910,168 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
-        private void BtnOrderPayment_Click(object sender, RoutedEventArgs e)
+        private async void BtnOrderPayment_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Chức năng thanh toán...", "Thanh toán", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (!LocalPhanQuyenService.CheckPermissionAndAlert("Thanh toán", "View")) return;
+
+            if (_currentBan == null || !_currentBan.IsOpened || string.IsNullOrEmpty(_currentBan.ActiveOrderId) || _cartItems == null || _cartItems.Count == 0)
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "BÀN HIỆN TẠI KHÔNG CÓ ĐƠN HÀNG HOẶC MÓN ĂN NÀO ĐỂ THANH TOÁN!", "THÔNG BÁO");
+                return;
+            }
+
+            var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+
+            DateTime? startTime = _currentBan.ThoiGianMo;
+            if (!startTime.HasValue && !string.IsNullOrEmpty(_currentBan.ActiveOrderId))
+            {
+                try
+                {
+                    using var conn = DbConnectionManager.GetConnection();
+                    if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                    startTime = await conn.ExecuteScalarAsync<DateTime?>(
+                        "SELECT TIMECREATED FROM TDONHANG WHERE CAST(ID AS VARCHAR(50)) = @OrderId",
+                        new { OrderId = _currentBan.ActiveOrderId });
+                    _currentBan.ThoiGianMo = startTime;
+                }
+                catch { }
+            }
+
+            // 1. Cảnh báo và tự động chuyển nếu thanh toán hóa đơn mở từ ngày cũ (Ảnh 1)
+            if (startTime.HasValue && startTime.Value.Date < DateTime.Today)
+            {
+                string oldDateStr = startTime.Value.ToString("dd/MM/yyyy");
+                string todayStr = DateTime.Today.ToString("dd/MM/yyyy");
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(
+                    this,
+                    $"Bạn đang thanh toán hóa đơn còn mở từ ngày cũ '{oldDateStr}'\nHệ thống sẽ chuyển hóa đơn này sang ngày hiện tại '{todayStr}'",
+                    "CẢNH BÁO");
+
+                var service = new LocalSuDungDichVuService();
+                await service.UpdateOrderDateToTodayAsync(_currentBan.ActiveOrderId);
+                _currentBan.ThoiGianMo = DateTime.Today;
+            }
+
+            // 2. Kiểm tra cấu hình: Không cho thanh toán khi chưa in chế biến
+            bool khongChoThanhToanChuaIn = configs.TryGetValue("KhongChoThanhToanKhiChuaInCheBien", out var kctt) && (kctt == "1" || kctt.Equals("true", StringComparison.OrdinalIgnoreCase));
+            if (khongChoThanhToanChuaIn && _cartItems.Any(x => !x.DaInCheBien))
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "CẤU HÌNH HỆ THỐNG KHÔNG CHO PHÉP THANH TOÁN KHI CÓ MÓN CHƯA IN CHẾ BIẾN!\nVUI LÒNG IN CHẾ BIẾN TRƯỚC KHI THANH TOÁN.", "CẢNH BÁO");
+                return;
+            }
+
+            decimal tienHang = _cartItems.Sum(x => x.SoLuong * x.DonGiaGoc);
+            decimal tongCong = _cartItems.Sum(x => x.ThanhTien);
+            decimal giamGia = tienHang > tongCong ? (tienHang - tongCong) : 0;
+
+            var posBan = new PosBanViewModel
+            {
+                Id = _currentBan.Id,
+                Name = _currentBan.Name,
+                ActiveOrderId = _currentBan.ActiveOrderId,
+                SoPhieu = _currentBan.SoPhieu,
+                StartTime = _currentBan.ThoiGianMo,
+                TienHang = tienHang,
+                GiamGia = giamGia,
+                TongCong = tongCong,
+                KhachHangName = _currentBan.KhachHangName
+            };
+
+            // 3. Mở cửa sổ Xác nhận thanh toán POS
+            var win = new XacNhanThanhToanTouchWindow(posBan, _cartItems.ToList());
+            win.Owner = this;
+            if (win.ShowDialog() == true)
+            {
+                decimal khachDua = win.KhachDua;
+                decimal traLai = win.TraLai;
+                decimal theATM = win.TheATM;
+                decimal chuyenKhoan = win.ChuyenKhoan;
+                decimal theTraTruoc = win.TheTraTruoc;
+                bool inBill = win.IsInBill;
+
+                string loaiTT = (theATM > 0) ? "TheATM" : ((chuyenKhoan > 0) ? "ChuyenKhoan" : ((theTraTruoc > 0) ? "The" : "TienMat"));
+
+                var service = new LocalSuDungDichVuService();
+                bool success = await service.FinishTableOrderWithDetailsAsync(
+                    _currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT, chuyenKhoan, inBill: inBill);
+
+                if (success)
+                {
+                    if (inBill)
+                    {
+                        try
+                        {
+                            var printWin = new HoaDonBanHangPrintWindow(posBan, isTamTinh: false);
+                            printWin.Owner = this;
+                            printWin.ShowDialog();
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Lỗi in hóa đơn: {ex.Message}");
+                        }
+                    }
+
+                    QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, $"THANH TOÁN HÓA ĐƠN BÀN '{_currentBan.Name.ToUpper()}' THÀNH CÔNG!", "THÔNG BÁO");
+
+                    // Reset bàn & giỏ hàng
+                    _cartItems.Clear();
+                    DgOrderItems.Items.Refresh();
+                    _currentBan.IsOpened = false;
+                    _currentBan.ActiveOrderId = null;
+                    _currentBan.SoPhieu = "";
+                    _currentBan.TrangThai = "Trống";
+                    _currentBan.MauNen = "#16213E";
+                    _currentBan.KhachHangName = "";
+                    _currentBan.ThoiGianMo = null;
+
+                    UpdateTotals();
+                    LoadTables();
+                }
+            }
         }
 
-        private void BtnIncreaseQty_Click(object sender, RoutedEventArgs e)
+        private async void BtnIncreaseQty_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.DataContext is TouchCartItemVM item)
             {
                 item.SoLuong += 1;
+                item.ThanhTien = item.SoLuong * item.DonGia;
+                DgOrderItems.Items.Refresh();
                 UpdateTotals();
+                await AutoSaveOrderAsync();
             }
         }
 
-        private void BtnDecreaseQty_Click(object sender, RoutedEventArgs e)
+        private async void BtnDecreaseQty_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.DataContext is TouchCartItemVM item)
             {
                 if (item.SoLuong > 1)
                 {
                     item.SoLuong -= 1;
+                    item.ThanhTien = item.SoLuong * item.DonGia;
                 }
                 else
                 {
                     _cartItems.Remove(item);
                 }
+                DgOrderItems.Items.Refresh();
                 UpdateTotals();
+                await AutoSaveOrderAsync();
             }
         }
 
-        private void BtnRemoveCartItem_Click(object sender, RoutedEventArgs e)
+        private async void BtnRemoveCartItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.DataContext is TouchCartItemVM item)
             {
                 _cartItems.Remove(item);
+                DgOrderItems.Items.Refresh();
                 UpdateTotals();
+                await AutoSaveOrderAsync();
             }
         }
+
     }
 
     public class TouchNhomHangVM : System.ComponentModel.INotifyPropertyChanged
@@ -1647,10 +2245,53 @@ namespace QuanLyBar.Client.Views.TouchPOS
     {
         private decimal _soLuong;
         private decimal _donGia;
+        private decimal _donGiaGoc;
+        private decimal _chietKhauPhanTram;
         private decimal _thanhTien;
 
         public string MAMATHANG { get; set; } = "";
         public string TenMatHang { get; set; } = "";
+        public int LoaiDoId { get; set; } = 0;
+        public string LoaiDoName { get; set; } = "";
+
+        private bool _daInCheBien;
+        public bool DaInCheBien
+        {
+            get => _daInCheBien;
+            set
+            {
+                _daInCheBien = value;
+                OnPropertyChanged(nameof(DaInCheBien));
+            }
+        }
+
+        public decimal DonGiaGoc
+        {
+            get => _donGiaGoc > 0 ? _donGiaGoc : _donGia;
+            set => _donGiaGoc = value;
+        }
+
+        public decimal ChietKhauPhanTram
+        {
+            get => _chietKhauPhanTram;
+            set
+            {
+                _chietKhauPhanTram = value;
+                if (_donGiaGoc <= 0) _donGiaGoc = _donGia;
+                if (_chietKhauPhanTram > 0)
+                {
+                    _donGia = _donGiaGoc * (1 - (_chietKhauPhanTram / 100m));
+                }
+                else
+                {
+                    _donGia = _donGiaGoc;
+                }
+                _thanhTien = _soLuong * _donGia;
+                OnPropertyChanged(nameof(ChietKhauPhanTram));
+                OnPropertyChanged(nameof(DonGia));
+                OnPropertyChanged(nameof(ThanhTien));
+            }
+        }
 
         public decimal SoLuong
         {
@@ -1686,6 +2327,31 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
+        public string ItemCategory
+        {
+            get
+            {
+                string name = (LoaiDoName ?? "").ToLower();
+                string itemName = (TenMatHang ?? "").ToLower();
+
+                if (LoaiDoId == 2 || name.Contains("uống") || name.Contains("nước") || name.Contains("bia") || name.Contains("rượu") || name.Contains("trà") || name.Contains("cà phê")
+                    || itemName.Contains("bia") || itemName.Contains("rượu") || itemName.Contains("aquafina") || itemName.Contains("nước") || itemName.Contains("trà ") || itemName.Contains("c2") || itemName.Contains("sting"))
+                {
+                    return "DoUong";
+                }
+                if (LoaiDoId == 3 || name.Contains("dịch vụ") || name.Contains("hát") || name.Contains("phòng") || name.Contains("karaoke")
+                    || itemName.Contains("khăn lạnh") || itemName.Contains("karaoke") || itemName.Contains("tiền giờ"))
+                {
+                    return "DichVu";
+                }
+                if (LoaiDoId == 4 || name.Contains("khác") || itemName.Contains("thuốc lá") || itemName.Contains("ba số") || itemName.Contains("thăng long") || itemName.Contains("vinataba") || itemName.Contains("ngựa") || itemName.Contains("marlboro"))
+                {
+                    return "DoKhac";
+                }
+                return "DoAn";
+            }
+        }
+
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged(string propName)
         {
@@ -1701,6 +2367,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public string MABAN { get; set; } = ""; 
         public string TENBAN { get; set; } = ""; 
         public string MAKHUVUC { get; set; } = "";
+        public string KhuVucName { get; set; } = "";
         public string MauNen { get; set; } = "#16213E"; 
         public string TrangThai { get; set; } = "Trống"; 
         public bool IsOpened { get; set; } = false;

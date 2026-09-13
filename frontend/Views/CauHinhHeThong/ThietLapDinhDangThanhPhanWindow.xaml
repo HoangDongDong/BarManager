@@ -255,11 +255,12 @@
                 <ColumnDefinition Width="110"/>
             </Grid.ColumnDefinitions>
 
-            <!-- LEFT UNUSED LISTBOX -->
+            <!-- LEFT UNUSED LISTBOX + PREVIEW CARD -->
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="CÁC CỘT KHÔNG SỬ DỤNG" Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,0,0,4"/>
                 <ListBox x:Name="LstUnused" Grid.Row="1" Style="{StaticResource ListBoxStyle}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -301,6 +302,30 @@
                         </Style>
                     </ListBox.ItemContainerStyle>
                 </ListBox>
+
+                <!-- LIVE CARD PREVIEW (Matches outside screen exactly) -->
+                <Border x:Name="CardPreviewBorder" Grid.Row="2" Height="110" Margin="0,6,0,0"
+                        Background="{Binding SelectedColorBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                        BorderBrush="#5F8F93" BorderThickness="1.5" CornerRadius="6" Padding="12,8" Visibility="Collapsed">
+                    <Grid x:Name="GridCardPreview">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- LEFT STACK: BAN, NGAY, NHAN VIEN, KHACH HANG, SO PHIEU -->
+                        <StackPanel x:Name="StkPreviewLeft" Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtPreviewBan" Text="Bàn 01" Foreground="White" FontSize="15" FontWeight="Bold" Margin="0,0,0,2"/>
+                            <TextBlock x:Name="TxtPreviewNgay" Text="30/08/2026" Foreground="#E0E0E0" FontSize="13" Margin="0,0,0,2"/>
+                            <TextBlock x:Name="TxtPreviewNhanVien" Text="Nhân viên A" Foreground="#E0E0E0" FontSize="13" Margin="0,0,0,2"/>
+                            <TextBlock x:Name="TxtPreviewKhachHang" Text="Khách hàng B" Foreground="#E0E0E0" FontSize="13" Margin="0,0,0,2"/>
+                            <TextBlock x:Name="TxtPreviewSoPhieu" Text="HD26/00001" Foreground="#E0E0E0" FontSize="13"/>
+                        </StackPanel>
+
+                        <!-- RIGHT: TONG CONG -->
+                        <TextBlock x:Name="TxtPreviewTongCong" Grid.Column="1" Text="450,000" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
             </Grid>
 
             <!-- MIDDLE ACTION BUTTONS -->

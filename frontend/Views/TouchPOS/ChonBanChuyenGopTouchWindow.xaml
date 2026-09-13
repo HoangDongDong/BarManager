@@ -1,0 +1,157 @@
+<Window x:Class="QuanLyBar.Client.Views.TouchPOS.ChonBanChuyenGopTouchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chuyển / Gộp Bàn"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#367588"
+        Loaded="Window_Loaded"
+        KeyDown="Window_KeyDown">
+
+    <Grid Margin="8">
+        <Grid.ColumnDefinitions>
+            <!-- 1. LEFT TABLE CARDS GRID AREA -->
+            <ColumnDefinition Width="*"/>
+            <!-- 2. RIGHT SIDEBAR AREA (AREAS & ACTIONS) -->
+            <ColumnDefinition Width="220"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= 1. LEFT TABLE CARDS GRID ================= -->
+        <Border Grid.Column="0" Background="#2B5F6F" CornerRadius="6" Padding="6" Margin="0,0,6,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <!-- TITLE BANNER -->
+                    <RowDefinition Height="45"/>
+                    <!-- TABLE CARDS -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="#1C4B6B" CornerRadius="4" Margin="0,0,0,6">
+                    <TextBlock x:Name="TxtHeaderTitle" Text="CHUYỂN BÀN từ [Bàn 01]" Foreground="#FFEB3B" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <ScrollViewer x:Name="SvTableGrid" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvTableGrid_SizeChanged">
+                    <ItemsControl x:Name="IcTables" Margin="4">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="{Binding ColumnCount, RelativeSource={RelativeSource AncestorType=Window}}" Rows="0"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Height="{Binding TileHeight, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        Background="{Binding CardBackground}" CornerRadius="8"
+                                        BorderBrush="{Binding BorderColor}" BorderThickness="3"
+                                        Margin="6" Cursor="Hand" MouseDown="TableCard_MouseDown">
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- ================= 2. RIGHT SIDEBAR AREA (AREAS + BOTTOM ACTIONS) ================= -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <!-- AREA LIST BUTTONS -->
+                <RowDefinition Height="*"/>
+                <!-- BOTTOM ACTION BUTTONS AREA -->
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- AREA LIST CONTAINER -->
+            <Grid Grid.Row="0" Margin="0,0,0,6">
+                <Border Background="#2B5F6F" CornerRadius="6" Padding="4">
+                    <ScrollViewer x:Name="SvAreaGrid" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvAreaGrid_SizeChanged">
+                        <ItemsControl x:Name="IcKhuVuc" Margin="2">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Name}" Height="{Binding AreaButtonHeight, RelativeSource={RelativeSource AncestorType=Window}}" Margin="0,2" Cursor="Hand"
+                                            Background="{Binding ColorBrush}" Foreground="White" FontSize="14" FontWeight="Bold"
+                                            Click="BtnKhuVuc_Click" Tag="{Binding}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" BorderBrush="White" BorderThickness="1">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- GEAR BUTTON AT BOTTOM RIGHT OF AREA CONTAINER -->
+                <Button x:Name="BtnConfigKhuVuc" Width="30" Height="28" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8" Cursor="Hand" Click="BtnConfigKhuVuc_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="4">
+                                <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+
+            <!-- BOTTOM ACTION BUTTONS PANEL -->
+            <Grid Grid.Row="1" Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="36"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- GEAR BUTTON AT BOTTOM LEFT OF ACTION BUTTONS -->
+                <Button Grid.Column="0" x:Name="BtnConfigBan" Width="30" Height="28" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,4" Cursor="Hand" Click="BtnConfigBan_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="4">
+                                <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- ACTION BUTTONS STACK (LÀM MỚI, HỦY BỎ) -->
+                <StackPanel Grid.Column="1">
+                    <Button x:Name="BtnRefresh" Height="42" Margin="0,0,0,4" Cursor="Hand" Click="BtnRefresh_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#1B5E20" BorderBrush="#4CAF50" BorderThickness="1.5" CornerRadius="6">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="🔄 " Foreground="White" FontSize="18"/>
+                                        <TextBlock Text="LÀM MỚI" Foreground="White" FontSize="14" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <Button x:Name="BtnCancel" Height="42" Cursor="Hand" Click="BtnCancel_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#B71C1C" BorderBrush="#EF5350" BorderThickness="1.5" CornerRadius="6">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="🚫 " Foreground="White" FontSize="18"/>
+                                        <TextBlock Text="HỦY BỎ" Foreground="White" FontSize="14" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
