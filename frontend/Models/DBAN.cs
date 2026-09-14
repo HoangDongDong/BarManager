@@ -55,8 +55,13 @@ namespace QuanLyBar.Client.Models
         public string Postop { get; set; }
         public string Controltype { get; set; }
         public byte[] Anh { get; set; }
+        public System.Windows.Media.ImageSource? AnhSource => QuanLyBar.Client.Services.ImageHelper.BytesToBitmapImage(Anh);
+        public bool HasAnh => Anh != null && Anh.Length > 0;
+        public System.Windows.Visibility HasImageVisibility => HasAnh ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        public System.Windows.Visibility NoImageVisibility => HasAnh ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
         public string Buttonshape { get; set; }
         public string Rotate { get; set; }
         public string Numchairs { get; set; }
     }
 }
+

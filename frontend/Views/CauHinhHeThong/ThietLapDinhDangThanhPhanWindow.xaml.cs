@@ -122,10 +122,36 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         private string GetSettingsKey() => $"TOUCH_LAYOUT_{TargetType}";
         private string GetColumnsKey() => $"TOUCH_COLUMNS_{TargetType}";
 
+        private void PopulateColumns(List<string> allColumns, List<string> defaultUsedColNames, string savedColsStr)
+        {
+            List<string> rawUsedList = !string.IsNullOrWhiteSpace(savedColsStr)
+                ? savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+                : defaultUsedColNames;
+
+            foreach (var raw in rawUsedList)
+            {
+                var item = DisplayColumnItem.Parse(raw);
+                if (allColumns.Contains(item.Name))
+                {
+                    _usedColumns.Add(item);
+                }
+            }
+
+            foreach (var col in allColumns)
+            {
+                if (!_usedColumns.Any(x => x.Name == col))
+                {
+                    _unusedColumns.Add(new DisplayColumnItem(col));
+                }
+            }
+        }
+
         private async Task LoadColumnsAsync()
         {
             _unusedColumns.Clear();
             _usedColumns.Clear();
+
+            string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
 
             if (TargetType == "TonKho")
             {
@@ -134,33 +160,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     "GHI CHÚ", "GIÁ TRỊ BÁN", "GIÁ VỐN", "TỒN 2 ĐVT", "TỒN", "HÃNG SX",
                     "GIÁ BÁN", "TỒN TỐI THIỂU", "GIÁ TRỊ VỐN", "ĐVT", "MẶT HÀNG", "MÃ HÀNG"
                 };
-
-                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
-                List<string> usedColNames;
-                if (!string.IsNullOrWhiteSpace(savedColsStr))
-                {
-                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-                }
-                else
-                {
-                    usedColNames = new List<string> { "GHI CHÚ", "GIÁ TRỊ BÁN", "GIÁ VỐN", "TỒN 2 ĐVT", "TỒN", "HÃNG SX" };
-                }
-
-                foreach (var col in usedColNames)
-                {
-                    if (allColumns.Contains(col))
-                    {
-                        _usedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
-
-                foreach (var col in allColumns)
-                {
-                    if (!_usedColumns.Any(x => x.Name == col))
-                    {
-                        _unusedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
+                List<string> defaults = new() { "GHI CHÚ", "GIÁ TRỊ BÁN", "GIÁ VỐN", "TỒN 2 ĐVT", "TỒN", "HÃNG SX" };
+                PopulateColumns(allColumns, defaults, savedColsStr);
             }
             else if (TargetType == "ChiTietTonKho")
             {
@@ -169,37 +170,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     "ĐƠN GIÁ", "THÀNH TIỀN", "ĐVT", "SỐ LƯỢNG XUẤT", "SỐ LƯỢNG NHẬP",
                     "SỐ PHIẾU", "ĐỐI TƯỢNG", "NGÀY", "GIẢM GIÁ %", "DIỄN GIẢI"
                 };
-
-                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
-                List<string> usedColNames;
-                if (!string.IsNullOrWhiteSpace(savedColsStr))
-                {
-                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-                }
-                else
-                {
-                    usedColNames = new List<string>
-                    {
-                        "ĐƠN GIÁ", "THÀNH TIỀN", "ĐVT", "SỐ LƯỢNG XUẤT", "SỐ LƯỢNG NHẬP",
-                        "SỐ PHIẾU", "ĐỐI TƯỢNG", "NGÀY", "GIẢM GIÁ %", "DIỄN GIẢI"
-                    };
-                }
-
-                foreach (var col in usedColNames)
-                {
-                    if (allColumns.Contains(col))
-                    {
-                        _usedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
-
-                foreach (var col in allColumns)
-                {
-                    if (!_usedColumns.Any(x => x.Name == col))
-                    {
-                        _unusedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
+                PopulateColumns(allColumns, allColumns, savedColsStr);
             }
             else if (TargetType == "GioHang" || TargetType == "Cart" || TargetType == "HoaDon")
             {
@@ -207,37 +178,8 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 {
                     "SỐ LƯỢNG", "ĐẾN GIỜ", "TỪ GIỜ", "ĐƠN GIÁ", "TÊN HÀNG", "GIẢM GIÁ %", "THÀNH TIỀN", "GHI CHÚ"
                 };
-
-                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
-                List<string> usedColNames;
-                if (!string.IsNullOrWhiteSpace(savedColsStr))
-                {
-                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-                }
-                else
-                {
-                    // Default matching reference screenshot 3
-                    usedColNames = new List<string>
-                    {
-                        "ĐẾN GIỜ", "TỪ GIỜ", "ĐƠN GIÁ", "TÊN HÀNG", "GIẢM GIÁ %", "THÀNH TIỀN", "GHI CHÚ"
-                    };
-                }
-
-                foreach (var col in usedColNames)
-                {
-                    if (allColumns.Contains(col))
-                    {
-                        _usedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
-
-                foreach (var col in allColumns)
-                {
-                    if (!_usedColumns.Any(x => x.Name == col))
-                    {
-                        _unusedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
+                List<string> defaults = new() { "ĐẾN GIỜ", "TỪ GIỜ", "ĐƠN GIÁ", "TÊN HÀNG", "GIẢM GIÁ %", "THÀNH TIỀN", "GHI CHÚ" };
+                PopulateColumns(allColumns, defaults, savedColsStr);
             }
             else if (TargetType == "HoaDonChuaThanhToan")
             {
@@ -245,71 +187,28 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 {
                     "BÀN", "TỔNG CỘNG", "NHÂN VIÊN", "NGÀY", "KHÁCH HÀNG", "SỐ PHIẾU"
                 };
-
-                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
-                List<string> usedColNames;
-                if (!string.IsNullOrWhiteSpace(savedColsStr))
-                {
-                    usedColNames = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-                }
-                else
-                {
-                    usedColNames = new List<string>
-                    {
-                        "BÀN", "TỔNG CỘNG", "NHÂN VIÊN", "NGÀY", "KHÁCH HÀNG", "SỐ PHIẾU"
-                    };
-                }
-
-                foreach (var col in usedColNames)
-                {
-                    if (allColumns.Contains(col))
-                    {
-                        _usedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
-
-                foreach (var col in allColumns)
-                {
-                    if (!_usedColumns.Any(x => x.Name == col))
-                    {
-                        _unusedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
+                PopulateColumns(allColumns, allColumns, savedColsStr);
             }
             else if (TargetType == "MatHang")
             {
                 List<string> allColumns = new() { "MẶT HÀNG", "GIÁ BÁN" };
-                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
-                List<string> usedColNames = !string.IsNullOrWhiteSpace(savedColsStr)
-                    ? savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
-                    : new List<string> { "MẶT HÀNG", "GIÁ BÁN" };
-
-                foreach (var col in usedColNames)
-                {
-                    if (allColumns.Contains(col))
-                    {
-                        _usedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
-                foreach (var col in allColumns)
-                {
-                    if (!_usedColumns.Any(x => x.Name == col))
-                    {
-                        _unusedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
+                PopulateColumns(allColumns, allColumns, savedColsStr);
             }
             else if (TargetType == "Nhom" || TargetType == "NhomHang")
             {
-                _usedColumns.Add(new DisplayColumnItem("NHÓM"));
+                PopulateColumns(new List<string> { "NHÓM" }, new List<string> { "NHÓM" }, savedColsStr);
             }
             else if (TargetType == "KhuVuc")
             {
-                _usedColumns.Add(new DisplayColumnItem("KHU VỰC"));
+                PopulateColumns(new List<string> { "KHU VỰC" }, new List<string> { "KHU VỰC" }, savedColsStr);
             }
             else if (TargetType == "Ban")
             {
-                _usedColumns.Add(new DisplayColumnItem("BÀN"));
+                List<string> allColumns = new()
+                {
+                    "BÀN", "GIỜ VÀO", "SỐ TIỀN", "KHÁCH HÀNG"
+                };
+                PopulateColumns(allColumns, new List<string> { "BÀN" }, savedColsStr);
             }
             else if (TargetType == "QuyenSuDung" || TargetType == "FuncRoles")
             {
@@ -317,25 +216,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 {
                     "TÊN CHỨC NĂNG", "KHÓA", "XEM", "THÊM", "SỬA", "XÓA", "TẤT CẢ"
                 };
-                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
-                List<string> usedColNames = !string.IsNullOrWhiteSpace(savedColsStr)
-                    ? savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
-                    : new List<string> { "TÊN CHỨC NĂNG", "KHÓA", "XEM", "THÊM", "SỬA", "XÓA", "TẤT CẢ" };
-
-                foreach (var col in usedColNames)
-                {
-                    if (allColumns.Contains(col))
-                    {
-                        _usedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
-                foreach (var col in allColumns)
-                {
-                    if (!_usedColumns.Any(x => x.Name == col))
-                    {
-                        _unusedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
+                PopulateColumns(allColumns, allColumns, savedColsStr);
             }
             else if (TargetType == "Users" || TargetType == "NguoiDung")
             {
@@ -343,34 +224,15 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 {
                     "TÀI KHOẢN", "HỌ TÊN", "NHÓM NGƯỜI DÙNG"
                 };
-                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync(GetColumnsKey(), "");
-                List<string> usedColNames = !string.IsNullOrWhiteSpace(savedColsStr)
-                    ? savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
-                    : new List<string> { "TÀI KHOẢN", "HỌ TÊN", "NHÓM NGƯỜI DÙNG" };
-
-                foreach (var col in usedColNames)
-                {
-                    if (allColumns.Contains(col))
-                    {
-                        _usedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
-                foreach (var col in allColumns)
-                {
-                    if (!_usedColumns.Any(x => x.Name == col))
-                    {
-                        _unusedColumns.Add(new DisplayColumnItem(col));
-                    }
-                }
+                PopulateColumns(allColumns, allColumns, savedColsStr);
             }
             else if (TargetType == "QuyenBaoCao" || TargetType == "BaoCao" || TargetType == "ReportRoles")
             {
-                // Riêng phần báo cáo không hiện cột nào
             }
             else
             {
                 string name = TargetType.ToUpperInvariant();
-                _usedColumns.Add(new DisplayColumnItem(name));
+                PopulateColumns(new List<string> { name }, new List<string> { name }, savedColsStr);
             }
 
             UpdateLivePreview();
@@ -407,9 +269,116 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             UpdateLivePreview();
         }
 
+        private bool _isUpdatingFormatUI = false;
+        private bool _isPickingTextColor = false;
+
         private void LstUsed_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            UpdateFormatUIForSelectedColumn();
             UpdateLivePreview();
+        }
+
+        private void UpdateFormatUIForSelectedColumn()
+        {
+            if (LstUsed.SelectedItem is not DisplayColumnItem selectedCol) return;
+
+            _isUpdatingFormatUI = true;
+            try
+            {
+                BtnAlignLeft.Background = selectedCol.Alignment == HorizontalAlignment.Left ? GetBrush("#C95B16") : GetBrush("#6C757D");
+                BtnAlignRight.Background = selectedCol.Alignment == HorizontalAlignment.Right ? GetBrush("#C95B16") : GetBrush("#6C757D");
+
+                BtnBold.Background = selectedCol.IsBold ? GetBrush("#C95B16") : GetBrush("#6C757D");
+                BtnItalic.Background = selectedCol.IsItalic ? GetBrush("#C95B16") : GetBrush("#6C757D");
+
+                BtnFontSize.Content = $"CỠ CHỮ: {selectedCol.FontSize}";
+                BtnTextColor.Background = GetBrush(string.IsNullOrWhiteSpace(selectedCol.TextColorHex) ? "#FFFFFF" : selectedCol.TextColorHex);
+
+                TxtShortTitle.Text = selectedCol.ShortTitle;
+            }
+            finally
+            {
+                _isUpdatingFormatUI = false;
+            }
+        }
+
+        private Brush GetBrush(string colorHex)
+        {
+            try
+            {
+                return (Brush)new BrushConverter().ConvertFromString(colorHex)!;
+            }
+            catch
+            {
+                return new SolidColorBrush(Colors.Gray);
+            }
+        }
+
+        private void BtnAlignLeft_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+            {
+                selectedCol.Alignment = HorizontalAlignment.Left;
+                UpdateFormatUIForSelectedColumn();
+                UpdateLivePreview();
+            }
+        }
+
+        private void BtnAlignRight_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+            {
+                selectedCol.Alignment = HorizontalAlignment.Right;
+                UpdateFormatUIForSelectedColumn();
+                UpdateLivePreview();
+            }
+        }
+
+        private void BtnBold_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+            {
+                selectedCol.IsBold = !selectedCol.IsBold;
+                UpdateFormatUIForSelectedColumn();
+                UpdateLivePreview();
+            }
+        }
+
+        private void BtnItalic_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+            {
+                selectedCol.IsItalic = !selectedCol.IsItalic;
+                UpdateFormatUIForSelectedColumn();
+                UpdateLivePreview();
+            }
+        }
+
+        private void BtnFontSize_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+            {
+                OpenNumericPad("Cỡ chữ", selectedCol.FontSize);
+            }
+        }
+
+        private void BtnTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstUsed.SelectedItem is DisplayColumnItem)
+            {
+                _isPickingTextColor = true;
+                ColorPaletteOverlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void TxtShortTitle_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingFormatUI) return;
+            if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+            {
+                selectedCol.ShortTitle = TxtShortTitle.Text;
+                UpdateLivePreview();
+            }
         }
 
         private void UpdateLivePreview()
@@ -484,15 +453,84 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 {
                     if (CardPreviewBorder != null) CardPreviewBorder.Visibility = Visibility.Collapsed;
                 }
+
+                if (StkPreviewItems != null)
+                {
+                    StkPreviewItems.Children.Clear();
+                    if (_usedColumns.Count == 0)
+                    {
+                        var tb = new TextBlock
+                        {
+                            Text = TargetType == "Ban" ? "Bàn 01" : TargetType,
+                            Foreground = Brushes.White,
+                            FontSize = 14,
+                            FontWeight = FontWeights.Bold,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            TextAlignment = TextAlignment.Center
+                        };
+                        StkPreviewItems.Children.Add(tb);
+                    }
+                    else
+                    {
+                        foreach (var col in _usedColumns)
+                        {
+                            string textToDisplay = !string.IsNullOrWhiteSpace(col.ShortTitle)
+                                ? col.ShortTitle
+                                : GetSampleValueForColumn(col.Name, TargetType);
+
+                            var tb = new TextBlock
+                            {
+                                Text = textToDisplay,
+                                HorizontalAlignment = col.Alignment,
+                                TextAlignment = col.Alignment == HorizontalAlignment.Right ? TextAlignment.Right : TextAlignment.Left,
+                                FontSize = col.FontSize > 0 ? col.FontSize : 14,
+                                FontWeight = col.IsBold ? FontWeights.Bold : FontWeights.Normal,
+                                FontStyle = col.IsItalic ? FontStyles.Italic : FontStyles.Normal,
+                                Foreground = GetBrush(string.IsNullOrWhiteSpace(col.TextColorHex) ? "#FFFFFF" : col.TextColorHex),
+                                Margin = new Thickness(0, 1, 0, 1)
+                            };
+                            StkPreviewItems.Children.Add(tb);
+                        }
+                    }
+                }
             }
             catch { }
+        }
+
+        private string GetSampleValueForColumn(string colName, string targetType)
+        {
+            string upper = colName.Trim().ToUpperInvariant();
+            return upper switch
+            {
+                "BÀN" => "Bàn 01",
+                "GIỜ VÀO" => "Vào: 14:30",
+                "KHÁCH HÀNG" => "Khách A",
+                "SỐ TIỀN" => "150,000đ",
+                "MẶT HÀNG" or "TÊN HÀNG" => "Bia Heineken",
+                "GIÁ BÁN" or "ĐƠN GIÁ" => "25,000đ",
+                "THÀNH TIỀN" or "GIÁ TRỊ BÁN" or "GIÁ TRỊ VỐN" or "TỔNG CỘNG" => "150,000đ",
+                "SỐ LƯỢNG" or "TỒN" => "10",
+                "ĐVT" => "Chai",
+                "MÃ HÀNG" => "MH001",
+                "NGÀY" => "14/09/2026",
+                "SỐ PHIẾU" => "HD00001",
+                "NHÂN VIÊN" => "NV Admin",
+                "GHI CHÚ" or "DIỄN GIẢI" => "Ghi chú mẫu",
+                "GIÁ VỐN" => "18,000đ",
+                "GIẢM GIÁ %" => "10%",
+                "TỪ GIỜ" => "14:00",
+                "ĐẾN GIỜ" => "15:00",
+                "HÃNG SX" => "Heineken",
+                "KHU VỰC" => "Tầng 1",
+                "NHÓM" => "Đồ uống",
+                _ => colName
+            };
         }
 
         private bool IsRightAlignedColumn(string colName)
         {
             if (string.IsNullOrEmpty(colName)) return false;
             string upper = colName.Trim().ToUpperInvariant();
-            // Tồn để bên phải, Hãng & các thuộc tính khác (Ghi chú, Giá trị bán, Giá vốn, Tồn 2 dvt...) để bên trái
             return upper == "TỒN";
         }
 
@@ -535,6 +573,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 PanelFormatOptions.Visibility = Visibility.Visible;
                 PanelFormatSubOptions.Visibility = Visibility.Visible;
                 BtnFormatToggle.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#C95B16")!; // Cam rực khi mở
+                UpdateFormatUIForSelectedColumn();
             }
         }
 
@@ -550,6 +589,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private void BtnCellColor_Click(object sender, RoutedEventArgs e)
         {
+            _isPickingTextColor = false;
             ColorPaletteOverlay.Visibility = Visibility.Visible;
         }
 
@@ -557,18 +597,32 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         {
             if (sender is Button btn && btn.Tag is string colorHex)
             {
-                SelectedColor = colorHex;
-                try
+                if (_isPickingTextColor)
                 {
-                    BtnCellColor.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(colorHex)!;
+                    if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+                    {
+                        selectedCol.TextColorHex = colorHex;
+                        BtnTextColor.Background = GetBrush(colorHex);
+                    }
+                    _isPickingTextColor = false;
                 }
-                catch { }
+                else
+                {
+                    SelectedColor = colorHex;
+                    try
+                    {
+                        BtnCellColor.Background = GetBrush(colorHex);
+                    }
+                    catch { }
+                }
                 ColorPaletteOverlay.Visibility = Visibility.Collapsed;
+                UpdateLivePreview();
             }
         }
 
         private void BtnColorCancel_Click(object sender, RoutedEventArgs e)
         {
+            _isPickingTextColor = false;
             ColorPaletteOverlay.Visibility = Visibility.Collapsed;
         }
 
@@ -621,6 +675,15 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 SelectedColumnCount = value;
                 BtnColumnCount.Content = $"SỐ CỘT: {value}";
             }
+            else if (_numericTarget == "Cỡ chữ")
+            {
+                if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
+                {
+                    selectedCol.FontSize = value;
+                    BtnFontSize.Content = $"CỠ CHỮ: {value}";
+                    UpdateLivePreview();
+                }
+            }
             else
             {
                 _rowCount = value;
@@ -637,7 +700,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private async void BtnApply_Click(object sender, RoutedEventArgs e)
         {
-            string usedColsStr = string.Join(",", _usedColumns.Select(x => x.Name));
+            string usedColsStr = string.Join(",", _usedColumns.Select(x => x.ToStringConfig()));
             bool saved1 = await LocalCauHinhService.SaveSingleConfigAsync(
                 GetSettingsKey(),
                 $"{_columnCount}|{_rowCount}|{SelectedColor}|{(_showTitle ? 1 : 0)}");
@@ -659,11 +722,29 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             DialogResult = false;
         }
 
-        public sealed class DisplayColumnItem
+        public sealed class DisplayColumnItem : INotifyPropertyChanged
         {
-            public string Name { get; }
+            public event PropertyChangedEventHandler? PropertyChanged;
+            private void OnPropertyChanged([CallerMemberName] string? prop = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+            }
+
+            private string _name = "";
+            private HorizontalAlignment _alignment = HorizontalAlignment.Left;
+            private bool _isBold = true;
+            private bool _isItalic = false;
+            private int _fontSize = 14;
+            private string _textColorHex = "#FFFFFF";
+            private string _shortTitle = "";
+
+            public string Name { get => _name; set { _name = value; OnPropertyChanged(); } }
             public string DisplayName => Name switch
             {
+                "BÀN" => "Bàn",
+                "GIỜ VÀO" => "Giờ vào",
+                "SỐ TIỀN" => "Số tiền",
+                "KHÁCH HÀNG" => "Khách hàng",
                 "GHI CHÚ" => "Ghi chú",
                 "GIÁ TRỊ BÁN" => "Giá trị bán",
                 "GIÁ VỐN" => "Giá vốn",
@@ -678,13 +759,39 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 "GIÁ TRỊ VỐN" => "Giá trị vốn",
                 _ => Name
             };
-            public HorizontalAlignment Alignment { get; set; } = HorizontalAlignment.Left;
-            public bool IsBold { get; set; } = true;
-            public bool IsItalic { get; set; } = false;
+
+            public HorizontalAlignment Alignment { get => _alignment; set { _alignment = value; OnPropertyChanged(); } }
+            public bool IsBold { get => _isBold; set { _isBold = value; OnPropertyChanged(); } }
+            public bool IsItalic { get => _isItalic; set { _isItalic = value; OnPropertyChanged(); } }
+            public int FontSize { get => _fontSize; set { _fontSize = value; OnPropertyChanged(); } }
+            public string TextColorHex { get => _textColorHex; set { _textColorHex = value; OnPropertyChanged(); } }
+            public string ShortTitle { get => _shortTitle; set { _shortTitle = value; OnPropertyChanged(); } }
 
             public DisplayColumnItem(string name)
             {
                 Name = name;
+            }
+
+            public string ToStringConfig()
+            {
+                string alignStr = Alignment == HorizontalAlignment.Right ? "R" : "L";
+                string boldStr = IsBold ? "1" : "0";
+                string italicStr = IsItalic ? "1" : "0";
+                return $"{Name};{alignStr};{boldStr};{italicStr};{FontSize};{TextColorHex};{ShortTitle}";
+            }
+
+            public static DisplayColumnItem Parse(string colStr)
+            {
+                if (string.IsNullOrWhiteSpace(colStr)) return new DisplayColumnItem("");
+                string[] parts = colStr.Split(';');
+                var item = new DisplayColumnItem(parts[0].Trim());
+                if (parts.Length > 1) item.Alignment = parts[1].Trim().ToUpperInvariant() == "R" ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+                if (parts.Length > 2) item.IsBold = parts[2].Trim() == "1";
+                if (parts.Length > 3) item.IsItalic = parts[3].Trim() == "1";
+                if (parts.Length > 4 && int.TryParse(parts[4].Trim(), out int fs)) item.FontSize = fs;
+                if (parts.Length > 5 && !string.IsNullOrWhiteSpace(parts[5])) item.TextColorHex = parts[5].Trim();
+                if (parts.Length > 6) item.ShortTitle = parts[6].Trim();
+                return item;
             }
         }
     }

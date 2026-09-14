@@ -1,0 +1,18 @@
+[
+  {
+    "Name": "DEMO",
+    "Path": "D:\\taifirebird\\DEMO.FDB",
+    "ConnectionType": 2,
+    "Server": "localhost",
+    "Username": "SYSDBA",
+    "Password": "masterkey"
+  },
+  {
+    "Name": "HIHI",
+    "Path": "D:\\saoluu\\HIHI.FDB",
+    "ConnectionType": 2,
+    "Server": "localhost",
+    "Username": "SYSDBA",
+    "Password": "masterkey"
+  }
+]

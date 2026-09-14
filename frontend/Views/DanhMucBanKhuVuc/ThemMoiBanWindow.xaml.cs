@@ -17,6 +17,7 @@ namespace QuanLyBar.Client.Views
         private readonly List<BanViewModel> _banList;
         private int _currentIndex = -1;
         private bool _isDataChanged = false;
+        private byte[] _currentImageBytes = null;
 
         public ThemMoiBanWindow(DBAN ban, List<BanViewModel> banList = null, int initialIndex = -1)
         {
@@ -40,9 +41,34 @@ namespace QuanLyBar.Client.Views
             await LoadNhomHienThiListAsync(_currentBan.DnhomhienthiId);
             await LoadLoaiPhongListAsync(_currentBan.DloaiphongId);
 
+            if (_currentBan != null && !string.IsNullOrEmpty(_currentBan.Id))
+            {
+                var fullBan = await _service.GetBanByIdAsync(_currentBan.Id);
+                if (fullBan != null)
+                {
+                    _currentBan.Anh = fullBan.Anh;
+                    _currentImageBytes = fullBan.Anh;
+                }
+            }
+
+            UpdateImagePreviewUI();
             UpdateNavigationButtons();
             TxtTenBan.Focus();
             TxtTenBan.SelectAll();
+        }
+
+        private void UpdateImagePreviewUI()
+        {
+            if (_currentImageBytes != null && _currentImageBytes.Length > 0)
+            {
+                ImgPreviewBan.Source = ImageHelper.BytesToBitmapImage(_currentImageBytes);
+                TxtNoImageBan.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                ImgPreviewBan.Source = null;
+                TxtNoImageBan.Visibility = Visibility.Visible;
+            }
         }
 
         public async Task LoadKhuVucListAsync(string selectId = null, string selectName = null)
@@ -137,6 +163,9 @@ namespace QuanLyBar.Client.Views
             CmbKhuVuc.SelectedValue = _currentBan.DkhuvucId;
             CmbNhomHienThi.SelectedValue = _currentBan.DnhomhienthiId;
             CmbLoaiPhong.SelectedValue = _currentBan.DloaiphongId;
+
+            _currentImageBytes = _currentBan.Anh;
+            UpdateImagePreviewUI();
         }
 
         private void TxtTenBan_GotFocus(object sender, RoutedEventArgs e)
@@ -272,6 +301,7 @@ namespace QuanLyBar.Client.Views
 
             _currentBan.Name = TxtTenBan.Text.Trim();
             _currentBan.Note = TxtGhiChu.Text.Trim();
+            _currentBan.Anh = _currentImageBytes;
             
             _currentBan.DkhuvucId = CmbKhuVuc.SelectedValue != null ? CmbKhuVuc.SelectedValue?.ToString() : null;
             _currentBan.DnhomhienthiId = CmbNhomHienThi.SelectedValue != null ? CmbNhomHienThi.SelectedValue?.ToString() : null;
@@ -355,11 +385,44 @@ namespace QuanLyBar.Client.Views
             _currentBan.DloaiphongId = previousLoaiPhongId;
 
             _currentIndex = -1;
+            _currentImageBytes = null;
             LoadDataToForm();
             UpdateNavigationButtons();
             
             this.Title = "BÀN - THÊM MỚI";
             TxtTenBan.Focus();
+        }
+
+        private void BtnChonAnhBan_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Tệp hình ảnh (*.jpg;*.jpeg;*.png;*.bmp;*.webp)|*.jpg;*.jpeg;*.png;*.bmp;*.webp|Tất cả tệp (*.*)|*.*",
+                Title = "Chọn ảnh cho bàn"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    byte[] optimized = ImageHelper.OptimizeImageFromFile(openFileDialog.FileName, 500, 500, 80);
+                    if (optimized != null && optimized.Length > 0)
+                    {
+                        _currentImageBytes = optimized;
+                        UpdateImagePreviewUI();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi xử lý ảnh: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void BtnXoaAnhBan_Click(object sender, RoutedEventArgs e)
+        {
+            _currentImageBytes = null;
+            UpdateImagePreviewUI();
         }
 
         private void MenuSaoChep_Click(object sender, RoutedEventArgs e)

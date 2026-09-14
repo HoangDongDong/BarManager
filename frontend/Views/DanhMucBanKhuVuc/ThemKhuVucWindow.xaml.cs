@@ -19,6 +19,7 @@ namespace QuanLyBar.Client.Views
         private List<KhuVucViewModel> _khuVucList;
         private int _currentIndex = -1;
         private Action _onDataSaved;
+        private byte[] _currentImageBytes = null;
 
         public string TenKhuVuc => TxtTenKhuVuc.Text.Trim();
         public string GhiChu => TxtGhiChu.Text.Trim();
@@ -86,6 +87,7 @@ namespace QuanLyBar.Client.Views
                             if (key == "NAME") name = kvp.Value?.ToString();
                             else if (key == "NOTE") note = kvp.Value?.ToString();
                             else if (key == "SIMAGEID" || key == "BIEUTUONGID") simageObj = kvp.Value;
+                            else if (key == "ANH") _currentImageBytes = kvp.Value as byte[];
                         }
                     }
                     else
@@ -93,6 +95,7 @@ namespace QuanLyBar.Client.Views
                         try { name = data.NAME?.ToString(); } catch { }
                         try { note = data.NOTE?.ToString(); } catch { }
                         try { simageObj = data.SIMAGEID; } catch { }
+                        try { _currentImageBytes = data.ANH as byte[]; } catch { }
                     }
 
                     if (!string.IsNullOrWhiteSpace(name))
@@ -109,6 +112,8 @@ namespace QuanLyBar.Client.Views
                         if (sImgId >= 0 && sImgId < CboAnh.Items.Count)
                             CboAnh.SelectedIndex = sImgId;
                     }
+
+                    UpdateImagePreviewUI();
                 }
 
                 TxtTenKhuVuc.Focus();
@@ -171,8 +176,56 @@ namespace QuanLyBar.Client.Views
             this.Title = _isThuMuc ? "THƯ MỤC KHU VỰC - THÊM MỚI" : "KHU VỰC - THÊM MỚI";
             TxtTenKhuVuc.Text = "";
             TxtGhiChu.Text = "";
+            _currentImageBytes = null;
+            UpdateImagePreviewUI();
             TxtTenKhuVuc.Focus();
             UpdateNavigationButtons();
+        }
+
+        private void UpdateImagePreviewUI()
+        {
+            if (_currentImageBytes != null && _currentImageBytes.Length > 0)
+            {
+                ImgPreviewKhuVuc.Source = ImageHelper.BytesToBitmapImage(_currentImageBytes);
+                TxtNoImageKhuVuc.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                ImgPreviewKhuVuc.Source = null;
+                TxtNoImageKhuVuc.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void BtnChonAnhKhuVuc_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Tệp hình ảnh (*.jpg;*.jpeg;*.png;*.bmp;*.webp)|*.jpg;*.jpeg;*.png;*.bmp;*.webp|Tất cả tệp (*.*)|*.*",
+                Title = "Chọn ảnh cho khu vực"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    byte[] optimized = ImageHelper.OptimizeImageFromFile(openFileDialog.FileName, 500, 500, 80);
+                    if (optimized != null && optimized.Length > 0)
+                    {
+                        _currentImageBytes = optimized;
+                        UpdateImagePreviewUI();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi xử lý ảnh: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void BtnXoaAnhKhuVuc_Click(object sender, RoutedEventArgs e)
+        {
+            _currentImageBytes = null;
+            UpdateImagePreviewUI();
         }
 
         private void MenuSaoChep_Click(object sender, RoutedEventArgs e)
@@ -198,11 +251,11 @@ namespace QuanLyBar.Client.Views
             bool success;
             if (!string.IsNullOrEmpty(_khuVucIdToEdit))
             {
-                success = await _service.UpdateKhuVucFullAsync(_khuVucIdToEdit, TenKhuVuc, GhiChu, selectedIconIndex);
+                success = await _service.UpdateKhuVucFullAsync(_khuVucIdToEdit, TenKhuVuc, GhiChu, selectedIconIndex, _currentImageBytes);
             }
             else
             {
-                success = await _service.InsertKhuVucAsync(TenKhuVuc, _parentId);
+                success = await _service.InsertKhuVucAsync(TenKhuVuc, _parentId, GhiChu, _currentImageBytes);
             }
 
             if (success)

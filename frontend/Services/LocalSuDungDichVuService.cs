@@ -16,6 +16,7 @@ namespace QuanLyBar.Client.Services
             public string Id { get; set; }
             public string Name { get; set; }
             public string DkhuvucId { get; set; }
+            public byte[] Anh { get; set; }
         }
 
         private class ActiveOrderDto
@@ -60,7 +61,7 @@ namespace QuanLyBar.Client.Services
 
                     // Lấy danh sách bàn
                     var banList = (await conn.QueryAsync<DbanRowDto>(
-                        "SELECT ID as Id, NAME as Name, DKHUVUCID as DkhuvucId FROM DBAN WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY NAME"
+                        "SELECT ID as Id, NAME as Name, DKHUVUCID as DkhuvucId, ANH as Anh FROM DBAN WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY NAME"
                     )).ToList();
 
                     // Lấy các đơn hàng đang mở (chưa kết thúc)
@@ -95,6 +96,7 @@ namespace QuanLyBar.Client.Services
                                 Name = b.Name,
                                 KhuVucId = kv.Id,
                                 KhuVucName = kv.Name,
+                                Anh = b.Anh,
                                 IsOccupied = isOcc,
                                 ActiveOrderId = activeOrder?.Id,
                                 StartTime = activeOrder?.BatDau ?? (isOcc ? (activeOrder?.Ngay ?? DateTime.Now) : (DateTime?)null),

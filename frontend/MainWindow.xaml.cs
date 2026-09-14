@@ -35,22 +35,7 @@ namespace QuanLyBar.Client
         {
             try
             {
-                var comp = await LocalCauHinhService.GetCompanyInfoAsync();
-                if (comp != null && comp.LogoBytes != null && comp.LogoBytes.Length > 0)
-                {
-                    var bi = LocalCauHinhService.ImageFromBytes(comp.LogoBytes);
-                    if (bi != null)
-                    {
-                        imgLogo.Source = bi;
-                        return;
-                    }
-                }
-            }
-            catch { }
-
-            try
-            {
-                imgLogo.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/img/logo.png", UriKind.Absolute));
+                imgLogo.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/img/logo1.png", UriKind.Absolute));
             }
             catch { }
         }

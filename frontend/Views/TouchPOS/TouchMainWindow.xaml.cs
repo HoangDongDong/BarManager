@@ -24,6 +24,19 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                this.WindowState = WindowState.Normal;
+                this.WindowStyle = WindowStyle.None;
+                this.ResizeMode = ResizeMode.NoResize;
+                this.Left = 0;
+                this.Top = 0;
+                this.Width = SystemParameters.PrimaryScreenWidth;
+                this.Height = SystemParameters.PrimaryScreenHeight;
+                this.WindowState = WindowState.Maximized;
+            }
+            catch { }
+
             ShowLoginScreen();
         }
 
@@ -166,6 +179,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 _tableRowsConfig = rows;
                 ColumnCount = cols;
                 UpdateTileHeight();
+
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLUMNS_Ban", "BÀN");
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    DBAN.SavedDisplayColumns = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    DBAN.SavedDisplayColumns = new List<string> { "BÀN" };
+                }
             }
             catch { }
         }
@@ -348,7 +371,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
                             ActiveOrderId = b.ActiveOrderId,
                             SoPhieu = b.SoPhieu,
                             SoKhach = b.SoKhach > 0 ? b.SoKhach : 1,
-                            KhachHangName = b.KhachHangName
+                            KhachHangName = b.KhachHangName,
+                            ThoiGianMo = b.StartTime,
+                            TongCong = b.TongCong,
+                            Anh = b.Anh
                         });
                     }
                 }
@@ -835,6 +861,134 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 else
                 {
                     MessageBox.Show("Tên đăng nhập hoặc mật khẩu không đúng!", "Đăng nhập thất bại",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi đăng nhập: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ===== LOGIN MODES (MODE 1: KEYPAD #, MODE 2: FORM **|, MODE 3: CARD) =====
+        private string _keypadPin = "";
+
+        private void BtnModeKeypad_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchLoginMode(1);
+        }
+
+        private void BtnModeForm_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchLoginMode(2);
+        }
+
+        private void BtnModeCard_Click(object sender, RoutedEventArgs e)
+        {
+            SwitchLoginMode(3);
+        }
+
+        private void SwitchLoginMode(int mode)
+        {
+            var activeBg = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#D97706"));
+            var activeBorder = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F59E0B"));
+            var inactiveBg = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#5A0F0F"));
+            var inactiveBorder = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#8A2525"));
+
+            if (BtnModeKeypad.Template.FindName("BdModeKeypad", BtnModeKeypad) is Border bdKeypad)
+            {
+                bdKeypad.Background = mode == 1 ? activeBg : inactiveBg;
+                bdKeypad.BorderBrush = mode == 1 ? activeBorder : inactiveBorder;
+            }
+            if (BtnModeForm.Template.FindName("BdModeForm", BtnModeForm) is Border bdForm)
+            {
+                bdForm.Background = mode == 2 ? activeBg : inactiveBg;
+                bdForm.BorderBrush = mode == 2 ? activeBorder : inactiveBorder;
+            }
+            if (BtnModeCard.Template.FindName("BdModeCard", BtnModeCard) is Border bdCard)
+            {
+                bdCard.Background = mode == 3 ? activeBg : inactiveBg;
+                bdCard.BorderBrush = mode == 3 ? activeBorder : inactiveBorder;
+            }
+
+            PanelLoginKeypad.Visibility = mode == 1 ? Visibility.Visible : Visibility.Collapsed;
+            PanelLoginForm.Visibility = mode == 2 ? Visibility.Visible : Visibility.Collapsed;
+            PanelLoginCard.Visibility = mode == 3 ? Visibility.Visible : Visibility.Collapsed;
+
+            if (mode == 1)
+            {
+                _keypadPin = "";
+                TxtKeypadDisplay.Text = "*";
+            }
+            else if (mode == 3)
+            {
+                TxtCardCodeInput.Text = "";
+                TxtCardCodeInput.Focus();
+            }
+        }
+
+        private void BtnKeypadNum_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string num)
+            {
+                if (_keypadPin.Length < 12)
+                {
+                    _keypadPin += num;
+                    TxtKeypadDisplay.Text = new string('*', _keypadPin.Length);
+                }
+            }
+        }
+
+        private void BtnKeypadBackspace_Click(object sender, RoutedEventArgs e)
+        {
+            if (_keypadPin.Length > 0)
+            {
+                _keypadPin = _keypadPin.Substring(0, _keypadPin.Length - 1);
+                TxtKeypadDisplay.Text = _keypadPin.Length > 0 ? new string('*', _keypadPin.Length) : "*";
+            }
+        }
+
+        private void BtnKeypadSubmit_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(_keypadPin))
+            {
+                DoLoginKeypadOrCode(_keypadPin);
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng nhập mã ID để đăng nhập!", "Chưa nhập mã ID", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void TxtCardCodeInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                var code = TxtCardCodeInput.Text.Trim();
+                if (!string.IsNullOrWhiteSpace(code))
+                {
+                    DoLoginKeypadOrCode(code);
+                }
+                else
+                {
+                    MessageBox.Show("Vui lòng quét thẻ từ hoặc nhập mã thẻ!", "Chưa nhập mã thẻ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private async void DoLoginKeypadOrCode(string code)
+        {
+            try
+            {
+                var user = await LocalAuthService.LoginByIdOrCodeAsync(code);
+                if (user != null)
+                {
+                    SessionContext.CurrentUser = user;
+                    ShowMenuScreen();
+                }
+                else
+                {
+                    MessageBox.Show("Mã ID hoặc Thẻ không hợp lệ!", "Đăng nhập thất bại",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
@@ -2576,23 +2730,81 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
     }
 
+    public class TableDisplayLine
+    {
+        public string Text { get; set; } = "";
+        public HorizontalAlignment Alignment { get; set; } = HorizontalAlignment.Center;
+        public double FontSize { get; set; } = 14;
+        public FontWeight FontWeight { get; set; } = FontWeights.Bold;
+        public FontStyle FontStyle { get; set; } = FontStyles.Normal;
+        public SolidColorBrush ForegroundBrush { get; set; } = Brushes.White;
+    }
+
     // Simple model classes / helpers for TouchPOS context
-    public class DBAN 
+    public class DBAN : System.ComponentModel.INotifyPropertyChanged
     { 
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string MABAN { get; set; } = ""; 
-        public string TENBAN { get; set; } = ""; 
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propName = null)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propName));
+        }
+
+        private string _id = "";
+        private string _name = "";
+        private string _maban = "";
+        private string _tenban = "";
+        private bool _isOpened = false;
+        private DateTime? _thoiGianMo;
+        private string? _khachHangName;
+        private decimal _tongCong = 0;
+        private byte[]? _anh;
+
+        public static List<string> SavedDisplayColumns { get; set; } = new List<string> { "BÀN" };
+
+        public byte[]? Anh
+        {
+            get => _anh;
+            set
+            {
+                _anh = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AnhSource));
+                OnPropertyChanged(nameof(HasAnh));
+                OnPropertyChanged(nameof(HasImageVisibility));
+                OnPropertyChanged(nameof(NoImageVisibility));
+            }
+        }
+        public ImageSource? AnhSource => QuanLyBar.Client.Services.ImageHelper.BytesToBitmapImage(Anh);
+        public bool HasAnh => Anh != null && Anh.Length > 0;
+        public System.Windows.Visibility HasImageVisibility => HasAnh ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        public System.Windows.Visibility NoImageVisibility => HasAnh ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+
+        public string Id { get => _id; set { _id = value; OnPropertyChanged(); } }
+        public string Name { get => _name; set { _name = value; OnPropertyChanged(); } }
+        public string MABAN { get => _maban; set { _maban = value; OnPropertyChanged(); } }
+        public string TENBAN { get => _tenban; set { _tenban = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayText)); OnPropertyChanged(nameof(DisplayLines)); } }
         public string MAKHUVUC { get; set; } = "";
         public string KhuVucName { get; set; } = "";
         public string MauNen { get; set; } = "#16213E"; 
         public string TrangThai { get; set; } = "Trống"; 
-        public bool IsOpened { get; set; } = false;
-        public DateTime? ThoiGianMo { get; set; } 
+        public bool IsOpened
+        {
+            get => _isOpened;
+            set { _isOpened = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayText)); OnPropertyChanged(nameof(DisplayLines)); }
+        }
+        public DateTime? ThoiGianMo
+        {
+            get => _thoiGianMo;
+            set { _thoiGianMo = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayText)); OnPropertyChanged(nameof(DisplayLines)); }
+        }
         public string? ActiveOrderId { get; set; }
         public string? SoPhieu { get; set; }
         public int SoKhach { get; set; } = 1;
-        public string? KhachHangName { get; set; }
+        public string? KhachHangName
+        {
+            get => _khachHangName;
+            set { _khachHangName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayText)); OnPropertyChanged(nameof(DisplayLines)); }
+        }
 
         public decimal TienHang { get; set; } = 0;
         public decimal GiamGiaPhanTram { get; set; } = 0;
@@ -2601,7 +2813,109 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public decimal TienThue { get; set; } = 0;
         public decimal PhiDichVuPt { get; set; } = 0;
         public decimal TienPhiDichVu { get; set; } = 0;
-        public decimal TongCong { get; set; } = 0;
+        public decimal TongCong
+        {
+            get => _tongCong;
+            set { _tongCong = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayText)); OnPropertyChanged(nameof(DisplayLines)); }
+        }
+
+        public List<TableDisplayLine> DisplayLines
+        {
+            get
+            {
+                var result = new List<TableDisplayLine>();
+                if (!IsOpened || SavedDisplayColumns == null || SavedDisplayColumns.Count == 0)
+                {
+                    result.Add(new TableDisplayLine
+                    {
+                        Text = TENBAN,
+                        Alignment = HorizontalAlignment.Center,
+                        FontSize = 16,
+                        FontWeight = FontWeights.Bold,
+                        FontStyle = FontStyles.Normal,
+                        ForegroundBrush = Brushes.White
+                    });
+                    return result;
+                }
+
+                foreach (var rawCol in SavedDisplayColumns)
+                {
+                    if (string.IsNullOrWhiteSpace(rawCol)) continue;
+                    string[] parts = rawCol.Split(';');
+                    string colName = parts[0].Trim().ToUpperInvariant();
+                    HorizontalAlignment align = parts.Length > 1 && parts[1].Trim().ToUpperInvariant() == "R" ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+                    bool isBold = parts.Length <= 2 || parts[2].Trim() == "1";
+                    bool isItalic = parts.Length > 3 && parts[3].Trim() == "1";
+                    double fontSize = parts.Length > 4 && double.TryParse(parts[4].Trim(), out double fs) && fs > 0 ? fs : 14;
+                    string colorHex = parts.Length > 5 && !string.IsNullOrWhiteSpace(parts[5]) ? parts[5].Trim() : "#FFFFFF";
+                    string shortTitle = parts.Length > 6 ? parts[6].Trim() : "";
+
+                    string lineText = "";
+                    if (colName == "BÀN")
+                    {
+                        lineText = !string.IsNullOrWhiteSpace(shortTitle) ? shortTitle : TENBAN;
+                    }
+                    else if (colName == "GIỜ VÀO")
+                    {
+                        if (ThoiGianMo.HasValue)
+                        {
+                            lineText = !string.IsNullOrWhiteSpace(shortTitle) ? $"{shortTitle}: {ThoiGianMo.Value:HH:mm}" : $"Vào: {ThoiGianMo.Value:HH:mm}";
+                        }
+                    }
+                    else if (colName == "SỐ TIỀN")
+                    {
+                        if (TongCong > 0)
+                        {
+                            lineText = !string.IsNullOrWhiteSpace(shortTitle) ? $"{shortTitle}: {TongCong:N0}đ" : $"{TongCong:N0}đ";
+                        }
+                    }
+                    else if (colName == "KHÁCH HÀNG")
+                    {
+                        if (!string.IsNullOrWhiteSpace(KhachHangName))
+                        {
+                            lineText = !string.IsNullOrWhiteSpace(shortTitle) ? $"{shortTitle}: {KhachHangName.Trim()}" : KhachHangName.Trim();
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(lineText))
+                    {
+                        SolidColorBrush brush = Brushes.White;
+                        try
+                        {
+                            brush = (SolidColorBrush)new BrushConverter().ConvertFromString(colorHex)!;
+                        }
+                        catch { }
+
+                        result.Add(new TableDisplayLine
+                        {
+                            Text = lineText,
+                            Alignment = align,
+                            FontSize = fontSize,
+                            FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
+                            FontStyle = isItalic ? FontStyles.Italic : FontStyles.Normal,
+                            ForegroundBrush = brush
+                        });
+                    }
+                }
+
+                if (result.Count == 0)
+                {
+                    result.Add(new TableDisplayLine
+                    {
+                        Text = TENBAN,
+                        Alignment = HorizontalAlignment.Center,
+                        FontSize = 15,
+                        FontWeight = FontWeights.Bold,
+                        FontStyle = FontStyles.Normal,
+                        ForegroundBrush = Brushes.White
+                    });
+                }
+
+                return result;
+            }
+        }
+
+        public string DisplayText => string.Join("\n", DisplayLines.Select(x => x.Text));
     }
     public class DKHUVUC 
     { 

@@ -27,17 +27,24 @@
 
   <!-- Shared source files from frontend project -->
   <ItemGroup>
-    <Compile Include="..\frontend\**\*.cs" Exclude="..\frontend\App.xaml.cs;..\frontend\Views\DanhMucMatHang\ThuVienAnhWindow.xaml.cs;..\frontend\obj\**;..\frontend\bin\**" />
+    <Compile Include="..\frontend\**\*.cs" Exclude="..\frontend\App.xaml.cs;..\frontend\TouchApp.xaml.cs;..\frontend\Views\DanhMucMatHang\ThuVienAnhWindow.xaml.cs;..\frontend\obj\**;..\frontend\bin\**" />
     <Compile Include="ThuVienAnhWindowStub.cs" />
-    <Page Include="..\frontend\**\*.xaml" Exclude="..\frontend\App.xaml;..\frontend\obj\**;..\frontend\bin\**" />
-    <ApplicationDefinition Include="..\frontend\TouchApp.xaml">
+    <Page Include="..\frontend\**\*.xaml" Exclude="..\frontend\App.xaml;..\frontend\TouchApp.xaml;..\frontend\obj\**;..\frontend\bin\**" />
+    <ApplicationDefinition Include="TouchApp.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="..\frontend\img\**" />
+    <Resource Include="img\**" />
   </ItemGroup>
+
+  <Target Name="CopyFrontendImg" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <_FrontendImgFiles Include="..\frontend\img\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_FrontendImgFiles)" DestinationFolder="img\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

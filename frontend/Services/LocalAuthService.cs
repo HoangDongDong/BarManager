@@ -113,20 +113,106 @@ namespace QuanLyBar.Client.Services
                         // Cập nhật TIMEMODIFIED không bắt buộc (chạy nền)
                         _ = UpdateTimeModifiedAsync(userId);
 
-                        // Trả về UserProfile Object
-                        return new UserProfile
-                        {
-                            Id = userId,
-                            TenDangNhap = username,
-                            TenHienThi = fullName,
-                            GroupId = groupId,
-                            GroupName = groupName,
-                            IsAdmin = isAdmin,
-                            VaiTro = isAdmin ? "Quản trị viên" : (!string.IsNullOrEmpty(groupName) ? groupName : "Nhân viên")
-                        };
+                        return await BuildUserProfileAsync(conn, reader, username);
                     }
                 }
             }
+        }
+
+        public static async Task<UserProfile> LoginByIdOrCodeAsync(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                throw new Exception("Vui lòng nhập mã ID hoặc quét thẻ từ!");
+
+            using (var conn = DbConnectionManager.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT * FROM SUSER WHERE UPPER(TRIM(USERNAME)) = UPPER(TRIM(@Code)) OR CAST(ID AS VARCHAR(50)) = @Code";
+                    
+                    var pCode = cmd.CreateParameter();
+                    pCode.ParameterName = "@Code";
+                    pCode.Value = code.Trim();
+                    cmd.Parameters.Add(pCode);
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            int uNameIdx = reader.GetOrdinal("USERNAME");
+                            string uName = reader.IsDBNull(uNameIdx) ? code : reader.GetString(uNameIdx);
+                            return await BuildUserProfileAsync(conn, reader, uName);
+                        }
+                    }
+                }
+
+                throw new Exception("Mã ID hoặc Thẻ không tồn tại trong hệ thống!");
+            }
+        }
+
+        private static async Task<UserProfile> BuildUserProfileAsync(System.Data.Common.DbConnection conn, System.Data.Common.DbDataReader reader, string username)
+        {
+            // Parse ID and Role
+            int idIndex = reader.GetOrdinal("ID");
+            int isAdminIndex = reader.GetOrdinal("ISADMIN");
+
+            string userId = reader.GetValue(idIndex).ToString() ?? "1";
+            bool isAdmin = !reader.IsDBNull(isAdminIndex) && (reader.GetInt16(isAdminIndex) == 1 || reader.GetBoolean(isAdminIndex) || username.Equals("admin", StringComparison.OrdinalIgnoreCase));
+
+            string groupId = "";
+            try
+            {
+                int gIndex = reader.GetOrdinal("SGROUPUSERID");
+                if (!reader.IsDBNull(gIndex)) groupId = reader.GetValue(gIndex)?.ToString() ?? "";
+            }
+            catch { }
+
+            string fullName = username;
+            try
+            {
+                int nIndex = reader.GetOrdinal("NAME");
+                if (!reader.IsDBNull(nIndex)) fullName = reader.GetValue(nIndex)?.ToString() ?? username;
+            }
+            catch { }
+
+            string groupName = "";
+            if (!string.IsNullOrEmpty(groupId))
+            {
+                try
+                {
+                    using (var gCmd = conn.CreateCommand())
+                    {
+                        gCmd.CommandText = "SELECT NAME FROM SGROUPUSER WHERE ID = @GId";
+                        var pGId = gCmd.CreateParameter();
+                        pGId.ParameterName = "@GId";
+                        pGId.Value = groupId;
+                        gCmd.Parameters.Add(pGId);
+                        var gNameVal = await gCmd.ExecuteScalarAsync();
+                        if (gNameVal != null) groupName = gNameVal.ToString();
+                    }
+                }
+                catch { }
+            }
+
+            // Tải phân quyền chức năng và báo cáo vào Session
+            await LocalPhanQuyenService.LoadCurrentUserPermissionsAsync(userId, groupId, isAdmin);
+
+            // Cập nhật TIMEMODIFIED không bắt buộc (chạy nền)
+            _ = UpdateTimeModifiedAsync(userId);
+
+            // Trả về UserProfile Object
+            return new UserProfile
+            {
+                Id = userId,
+                TenDangNhap = username,
+                TenHienThi = fullName,
+                GroupId = groupId,
+                GroupName = groupName,
+                IsAdmin = isAdmin,
+                VaiTro = isAdmin ? "Quản trị viên" : (!string.IsNullOrEmpty(groupName) ? groupName : "Nhân viên")
+            };
         }
 
         private static async Task UpdateTimeModifiedAsync(string userId)

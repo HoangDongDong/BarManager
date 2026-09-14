@@ -45,6 +45,7 @@ namespace QuanLyBar.Client.Models
         private decimal _phiDichVuPt = 0;
         private decimal _tienPhiDichVu = 0;
         private decimal _tongCong = 0;
+        private byte[] _anh;
 
         public string Id { get => _id; set { _id = value; OnPropertyChanged(); } }
         public string Name { get => _name; set { _name = value; OnPropertyChanged(); } }
@@ -52,6 +53,9 @@ namespace QuanLyBar.Client.Models
         public string KhuVucName { get => _khuVucName; set { _khuVucName = value; OnPropertyChanged(); } }
         public string ActiveOrderId { get => _activeOrderId; set { _activeOrderId = value; OnPropertyChanged(); } }
         public DateTime? StartTime { get => _startTime; set { _startTime = value; OnPropertyChanged(); UpdateTimerText(); } }
+        public byte[] Anh { get => _anh; set { _anh = value; OnPropertyChanged(); OnPropertyChanged(nameof(AnhSource)); OnPropertyChanged(nameof(HasAnh)); } }
+        public ImageSource? AnhSource => QuanLyBar.Client.Services.ImageHelper.BytesToBitmapImage(Anh);
+        public bool HasAnh => Anh != null && Anh.Length > 0;
         
         public bool IsOccupied 
         { 

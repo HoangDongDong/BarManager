@@ -180,7 +180,7 @@ namespace QuanLyBar.Client.Services
                 return new List<BanViewModel>();
             }
         }
-        public async Task<bool> InsertKhuVucAsync(string name, string parentId)
+        public async Task<bool> InsertKhuVucAsync(string name, string parentId, string note = null, byte[] anh = null)
         {
             if (string.IsNullOrWhiteSpace(name)) return false;
             try
@@ -213,10 +213,10 @@ namespace QuanLyBar.Client.Services
                     var newId = (maxId + 1).ToString();
 
                     string sql = @"
-                        INSERT INTO DKHUVUC (ID, NAME, PARENTID, STATUS, USERCREATEDID, TIMECREATED) 
-                        VALUES (@Id, @Name, @ParentId, 1, 1, CURRENT_TIMESTAMP)";
+                        INSERT INTO DKHUVUC (ID, NAME, PARENTID, NOTE, ANH, STATUS, USERCREATEDID, TIMECREATED) 
+                        VALUES (@Id, @Name, @ParentId, @Note, @Anh, 1, 1, CURRENT_TIMESTAMP)";
                     
-                    var rows = await conn.ExecuteAsync(sql, new { Id = newId, Name = name.Trim(), ParentId = parentId });
+                    var rows = await conn.ExecuteAsync(sql, new { Id = newId, Name = name.Trim(), ParentId = parentId, Note = note, Anh = anh });
                     return rows > 0;
                 }
             }
@@ -251,7 +251,7 @@ namespace QuanLyBar.Client.Services
             return await UpdateKhuVucFullAsync(id, name, null);
         }
 
-        public async Task<bool> UpdateKhuVucFullAsync(string id, string name, string note = null, int? simageId = null)
+        public async Task<bool> UpdateKhuVucFullAsync(string id, string name, string note = null, int? simageId = null, byte[] anh = null)
         {
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrEmpty(id)) return false;
             try
@@ -275,10 +275,11 @@ namespace QuanLyBar.Client.Services
                         UPDATE DKHUVUC 
                         SET NAME = @Name,
                             NOTE = @Note,
+                            ANH = @Anh,
                             TIMEMODIFIED = CURRENT_TIMESTAMP
                         WHERE CAST(ID AS VARCHAR(50)) = @Id";
                     
-                    var rows = await conn.ExecuteAsync(sql, new { Name = name.Trim(), Note = note, Id = id });
+                    var rows = await conn.ExecuteAsync(sql, new { Name = name.Trim(), Note = note, Anh = anh, Id = id });
                     return rows > 0;
                 }
             }
@@ -450,8 +451,8 @@ namespace QuanLyBar.Client.Services
                     }
 
                     string sql = @"
-                        INSERT INTO DBAN (ID, NAME, NOTE, DKHUVUCID, DNHOMHIENTHIID, DLOAIPHONGID, STATUS, USERCREATEDID, TIMECREATED) 
-                        VALUES (@Id, @Name, @Note, @DkhuvucId, @DnhomhienthiId, @DloaiphongId, 1, 1, CURRENT_TIMESTAMP)";
+                        INSERT INTO DBAN (ID, NAME, NOTE, DKHUVUCID, DNHOMHIENTHIID, DLOAIPHONGID, STATUS, USERCREATEDID, TIMECREATED, ANH) 
+                        VALUES (@Id, @Name, @Note, @DkhuvucId, @DnhomhienthiId, @DloaiphongId, 1, 1, CURRENT_TIMESTAMP, @Anh)";
                     
                     var rows = await conn.ExecuteAsync(sql, ban);
                     return rows > 0;
@@ -478,6 +479,7 @@ namespace QuanLyBar.Client.Services
                             DKHUVUCID = @DkhuvucId,
                             DNHOMHIENTHIID = @DnhomhienthiId,
                             DLOAIPHONGID = @DloaiphongId,
+                            ANH = @Anh,
                             USERMODIFIEDID = 1,
                             TIMEMODIFIED = CURRENT_TIMESTAMP
                         WHERE ID = @Id";
@@ -616,7 +618,8 @@ namespace QuanLyBar.Client.Services
                                b.TIMECREATED as Timecreated,
                                CAST(b.USERCREATEDID AS VARCHAR(50)) as UsercreatedId,
                                b.TIMEMODIFIED as Timemodified,
-                               CAST(b.USERMODIFIEDID AS VARCHAR(50)) as UsermodifiedId
+                               CAST(b.USERMODIFIEDID AS VARCHAR(50)) as UsermodifiedId,
+                               b.ANH as Anh
                         FROM DBAN b
                         WHERE b.ID = @Id";
                     return await conn.QueryFirstOrDefaultAsync<DBAN>(sql, new { Id = id });

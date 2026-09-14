@@ -266,7 +266,7 @@
                 <ListBox x:Name="LstUnused" Grid.Row="1" Style="{StaticResource ListBoxStyle}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <UniformGrid Columns="{Binding SelectedColumnCount, RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Top"/>
+                            <UniformGrid Columns="1" VerticalAlignment="Top"/>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                     <ListBox.ItemTemplate>
@@ -345,7 +345,7 @@
                 <ListBox x:Name="LstUsed" Grid.Row="1" Style="{StaticResource ListBoxStyle}" SelectionChanged="LstUsed_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <UniformGrid Columns="{Binding SelectedColumnCount, RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Top"/>
+                            <UniformGrid Columns="1" VerticalAlignment="Top"/>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                     <ListBox.ItemTemplate>
@@ -399,21 +399,23 @@
             </Grid.ColumnDefinitions>
 
             <!-- LEFT PREVIEW BOX -->
-            <Border Grid.Column="0" Height="80" Background="#004D40" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6" Padding="8">
-                <TextBlock x:Name="TxtPreviewItemName" Text="Bàn" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border Grid.Column="0" Height="85" Background="{Binding SelectedColorBrush, RelativeSource={RelativeSource AncestorType=Window}}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6" Padding="6,4">
+                <Viewbox StretchDirection="DownOnly" MaxHeight="75" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                    <StackPanel x:Name="StkPreviewItems" VerticalAlignment="Center" HorizontalAlignment="Stretch" MinWidth="180"/>
+                </Viewbox>
             </Border>
 
             <!-- MIDDLE FORMAT BUTTONS -->
             <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                    <Button Content="CĂN TRÁI" Style="{StaticResource DarkButton}" Height="34" Width="90" Background="#6C757D"/>
-                    <Button Content="CĂN PHẢI" Style="{StaticResource DarkButton}" Height="34" Width="90" Background="#6C757D"/>
+                    <Button x:Name="BtnAlignLeft" Content="CĂN TRÁI" Click="BtnAlignLeft_Click" Style="{StaticResource DarkButton}" Height="34" Width="90" Background="#6C757D"/>
+                    <Button x:Name="BtnAlignRight" Content="CĂN PHẢI" Click="BtnAlignRight_Click" Style="{StaticResource DarkButton}" Height="34" Width="90" Background="#6C757D"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="ĐẬM" Style="{StaticResource DarkButton}" Height="34" Width="60" Background="#6C757D"/>
-                    <Button Content="NGHIÊNG" Style="{StaticResource DarkButton}" Height="34" Width="75" Background="#6C757D"/>
-                    <Button Content="CỠ CHỮ" Style="{StaticResource DarkButton}" Height="34" Width="70" Background="#6C757D"/>
-                    <Button Content="MÀU CHỮ" Style="{StaticResource DarkButton}" Height="34" Width="75" Background="#6C757D"/>
+                    <Button x:Name="BtnBold" Content="ĐẬM" Click="BtnBold_Click" Style="{StaticResource DarkButton}" Height="34" Width="60" Background="#6C757D"/>
+                    <Button x:Name="BtnItalic" Content="NGHIÊNG" Click="BtnItalic_Click" Style="{StaticResource DarkButton}" Height="34" Width="75" Background="#6C757D"/>
+                    <Button x:Name="BtnFontSize" Content="CỠ CHỮ: 14" Click="BtnFontSize_Click" Style="{StaticResource DarkButton}" Height="34" Width="100" Background="#6C757D"/>
+                    <Button x:Name="BtnTextColor" Content="MÀU CHỮ" Click="BtnTextColor_Click" Style="{StaticResource DarkButton}" Height="34" Width="85" Background="#6C757D"/>
                 </StackPanel>
             </StackPanel>
 
@@ -421,7 +423,7 @@
             <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
                 <TextBlock Text="Tiêu đề viết tắt" Foreground="White" FontWeight="Bold" FontSize="12" Margin="0,0,0,4" HorizontalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="TxtShortTitle" Width="100" Height="36" FontSize="14" FontWeight="Bold" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                    <TextBox x:Name="TxtShortTitle" TextChanged="TxtShortTitle_TextChanged" Width="100" Height="36" FontSize="14" FontWeight="Bold" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                     <Button Content="⌨" Style="{StaticResource DarkButton}" Width="38" Height="36" Margin="4,0,0,0" Background="#18566A" FontSize="16"/>
                 </StackPanel>
             </StackPanel>

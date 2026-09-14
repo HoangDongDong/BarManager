@@ -1,7 +1,7 @@
 <Window x:Class="QuanLyBar.Client.Views.ThemMoiBanWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="BÀN - SỬA" Height="415" Width="530"
+        Title="BÀN - SỬA" Height="550" Width="530"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#dce8f5" KeyDown="Window_KeyDown" Loaded="Window_Loaded">
     <Window.Resources>
@@ -441,48 +441,72 @@
             </Border>
 
             <!-- Form Content Box -->
-            <Border Grid.Row="1" Background="#dce8f5" BorderBrush="#d4a329" BorderThickness="1" Padding="14,12,14,10">
+            <Border Grid.Row="1" Background="#dce8f5" BorderBrush="#d4a329" BorderThickness="1" Padding="14,10,14,10">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="95"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="34"/>
-                        <RowDefinition Height="34"/>
-                        <RowDefinition Height="34"/>
-                        <RowDefinition Height="34"/>
-                        <RowDefinition Height="34"/>
+                        <!-- ẢNH Ở TRÊN -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- THUỘC TÍNH Ở DƯỚI -->
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Tên bàn -->
-                    <TextBlock Text="Tên bàn" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
-                    <TextBox x:Name="TxtTenBan" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Padding="5,0" 
-                             Background="#e8f8fc" BorderBrush="#3399ff" BorderThickness="1.5"
-                             GotFocus="TxtTenBan_GotFocus"/>
+                    <!-- 1. HÌNH ẢNH BÀN (ẢNH Ở TRÊN) -->
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,10">
+                        <Border Width="95" Height="95" Background="White" BorderBrush="#a4b8cc" BorderThickness="1" CornerRadius="4" Margin="0,0,0,6">
+                            <Grid>
+                                <Image x:Name="ImgPreviewBan" Stretch="Uniform" Margin="2"/>
+                                <TextBlock x:Name="TxtNoImageBan" Text="Chưa có ảnh" Foreground="#888888" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="BtnChonAnhBan" Content="📷 Chọn ảnh" Style="{StaticResource PopupFooterBtn}" Width="75" Click="BtnChonAnhBan_Click"/>
+                            <Button x:Name="BtnXoaAnhBan" Content="❌ Xóa" Style="{StaticResource PopupFooterBtn}" Width="50" Margin="6,0,0,0" Click="BtnXoaAnhBan_Click"/>
+                        </StackPanel>
+                    </StackPanel>
 
-                    <!-- Khu vực -->
-                    <TextBlock Text="Khu vực" Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
-                    <ComboBox x:Name="CmbKhuVuc" Grid.Row="1" Grid.Column="1" Height="25" 
-                              Style="{StaticResource CmbKhuVucStyle}"
-                              SelectedValuePath="Id"/>
+                    <!-- 2. CÁC THUỘC TÍNH BÀN (THUỘC TÍNH Ở DƯỚI) -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="95"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="33"/>
+                            <RowDefinition Height="33"/>
+                            <RowDefinition Height="33"/>
+                            <RowDefinition Height="33"/>
+                            <RowDefinition Height="33"/>
+                        </Grid.RowDefinitions>
 
-                    <!-- Nhóm hiển thị -->
-                    <TextBlock Text="Nhóm hiển thị" Grid.Row="2" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
-                    <ComboBox x:Name="CmbNhomHienThi" Grid.Row="2" Grid.Column="1" Height="25" 
-                              Style="{StaticResource CmbNhomHienThiStyle}"
-                              SelectedValuePath="Id"/>
+                        <!-- Tên bàn -->
+                        <TextBlock Text="Tên bàn" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
+                        <TextBox x:Name="TxtTenBan" Grid.Column="1" Height="25" VerticalContentAlignment="Center" Padding="5,0" 
+                                 Background="#e8f8fc" BorderBrush="#3399ff" BorderThickness="1.5"
+                                 GotFocus="TxtTenBan_GotFocus"/>
 
-                    <!-- Loại phòng -->
-                    <TextBlock Text="Loại phòng" Grid.Row="3" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
-                    <ComboBox x:Name="CmbLoaiPhong" Grid.Row="3" Grid.Column="1" Height="25" 
-                              Style="{StaticResource CmbLoaiPhongStyle}"
-                              SelectedValuePath="Id"/>
+                        <!-- Khu vực -->
+                        <TextBlock Text="Khu vực" Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
+                        <ComboBox x:Name="CmbKhuVuc" Grid.Row="1" Grid.Column="1" Height="25" 
+                                  Style="{StaticResource CmbKhuVucStyle}"
+                                  SelectedValuePath="Id"/>
 
-                    <!-- Ghi chú -->
-                    <TextBlock Text="Ghi chú" Grid.Row="4" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
-                    <TextBox x:Name="TxtGhiChu" Grid.Row="4" Grid.Column="1" Height="25" 
-                             VerticalContentAlignment="Center" Padding="5,0" Background="White" BorderBrush="#a4b8cc"/>
+                        <!-- Nhóm hiển thị -->
+                        <TextBlock Text="Nhóm hiển thị" Grid.Row="2" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
+                        <ComboBox x:Name="CmbNhomHienThi" Grid.Row="2" Grid.Column="1" Height="25" 
+                                  Style="{StaticResource CmbNhomHienThiStyle}"
+                                  SelectedValuePath="Id"/>
+
+                        <!-- Loại phòng -->
+                        <TextBlock Text="Loại phòng" Grid.Row="3" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
+                        <ComboBox x:Name="CmbLoaiPhong" Grid.Row="3" Grid.Column="1" Height="25" 
+                                  Style="{StaticResource CmbLoaiPhongStyle}"
+                                  SelectedValuePath="Id"/>
+
+                        <!-- Ghi chú -->
+                        <TextBlock Text="Ghi chú" Grid.Row="4" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#112233" FontSize="12"/>
+                        <TextBox x:Name="TxtGhiChu" Grid.Row="4" Grid.Column="1" Height="25" 
+                                 VerticalContentAlignment="Center" Padding="5,0" Background="White" BorderBrush="#a4b8cc"/>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>

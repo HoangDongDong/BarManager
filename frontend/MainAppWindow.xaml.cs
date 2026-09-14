@@ -59,8 +59,9 @@ namespace QuanLyBar.Client
                     try
                     {
                         var configs = await LocalCauHinhService.LoadAllConfigsAsync();
-                        string defaultTab = configs.TryGetValue("ChucNangMacDinh", out var cnd) && !string.IsNullOrWhiteSpace(cnd) ? cnd : "Sử dụng dịch vụ";
-                        if (defaultTab == "HOAT ĐỘNG") defaultTab = "Sử dụng dịch vụ";
+                        string rawDefaultTab = configs.TryGetValue("ChucNangMacDinh", out var cnd) && !string.IsNullOrWhiteSpace(cnd) ? cnd : "Sử dụng dịch vụ";
+                        string defaultTab = await LocalCauHinhService.ResolveDefaultFunctionNameAsync(rawDefaultTab, "Sử dụng dịch vụ");
+                        if (defaultTab == "HOAT ĐỘNG" || string.IsNullOrWhiteSpace(defaultTab)) defaultTab = "Sử dụng dịch vụ";
 
                         await OpenTabByNameAsync(defaultTab);
 
