@@ -97,71 +97,65 @@
                     </ListBoxItem>
                     <ListBoxItem Tag="2">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📄" Margin="0,0,8,0"/>
-                            <TextBlock Text="Mẫu hóa đơn"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem Tag="3">
-                        <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔢" Margin="0,0,8,0"/>
                             <TextBlock Text="Số phiếu"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="4">
+                    <ListBoxItem Tag="3">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🛒" Margin="0,0,8,0"/>
                             <TextBlock Text="Bán hàng"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="5">
+                    <ListBoxItem Tag="4">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="💰" Margin="0,0,8,0"/>
                             <TextBlock Text="Thanh toán"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="6">
+                    <ListBoxItem Tag="5">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="💳" Margin="0,0,8,0"/>
                             <TextBlock Text="Tích điểm"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="7">
+                    <ListBoxItem Tag="6">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📦" Margin="0,0,8,0"/>
                             <TextBlock Text="Kho hàng"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="8">
+                    <ListBoxItem Tag="7">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🏷️" Margin="0,0,8,0"/>
                             <TextBlock Text="Mặt hàng"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="9">
+                    <ListBoxItem Tag="8">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🖨️" Margin="0,0,8,0"/>
                             <TextBlock Text="Thiết bị khác"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="10">
+                    <ListBoxItem Tag="9">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔔" Margin="0,0,8,0"/>
                             <TextBlock Text="Cảnh báo"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="11">
+                    <ListBoxItem Tag="10">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🛡️" Margin="0,0,8,0"/>
                             <TextBlock Text="Quản trị"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="12">
+                    <ListBoxItem Tag="11">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📱" Margin="0,0,8,0"/>
                             <TextBlock Text="Cảm ứng"/>
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="13">
+                    <ListBoxItem Tag="12">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔧" Margin="0,0,8,0"/>
                             <TextBlock Text="Tùy chọn khác"/>
@@ -481,27 +475,17 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <CheckBox x:Name="ChkToiUuDungBanPhim" Grid.Column="0" Content="Tối ưu dùng bàn phím"/>
-                                <CheckBox x:Name="ChkHienThiGhiChuTrenGiaoDienBan" Grid.Column="1" Content="Hiển thị ghi chú trên giao diện bàn"/>
-                            </Grid>
-
-                            <Grid Margin="0,2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
                                 <CheckBox x:Name="ChkSuDungMatHangMacDinh" Grid.Column="0" Content="Sử dụng mặt hàng mặc định"/>
+                                <CheckBox x:Name="ChkHienThiGhiChuTrenGiaoDienBan" Grid.Column="1" Content="Hiển thị ghi chú trên giao diện bàn"/>
                             </Grid>
 
                             <Grid Margin="0,4">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="130"/>
                                 </Grid.ColumnDefinitions>
-                                <CheckBox x:Name="ChkMatHangGiaTheoGioTheoKhuVuc" Grid.Column="0" Content="Mặt hàng giá theo giờ theo khu vực"/>
-                                <TextBlock Grid.Column="1" Text="Cách chọn giờ tính giá:"/>
-                                <ComboBox x:Name="CboCachChonGioTinhGia" Grid.Column="2"/>
+                                <TextBlock Grid.Column="0" Text="Cách chọn giờ tính giá:"/>
+                                <ComboBox x:Name="CboCachChonGioTinhGia" Grid.Column="1"/>
                             </Grid>
 
                             <Grid Margin="0,4">
@@ -530,15 +514,6 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="1" Text="Trước giờ tính vào ngày hôm trước:"/>
                                 <TextBox x:Name="TxtTruocGioTinhVaoNgayHomTruoc" Grid.Column="2" Text="0"/>
-                            </Grid>
-
-                            <Grid Margin="0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="200"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Kích thước hiển thị ở giao diện dịch vụ:"/>
-                                <ComboBox x:Name="CboKichThuocHienThiOGiaoDienDichVu" Grid.Column="1"/>
                             </Grid>
                         </StackPanel>
 

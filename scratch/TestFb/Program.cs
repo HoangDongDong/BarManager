@@ -18,20 +18,15 @@ class Program
         {
             conn.Open();
 
-            Console.WriteLine("=== DNHOMMATHANG ===");
-            var nhoms = conn.Query("SELECT ID, NAME, MAUSAC FROM DNHOMMATHANG WHERE STATUS <> 0 OR STATUS IS NULL");
-            foreach (var r in nhoms)
-            {
-                string hex = ColorIntToHex(r.MAUSAC);
-                Console.WriteLine($"ID: {r.ID} | NAME: {r.NAME} | MAUSAC_RAW: {r.MAUSAC} | HEX: {hex}");
-            }
+            Console.WriteLine("=== ALL STEMPLATE ===");
+            var stemp = conn.Query("SELECT ID, NAME FROM STEMPLATE");
+            foreach (var st in stemp) Console.WriteLine($"STEMPLATE ID={st.ID}, NAME='{st.NAME}'");
 
-            Console.WriteLine("\n=== SCAUHINH TOUCH CONFIGS ===");
-            var configs = conn.Query("SELECT ID, VAL FROM SCAUHINH WHERE ID LIKE '%TOUCH%'");
-            foreach (var r in configs)
-            {
-                Console.WriteLine($"ID: {r.ID} | VAL: '{r.VAL}'");
-            }
+            Console.WriteLine("\n=== ALL SREPORTTEMPLATE ===");
+            var srt = conn.Query("SELECT ID, SREPORTID, STEMPLATEID, NAME FROM SREPORTTEMPLATE");
+            foreach (var r in srt) Console.WriteLine($"SRT ID={r.ID}, SREPORTID={r.SREPORTID}, STEMPLATEID={r.STEMPLATEID}, NAME='{r.NAME}'");
+
+
         }
     }
 

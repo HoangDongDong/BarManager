@@ -14,14 +14,29 @@
         <Menu x:Name="MainMenu" Grid.Row="0" Background="#d1def0" FontSize="13" Padding="2,4" BorderBrush="#a4bce3" BorderThickness="0,0,0,1">
             <MenuItem Header="HỆ THỐNG" Foreground="#1e3f66">
                 <MenuItem Header="Cơ sở dữ liệu...">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🗄️" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
                     <MenuItem Header="Tạo mới cơ sở dữ liệu" Click="MenuTaoMoiCsdl_Click"/>
                     <MenuItem Header="Sao lưu cơ sở dữ liệu" Click="MenuSaoLuuCsdl_Click"/>
                     <MenuItem Header="Phục hồi cơ sở dữ liệu" Click="MenuPhucHoiCsdl_Click"/>
                 </MenuItem>
-                <MenuItem Header="Đổi mật khẩu đăng nhập" Click="MenuDoiMatKhau_Click"/>
+                <MenuItem Header="Đổi mật khẩu đăng nhập" Click="MenuDoiMatKhau_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🔑" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="Đăng xuất khỏi hệ thống" InputGestureText="Ctrl+Shift+L" Click="MenuLogout_Click"/>
-                <MenuItem Header="Thoát khỏi hệ thống" Foreground="Red" InputGestureText="Ctrl+Q" Click="MenuLogout_Click"/>
+                <MenuItem Header="Đăng xuất khỏi hệ thống" InputGestureText="Ctrl+Shift+L" Click="MenuLogout_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🚪" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Thoát khỏi hệ thống" Foreground="Red" InputGestureText="Ctrl+Q" Click="MenuLogout_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="❌" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Red"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             
             <MenuItem Header="HOẠT ĐỘNG" Foreground="#1e3f66">
@@ -181,8 +196,16 @@
             </MenuItem>
             
             <MenuItem Header="CÔNG NỢ" Foreground="#1e3f66">
-                <MenuItem Header="Công nợ khách hàng" Click="MenuBtn_Click"/>
-                <MenuItem Header="Công nợ nhà cung cấp" Click="MenuBtn_Click"/>
+                <MenuItem Header="Công nợ khách hàng" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💲" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Công nợ nhà cung cấp" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🪙" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             
             <MenuItem Header="QUỸ" Foreground="#1e3f66">
@@ -226,31 +249,81 @@
             </MenuItem>
             
             <MenuItem Header="NHÂN SỰ" Foreground="#1e3f66">
-                <MenuItem Header="Danh mục nhân viên" Click="MenuBtn_Click"/>
-                <MenuItem Header="Danh mục ca làm việc" Click="MenuBtn_Click"/>
+                <MenuItem Header="Danh mục nhân viên" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="👩‍💼" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Danh mục ca làm việc" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💿" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="Tạm ứng lương" Click="MenuBtn_Click"/>
-                <MenuItem Header="Thưởng phạt" Click="MenuBtn_Click"/>
-                <MenuItem Header="Chấm công" Click="MenuBtn_Click"/>
-                <MenuItem Header="Tính lương" Click="MenuBtn_Click"/>
+                <MenuItem Header="Tạm ứng lương" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💵" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Thưởng phạt" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🎁" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Chấm công" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📋" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Tính lương" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="💼" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             
             <MenuItem Header="QUẢN TRỊ" Foreground="#1e3f66">
-                <MenuItem Header="Thư viện ảnh..." Click="MenuBtn_Click"/>
+                <MenuItem Header="Thư viện ảnh..." Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🖼️" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Header="Dữ liệu ban đầu">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📁" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
                     <MenuItem Header="Nhập dữ liệu từ hệ thống cũ"/>
                     <MenuItem Header="Công nợ khách hàng ban đầu" Click="MenuBtn_Click"/>
                     <MenuItem Header="Công nợ nhà cung cấp ban đầu" Click="MenuBtn_Click"/>
                     <MenuItem Header="Tồn kho ban đầu" Click="MenuBtn_Click"/>
                 </MenuItem>
-                <MenuItem Header="Thiết kế giao diện màn cảm ứng" Click="MenuBtn_Click"/>
-                <MenuItem Header="Xóa dữ liệu"/>
-                <MenuItem Header="Công cụ nhà phát triển"/>
-                <MenuItem Header="Người dùng và phân quyền" Click="MenuBtn_Click"/>
+                <MenuItem Header="Thiết kế giao diện màn cảm ứng" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📐" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Xóa dữ liệu">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🧹" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Công cụ nhà phát triển">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📄" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Người dùng và phân quyền" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="👥" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="Cảnh báo toàn hệ thống" Click="MenuBtn_Click"/>
-                <MenuItem Header="Cấu hình toàn hệ thống" Click="MenuBtn_Click"/>
+                <MenuItem Header="Cấu hình toàn hệ thống" Click="MenuBtn_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Text="🔧" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="BÁO CÁO" Foreground="#1e3f66">
                 <MenuItem Header="BÁO CÁO QUỸ">
@@ -429,8 +502,16 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="TRỢ GIÚP" Foreground="#1e3f66">
-                <MenuItem Header="Đăng ký bản quyền..."/>
-                <MenuItem Header="Thông tin phần mềm"/>
+                <MenuItem Header="Đăng ký bản quyền...">
+                    <MenuItem.Icon>
+                        <TextBlock Text="📜" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Thông tin phần mềm">
+                    <MenuItem.Icon>
+                        <TextBlock Text="ℹ️" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="RoyalBlue"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
         </Menu>
 

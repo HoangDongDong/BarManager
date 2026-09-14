@@ -29,7 +29,6 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         {
             _tabPanels.Add(TabThongTinChung);
             _tabPanels.Add(TabInHoaDon);
-            _tabPanels.Add(TabMauHoaDon);
             _tabPanels.Add(TabSoPhieu);
             _tabPanels.Add(TabBanHang);
             _tabPanels.Add(TabThanhToan);
@@ -93,9 +92,6 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 "Tự động lựa chọn theo giờ" 
             };
             CboCachChonNgayGiaoDich.SelectedIndex = 1; // Default: Theo ngày đóng hóa đơn
-
-            CboKichThuocHienThiOGiaoDienDichVu.ItemsSource = new string[] { "Lớn", "Trung bình", "Vừa", "Nhỏ" };
-            CboKichThuocHienThiOGiaoDienDichVu.SelectedIndex = 0;
 
             // Tích điểm
             CboCachTinhDiem.ItemsSource = new string[] { "Điểm được tính trên từng hóa đơn", "Điểm được tính trên tổng doanh số" };
@@ -217,15 +213,12 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 ChkChoPhepInTamTinh.IsChecked = GetBool(configs, "ChoPhepInTamTinh", true);
                 ChkKichHoatKhuyenMaiTuDong.IsChecked = GetBool(configs, "KichHoatKhuyenMaiTuDong", true);
                 ChkChoPhepTrungTenKhachHang.IsChecked = GetBool(configs, "ChoPhepTrungTenKhachHang", false);
-                ChkToiUuDungBanPhim.IsChecked = GetBool(configs, "ToiUuDungBanPhim", false);
                 ChkSuDungMatHangMacDinh.IsChecked = GetBool(configs, "SuDungMatHangMacDinh", true);
                 ChkHienThiGhiChuTrenGiaoDienBan.IsChecked = GetBool(configs, "HienThiGhiChuTrenGiaoDienBan", false);
-                ChkMatHangGiaTheoGioTheoKhuVuc.IsChecked = GetBool(configs, "SuDungGiaTheoGio", false);
                 SetComboValue(CboCachChonGioTinhGia, GetStr(configs, "CachChonGioTinhGia", "Giờ gọi đồ"));
                 SetComboValue(CboCachChonKhachHang, GetStr(configs, "CachChonKhachHang", "Chọn bằng chuột và bàn phím"));
                 SetComboValue(CboCachChonNgayGiaoDich, GetStr(configs, "CachChonNgayGiaoDich", "Theo ngày đóng hóa đơn"));
                 TxtTruocGioTinhVaoNgayHomTruoc.Text = GetStr(configs, "TruocGioTinhVaoNgayHomTruoc", "0");
-                SetComboValue(CboKichThuocHienThiOGiaoDienDichVu, GetStr(configs, "KichThuocHienThiOGiaoDienDichVu", "Lớn"));
 
                 // 5. Thanh toán
                 ChkChoPhepKhachNo.IsChecked = GetBool(configs, "ChoPhepKhachNo", false);
@@ -584,15 +577,12 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     ["ChoPhepInTamTinh"] = (ChkChoPhepInTamTinh.IsChecked == true) ? "1" : "0",
                     ["KichHoatKhuyenMaiTuDong"] = (ChkKichHoatKhuyenMaiTuDong.IsChecked == true) ? "1" : "0",
                     ["ChoPhepTrungTenKhachHang"] = (ChkChoPhepTrungTenKhachHang.IsChecked == true) ? "1" : "0",
-                    ["ToiUuDungBanPhim"] = (ChkToiUuDungBanPhim.IsChecked == true) ? "1" : "0",
                     ["SuDungMatHangMacDinh"] = (ChkSuDungMatHangMacDinh.IsChecked == true) ? "1" : "0",
                     ["HienThiGhiChuTrenGiaoDienBan"] = (ChkHienThiGhiChuTrenGiaoDienBan.IsChecked == true) ? "1" : "0",
-                    ["SuDungGiaTheoGio"] = (ChkMatHangGiaTheoGioTheoKhuVuc.IsChecked == true) ? "1" : "0",
                     ["CachChonGioTinhGia"] = CboCachChonGioTinhGia.Text.Trim(),
                     ["CachChonKhachHang"] = CboCachChonKhachHang.Text.Trim(),
                     ["CachChonNgayGiaoDich"] = CboCachChonNgayGiaoDich.Text.Trim(),
                     ["TruocGioTinhVaoNgayHomTruoc"] = TxtTruocGioTinhVaoNgayHomTruoc.Text.Trim(),
-                    ["KichThuocHienThiOGiaoDienDichVu"] = CboKichThuocHienThiOGiaoDienDichVu.Text.Trim(),
 
                     // 5. Thanh toán
                     ["ChoPhepKhachNo"] = (ChkChoPhepKhachNo.IsChecked == true) ? "1" : "0",

@@ -390,7 +390,7 @@ namespace QuanLyBar.Client.Services
                             if (thuAmount > 0)
                             {
                                 string loaiQuy = "TIEN_MAT";
-                                if (chuyenKhoan > 0) loaiQuy = "NGAN_HANG";
+                                if (chuyenKhoan > 0 || !string.IsNullOrEmpty(tkId)) loaiQuy = "NGAN_HANG";
                                 else if (the > 0) loaiQuy = "QUET_THE";
 
                                 allTransactions.Add(new GiaoDichTonQuyItem
@@ -446,7 +446,7 @@ namespace QuanLyBar.Client.Services
                 if (quyCode.StartsWith("TK_"))
                 {
                     string targetTk = quyCode.Substring(3);
-                    return item.LoaiQuy == "NGAN_HANG" && (item.TaiKhoanId == targetTk || string.IsNullOrEmpty(item.TaiKhoanId));
+                    return item.LoaiQuy == "NGAN_HANG" && string.Equals(item.TaiKhoanId, targetTk, StringComparison.OrdinalIgnoreCase);
                 }
 
                 return true;

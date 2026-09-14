@@ -203,9 +203,22 @@ namespace QuanLyBar.Client.Views.BaoCaoDatHang
             RenderTable();
         }
 
+        private (string Key, string DefaultCaption, double BaseWidth, HorizontalAlignment DefaultAlign)[] GetColumnDefinitions()
+        {
+            return new (string Key, string DefaultCaption, double BaseWidth, HorizontalAlignment DefaultAlign)[]
+            {
+                ("STT", "STT", 45, HorizontalAlignment.Center),
+                ("Ngay", "Ngày đặt", 100, HorizontalAlignment.Center),
+                ("SoPhieu", "Số phiếu", 110, HorizontalAlignment.Left),
+                ("TienHang", "Tiền hàng", 130, HorizontalAlignment.Right),
+                ("GiamGia", "Giảm giá", 120, HorizontalAlignment.Right),
+                ("TongCong", "Tổng cộng", 130, HorizontalAlignment.Right)
+            };
+        }
+
         private void RenderTable()
         {
-            StkDataRows.Children.Clear();
+            TableContainer.Children.Clear();
 
             string keyword = TxtFilter.Text.Trim().ToLower();
             var filtered = _allData;
@@ -217,6 +230,20 @@ namespace QuanLyBar.Client.Views.BaoCaoDatHang
                 ).ToList();
             }
 
+            var scaledCols = _colConfigs.GetScaledColumns(_currentLayout, GetColumnDefinitions());
+
+            var tableBorder = new Border
+            {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1, 1, 0, 0),
+                Background = Brushes.White
+            };
+
+            var stackTable = new StackPanel();
+
+            // Header row
+            stackTable.Children.Add(CreateDataRow(scaledCols, null, isHeader: true, isSummary: false));
+
             decimal totalTienHang = 0;
             decimal totalGiamGia = 0;
             decimal totalTongCong = 0;
@@ -226,23 +253,23 @@ namespace QuanLyBar.Client.Views.BaoCaoDatHang
             foreach (var group in grouped)
             {
                 // Group header row: Khách hàng: ...
-                Border groupHeader = new Border
+                var groupHeader = new Border
                 {
                     Background = new SolidColorBrush(Color.FromRgb(245, 245, 245)),
                     BorderBrush = Brushes.Black,
-                    BorderThickness = new Thickness(1, 0, 1, 1),
+                    BorderThickness = new Thickness(0, 0, 1, 1),
                     Padding = new Thickness(6, 4, 6, 4)
                 };
 
-                TextBlock txtGroup = new TextBlock
+                var txtGroup = new TextBlock
                 {
                     Text = $"Khách hàng: {group.Key}",
                     FontWeight = FontWeights.Bold,
                     Foreground = Brushes.Black,
-                    FontSize = 12
+                    FontSize = _currentLayout?.CellFontSize ?? 11.5
                 };
                 groupHeader.Child = txtGroup;
-                StkDataRows.Children.Add(groupHeader);
+                stackTable.Children.Add(groupHeader);
 
                 int stt = 1;
                 foreach (var item in group)
@@ -252,99 +279,116 @@ namespace QuanLyBar.Client.Views.BaoCaoDatHang
                     totalGiamGia += item.GiamGia;
                     totalTongCong += item.TongCong;
 
-                    Border rowBorder = new Border
+                    var rowValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                     {
-                        Background = Brushes.White,
-                        BorderBrush = Brushes.Black,
-                        BorderThickness = new Thickness(1, 0, 1, 1),
-                        Height = 26
+                        { "STT", item.STT.ToString() },
+                        { "Ngay", item.NgayDisplay },
+                        { "SoPhieu", item.SoPhieu },
+                        { "TienHang", item.TienHang > 0 ? item.TienHang.ToString("#,##0") : "0" },
+                        { "GiamGia", item.GiamGia > 0 ? item.GiamGia.ToString("#,##0") : "0" },
+                        { "TongCong", item.TongCong > 0 ? item.TongCong.ToString("#,##0") : "0" }
                     };
 
-                    Grid rowGrid = new Grid();
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(95) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(175) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
-                    rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
-
-                    rowGrid.Children.Add(CreateCell(item.STT.ToString(), 0, HorizontalAlignment.Center));
-                    rowGrid.Children.Add(CreateCell(item.NgayDisplay, 1, HorizontalAlignment.Center));
-                    rowGrid.Children.Add(CreateCell(item.SoPhieu, 2, HorizontalAlignment.Left));
-                    rowGrid.Children.Add(CreateCell(item.TienHang > 0 ? item.TienHang.ToString("#,##0") : "0", 3, HorizontalAlignment.Right));
-                    rowGrid.Children.Add(CreateCell(item.GiamGia > 0 ? item.GiamGia.ToString("#,##0") : "0", 4, HorizontalAlignment.Right));
-                    rowGrid.Children.Add(CreateCell(item.TongCong > 0 ? item.TongCong.ToString("#,##0") : "0", 5, HorizontalAlignment.Right));
-
-                    rowBorder.Child = rowGrid;
-                    StkDataRows.Children.Add(rowBorder);
+                    stackTable.Children.Add(CreateDataRow(scaledCols, rowValues, isHeader: false, isSummary: false));
                 }
             }
 
-            // Dòng TỔNG CỘNG
-            Border sumBorder = new Border
+            // Summary row: TỔNG CỘNG
+            var summaryValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                Background = new SolidColorBrush(Color.FromRgb(240, 240, 240)),
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1, 0, 1, 1),
-                Height = 28
+                { "STT", "" },
+                { "Ngay", "" },
+                { "SoPhieu", "" },
+                { "TienHang", totalTienHang > 0 ? totalTienHang.ToString("#,##0") : "0" },
+                { "GiamGia", totalGiamGia > 0 ? totalGiamGia.ToString("#,##0") : "0" },
+                { "TongCong", totalTongCong > 0 ? totalTongCong.ToString("#,##0") : "0" }
             };
+            stackTable.Children.Add(CreateDataRow(scaledCols, summaryValues, isHeader: false, isSummary: true));
 
-            Grid sumGrid = new Grid();
-            sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
-            sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(95) });
-            sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(175) });
-            sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
-            sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
-            sumGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
-
-            // Cột gộp TỔNG CỘNG
-            Border spanBorder = new Border
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(0, 0, 1, 0),
-                Padding = new Thickness(4, 0, 10, 0)
-            };
-            Grid.SetColumn(spanBorder, 0);
-            Grid.SetColumnSpan(spanBorder, 3);
-            spanBorder.Child = new TextBlock
-            {
-                Text = "TỔNG CỘNG",
-                FontWeight = FontWeights.Bold,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = Brushes.Black
-            };
-            sumGrid.Children.Add(spanBorder);
-
-            sumGrid.Children.Add(CreateCell(totalTienHang > 0 ? totalTienHang.ToString("#,##0") : "0", 3, HorizontalAlignment.Right, true));
-            sumGrid.Children.Add(CreateCell(totalGiamGia > 0 ? totalGiamGia.ToString("#,##0") : "0", 4, HorizontalAlignment.Right, true));
-            sumGrid.Children.Add(CreateCell(totalTongCong > 0 ? totalTongCong.ToString("#,##0") : "0", 5, HorizontalAlignment.Right, true));
-
-            sumBorder.Child = sumGrid;
-            StkDataRows.Children.Add(sumBorder);
+            tableBorder.Child = stackTable;
+            TableContainer.Children.Add(tableBorder);
         }
 
-        private UIElement CreateCell(string text, int col, HorizontalAlignment align, bool isBold = false)
+        private UIElement CreateDataRow(List<QuanLyBar.Client.Services.ReportColumnInfo> cols, Dictionary<string, string>? values, bool isHeader = false, bool isSummary = false)
         {
-            Border b = new Border
+            var grid = new Grid { MinHeight = isHeader ? 26 : 24 };
+            foreach (var col in cols)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(col.ScaledWidth) });
+            }
+
+            if (isSummary)
+            {
+                int firstValueColIndex = cols.FindIndex(c => c.Key.Equals("TienHang", StringComparison.OrdinalIgnoreCase) || c.Key.Equals("GiamGia", StringComparison.OrdinalIgnoreCase) || c.Key.Equals("TongCong", StringComparison.OrdinalIgnoreCase));
+                if (firstValueColIndex < 0) firstValueColIndex = Math.Min(2, cols.Count);
+
+                if (firstValueColIndex > 0)
+                {
+                    var summaryLabelBorder = new Border
+                    {
+                        BorderBrush = Brushes.Black,
+                        BorderThickness = new Thickness(0, 0, 1, 1),
+                        Padding = new Thickness(5, 4, 8, 4),
+                        Background = Brushes.White
+                    };
+                    Grid.SetColumn(summaryLabelBorder, 0);
+                    Grid.SetColumnSpan(summaryLabelBorder, firstValueColIndex);
+                    var txtSummary = new TextBlock
+                    {
+                        Text = "TỔNG CỘNG",
+                        FontWeight = FontWeights.Bold,
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        FontSize = _currentLayout?.CellFontSize ?? 11.5
+                    };
+                    summaryLabelBorder.Child = txtSummary;
+                    grid.Children.Add(summaryLabelBorder);
+                }
+
+                for (int i = firstValueColIndex; i < cols.Count; i++)
+                {
+                    var col = cols[i];
+                    string val = values != null && values.TryGetValue(col.Key, out var v) ? v : "";
+                    AddCell(grid, i, val, col.Align, isBold: true);
+                }
+            }
+            else
+            {
+                Brush bg = isHeader ? (Brush)new BrushConverter().ConvertFromString("#f0f0f0")! : Brushes.White;
+                for (int i = 0; i < cols.Count; i++)
+                {
+                    var col = cols[i];
+                    string text = isHeader ? col.Caption : (values != null && values.TryGetValue(col.Key, out var v) ? v : "");
+                    HorizontalAlignment align = isHeader ? HorizontalAlignment.Center : col.Align;
+                    AddCell(grid, i, text, align, isBold: isHeader, bg: bg);
+                }
+            }
+
+            return grid;
+        }
+
+        private void AddCell(Grid grid, int col, string text, HorizontalAlignment align, bool isBold = false, Brush? bg = null)
+        {
+            var border = new Border
             {
                 BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(0, 0, col == 5 ? 0 : 1, 0),
-                Padding = new Thickness(4, 0, 4, 0)
+                BorderThickness = new Thickness(0, 0, 1, 1),
+                Padding = new Thickness(5, 4, 5, 4),
+                Background = bg ?? Brushes.White
             };
-            Grid.SetColumn(b, col);
+            Grid.SetColumn(border, col);
 
-            TextBlock tb = new TextBlock
+            var txt = new TextBlock
             {
                 Text = text,
+                FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
                 HorizontalAlignment = align,
                 VerticalAlignment = VerticalAlignment.Center,
-                Foreground = Brushes.Black,
-                FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
-                FontSize = 11.5
+                FontSize = isBold ? (_currentLayout?.HeaderFontSize ?? 11.5) : (_currentLayout?.CellFontSize ?? 11.5),
+                TextWrapping = TextWrapping.Wrap
             };
-            b.Child = tb;
-            return b;
+            border.Child = txt;
+            grid.Children.Add(border);
         }
 
         private async void Filter_Changed(object sender, EventArgs e)

@@ -434,7 +434,11 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                     await LoadTemplateConfigAsync();
                     await LoadDataAsync();
                 },
-                onLayoutCallback: layout => _ = LoadTemplateConfigAsync(layout));
+                onLayoutCallback: async (layout) =>
+                {
+                    await LoadTemplateConfigAsync(layout);
+                    RenderTable();
+                });
             win.Owner = Window.GetWindow(this);
             win.ShowDialog();
         }

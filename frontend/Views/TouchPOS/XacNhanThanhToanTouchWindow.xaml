@@ -156,8 +156,8 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="TÀI KHOẢN" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <Border Grid.Column="1" x:Name="BorderTaiKhoan" Background="White" BorderBrush="Transparent" BorderThickness="2.5" CornerRadius="6" Height="42" Padding="12,0" Cursor="Hand" MouseLeftButtonDown="Field_Click" Tag="TaiKhoan">
-                                <TextBox x:Name="TxtTaiKhoan" Text="" FontSize="18" FontWeight="Bold" Foreground="#111111" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                            <Border Grid.Column="1" x:Name="BorderTaiKhoan" Background="White" BorderBrush="Transparent" BorderThickness="2.5" CornerRadius="6" Height="42" Padding="6,0">
+                                <ComboBox x:Name="CboTaiKhoan" FontSize="15" FontWeight="Bold" Foreground="#111111" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" SelectedValuePath="Id" DisplayMemberPath="DisplayName" SelectionChanged="CboTaiKhoan_SelectionChanged"/>
                             </Border>
                         </Grid>
 

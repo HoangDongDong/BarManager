@@ -224,53 +224,7 @@
                     </Grid>
 
                     <!-- Bảng dữ liệu chính -->
-                    <DockPanel Grid.Row="2" LastChildFill="True">
-                        <!-- Table Header -->
-                        <Border DockPanel.Dock="Top" Background="#ffffff" BorderBrush="#000000" BorderThickness="1,1,1,1">
-                            <Grid Height="28">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="40"/>  <!-- STT -->
-                                    <ColumnDefinition Width="85"/>  <!-- Số phiếu -->
-                                    <ColumnDefinition Width="85"/>  <!-- Ngày đặt -->
-                                    <ColumnDefinition Width="135"/> <!-- Khách hàng -->
-                                    <ColumnDefinition Width="120"/> <!-- Địa chỉ -->
-                                    <ColumnDefinition Width="85"/>  <!-- Điện thoại -->
-                                    <ColumnDefinition Width="80"/>  <!-- Tiền hàng -->
-                                    <ColumnDefinition Width="85"/>  <!-- Tổng cộng -->
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="STT" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="1" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Số phiếu" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="2" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Ngày đặt" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="3" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Khách hàng" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="4" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Địa chỉ" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="5" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Điện thoại" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="6" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Tiền hàng" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="7">
-                                    <TextBlock Text="Tổng cộng" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                            </Grid>
-                        </Border>
-
-                        <!-- Dynamic Data Rows -->
-                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel x:Name="StkDataRows"/>
-                        </ScrollViewer>
-                    </DockPanel>
+                    <StackPanel x:Name="TableContainer" Grid.Row="2" Margin="0,0,0,20"/>
 
                     <!-- Khối chữ ký cuối trang -->
                     <Grid x:Name="GridSignatures" Grid.Row="3" Margin="0,30,0,0">

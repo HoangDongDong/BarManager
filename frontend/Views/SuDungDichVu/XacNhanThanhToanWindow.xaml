@@ -103,6 +103,16 @@
                     <TextBox x:Name="TxtChuyenKhoan" Grid.Column="1" Text="0" Background="White" FontSize="15" FontWeight="Bold" BorderThickness="1" BorderBrush="#b6c1cd" TextAlignment="Right" VerticalContentAlignment="Center" Height="30" TextChanged="MoneyInput_TextChanged"/>
                 </Grid>
 
+                <!-- Tài khoản ngân hàng -->
+                <Grid x:Name="RowTaiKhoan" Margin="0,3" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Tài khoản" Foreground="#8b0000" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0"/>
+                    <ComboBox x:Name="CboTaiKhoan" Grid.Column="1" Height="30" FontSize="13" VerticalContentAlignment="Center" SelectedValuePath="Id" DisplayMemberPath="DisplayName" Background="White" SelectionChanged="CboTaiKhoan_SelectionChanged"/>
+                </Grid>
+
                 <!-- Thẻ trả trước -->
                 <Grid x:Name="RowTheTraTruoc" Margin="0,3">
                     <Grid.ColumnDefinitions>

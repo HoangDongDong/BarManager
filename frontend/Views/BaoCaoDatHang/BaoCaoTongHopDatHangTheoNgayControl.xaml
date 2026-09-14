@@ -219,41 +219,7 @@
                     </Grid>
 
                     <!-- Bảng dữ liệu chính -->
-                    <DockPanel Grid.Row="2" LastChildFill="True">
-                        <!-- Table Header -->
-                        <Border DockPanel.Dock="Top" Background="#ffffff" BorderBrush="#000000" BorderThickness="1,1,1,1">
-                            <Grid Height="28">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="50"/>  <!-- STT -->
-                                    <ColumnDefinition Width="220"/> <!-- Ngày -->
-                                    <ColumnDefinition Width="150"/> <!-- Tiền hàng -->
-                                    <ColumnDefinition Width="150"/> <!-- Tiền giảm giá -->
-                                    <ColumnDefinition Width="150"/> <!-- Tổng cộng -->
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="STT" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="1" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Ngày" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="2" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Tiền hàng" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="3" BorderBrush="#000000" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="Tiền giảm giá" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                                <Border Grid.Column="4">
-                                    <TextBlock Text="Tổng cộng" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#000"/>
-                                </Border>
-                            </Grid>
-                        </Border>
-
-                        <!-- Dynamic Data Rows -->
-                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel x:Name="StkDataRows"/>
-                        </ScrollViewer>
-                    </DockPanel>
+                    <StackPanel x:Name="TableContainer" Grid.Row="2" Margin="0,0,0,20"/>
 
                     <!-- Khối chữ ký cuối trang -->
                     <Grid x:Name="GridSignatures" Grid.Row="3" Margin="0,30,0,0">

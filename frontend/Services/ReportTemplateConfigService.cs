@@ -138,7 +138,7 @@ namespace QuanLyBar.Client.Services
                                  s.NAME AS STEMPLATENAME, 
                                  t.CONFIG 
                           FROM SREPORTTEMPLATE t
-                          LEFT JOIN STEMPLATE s ON TRIM(CAST(t.STEMPLATEID AS VARCHAR(50))) = TRIM(CAST(s.ID AS VARCHAR(50)))
+                          LEFT JOIN STEMPLATE s ON REPLACE(TRIM(CAST(t.STEMPLATEID AS VARCHAR(50))), '-', '') = REPLACE(TRIM(CAST(s.ID AS VARCHAR(50))), '-', '')
                           WHERE t.SREPORTID = @RepId AND (t.STATUS IS NULL OR t.STATUS <> 0)
                           ORDER BY t.TIMEMODIFIED DESC",
                         new { RepId = rep.ID });
@@ -156,7 +156,7 @@ namespace QuanLyBar.Client.Services
                                  s.NAME AS STEMPLATENAME, 
                                  t.CONFIG 
                           FROM SREPORTTEMPLATE t
-                          LEFT JOIN STEMPLATE s ON TRIM(CAST(t.STEMPLATEID AS VARCHAR(50))) = TRIM(CAST(s.ID AS VARCHAR(50)))
+                          LEFT JOIN STEMPLATE s ON REPLACE(TRIM(CAST(t.STEMPLATEID AS VARCHAR(50))), '-', '') = REPLACE(TRIM(CAST(s.ID AS VARCHAR(50))), '-', '')
                           WHERE (t.STATUS IS NULL OR t.STATUS <> 0)
                             AND (UPPER(TRIM(t.NAME)) = @ExactName
                               OR UPPER(t.NAME) CONTAINING @FirstWord)

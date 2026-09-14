@@ -238,4 +238,98 @@ namespace QuanLyBar.Client.Services
             return b;
         }
     }
+
+    public class ReportColumnInfo
+    {
+        public string Key { get; set; } = "";
+        public string DefaultCaption { get; set; } = "";
+        public double BaseWidth { get; set; } = 100;
+        public HorizontalAlignment DefaultAlign { get; set; } = HorizontalAlignment.Left;
+        public bool IsVisible { get; set; } = true;
+        public string Caption { get; set; } = "";
+        public HorizontalAlignment Align { get; set; } = HorizontalAlignment.Left;
+        public double ScaledWidth { get; set; } = 100;
+    }
+
+    public static class ReportColumnLayoutExtensions
+    {
+        public static List<ReportColumnInfo> GetScaledColumns(
+            this List<ReportColumnConfigItem>? configs,
+            ReportPaperLayout? layout,
+            (string Key, string DefaultCaption, double BaseWidth, HorizontalAlignment DefaultAlign)[] columnDefs)
+        {
+            var list = new List<ReportColumnInfo>();
+            if (columnDefs == null || columnDefs.Length == 0) return list;
+
+            double paperWidth = layout?.PaperWidth ?? 800;
+            Thickness padding = layout?.PaperPadding ?? new Thickness(40, 30, 40, 40);
+            double availableWidth = Math.Max(200, paperWidth - padding.Left - padding.Right);
+
+            foreach (var def in columnDefs)
+            {
+                bool isVis = configs.IsColumnVisible(def.Key, true);
+                if (!isVis) continue;
+
+                string cap = configs.GetColumnCaption(def.Key, def.DefaultCaption);
+                HorizontalAlignment align = configs.GetColumnAlign(def.Key, def.DefaultAlign);
+
+                int customWidth = 0;
+                if (configs != null)
+                {
+                    var item = configs.FirstOrDefault(c =>
+                        c.Cot.Equals(def.Key, StringComparison.OrdinalIgnoreCase) ||
+                        c.DataField.Equals(def.Key, StringComparison.OrdinalIgnoreCase) ||
+                        c.Caption.Equals(def.Key, StringComparison.OrdinalIgnoreCase));
+                    if (item != null && item.Width > 0)
+                    {
+                        customWidth = item.Width;
+                    }
+                }
+
+                double targetWidth = customWidth > 0 ? customWidth : def.BaseWidth;
+
+                list.Add(new ReportColumnInfo
+                {
+                    Key = def.Key,
+                    DefaultCaption = def.DefaultCaption,
+                    BaseWidth = def.BaseWidth,
+                    DefaultAlign = def.DefaultAlign,
+                    IsVisible = true,
+                    Caption = cap,
+                    Align = align,
+                    ScaledWidth = targetWidth
+                });
+            }
+
+            if (list.Count == 0)
+            {
+                foreach (var def in columnDefs)
+                {
+                    list.Add(new ReportColumnInfo
+                    {
+                        Key = def.Key,
+                        DefaultCaption = def.DefaultCaption,
+                        BaseWidth = def.BaseWidth,
+                        DefaultAlign = def.DefaultAlign,
+                        IsVisible = true,
+                        Caption = def.DefaultCaption,
+                        Align = def.DefaultAlign,
+                        ScaledWidth = def.BaseWidth
+                    });
+                }
+            }
+
+            double totalTargetWidth = list.Sum(c => c.ScaledWidth);
+            if (totalTargetWidth > 0)
+            {
+                double factor = availableWidth / totalTargetWidth;
+                foreach (var col in list)
+                {
+                    col.ScaledWidth = Math.Round(col.ScaledWidth * factor, 1);
+                }
+            }
+
+            return list;
+        }
+    }
 }

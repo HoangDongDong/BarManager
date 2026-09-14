@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Dapper;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
 
@@ -25,6 +27,8 @@ namespace QuanLyBar.Client.Views
         public bool IsInBill { get; private set; } = true;
         public string MaTheTraTruoc { get; private set; }
         public string MaVoucher { get; private set; }
+        public string SelectedTaiKhoanNganHangId { get; private set; }
+        public string SelectedTaiKhoanNganHangName { get; private set; }
         private decimal _quyDoi1DiemSangTien = 1000;
         private decimal _lamTronTien = 1000;
 
@@ -105,8 +109,13 @@ namespace QuanLyBar.Client.Views
                     if (RowTheATM != null) RowTheATM.Visibility = coThe ? Visibility.Visible : Visibility.Collapsed;
 
                     // 7. Có thanh toán chuyển khoản
-                    bool coCK = configs.TryGetValue("CoThanhToanChuyenKhoan", out var cck) && (cck == "1" || cck.Equals("true", StringComparison.OrdinalIgnoreCase));
+                    bool coCK = !configs.TryGetValue("CoThanhToanChuyenKhoan", out var cck) || cck == "1" || cck.Equals("true", StringComparison.OrdinalIgnoreCase);
                     if (RowChuyenKhoan != null) RowChuyenKhoan.Visibility = coCK ? Visibility.Visible : Visibility.Collapsed;
+                    if (RowTaiKhoan != null)
+                    {
+                        RowTaiKhoan.Visibility = coCK ? Visibility.Visible : Visibility.Collapsed;
+                        await LoadTaiKhoanNganHangAsync();
+                    }
 
                     // 8. Làm tròn tiền
                     if (configs.TryGetValue("LamTronTien", out var lt) && decimal.TryParse(lt.Replace(",", "").Replace(".", ""), out var ltVal) && ltVal > 0)
@@ -264,8 +273,121 @@ namespace QuanLyBar.Client.Views
             }
         }
 
+        private bool ValidateCustomerBeforePayment()
+        {
+            if (IsKhachNo)
+            {
+                if (_ban == null || string.IsNullOrWhiteSpace(_ban.KhachHangName) ||
+                    _ban.KhachHangName.Equals("Khách lẻ", StringComparison.OrdinalIgnoreCase) ||
+                    _ban.KhachHangName.Equals("KHÁCH LẺ", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("Khách hàng nợ bắt buộc phải chọn khách hàng cụ thể (không thể để Khách lẻ)!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static object GetValue(IDictionary<string, object> d, string name)
+        {
+            if (d == null) return null;
+            foreach (var kv in d)
+            {
+                if (string.Equals(kv.Key, name, StringComparison.OrdinalIgnoreCase))
+                    return kv.Value;
+            }
+            return null;
+        }
+
+        private async Task LoadTaiKhoanNganHangAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                    string sql = "SELECT ID, NAME, NOTE FROM DTAIKHOANNGANHANG WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY COALESCE(SORTORDER, 0), ID";
+                    var rows = (await conn.QueryAsync(sql)).ToList();
+                    var list = new List<TaiKhoanNganHangComboItem>();
+                    list.Add(new TaiKhoanNganHangComboItem { Id = "", Name = "", DisplayName = "-- Chọn tài khoản --" });
+
+                    foreach (var r in rows)
+                    {
+                        var dict = r as IDictionary<string, object>;
+                        string id = GetValue(dict, "ID")?.ToString() ?? "";
+                        string name = GetValue(dict, "NAME")?.ToString() ?? "";
+                        string note = GetValue(dict, "NOTE")?.ToString() ?? "";
+
+                        string displayName = name;
+                        if (string.IsNullOrWhiteSpace(displayName))
+                        {
+                            displayName = !string.IsNullOrWhiteSpace(note) ? note : "Tài khoản " + id;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(note) && !displayName.Contains(note, StringComparison.OrdinalIgnoreCase))
+                        {
+                            displayName = $"{displayName} ({note})";
+                        }
+
+                        list.Add(new TaiKhoanNganHangComboItem { Id = id, Name = displayName, DisplayName = displayName });
+                    }
+
+                    if (CboTaiKhoan != null)
+                    {
+                        CboTaiKhoan.ItemsSource = list;
+                        CboTaiKhoan.SelectedIndex = 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error LoadTaiKhoanNganHangAsync: " + ex.Message);
+            }
+        }
+
+        private void CboTaiKhoan_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            string selectedId = CboTaiKhoan?.SelectedValue?.ToString();
+            if (!string.IsNullOrWhiteSpace(selectedId))
+            {
+                decimal ck = ParseDecimal(TxtChuyenKhoan?.Text);
+                decimal kd = ParseDecimal(TxtKhachDua?.Text);
+                if (ck == 0 && kd > 0)
+                {
+                    TxtChuyenKhoan.Text = kd.ToString("N0");
+                    TxtKhachDua.Text = "0";
+                }
+            }
+            else
+            {
+                decimal ck = ParseDecimal(TxtChuyenKhoan?.Text);
+                decimal kd = ParseDecimal(TxtKhachDua?.Text);
+                if (kd == 0 && ck > 0)
+                {
+                    TxtKhachDua.Text = ck.ToString("N0");
+                    TxtChuyenKhoan.Text = "0";
+                }
+            }
+        }
+
         private void BtnDongBillVaIn_Click(object sender, RoutedEventArgs e)
         {
+            if (!ValidateCustomerBeforePayment()) return;
+            string selId = CboTaiKhoan?.SelectedValue?.ToString();
+            SelectedTaiKhoanNganHangId = string.IsNullOrWhiteSpace(selId) ? null : selId;
+            SelectedTaiKhoanNganHangName = string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId) ? null : (CboTaiKhoan?.SelectedItem as TaiKhoanNganHangComboItem)?.Name;
+            
+            if (!string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId))
+            {
+                decimal ck = ParseDecimal(TxtChuyenKhoan?.Text);
+                decimal kd = ParseDecimal(TxtKhachDua?.Text);
+                if (ck == 0 && kd > 0)
+                {
+                    ChuyenKhoan = kd;
+                    KhachDua = 0;
+                }
+            }
+
             IsInBill = true;
             DialogResult = true;
             Close();
@@ -273,6 +395,22 @@ namespace QuanLyBar.Client.Views
 
         private void BtnDongBillKhongIn_Click(object sender, RoutedEventArgs e)
         {
+            if (!ValidateCustomerBeforePayment()) return;
+            string selId = CboTaiKhoan?.SelectedValue?.ToString();
+            SelectedTaiKhoanNganHangId = string.IsNullOrWhiteSpace(selId) ? null : selId;
+            SelectedTaiKhoanNganHangName = string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId) ? null : (CboTaiKhoan?.SelectedItem as TaiKhoanNganHangComboItem)?.Name;
+            
+            if (!string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId))
+            {
+                decimal ck = ParseDecimal(TxtChuyenKhoan?.Text);
+                decimal kd = ParseDecimal(TxtKhachDua?.Text);
+                if (ck == 0 && kd > 0)
+                {
+                    ChuyenKhoan = kd;
+                    KhachDua = 0;
+                }
+            }
+
             IsInBill = false;
             DialogResult = true;
             Close();

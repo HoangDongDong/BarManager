@@ -254,6 +254,57 @@ namespace QuanLyBar.Client.Services
             }
         }
 
+        public static async Task<DateTime> GetTransactionDateAsync(DateTime baseTime, bool isClosing = false)
+        {
+            try
+            {
+                var configs = await LocalCauHinhService.LoadAllConfigsAsync();
+                string mode = configs.TryGetValue("CachChonNgayGiaoDich", out var m) && !string.IsNullOrWhiteSpace(m)
+                    ? m : "Theo ngày đóng hóa đơn";
+
+                if (mode == "Theo ngày mở hóa đơn")
+                {
+                    return baseTime.Date;
+                }
+                else if (mode == "Theo ngày đóng hóa đơn")
+                {
+                    return isClosing ? DateTime.Today : baseTime.Date;
+                }
+                else if (mode == "Hiển thị để lựa chọn khi đăng nhập")
+                {
+                    return SessionContext.SelectedTransactionDate?.Date ?? DateTime.Today;
+                }
+                else if (mode == "Đóng mở ngày chủ động")
+                {
+                    return SessionContext.ActiveWorkingDate?.Date ?? DateTime.Today;
+                }
+                else if (mode == "Tự động lựa chọn theo giờ")
+                {
+                    int cutoffHour = 5;
+                    if (configs.TryGetValue("TruocGioTinhVaoNgayHomTruoc", out var hStr) && int.TryParse(hStr, out var hVal))
+                    {
+                        cutoffHour = hVal;
+                    }
+
+                    DateTime checkTime = isClosing ? DateTime.Now : baseTime;
+                    if (checkTime.Hour < cutoffHour)
+                    {
+                        return checkTime.Date.AddDays(-1);
+                    }
+                    else
+                    {
+                        return checkTime.Date;
+                    }
+                }
+
+                return isClosing ? DateTime.Today : baseTime.Date;
+            }
+            catch
+            {
+                return baseTime.Date;
+            }
+        }
+
         public async Task<StartOrderResult> StartTableOrderAsync(string banId, DateTime startTime, int soKhach, string khachHangId, string ghiChu, string nhanVienId = null)
         {
             try
@@ -338,6 +389,8 @@ namespace QuanLyBar.Client.Services
                             @Id, @SoPhieu, @SoHd, @SoHd, @DbanId, @BatDau, @Ngay, @SoKhach, @KhachHangId, @NhanVienId, @Note, 1, @UserCreatedId, CURRENT_TIMESTAMP
                         )";
 
+                    DateTime orderNgay = await GetTransactionDateAsync(startTime, isClosing: false);
+
                     await conn.ExecuteAsync(insertSql, new
                     {
                         Id = orderId,
@@ -345,7 +398,7 @@ namespace QuanLyBar.Client.Services
                         SoHd = nextSo,
                         DbanId = banId,
                         BatDau = startTime,
-                        Ngay = startTime.Date,
+                        Ngay = orderNgay,
                         SoKhach = soKhach.ToString(),
                         KhachHangId = !string.IsNullOrEmpty(khachHangId) ? khachHangId : null,
                         NhanVienId = !string.IsNullOrEmpty(nhanVienId) ? nhanVienId : null,
@@ -523,7 +576,8 @@ namespace QuanLyBar.Client.Services
             decimal diemDoi = 0, 
             decimal tienDiem = 0, 
             decimal tamUng = 0, 
-            bool inBill = false)
+            bool inBill = false,
+            string taiKhoanNganHangId = null)
         {
             if (string.IsNullOrEmpty(orderId)) return false;
 
@@ -566,17 +620,29 @@ namespace QuanLyBar.Client.Services
                     }
 
                     decimal tienMatThuc = loaiTtInt == 4 ? 0 : Math.Max(0, khachDua - traLai);
+                    if (!string.IsNullOrEmpty(taiKhoanNganHangId))
+                    {
+                        if (chuyenKhoan == 0 && tienMatThuc > 0)
+                        {
+                            chuyenKhoan = tienMatThuc;
+                        }
+                        tienMatThuc = 0;
+                        loaiTtInt = 3;
+                    }
+                    DateTime closeNgay = await GetTransactionDateAsync(DateTime.Now, isClosing: true);
 
                     string sql = @"
                         UPDATE TDONHANG 
                         SET KETTHUC = CURRENT_TIMESTAMP, 
                             GIOTHANHTOAN = CURRENT_TIMESTAMP, 
+                            NGAY = @Ngay,
                             STATUS = 2,
                             KHACHDUA = @KhachDua,
                             TRALAI = @TraLai,
                             TIENMAT = @TienMat,
                             THE = @TheATM,
                             CHUYENKHOAN = @ChuyenKhoan,
+                            DTAIKHOANNGANHANGID = @TaiKhoanNganHangId,
                             THETRATRUOC = @TheTraTruoc,
                             VOUCHER = @Voucher,
                             DIEMGIAM = @DiemGiam,
@@ -587,11 +653,13 @@ namespace QuanLyBar.Client.Services
                         WHERE CAST(ID AS VARCHAR(50)) = @OrderId";
                     await conn.ExecuteAsync(sql, new { 
                         OrderId = orderId, 
+                        Ngay = closeNgay,
                         KhachDua = khachDua.ToString("0.##"),
                         TraLai = traLai.ToString("0.##"),
                         TienMat = tienMatThuc.ToString("0.##"),
                         TheATM = theATM.ToString("0.##"),
                         ChuyenKhoan = chuyenKhoan.ToString("0.##"),
+                        TaiKhoanNganHangId = !string.IsNullOrEmpty(taiKhoanNganHangId) ? taiKhoanNganHangId : null,
                         TheTraTruoc = theTraTruoc.ToString("0.##"),
                         Voucher = voucher.ToString("0.##"),
                         DiemGiam = diemDoi.ToString("0.##"),

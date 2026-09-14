@@ -6,6 +6,8 @@ namespace QuanLyBar.Client
     {
         public static string CurrentToken { get; set; }
         public static UserProfile CurrentUser { get; set; }
+        public static System.DateTime? SelectedTransactionDate { get; set; }
+        public static System.DateTime? ActiveWorkingDate { get; set; }
 
         public static bool IsLoggedIn => !string.IsNullOrEmpty(CurrentToken);
 
@@ -13,6 +15,8 @@ namespace QuanLyBar.Client
         {
             CurrentToken = null;
             CurrentUser = null;
+            SelectedTransactionDate = null;
+            ActiveWorkingDate = null;
         }
     }
 }

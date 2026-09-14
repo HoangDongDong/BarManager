@@ -33,6 +33,7 @@ namespace QuanLyBar.Client.Views
         private bool _batBuocNhapNhanVien = false;
         private bool _kichHoatKhuyenMaiTuDong = true;
         private string _cachChonGioTinhGia = "Giờ gọi đồ";
+        private string _cachChonKhachHang = "Chọn bằng chuột và bàn phím";
         private decimal _lamTronTien = 0;
 
         public SuDungDichVuControl()
@@ -83,6 +84,7 @@ namespace QuanLyBar.Client.Views
                     DpNgayOrder.IsEnabled = _choPhepThayDoiNgayTrenHoaDon;
                     DpNgayOrder.Focusable = _choPhepThayDoiNgayTrenHoaDon;
                     DpNgayOrder.IsHitTestVisible = _choPhepThayDoiNgayTrenHoaDon;
+                    DpNgayOrder.SelectedDate = await LocalSuDungDichVuService.GetTransactionDateAsync(DateTime.Now, isClosing: false);
                 }
 
                 _batBuocNhapNhanVien = configs.TryGetValue("BatBuocNhapNhanVienBanHang", out var bbnv) && (bbnv == "1" || bbnv.Equals("true", StringComparison.OrdinalIgnoreCase));
@@ -93,6 +95,7 @@ namespace QuanLyBar.Client.Views
 
                 _kichHoatKhuyenMaiTuDong = !configs.TryGetValue("KichHoatKhuyenMaiTuDong", out var kmtd) || kmtd == "1" || kmtd.Equals("true", StringComparison.OrdinalIgnoreCase);
                 _cachChonGioTinhGia = configs.TryGetValue("CachChonGioTinhGia", out var ccg) && !string.IsNullOrWhiteSpace(ccg) ? ccg : "Giờ gọi đồ";
+                _cachChonKhachHang = configs.TryGetValue("CachChonKhachHang", out var cckh) && !string.IsNullOrWhiteSpace(cckh) ? cckh : "Chọn bằng chuột và bàn phím";
                 if (configs.TryGetValue("LamTronTien", out var lt) && decimal.TryParse(lt.Replace(",", "").Replace(".", "").Trim(), out var ltVal) && ltVal > 0)
                 {
                     _lamTronTien = ltVal;
@@ -1498,6 +1501,27 @@ namespace QuanLyBar.Client.Views
                 return;
             }
 
+            // Kiểm tra cấu hình Cách chọn khách hàng khi thanh toán
+            if (_cachChonKhachHang == "Tự động chọn khách lẻ")
+            {
+                if (string.IsNullOrWhiteSpace(_currentBan.KhachHangName))
+                {
+                    _currentBan.KhachHangName = "Khách lẻ";
+                    if (TxtKhachHang != null) TxtKhachHang.Text = "Khách lẻ";
+                }
+            }
+            else if (_cachChonKhachHang == "Bắt buộc chọn khách hàng")
+            {
+                if (string.IsNullOrWhiteSpace(_currentBan.KhachHangName) ||
+                    _currentBan.KhachHangName.Equals("Khách lẻ", StringComparison.OrdinalIgnoreCase) ||
+                    _currentBan.KhachHangName.Equals("KHÁCH LẺ", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("Cấu hình hệ thống BẮT BUỘC CHỌN KHÁCH HÀNG trước khi thanh toán!\nVui lòng chọn khách hàng.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    if (TxtKhachHang != null) TxtKhachHang.Focus();
+                    return;
+                }
+            }
+
             // 1. Cảnh báo nếu thanh toán hóa đơn ngày cũ
             if (_currentBan.StartTime.HasValue && _currentBan.StartTime.Value.Date < DateTime.Today)
             {
@@ -1533,7 +1557,9 @@ namespace QuanLyBar.Client.Views
 
                 string loaiTT = isNo ? "CongNo" : (theATM > 0 ? "TheATM" : (chuyenKhoan > 0 ? "ChuyenKhoan" : (theTraTruoc > 0 ? "The" : (voucher > 0 ? "Voucher" : "TienMat"))));
 
-                if (await _service.FinishTableOrderWithDetailsAsync(_currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT, chuyenKhoan, voucher, diemGiam, truTichLuy, tamUng, inBill: inBill))
+                string taiKhoanNganHangId = win.SelectedTaiKhoanNganHangId;
+
+                if (await _service.FinishTableOrderWithDetailsAsync(_currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT, chuyenKhoan, voucher, diemGiam, truTichLuy, tamUng, inBill: inBill, taiKhoanNganHangId: taiKhoanNganHangId))
                 {
                     if (inBill)
                     {

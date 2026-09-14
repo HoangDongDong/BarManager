@@ -2118,6 +2118,28 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 return;
             }
 
+            // 2.1. Kiểm tra cấu hình Cách chọn khách hàng khi thanh toán
+            string cachChonKh = configs.TryGetValue("CachChonKhachHang", out var ckh) && !string.IsNullOrWhiteSpace(ckh) ? ckh : "Chọn bằng chuột và bàn phím";
+            if (cachChonKh == "Tự động chọn khách lẻ")
+            {
+                if (string.IsNullOrWhiteSpace(_currentBan.KhachHangName))
+                {
+                    _currentBan.KhachHangName = "KHÁCH LẺ";
+                    if (TxtOrderCustomer != null) TxtOrderCustomer.Text = "KHÁCH LẺ";
+                }
+            }
+            else if (cachChonKh == "Bắt buộc chọn khách hàng")
+            {
+                if (string.IsNullOrWhiteSpace(_currentBan.KhachHangName) ||
+                    _currentBan.KhachHangName.Equals("Khách lẻ", StringComparison.OrdinalIgnoreCase) ||
+                    _currentBan.KhachHangName.Equals("KHÁCH LẺ", StringComparison.OrdinalIgnoreCase))
+                {
+                    QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "CẤU HÌNH HỆ THỐNG YÊU CẦU BẮT BUỘC CHỌN KHÁCH HÀNG TRƯỚC KHI THANH TOÁN!\nVUI LÒNG CHỌN KHÁCH HÀNG.", "CẢNH BÁO");
+                    BtnSelectCustomer_Click(sender, null);
+                    return;
+                }
+            }
+
             UpdateTotals();
 
             var posBan = new PosBanViewModel
@@ -2152,9 +2174,11 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
                 string loaiTT = (theATM > 0) ? "TheATM" : ((chuyenKhoan > 0) ? "ChuyenKhoan" : ((theTraTruoc > 0) ? "The" : "TienMat"));
 
+                string taiKhoanNganHangId = win.SelectedTaiKhoanNganHangId;
+
                 var service = new LocalSuDungDichVuService();
                 bool success = await service.FinishTableOrderWithDetailsAsync(
-                    _currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT, chuyenKhoan, inBill: inBill);
+                    _currentBan.ActiveOrderId, khachDua, traLai, theATM, theTraTruoc, loaiTT, chuyenKhoan, inBill: inBill, taiKhoanNganHangId: taiKhoanNganHangId);
 
                 if (success)
                 {

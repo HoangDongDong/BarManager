@@ -181,6 +181,28 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             }
         }
 
+        private (string Key, string DefaultCaption, double BaseWidth, HorizontalAlignment DefaultAlign)[] GetColumnDefinitions()
+        {
+            return new (string Key, string DefaultCaption, double BaseWidth, HorizontalAlignment DefaultAlign)[]
+            {
+                ("SoPhieu", "Số phiếu", 75, HorizontalAlignment.Left),
+                ("MatHangBan", "Mặt hàng bán", 140, HorizontalAlignment.Left),
+                ("Sl", "SL", 35, HorizontalAlignment.Right),
+                ("DonGia", "Đơn giá", 65, HorizontalAlignment.Right),
+                ("PtCk", "% CK", 45, HorizontalAlignment.Right),
+                ("TienGiamMh", "Tiền giảm MH", 75, HorizontalAlignment.Right),
+                ("ThanhTien", "Thành tiền", 80, HorizontalAlignment.Right),
+                ("TienHang", "Tiền hàng", 80, HorizontalAlignment.Right),
+                ("TienGio", "Tiền giờ", 65, HorizontalAlignment.Right),
+                ("GiamTongBill", "Giảm tổng bill", 75, HorizontalAlignment.Right),
+                ("PhiDv", "Phí dv", 55, HorizontalAlignment.Right),
+                ("Thue", "Thuế", 50, HorizontalAlignment.Right),
+                ("TongCong", "Tổng cộng", 85, HorizontalAlignment.Right),
+                ("ThanhToan", "Thanh toán", 85, HorizontalAlignment.Right),
+                ("ConNo", "Còn nợ", 65, HorizontalAlignment.Right)
+            };
+        }
+
         private void RenderReportTable()
         {
             TableContainer.Children.Clear();
@@ -194,6 +216,8 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                 (x.Items.Any(i => i.MatHangBan?.ToLower().Contains(search) == true))
             ).ToList();
 
+            var scaledCols = _colConfigs.GetScaledColumns(_currentLayout, GetColumnDefinitions());
+
             var tableBorder = new Border
             {
                 BorderBrush = Brushes.Black,
@@ -203,19 +227,19 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
 
             var stackTable = new StackPanel();
 
-            // Columns (15 Columns): Số phiếu(60), Mặt hàng bán(130), SL(24), Đơn giá(48), % CK(28), Tiền giảm MH(44), Thành tiền(52), Tiền hàng(52), Tiền giờ(40), Giảm tổng bill(48), Phí dv(38), Thuế(34), Tổng cộng(54), Thanh toán(54), Còn nợ(38)
-            stackTable.Children.Add(CreateHeaderRow());
+            // Header row
+            stackTable.Children.Add(CreateHeaderRow(scaledCols));
 
             var dateGroups = filtered.GroupBy(x => x.NgayDisplay).OrderBy(g => g.Key).ToList();
 
             foreach (var group in dateGroups)
             {
                 // Date Header Row: Ngày dd/MM/yyyy
-                stackTable.Children.Add(CreateDateHeaderRow($"Ngày {group.Key}"));
+                stackTable.Children.Add(CreateDateHeaderRow(scaledCols, $"Ngày {group.Key}"));
 
                 foreach (var order in group.OrderBy(x => x.SoPhieu))
                 {
-                    stackTable.Children.Add(CreateOrderGrid(order));
+                    stackTable.Children.Add(CreateOrderGrid(scaledCols, order));
                 }
             }
 
@@ -223,36 +247,25 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             TableContainer.Children.Add(tableBorder);
         }
 
-        private UIElement CreateHeaderRow()
+        private UIElement CreateHeaderRow(List<QuanLyBar.Client.Services.ReportColumnInfo> cols)
         {
             var grid = new Grid { MinHeight = 26 };
-            AddColumnDefinitions(grid);
+            AddColumnDefinitions(grid, cols);
 
             Brush bg = (Brush)new BrushConverter().ConvertFromString("#f0f0f0");
 
-            AddCellToGrid(grid, 0, 0, "Số phiếu", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 1, "Mặt hàng bán", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 2, "SL", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 3, "Đơn giá", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 4, "% CK", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 5, "Tiền giảm MH", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 6, "Thành tiền", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 7, "Tiền hàng", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 8, "Tiền giờ", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 9, "Giảm tổng bill", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 10, "Phí dv", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 11, "Thuế", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 12, "Tổng cộng", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 13, "Thanh toán", HorizontalAlignment.Center, isBold: true, bg: bg);
-            AddCellToGrid(grid, 0, 14, "Còn nợ", HorizontalAlignment.Center, isBold: true, bg: bg);
+            for (int i = 0; i < cols.Count; i++)
+            {
+                AddCellToGrid(grid, 0, i, cols[i].Caption, HorizontalAlignment.Center, isBold: true, bg: bg);
+            }
 
             return grid;
         }
 
-        private UIElement CreateDateHeaderRow(string title)
+        private UIElement CreateDateHeaderRow(List<QuanLyBar.Client.Services.ReportColumnInfo> cols, string title)
         {
             var grid = new Grid { MinHeight = 24 };
-            AddColumnDefinitions(grid);
+            AddColumnDefinitions(grid, cols);
 
             var border = new Border
             {
@@ -262,7 +275,7 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                 Background = Brushes.White
             };
             Grid.SetColumn(border, 0);
-            Grid.SetColumnSpan(border, 15);
+            Grid.SetColumnSpan(border, cols.Count);
 
             var txt = new TextBlock
             {
@@ -270,7 +283,7 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                 FontWeight = FontWeights.Bold,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 11
+                FontSize = _currentLayout?.HeaderFontSize ?? 11
             };
             border.Child = txt;
             grid.Children.Add(border);
@@ -278,79 +291,92 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
             return grid;
         }
 
-        private UIElement CreateOrderGrid(BaoCaoChiTietBanHangOrderModel order)
+        private UIElement CreateOrderGrid(List<QuanLyBar.Client.Services.ReportColumnInfo> cols, BaoCaoChiTietBanHangOrderModel order)
         {
             var items = order.Items ?? new List<BaoCaoChiTietBanHangItemModel>();
             int rowCount = Math.Max(1, items.Count);
 
             var grid = new Grid();
-            AddColumnDefinitions(grid);
+            AddColumnDefinitions(grid, cols);
 
             for (int r = 0; r < rowCount; r++)
             {
                 grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             }
 
-            // Col 0: Số phiếu (Spans rowCount)
-            AddCellToGrid(grid, 0, 0, order.SoPhieu, HorizontalAlignment.Left, rowSpan: rowCount);
-
-            // Col 1-6: Item Rows
-            for (int i = 0; i < rowCount; i++)
+            // Map values per column
+            for (int colIndex = 0; colIndex < cols.Count; colIndex++)
             {
-                if (i < items.Count)
+                var col = cols[colIndex];
+                if (col.Key.Equals("SoPhieu", StringComparison.OrdinalIgnoreCase))
                 {
-                    var item = items[i];
-                    AddCellToGrid(grid, i, 1, item.MatHangBan, HorizontalAlignment.Left);
-                    AddCellToGrid(grid, i, 2, item.Sl.ToString("#,##0.##"), HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 3, item.DonGia.ToString("#,##0"), HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 4, item.PtCk.ToString("#,##0"), HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 5, item.TienGiamMh.ToString("#,##0"), HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 6, item.ThanhTien.ToString("#,##0"), HorizontalAlignment.Right);
+                    AddCellToGrid(grid, 0, colIndex, order.SoPhieu ?? "", col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("TienHang", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.TienHang.ToString("#,##0"), col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("TienGio", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.TienGio.ToString("#,##0"), col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("GiamTongBill", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.GiamTongBill.ToString("#,##0"), col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("PhiDv", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.PhiDv.ToString("#,##0"), col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("Thue", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.Thue.ToString("#,##0"), col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("TongCong", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.TongCong.ToString("#,##0"), col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("ThanhToan", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.ThanhToan.ToString("#,##0"), col.Align, rowSpan: rowCount);
+                }
+                else if (col.Key.Equals("ConNo", StringComparison.OrdinalIgnoreCase))
+                {
+                    AddCellToGrid(grid, 0, colIndex, order.ConNo.ToString("#,##0"), col.Align, rowSpan: rowCount);
                 }
                 else
                 {
-                    AddCellToGrid(grid, i, 1, "", HorizontalAlignment.Left);
-                    AddCellToGrid(grid, i, 2, "", HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 3, "", HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 4, "", HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 5, "", HorizontalAlignment.Right);
-                    AddCellToGrid(grid, i, 6, "", HorizontalAlignment.Right);
+                    // Item row level columns
+                    for (int i = 0; i < rowCount; i++)
+                    {
+                        string val = "";
+                        if (i < items.Count)
+                        {
+                            var item = items[i];
+                            if (col.Key.Equals("MatHangBan", StringComparison.OrdinalIgnoreCase)) val = item.MatHangBan ?? "";
+                            else if (col.Key.Equals("Sl", StringComparison.OrdinalIgnoreCase)) val = item.Sl.ToString("#,##0.##");
+                            else if (col.Key.Equals("DonGia", StringComparison.OrdinalIgnoreCase)) val = item.DonGia.ToString("#,##0");
+                            else if (col.Key.Equals("PtCk", StringComparison.OrdinalIgnoreCase)) val = item.PtCk.ToString("#,##0");
+                            else if (col.Key.Equals("TienGiamMh", StringComparison.OrdinalIgnoreCase)) val = item.TienGiamMh.ToString("#,##0");
+                            else if (col.Key.Equals("ThanhTien", StringComparison.OrdinalIgnoreCase)) val = item.ThanhTien.ToString("#,##0");
+                        }
+                        AddCellToGrid(grid, i, colIndex, val, col.Align);
+                    }
                 }
             }
-
-            // Col 7-14: Order totals (Spans rowCount)
-            AddCellToGrid(grid, 0, 7, order.TienHang.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
-            AddCellToGrid(grid, 0, 8, order.TienGio.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
-            AddCellToGrid(grid, 0, 9, order.GiamTongBill.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
-            AddCellToGrid(grid, 0, 10, order.PhiDv.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
-            AddCellToGrid(grid, 0, 11, order.Thue.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
-            AddCellToGrid(grid, 0, 12, order.TongCong.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
-            AddCellToGrid(grid, 0, 13, order.ThanhToan.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
-            AddCellToGrid(grid, 0, 14, order.ConNo.ToString("#,##0"), HorizontalAlignment.Right, rowSpan: rowCount);
 
             return grid;
         }
 
-        private void AddColumnDefinitions(Grid grid)
+        private void AddColumnDefinitions(Grid grid, List<QuanLyBar.Client.Services.ReportColumnInfo> cols)
         {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });  // 0: Số phiếu
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) }); // 1: Mặt hàng bán
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });  // 2: SL
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(48) });  // 3: Đơn giá
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(28) });  // 4: % CK
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });  // 5: Tiền giảm MH
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(52) });  // 6: Thành tiền
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(52) });  // 7: Tiền hàng
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });  // 8: Tiền giờ
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(48) });  // 9: Giảm tổng bill
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(38) });  // 10: Phí dv
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });  // 11: Thuế
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(54) });  // 12: Tổng cộng
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(54) });  // 13: Thanh toán
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(38) });  // 14: Còn nợ
+            foreach (var col in cols)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(col.ScaledWidth) });
+            }
         }
 
-        private void AddCellToGrid(Grid grid, int row, int col, string text, HorizontalAlignment align, bool isBold = false, Brush bg = null, int rowSpan = 1)
+        private void AddCellToGrid(Grid grid, int row, int col, string text, HorizontalAlignment align, bool isBold = false, Brush? bg = null, int rowSpan = 1)
         {
             var border = new Border
             {
@@ -372,7 +398,7 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                 FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
                 HorizontalAlignment = align,
                 VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 10,
+                FontSize = isBold ? (_currentLayout?.HeaderFontSize ?? 10) : (_currentLayout?.CellFontSize ?? 10),
                 TextWrapping = TextWrapping.Wrap
             };
             border.Child = txt;
@@ -506,9 +532,13 @@ namespace QuanLyBar.Client.Views.BaoCaoBanHang
                 onSaveCallback: async (cols) =>
                 {
                     await LoadTemplateConfigAsync();
-                    await LoadDataAsync();
+                    RenderReportTable();
                 },
-                onLayoutCallback: layout => _ = LoadTemplateConfigAsync(layout));
+                onLayoutCallback: async (layout) =>
+                {
+                    await LoadTemplateConfigAsync(layout);
+                    RenderReportTable();
+                });
             win.Owner = Window.GetWindow(this);
             win.ShowDialog();
         }

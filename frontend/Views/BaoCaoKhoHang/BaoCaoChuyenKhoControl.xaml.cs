@@ -1049,7 +1049,12 @@ namespace QuanLyBar.Client.Views.BaoCaoKhoHang
                         BuildTableHeader();
                         RenderTable();
                     },
-                    onLayoutCallback: layout => _ = LoadTemplateConfigAsync(layout));
+                    onLayoutCallback: async (layout) =>
+                    {
+                        await LoadTemplateConfigAsync(layout);
+                        BuildTableHeader();
+                        RenderTable();
+                    });
                 win.Owner = Window.GetWindow(this);
                 win.ShowDialog();
             }

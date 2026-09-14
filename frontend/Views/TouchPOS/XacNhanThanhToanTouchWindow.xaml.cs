@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Dapper;
 using QuanLyBar.Client.Models;
 using QuanLyBar.Client.Services;
 using QuanLyBar.Views.TouchPOS;
@@ -22,6 +23,8 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public decimal TheTraTruoc { get; private set; }
         public decimal TraLai { get; private set; }
         public bool IsInBill { get; private set; } = true;
+        public string SelectedTaiKhoanNganHangId { get; private set; }
+        public string SelectedTaiKhoanNganHangName { get; private set; }
 
         private string _activeField = "KhachDua";
         private bool _isUserTyping = false;
@@ -67,8 +70,13 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 bool coThe = !configs.TryGetValue("CoThanhToanThe", out var ctt) || ctt == "1" || ctt.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (RowTheATM != null) RowTheATM.Visibility = coThe ? Visibility.Visible : Visibility.Collapsed;
 
-                bool coCK = configs.TryGetValue("CoThanhToanChuyenKhoan", out var cck) && (cck == "1" || cck.Equals("true", StringComparison.OrdinalIgnoreCase));
+                bool coCK = !configs.TryGetValue("CoThanhToanChuyenKhoan", out var cck) || cck == "1" || cck.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (RowChuyenKhoan != null) RowChuyenKhoan.Visibility = coCK ? Visibility.Visible : Visibility.Collapsed;
+                if (RowTaiKhoan != null)
+                {
+                    RowTaiKhoan.Visibility = coCK ? Visibility.Visible : Visibility.Collapsed;
+                    await LoadTaiKhoanNganHangAsync();
+                }
 
                 bool suDungTheTraTruoc = !configs.TryGetValue("SuDungTheTraTruoc", out var sdtt) || sdtt == "1" || sdtt.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (RowTheTraTruoc != null) RowTheTraTruoc.Visibility = suDungTheTraTruoc ? Visibility.Visible : Visibility.Collapsed;
@@ -107,7 +115,6 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 "KhachDua" => TxtKhachDua,
                 "TheATM" => TxtTheATM,
                 "ChuyenKhoan" => TxtChuyenKhoan,
-                "TaiKhoan" => TxtTaiKhoan,
                 "TheTraTruoc" => TxtTheTraTruoc,
                 _ => TxtKhachDua
             };
@@ -237,8 +244,103 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
+        private static object GetValue(IDictionary<string, object> d, string name)
+        {
+            if (d == null) return null;
+            foreach (var kv in d)
+            {
+                if (string.Equals(kv.Key, name, StringComparison.OrdinalIgnoreCase))
+                    return kv.Value;
+            }
+            return null;
+        }
+
+        private async System.Threading.Tasks.Task LoadTaiKhoanNganHangAsync()
+        {
+            try
+            {
+                using (var conn = DbConnectionManager.GetConnection())
+                {
+                    if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                    string sql = "SELECT ID, NAME, NOTE FROM DTAIKHOANNGANHANG WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY COALESCE(SORTORDER, 0), ID";
+                    var rows = (await conn.QueryAsync(sql)).ToList();
+                    var list = new List<TaiKhoanNganHangComboItem>();
+                    list.Add(new TaiKhoanNganHangComboItem { Id = "", Name = "", DisplayName = "-- Chọn tài khoản --" });
+
+                    foreach (var r in rows)
+                    {
+                        var dict = r as IDictionary<string, object>;
+                        string id = GetValue(dict, "ID")?.ToString() ?? "";
+                        string name = GetValue(dict, "NAME")?.ToString() ?? "";
+                        string note = GetValue(dict, "NOTE")?.ToString() ?? "";
+
+                        string displayName = name;
+                        if (string.IsNullOrWhiteSpace(displayName))
+                        {
+                            displayName = !string.IsNullOrWhiteSpace(note) ? note : "Tài khoản " + id;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(note) && !displayName.Contains(note, StringComparison.OrdinalIgnoreCase))
+                        {
+                            displayName = $"{displayName} ({note})";
+                        }
+
+                        list.Add(new TaiKhoanNganHangComboItem { Id = id, Name = displayName, DisplayName = displayName });
+                    }
+
+                    if (CboTaiKhoan != null)
+                    {
+                        CboTaiKhoan.ItemsSource = list;
+                        CboTaiKhoan.SelectedIndex = 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error LoadTaiKhoanNganHangAsync Touch: " + ex.Message);
+            }
+        }
+
+        private void CboTaiKhoan_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            string selectedId = CboTaiKhoan?.SelectedValue?.ToString();
+            if (!string.IsNullOrWhiteSpace(selectedId))
+            {
+                if (ChuyenKhoan == 0 && KhachDua > 0)
+                {
+                    ChuyenKhoan = KhachDua;
+                    KhachDua = 0;
+                    TxtChuyenKhoan.Text = ChuyenKhoan.ToString("N0");
+                    TxtKhachDua.Text = "0";
+                }
+            }
+            else
+            {
+                if (KhachDua == 0 && ChuyenKhoan > 0)
+                {
+                    KhachDua = ChuyenKhoan;
+                    ChuyenKhoan = 0;
+                    TxtKhachDua.Text = KhachDua.ToString("N0");
+                    TxtChuyenKhoan.Text = "0";
+                }
+            }
+        }
+
         private void BtnDongBillVaIn_Click(object sender, RoutedEventArgs e)
         {
+            string selId = CboTaiKhoan?.SelectedValue?.ToString();
+            SelectedTaiKhoanNganHangId = string.IsNullOrWhiteSpace(selId) ? null : selId;
+            SelectedTaiKhoanNganHangName = string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId) ? null : (CboTaiKhoan?.SelectedItem as TaiKhoanNganHangComboItem)?.Name;
+            
+            if (!string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId))
+            {
+                if (ChuyenKhoan == 0 && KhachDua > 0)
+                {
+                    ChuyenKhoan = KhachDua;
+                    KhachDua = 0;
+                }
+            }
+
             IsInBill = true;
             DialogResult = true;
             Close();
@@ -246,6 +348,19 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
         private void BtnDongBillKhongIn_Click(object sender, RoutedEventArgs e)
         {
+            string selId = CboTaiKhoan?.SelectedValue?.ToString();
+            SelectedTaiKhoanNganHangId = string.IsNullOrWhiteSpace(selId) ? null : selId;
+            SelectedTaiKhoanNganHangName = string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId) ? null : (CboTaiKhoan?.SelectedItem as TaiKhoanNganHangComboItem)?.Name;
+            
+            if (!string.IsNullOrWhiteSpace(SelectedTaiKhoanNganHangId))
+            {
+                if (ChuyenKhoan == 0 && KhachDua > 0)
+                {
+                    ChuyenKhoan = KhachDua;
+                    KhachDua = 0;
+                }
+            }
+
             IsInBill = false;
             DialogResult = true;
             Close();
