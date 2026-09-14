@@ -54,12 +54,32 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 string matHangVal = await LocalCauHinhService.GetConfigValueAsync("TOUCH_LAYOUT_MatHang", "4|4|#EF4423|1");
                 string[] mParts = matHangVal.Split('|');
                 int mCols = 4, mRows = 4;
+                string mColor = "#EF4423";
                 if (mParts.Length > 0 && int.TryParse(mParts[0], out int mc) && mc >= 1) mCols = mc;
                 if (mParts.Length > 1 && int.TryParse(mParts[1], out int mr) && mr >= 1) mRows = mr;
+                if (mParts.Length > 2 && !string.IsNullOrWhiteSpace(mParts[2])) mColor = mParts[2].Trim();
 
                 MatHangColumns = mCols;
                 _matHangRowsConfig = mRows;
                 UpdateTileHeight();
+
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLUMNS_MatHang", "");
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    TouchMatHangVM.SavedDisplayColumns = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+
+                if (_sourceList != null)
+                {
+                    foreach (var item in _sourceList)
+                    {
+                        if (string.IsNullOrWhiteSpace(item.MauSac) || item.MauSac == "0")
+                        {
+                            item.TileColorHex = mColor;
+                        }
+                        item.RefreshDisplayLines();
+                    }
+                }
             }
             catch { }
         }

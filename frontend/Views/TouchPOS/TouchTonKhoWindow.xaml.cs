@@ -230,6 +230,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 {
                     RowCount = rows;
                 }
+                string cellColor = parts.Length > 2 && !string.IsNullOrWhiteSpace(parts[2]) ? parts[2].Trim() : "#0D4B5B";
 
                 RecalculateTileHeight();
 
@@ -243,15 +244,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
                     _usedColumns = new List<string> { "GHI CHÚ", "GIÁ TRỊ BÁN", "GIÁ VỐN", "TỒN 2 ĐVT", "TỒN", "HÃNG SX" };
                 }
 
-                UpdateAllItemDisplayColumns();
+                UpdateAllItemDisplayColumns(cellColor);
             }
             catch { }
         }
 
-        private void UpdateAllItemDisplayColumns()
+        private void UpdateAllItemDisplayColumns(string cellColor = "#004D40")
         {
             foreach (var item in _allTonData)
             {
+                item.CustomTileColor = cellColor;
                 item.BuildColumns(_usedColumns);
             }
         }
@@ -272,8 +274,14 @@ namespace QuanLyBar.Client.Views.TouchPOS
                     GiaBan = x.GiaBan,
                     GiaVon = x.GiaVon,
                     GhiChu = x.GhiChu,
-                    Ton2Dvt = x.Ton2Dvt
+                    Ton2Dvt = x.Ton2Dvt,
+                    Anh = x.Anh
                 }).ToList();
+
+                foreach (var item in _allTonData)
+                {
+                    CheckLocalImage(item);
+                }
 
                 await LoadTileLayoutConfigAsync();
                 ApplyFilters();
@@ -282,6 +290,35 @@ namespace QuanLyBar.Client.Views.TouchPOS
             {
                 MessageBox.Show("Lỗi tải dữ liệu tồn kho: " + ex.Message);
             }
+        }
+
+        private void CheckLocalImage(BaoCaoTonKhoTileItem item)
+        {
+            if (item.HasAnh) return;
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string[] exts = new[] { ".png", ".jpg", ".jpeg", ".webp" };
+                foreach (var ext in exts)
+                {
+                    string p1 = System.IO.Path.Combine(baseDir, "Images", (item.MaMatHang ?? "") + ext);
+                    string p2 = System.IO.Path.Combine(baseDir, "Images", (item.TenMatHang ?? "") + ext);
+                    string p3 = System.IO.Path.Combine(baseDir, "images", (item.MaMatHang ?? "") + ext);
+                    string p4 = System.IO.Path.Combine(baseDir, "images", (item.TenMatHang ?? "") + ext);
+                    string? foundPath = null;
+                    if (System.IO.File.Exists(p1)) foundPath = p1;
+                    else if (System.IO.File.Exists(p2)) foundPath = p2;
+                    else if (System.IO.File.Exists(p3)) foundPath = p3;
+                    else if (System.IO.File.Exists(p4)) foundPath = p4;
+
+                    if (foundPath != null)
+                    {
+                        item.Anh = System.IO.File.ReadAllBytes(foundPath);
+                        return;
+                    }
+                }
+            }
+            catch { }
         }
 
         private string _searchKeyword = "";
@@ -593,6 +630,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
+
         private void BtnExit_Click(object sender, RoutedEventArgs e)
         {
             Close();
@@ -602,13 +640,49 @@ namespace QuanLyBar.Client.Views.TouchPOS
     public class ColumnDisplayInfo
     {
         public string TextToDisplay { get; set; } = "";
+        public double FontSize { get; set; } = 13;
+        public FontWeight FontWeight { get; set; } = FontWeights.Bold;
+        public FontStyle FontStyle { get; set; } = FontStyles.Normal;
+        public Brush ForegroundBrush { get; set; } = Brushes.White;
+        public HorizontalAlignment Alignment { get; set; } = HorizontalAlignment.Left;
     }
 
-    public class BaoCaoTonKhoTileItem
+    public class BaoCaoTonKhoTileItem : System.ComponentModel.INotifyPropertyChanged
     {
-        public bool IsSelected { get; set; }
-        public System.Windows.Media.Brush TileBackground => IsSelected ? (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#D35400")! : (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#004D40")!;
-        public System.Windows.Media.Brush TileBorderBrush => IsSelected ? (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#F39C12")! : (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#36B5B0")!;
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                _isSelected = value;
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(IsSelected)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(TileBackground)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(TileBorderBrush)));
+            }
+        }
+
+        public string CustomTileColor { get; set; } = "#004D40";
+
+        public Brush TileBackground
+        {
+            get
+            {
+                if (IsSelected)
+                    return (Brush)new BrushConverter().ConvertFromString("#D35400")!;
+                try
+                {
+                    return (Brush)new BrushConverter().ConvertFromString(CustomTileColor)!;
+                }
+                catch
+                {
+                    return (Brush)new BrushConverter().ConvertFromString("#004D40")!;
+                }
+            }
+        }
+
+        public Brush TileBorderBrush => IsSelected ? (Brush)new BrushConverter().ConvertFromString("#F39C12")! : (Brush)new BrushConverter().ConvertFromString("#36B5B0")!;
 
         public string MaMatHang { get; set; } = "";
         public string TenMatHang { get; set; } = "";
@@ -623,6 +697,26 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public string HangSx { get; set; } = "";
         public decimal TonToiThieu { get; set; }
 
+        private byte[]? _anh;
+        public byte[]? Anh
+        {
+            get => _anh;
+            set
+            {
+                _anh = value;
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Anh)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(AnhSource)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(HasAnh)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(HasImageVisibility)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(NoImageVisibility)));
+            }
+        }
+
+        public ImageSource? AnhSource => QuanLyBar.Client.Services.ImageHelper.BytesToBitmapImage(Anh);
+        public bool HasAnh => Anh != null && Anh.Length > 0;
+        public Visibility HasImageVisibility => HasAnh ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility NoImageVisibility => HasAnh ? Visibility.Collapsed : Visibility.Visible;
+
         public List<ColumnDisplayInfo> LeftColumns { get; set; } = new();
         public List<ColumnDisplayInfo> RightColumns { get; set; } = new();
 
@@ -631,10 +725,24 @@ namespace QuanLyBar.Client.Views.TouchPOS
             LeftColumns.Clear();
             RightColumns.Clear();
 
-            foreach (var col in usedColumns)
+            if (usedColumns == null || usedColumns.Count == 0)
             {
-                string upper = col.Trim().ToUpperInvariant();
-                string text = upper switch
+                usedColumns = new List<string> { "GHI CHÚ", "GIÁ TRỊ BÁN", "GIÁ VỐN", "TỒN 2 ĐVT", "TỒN", "HÃNG SX" };
+            }
+
+            foreach (var rawCol in usedColumns)
+            {
+                if (string.IsNullOrWhiteSpace(rawCol)) continue;
+                string[] parts = rawCol.Split(';');
+                string colName = parts[0].Trim().ToUpperInvariant();
+                bool isRight = parts.Length > 1 && parts[1].Trim().ToUpperInvariant() == "R";
+                bool isBold = parts.Length <= 2 || parts[2].Trim() == "1";
+                bool isItalic = parts.Length > 3 && parts[3].Trim() == "1";
+                double fontSize = parts.Length > 4 && double.TryParse(parts[4].Trim(), out double fs) && fs > 0 ? fs : 13;
+                string colorHex = parts.Length > 5 && !string.IsNullOrWhiteSpace(parts[5]) ? parts[5].Trim() : "#FFFFFF";
+                string shortTitle = parts.Length > 6 ? parts[6].Trim() : "";
+
+                string valueText = colName switch
                 {
                     "MẶT HÀNG" => TenMatHang?.Trim() ?? "",
                     "MÃ HÀNG" => MaMatHang?.Trim() ?? "",
@@ -651,12 +759,29 @@ namespace QuanLyBar.Client.Views.TouchPOS
                     _ => ""
                 };
 
-                // Nếu thuộc tính đó không có dữ liệu (rỗng/trống) thì hàng đó không cần hiện
-                if (string.IsNullOrWhiteSpace(text))
+                if (string.IsNullOrWhiteSpace(valueText))
                     continue;
 
-                var item = new ColumnDisplayInfo { TextToDisplay = text };
-                if (upper == "TỒN")
+                string lineText = !string.IsNullOrWhiteSpace(shortTitle) ? $"{shortTitle}: {valueText}" : valueText;
+
+                Brush brush = Brushes.White;
+                try
+                {
+                    brush = (Brush)new BrushConverter().ConvertFromString(colorHex)!;
+                }
+                catch { }
+
+                var item = new ColumnDisplayInfo
+                {
+                    TextToDisplay = lineText,
+                    FontSize = fontSize,
+                    FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
+                    FontStyle = isItalic ? FontStyles.Italic : FontStyles.Normal,
+                    ForegroundBrush = brush,
+                    Alignment = isRight ? HorizontalAlignment.Right : HorizontalAlignment.Left
+                };
+
+                if (isRight || colName == "TỒN")
                 {
                     RightColumns.Add(item);
                 }

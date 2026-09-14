@@ -292,9 +292,17 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 BtnItalic.Background = selectedCol.IsItalic ? GetBrush("#C95B16") : GetBrush("#6C757D");
 
                 BtnFontSize.Content = $"CỠ CHỮ: {selectedCol.FontSize}";
-                BtnTextColor.Background = GetBrush(string.IsNullOrWhiteSpace(selectedCol.TextColorHex) ? "#FFFFFF" : selectedCol.TextColorHex);
-
-                TxtShortTitle.Text = selectedCol.ShortTitle;
+                Brush textColBrush = GetBrush(string.IsNullOrWhiteSpace(selectedCol.TextColorHex) ? "#FFFFFF" : selectedCol.TextColorHex);
+                BtnTextColor.Background = textColBrush;
+                if (textColBrush is SolidColorBrush scb)
+                {
+                    double brightness = (scb.Color.R * 0.299 + scb.Color.G * 0.587 + scb.Color.B * 0.114);
+                    BtnTextColor.Foreground = brightness > 150 ? Brushes.Black : Brushes.White;
+                }
+                else
+                {
+                    BtnTextColor.Foreground = Brushes.White;
+                }
             }
             finally
             {
@@ -368,16 +376,6 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             {
                 _isPickingTextColor = true;
                 ColorPaletteOverlay.Visibility = Visibility.Visible;
-            }
-        }
-
-        private void TxtShortTitle_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_isUpdatingFormatUI) return;
-            if (LstUsed.SelectedItem is DisplayColumnItem selectedCol)
-            {
-                selectedCol.ShortTitle = TxtShortTitle.Text;
-                UpdateLivePreview();
             }
         }
 
@@ -472,24 +470,94 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     }
                     else
                     {
-                        foreach (var col in _usedColumns)
-                        {
-                            string textToDisplay = !string.IsNullOrWhiteSpace(col.ShortTitle)
-                                ? col.ShortTitle
-                                : GetSampleValueForColumn(col.Name, TargetType);
+                        var leftCols = _usedColumns.Where(c => c.Alignment == HorizontalAlignment.Left).ToList();
+                        var rightCols = _usedColumns.Where(c => c.Alignment == HorizontalAlignment.Right).ToList();
 
-                            var tb = new TextBlock
+                        if (leftCols.Count > 0 && rightCols.Count > 0)
+                        {
+                            int maxRows = Math.Max(leftCols.Count, rightCols.Count);
+                            for (int i = 0; i < maxRows; i++)
                             {
-                                Text = textToDisplay,
-                                HorizontalAlignment = col.Alignment,
-                                TextAlignment = col.Alignment == HorizontalAlignment.Right ? TextAlignment.Right : TextAlignment.Left,
-                                FontSize = col.FontSize > 0 ? col.FontSize : 14,
-                                FontWeight = col.IsBold ? FontWeights.Bold : FontWeights.Normal,
-                                FontStyle = col.IsItalic ? FontStyles.Italic : FontStyles.Normal,
-                                Foreground = GetBrush(string.IsNullOrWhiteSpace(col.TextColorHex) ? "#FFFFFF" : col.TextColorHex),
-                                Margin = new Thickness(0, 1, 0, 1)
-                            };
-                            StkPreviewItems.Children.Add(tb);
+                                var gridRow = new Grid
+                                {
+                                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                                    Margin = new Thickness(0, 1, 0, 1)
+                                };
+                                gridRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                                gridRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                                if (i < leftCols.Count)
+                                {
+                                    var col = leftCols[i];
+                                    string textToDisplay = !string.IsNullOrWhiteSpace(col.ShortTitle)
+                                        ? col.ShortTitle
+                                        : GetSampleValueForColumn(col.Name, TargetType);
+
+                                    var tbLeft = new TextBlock
+                                    {
+                                        Text = textToDisplay,
+                                        HorizontalAlignment = HorizontalAlignment.Left,
+                                        TextAlignment = TextAlignment.Left,
+                                        FontSize = col.FontSize > 0 ? col.FontSize : 14,
+                                        FontWeight = col.IsBold ? FontWeights.Bold : FontWeights.Normal,
+                                        FontStyle = col.IsItalic ? FontStyles.Italic : FontStyles.Normal,
+                                        Foreground = GetBrush(string.IsNullOrWhiteSpace(col.TextColorHex) ? "#FFFFFF" : col.TextColorHex)
+                                    };
+                                    Grid.SetColumn(tbLeft, 0);
+                                    gridRow.Children.Add(tbLeft);
+                                }
+
+                                if (i < rightCols.Count)
+                                {
+                                    var col = rightCols[i];
+                                    string textToDisplay = !string.IsNullOrWhiteSpace(col.ShortTitle)
+                                        ? col.ShortTitle
+                                        : GetSampleValueForColumn(col.Name, TargetType);
+
+                                    var tbRight = new TextBlock
+                                    {
+                                        Text = textToDisplay,
+                                        HorizontalAlignment = HorizontalAlignment.Right,
+                                        TextAlignment = TextAlignment.Right,
+                                        FontSize = col.FontSize > 0 ? col.FontSize : 14,
+                                        FontWeight = col.IsBold ? FontWeights.Bold : FontWeights.Normal,
+                                        FontStyle = col.IsItalic ? FontStyles.Italic : FontStyles.Normal,
+                                        Foreground = GetBrush(string.IsNullOrWhiteSpace(col.TextColorHex) ? "#FFFFFF" : col.TextColorHex),
+                                        Margin = new Thickness(4, 0, 0, 0)
+                                    };
+                                    Grid.SetColumn(tbRight, 1);
+                                    gridRow.Children.Add(tbRight);
+                                }
+
+                                StkPreviewItems.Children.Add(gridRow);
+                            }
+                        }
+                        else
+                        {
+                            bool allLeft = leftCols.Count > 0;
+                            var activeCols = allLeft ? leftCols : rightCols;
+
+                            foreach (var col in activeCols)
+                            {
+                                string textToDisplay = !string.IsNullOrWhiteSpace(col.ShortTitle)
+                                    ? col.ShortTitle
+                                    : GetSampleValueForColumn(col.Name, TargetType);
+
+                                HorizontalAlignment effectiveAlign = allLeft ? HorizontalAlignment.Center : HorizontalAlignment.Right;
+
+                                var tb = new TextBlock
+                                {
+                                    Text = textToDisplay,
+                                    HorizontalAlignment = effectiveAlign,
+                                    TextAlignment = effectiveAlign == HorizontalAlignment.Right ? TextAlignment.Right : TextAlignment.Center,
+                                    FontSize = col.FontSize > 0 ? col.FontSize : 14,
+                                    FontWeight = col.IsBold ? FontWeights.Bold : FontWeights.Normal,
+                                    FontStyle = col.IsItalic ? FontStyles.Italic : FontStyles.Normal,
+                                    Foreground = GetBrush(string.IsNullOrWhiteSpace(col.TextColorHex) ? "#FFFFFF" : col.TextColorHex),
+                                    Margin = new Thickness(0, 1, 0, 1)
+                                };
+                                StkPreviewItems.Children.Add(tb);
+                            }
                         }
                     }
                 }

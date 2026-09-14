@@ -211,18 +211,29 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 _matHangTileColorHex = mColor;
                 UpdateMatHangTileHeight();
 
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLUMNS_MatHang", "");
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    TouchMatHangVM.SavedDisplayColumns = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    TouchMatHangVM.SavedDisplayColumns = new List<string>();
+                }
+
                 if (_allMatHangList != null)
                 {
                     foreach (var item in _allMatHangList)
                     {
-                        if (!string.IsNullOrWhiteSpace(item.MauSac))
-                        {
-                            item.TileColorHex = QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(item.MauSac, _matHangTileColorHex);
-                        }
-                        else
+                        if (string.IsNullOrWhiteSpace(item.MauSac) || item.MauSac == "0")
                         {
                             item.TileColorHex = _matHangTileColorHex;
                         }
+                        else
+                        {
+                            item.TileColorHex = QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(item.MauSac, _matHangTileColorHex);
+                        }
+                        item.RefreshDisplayLines();
                     }
                 }
                 if (_selectedNhom != null)
@@ -243,6 +254,15 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 _nhomRowsConfig = nRows;
                 _nhomTileColorHex = nColor;
                 UpdateNhomTileHeight();
+
+                if (_nhomList != null)
+                {
+                    foreach (var cat in _nhomList)
+                    {
+                        cat.ColorBrushHex = _nhomTileColorHex;
+                        cat.TextColorHex = QuanLyBar.Client.Services.ColorUtils.GetContrastTextColor(_nhomTileColorHex);
+                    }
+                }
             }
             catch { }
         }
@@ -298,6 +318,20 @@ namespace QuanLyBar.Client.Views.TouchPOS
             GridTouchOrder.Visibility = Visibility.Collapsed;
             await LoadTableLayoutConfigAsync();
             LoadTables();
+        }
+
+        public DBAN? CurrentBan => _currentBan;
+
+        public void ReloadCurrentOrder()
+        {
+            if (_currentBan != null && _currentBan.IsOpened)
+            {
+                LoadOrderItems();
+            }
+            else
+            {
+                ShowTableScreen();
+            }
         }
 
         private async void ShowOrderScreen(DBAN ban)
@@ -402,7 +436,21 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 query = query.Where(x => x.IsOpened);
             }
 
-            IcTableTiles.ItemsSource = query.ToList();
+            var filteredList = query.ToList();
+            IcTableTiles.ItemsSource = filteredList;
+            UpdateTableOverviewStats(filteredList);
+        }
+
+        private void UpdateTableOverviewStats(List<DBAN> list)
+        {
+            if (list == null) return;
+            int total = list.Count;
+            int occupied = list.Count(x => x.IsOpened);
+            int empty = total - occupied;
+
+            if (TxtOverviewTotalTables != null) TxtOverviewTotalTables.Text = total.ToString();
+            if (TxtOverviewOccupiedTables != null) TxtOverviewOccupiedTables.Text = occupied.ToString();
+            if (TxtOverviewEmptyTables != null) TxtOverviewEmptyTables.Text = empty.ToString();
         }
 
         private void BtnAreaSelect_Click(object sender, RoutedEventArgs e)
@@ -666,7 +714,9 @@ namespace QuanLyBar.Client.Views.TouchPOS
                                                   (!string.IsNullOrWhiteSpace(m.NhomId) ? m.NhomId.Trim() : 
                                                   (!string.IsNullOrWhiteSpace(m.DLOAIMATHANGID) ? m.DLOAIMATHANGID.Trim() : ""));
 
-                            string mhColor = !string.IsNullOrWhiteSpace(m.MAUSAC) ? QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(m.MAUSAC, defaultMhColor) : defaultMhColor;
+                            string mhColor = (!string.IsNullOrWhiteSpace(m.MAUSAC) && m.MAUSAC != "0")
+                                ? QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(m.MAUSAC, _matHangTileColorHex)
+                                : _matHangTileColorHex;
 
                             var vm = new TouchMatHangVM
                             {
@@ -2411,33 +2461,94 @@ namespace QuanLyBar.Client.Views.TouchPOS
             }
         }
 
-        private async void DgOrderItems_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private async void BtnCartPlus_Click(object sender, RoutedEventArgs e)
         {
-            DependencyObject dep = (DependencyObject)e.OriginalSource;
-            while (dep != null && !(dep is DataGridRow) && !(dep is DataGrid))
+            var item = DgOrderItems.SelectedItem as TouchCartItemVM;
+            if (item == null && _cartItems.Count > 0) item = _cartItems[_cartItems.Count - 1];
+            if (item != null)
             {
-                if (dep is Button)
-                {
-                    return;
-                }
-                dep = System.Windows.Media.VisualTreeHelper.GetParent(dep);
-            }
-
-            if (dep is DataGridRow row && row.DataContext is TouchCartItemVM item)
-            {
-                var win = new TouchNhapSoLuongWindow(item.TenMatHang, item.SoLuong);
-                win.Owner = this;
-                if (win.ShowDialog() == true && win.NewQuantity > 0)
-                {
-                    item.SoLuong = win.NewQuantity;
-                    item.ThanhTien = item.SoLuong * item.DonGia;
-                    DgOrderItems.Items.Refresh();
-                    UpdateTotals();
-                    await AutoSaveOrderAsync();
-                }
+                item.SoLuong += 1;
+                DgOrderItems.Items.Refresh();
+                UpdateTotals();
+                await AutoSaveOrderAsync();
             }
         }
 
+        private async void BtnCartMinus_Click(object sender, RoutedEventArgs e)
+        {
+            var item = DgOrderItems.SelectedItem as TouchCartItemVM;
+            if (item == null && _cartItems.Count > 0) item = _cartItems[_cartItems.Count - 1];
+            if (item != null)
+            {
+                if (item.SoLuong > 1)
+                {
+                    item.SoLuong -= 1;
+                }
+                else
+                {
+                    _cartItems.Remove(item);
+                }
+                DgOrderItems.Items.Refresh();
+                UpdateTotals();
+                await AutoSaveOrderAsync();
+            }
+        }
+
+        private async void BtnCartRemove_Click(object sender, RoutedEventArgs e)
+        {
+            var item = DgOrderItems.SelectedItem as TouchCartItemVM;
+            if (item == null && _cartItems.Count > 0) item = _cartItems[_cartItems.Count - 1];
+            if (item != null)
+            {
+                _cartItems.Remove(item);
+                DgOrderItems.Items.Refresh();
+                UpdateTotals();
+                await AutoSaveOrderAsync();
+            }
+        }
+
+        private async void BtnCartKhac_Click(object sender, RoutedEventArgs e)
+        {
+            var item = DgOrderItems.SelectedItem as TouchCartItemVM;
+            if (item == null && _cartItems.Count > 0) item = _cartItems[_cartItems.Count - 1];
+            if (item != null)
+            {
+                var win = new TouchDieuChinhMatHangWindow(item) { Owner = this };
+                win.ShowDialog();
+                DgOrderItems.Items.Refresh();
+                UpdateTotals();
+                await AutoSaveOrderAsync();
+            }
+            else
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "VUI LÒNG CHỌN MÓN ĂN TRONG DANH SÁCH ĐỂ ĐIỀU CHỈNH!", "THÔNG BÁO");
+            }
+        }
+
+        private async void DgOrderItems_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (DgOrderItems.SelectedItem is TouchCartItemVM item)
+            {
+                var win = new TouchDieuChinhMatHangWindow(item) { Owner = this };
+                win.ShowDialog();
+                DgOrderItems.Items.Refresh();
+                UpdateTotals();
+                await AutoSaveOrderAsync();
+            }
+        }
+
+        private void DgOrderItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GridCartItemActions != null)
+            {
+                GridCartItemActions.Visibility = DgOrderItems.SelectedItem != null ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private void DgOrderItems_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            // Allow row selection natively
+        }
     }
 
     public class TouchNhomHangVM : System.ComponentModel.INotifyPropertyChanged
@@ -2482,8 +2593,171 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
     }
 
+    public class MatHangDisplayLine
+    {
+        public string Text { get; set; } = "";
+        public System.Windows.HorizontalAlignment Alignment { get; set; } = System.Windows.HorizontalAlignment.Left;
+        public double FontSize { get; set; } = 14;
+        public System.Windows.FontWeight FontWeight { get; set; } = System.Windows.FontWeights.Bold;
+        public System.Windows.FontStyle FontStyle { get; set; } = System.Windows.FontStyles.Normal;
+        public System.Windows.Media.Brush ForegroundBrush { get; set; } = System.Windows.Media.Brushes.White;
+
+        public string RightText { get; set; } = "";
+        public double RightFontSize { get; set; } = 14;
+        public System.Windows.FontWeight RightFontWeight { get; set; } = System.Windows.FontWeights.Bold;
+        public System.Windows.FontStyle RightFontStyle { get; set; } = System.Windows.FontStyles.Normal;
+        public System.Windows.Media.Brush RightForegroundBrush { get; set; } = System.Windows.Media.Brushes.White;
+        public System.Windows.Visibility RightVisibility => string.IsNullOrEmpty(RightText) ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+    }
+
     public class TouchMatHangVM : System.ComponentModel.INotifyPropertyChanged
     {
+        public static List<string> SavedDisplayColumns { get; set; } = new List<string>();
+
+        public void RefreshDisplayLines()
+        {
+            OnPropertyChanged(nameof(DisplayLines));
+            OnPropertyChanged(nameof(TileColorBrush));
+        }
+
+        public List<MatHangDisplayLine> DisplayLines
+        {
+            get
+            {
+                var result = new List<MatHangDisplayLine>();
+                if (SavedDisplayColumns == null || SavedDisplayColumns.Count == 0)
+                {
+                    result.Add(new MatHangDisplayLine
+                    {
+                        Text = TenMatHang,
+                        Alignment = System.Windows.HorizontalAlignment.Center,
+                        FontSize = 13.5,
+                        FontWeight = System.Windows.FontWeights.Bold,
+                        FontStyle = System.Windows.FontStyles.Normal,
+                        ForegroundBrush = System.Windows.Media.Brushes.White
+                    });
+                    if (GiaBan > 0)
+                    {
+                        result.Add(new MatHangDisplayLine
+                        {
+                            Text = GiaBanFormatted,
+                            Alignment = System.Windows.HorizontalAlignment.Center,
+                            FontSize = 12.5,
+                            FontWeight = System.Windows.FontWeights.Bold,
+                            FontStyle = System.Windows.FontStyles.Normal,
+                            ForegroundBrush = System.Windows.Media.Brushes.White
+                        });
+                    }
+                    return result;
+                }
+
+                var leftList = new List<(string lineText, double fontSize, bool isBold, bool isItalic, System.Windows.Media.Brush brush)>();
+                var rightList = new List<(string lineText, double fontSize, bool isBold, bool isItalic, System.Windows.Media.Brush brush)>();
+
+                foreach (var rawCol in SavedDisplayColumns)
+                {
+                    if (string.IsNullOrWhiteSpace(rawCol)) continue;
+                    string[] parts = rawCol.Split(';');
+                    string colName = parts[0].Trim().ToUpperInvariant();
+                    bool isRight = parts.Length > 1 && parts[1].Trim().ToUpperInvariant() == "R";
+                    bool isBold = parts.Length <= 2 || parts[2].Trim() == "1";
+                    bool isItalic = parts.Length > 3 && parts[3].Trim() == "1";
+                    double fontSize = parts.Length > 4 && double.TryParse(parts[4].Trim(), out double fs) && fs > 0 ? fs : 14;
+                    string colorHex = parts.Length > 5 && !string.IsNullOrWhiteSpace(parts[5]) ? parts[5].Trim() : "#FFFFFF";
+                    string shortTitle = parts.Length > 6 ? parts[6].Trim() : "";
+
+                    string lineText = "";
+                    if (colName == "GIÁ BÁN" || colName == "ĐƠN GIÁ")
+                    {
+                        string priceStr = GiaBan > 0 ? $"{GiaBan:N0}đ" : "0đ";
+                        lineText = !string.IsNullOrWhiteSpace(shortTitle) ? shortTitle : priceStr;
+                    }
+                    else if (colName == "MẶT HÀNG" || colName == "TÊN HÀNG")
+                    {
+                        lineText = !string.IsNullOrWhiteSpace(shortTitle) ? shortTitle : TenMatHang;
+                    }
+                    else if (colName == "MÃ HÀNG")
+                    {
+                        lineText = !string.IsNullOrWhiteSpace(shortTitle) ? shortTitle : MAMATHANG;
+                    }
+                    else if (colName == "NHÓM")
+                    {
+                        lineText = !string.IsNullOrWhiteSpace(shortTitle) ? shortTitle : NhomName;
+                    }
+                    else
+                    {
+                        lineText = !string.IsNullOrWhiteSpace(shortTitle) ? shortTitle : colName;
+                    }
+
+                    System.Windows.Media.Brush brush = System.Windows.Media.Brushes.White;
+                    try
+                    {
+                        brush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(colorHex)!;
+                    }
+                    catch { }
+
+                    if (isRight)
+                    {
+                        rightList.Add((lineText, fontSize, isBold, isItalic, brush));
+                    }
+                    else
+                    {
+                        leftList.Add((lineText, fontSize, isBold, isItalic, brush));
+                    }
+                }
+
+                if (leftList.Count > 0 && rightList.Count > 0)
+                {
+                    int maxRows = Math.Max(leftList.Count, rightList.Count);
+                    for (int i = 0; i < maxRows; i++)
+                    {
+                        var line = new MatHangDisplayLine();
+                        if (i < leftList.Count)
+                        {
+                            var l = leftList[i];
+                            line.Text = l.lineText;
+                            line.Alignment = System.Windows.HorizontalAlignment.Left;
+                            line.FontSize = l.fontSize;
+                            line.FontWeight = l.isBold ? System.Windows.FontWeights.Bold : System.Windows.FontWeights.Normal;
+                            line.FontStyle = l.isItalic ? System.Windows.FontStyles.Italic : System.Windows.FontStyles.Normal;
+                            line.ForegroundBrush = l.brush;
+                        }
+                        if (i < rightList.Count)
+                        {
+                            var r = rightList[i];
+                            line.RightText = r.lineText;
+                            line.RightFontSize = r.fontSize;
+                            line.RightFontWeight = r.isBold ? System.Windows.FontWeights.Bold : System.Windows.FontWeights.Normal;
+                            line.RightFontStyle = r.isItalic ? System.Windows.FontStyles.Italic : System.Windows.FontStyles.Normal;
+                            line.RightForegroundBrush = r.brush;
+                        }
+                        result.Add(line);
+                    }
+                }
+                else
+                {
+                    bool allLeft = leftList.Count > 0;
+                    var activeList = allLeft ? leftList : rightList;
+                    System.Windows.HorizontalAlignment effectiveAlign = allLeft ? System.Windows.HorizontalAlignment.Center : System.Windows.HorizontalAlignment.Right;
+
+                    foreach (var item in activeList)
+                    {
+                        result.Add(new MatHangDisplayLine
+                        {
+                            Text = item.lineText,
+                            Alignment = effectiveAlign,
+                            FontSize = item.fontSize,
+                            FontWeight = item.isBold ? System.Windows.FontWeights.Bold : System.Windows.FontWeights.Normal,
+                            FontStyle = item.isItalic ? System.Windows.FontStyles.Italic : System.Windows.FontStyles.Normal,
+                            ForegroundBrush = item.brush
+                        });
+                    }
+                }
+
+                return result;
+            }
+        }
+
         public string MAMATHANG { get; set; } = "";
         public string MANHOM { get; set; } = "";
         public string NhomName { get; set; } = "";
@@ -2624,6 +2898,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public string TenMatHang { get; set; } = "";
         public int LoaiDoId { get; set; } = 0;
         public string LoaiDoName { get; set; } = "";
+        public string GhiChu { get; set; } = "";
 
         private bool _daInCheBien;
         public bool DaInCheBien
@@ -2738,6 +3013,13 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public FontWeight FontWeight { get; set; } = FontWeights.Bold;
         public FontStyle FontStyle { get; set; } = FontStyles.Normal;
         public SolidColorBrush ForegroundBrush { get; set; } = Brushes.White;
+
+        public string RightText { get; set; } = "";
+        public double RightFontSize { get; set; } = 14;
+        public FontWeight RightFontWeight { get; set; } = FontWeights.Bold;
+        public FontStyle RightFontStyle { get; set; } = FontStyles.Normal;
+        public SolidColorBrush RightForegroundBrush { get; set; } = Brushes.White;
+        public Visibility RightVisibility => string.IsNullOrEmpty(RightText) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     // Simple model classes / helpers for TouchPOS context
@@ -2824,7 +3106,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
             get
             {
                 var result = new List<TableDisplayLine>();
-                if (!IsOpened || SavedDisplayColumns == null || SavedDisplayColumns.Count == 0)
+                if (SavedDisplayColumns == null || SavedDisplayColumns.Count == 0)
                 {
                     result.Add(new TableDisplayLine
                     {
@@ -2835,15 +3117,27 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         FontStyle = FontStyles.Normal,
                         ForegroundBrush = Brushes.White
                     });
+                    result.Add(new TableDisplayLine
+                    {
+                        Text = IsOpened && ThoiGianMo.HasValue ? $"Vào: {ThoiGianMo.Value:HH:mm}" : "Bàn trống",
+                        Alignment = HorizontalAlignment.Center,
+                        FontSize = 13,
+                        FontWeight = FontWeights.Normal,
+                        FontStyle = FontStyles.Normal,
+                        ForegroundBrush = Brushes.White
+                    });
                     return result;
                 }
+
+                var leftList = new List<(string lineText, double fontSize, bool isBold, bool isItalic, SolidColorBrush brush)>();
+                var rightList = new List<(string lineText, double fontSize, bool isBold, bool isItalic, SolidColorBrush brush)>();
 
                 foreach (var rawCol in SavedDisplayColumns)
                 {
                     if (string.IsNullOrWhiteSpace(rawCol)) continue;
                     string[] parts = rawCol.Split(';');
                     string colName = parts[0].Trim().ToUpperInvariant();
-                    HorizontalAlignment align = parts.Length > 1 && parts[1].Trim().ToUpperInvariant() == "R" ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+                    bool isRight = parts.Length > 1 && parts[1].Trim().ToUpperInvariant() == "R";
                     bool isBold = parts.Length <= 2 || parts[2].Trim() == "1";
                     bool isItalic = parts.Length > 3 && parts[3].Trim() == "1";
                     double fontSize = parts.Length > 4 && double.TryParse(parts[4].Trim(), out double fs) && fs > 0 ? fs : 14;
@@ -2860,6 +3154,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         if (ThoiGianMo.HasValue)
                         {
                             lineText = !string.IsNullOrWhiteSpace(shortTitle) ? $"{shortTitle}: {ThoiGianMo.Value:HH:mm}" : $"Vào: {ThoiGianMo.Value:HH:mm}";
+                        }
+                        else
+                        {
+                            lineText = "Bàn trống";
                         }
                     }
                     else if (colName == "SỐ TIỀN")
@@ -2886,14 +3184,61 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         }
                         catch { }
 
+                        if (isRight)
+                        {
+                            rightList.Add((lineText, fontSize, isBold, isItalic, brush));
+                        }
+                        else
+                        {
+                            leftList.Add((lineText, fontSize, isBold, isItalic, brush));
+                        }
+                    }
+                }
+
+                if (leftList.Count > 0 && rightList.Count > 0)
+                {
+                    int maxRows = Math.Max(leftList.Count, rightList.Count);
+                    for (int i = 0; i < maxRows; i++)
+                    {
+                        var line = new TableDisplayLine();
+                        if (i < leftList.Count)
+                        {
+                            var l = leftList[i];
+                            line.Text = l.lineText;
+                            line.Alignment = HorizontalAlignment.Left;
+                            line.FontSize = l.fontSize;
+                            line.FontWeight = l.isBold ? FontWeights.Bold : FontWeights.Normal;
+                            line.FontStyle = l.isItalic ? FontStyles.Italic : FontStyles.Normal;
+                            line.ForegroundBrush = l.brush;
+                        }
+                        if (i < rightList.Count)
+                        {
+                            var r = rightList[i];
+                            line.RightText = r.lineText;
+                            line.RightFontSize = r.fontSize;
+                            line.RightFontWeight = r.isBold ? FontWeights.Bold : FontWeights.Normal;
+                            line.RightFontStyle = r.isItalic ? FontStyles.Italic : FontStyles.Normal;
+                            line.RightForegroundBrush = r.brush;
+                        }
+                        result.Add(line);
+                    }
+                }
+                else
+                {
+                    bool allLeft = leftList.Count > 0;
+                    var activeList = allLeft ? leftList : rightList;
+                    HorizontalAlignment effectiveAlign = allLeft ? HorizontalAlignment.Center : HorizontalAlignment.Right;
+
+                    foreach (var item in activeList)
+                    {
                         result.Add(new TableDisplayLine
                         {
-                            Text = lineText,
-                            Alignment = align,
-                            FontSize = fontSize,
-                            FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
-                            FontStyle = isItalic ? FontStyles.Italic : FontStyles.Normal,
-                            ForegroundBrush = brush
+                            Text = item.lineText,
+                            Alignment = effectiveAlign,
+                            FontSize = item.fontSize,
+                            FontWeight = item.isBold ? FontWeights.Bold : FontWeights.Normal,
+                            FontStyle = item.isItalic ? FontStyles.Italic : FontStyles.Normal,
+                            ForegroundBrush = item.brush
                         });
                     }
                 }

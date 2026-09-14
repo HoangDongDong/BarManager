@@ -95,8 +95,13 @@
                                         <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Center">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding .}" Foreground="White" FontSize="14" FontWeight="Bold" 
-                                                               HorizontalAlignment="Center" Margin="0,4"/>
+                                                    <TextBlock Text="{Binding TextToDisplay}" 
+                                                               Foreground="{Binding ForegroundBrush}" 
+                                                               FontSize="{Binding FontSize}" 
+                                                               FontWeight="{Binding FontWeight}" 
+                                                               FontStyle="{Binding FontStyle}" 
+                                                               HorizontalAlignment="{Binding Alignment}" 
+                                                               Margin="0,4" TextWrapping="Wrap"/>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>

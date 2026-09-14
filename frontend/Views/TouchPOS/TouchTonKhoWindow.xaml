@@ -97,7 +97,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="42"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="65"/>
         </Grid.RowDefinitions>
 
         <!-- 1. HEADER BANNER -->
@@ -175,34 +175,58 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Margin="4" Background="{Binding TileBackground}" BorderBrush="{Binding TileBorderBrush}" BorderThickness="1.5" CornerRadius="6" Height="{Binding TileHeight, ElementName=ThisWindow}" Padding="14,8" Cursor="Hand" MouseLeftButtonDown="ItemTile_MouseLeftButtonDown">
+                                    <Border Margin="4" Background="{Binding TileBackground}" BorderBrush="{Binding TileBorderBrush}" BorderThickness="1.5" CornerRadius="6" Height="{Binding TileHeight, ElementName=ThisWindow}" Padding="0" ClipToBounds="True" Cursor="Hand" MouseLeftButtonDown="ItemTile_MouseLeftButtonDown">
                                         <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                                            <!-- IMAGE BACKGROUND WHEN ITEM HAS IMAGE -->
+                                            <Border Margin="0" CornerRadius="4" ClipToBounds="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding HasImageVisibility}">
+                                                <Image Source="{Binding AnhSource}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <!-- DARK TINT OVERLAY WHEN HAS IMAGE FOR READABILITY -->
+                                            <Border Background="#60000000" CornerRadius="4" Visibility="{Binding HasImageVisibility}"/>
 
-                                            <!-- LEFT STACK: Description columns -->
-                                            <Viewbox Grid.Column="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                <ItemsControl ItemsSource="{Binding LeftColumns}" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock Text="{Binding TextToDisplay}" Foreground="White" FontSize="13" FontWeight="Bold" Margin="0,1"/>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </Viewbox>
+                                            <!-- CONTENT CONTAINER -->
+                                            <Border Padding="14,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
 
-                                            <!-- RIGHT STACK: Numeric columns -->
-                                            <Viewbox Grid.Column="1" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-                                                <ItemsControl ItemsSource="{Binding RightColumns}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock Text="{Binding TextToDisplay}" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,1"/>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </Viewbox>
+                                                    <!-- LEFT STACK: Description columns -->
+                                                    <Viewbox Grid.Column="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <ItemsControl ItemsSource="{Binding LeftColumns}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding TextToDisplay}" 
+                                                                               Foreground="{Binding ForegroundBrush}" 
+                                                                               FontSize="{Binding FontSize}" 
+                                                                               FontWeight="{Binding FontWeight}" 
+                                                                               FontStyle="{Binding FontStyle}" 
+                                                                               HorizontalAlignment="{Binding Alignment}" 
+                                                                               Margin="0,1" TextWrapping="Wrap"/>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Viewbox>
+
+                                                    <!-- RIGHT STACK: Numeric columns -->
+                                                    <Viewbox Grid.Column="1" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                        <ItemsControl ItemsSource="{Binding RightColumns}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding TextToDisplay}" 
+                                                                               Foreground="{Binding ForegroundBrush}" 
+                                                                               FontSize="{Binding FontSize}" 
+                                                                               FontWeight="{Binding FontWeight}" 
+                                                                               FontStyle="{Binding FontStyle}" 
+                                                                               HorizontalAlignment="{Binding Alignment}" 
+                                                                               Margin="0,1" TextWrapping="Wrap"/>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Viewbox>
+                                                </Grid>
+                                            </Border>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -372,13 +396,13 @@
 
         <!-- 3. FOOTER CONTROL BUTTONS (REFRESH, CHI TIẾT, XUẤT EXCEL, TÌM, THOÁT) -->
         <Border Grid.Row="2" Background="#001F2B" BorderBrush="#1B4D5C" BorderThickness="0,1.5,0,0">
-            <DockPanel LastChildFill="False" Margin="10,0">
+            <DockPanel LastChildFill="False" Margin="14,0">
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- REFRESH -->
-                    <Button Content="REFRESH" Width="100" Height="36" Margin="0,0,8,0" Cursor="Hand" Click="BtnRefresh_Click">
+                    <Button Content="REFRESH" Width="130" Height="48" FontSize="15" Margin="0,0,12,0" Cursor="Hand" Click="BtnRefresh_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#1E7333" BorderBrush="#2E8B46" BorderThickness="1.5" CornerRadius="18">
+                                <Border Background="#1E7333" BorderBrush="#2E8B46" BorderThickness="2" CornerRadius="24">
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </ControlTemplate>
@@ -388,10 +412,10 @@
                     </Button>
 
                     <!-- CHI TIẾT -->
-                    <Button Content="CHI TIẾT" Width="100" Height="36" Margin="0,0,8,0" Cursor="Hand" Click="BtnChiTiet_Click">
+                    <Button Content="CHI TIẾT" Width="130" Height="48" FontSize="15" Margin="0,0,12,0" Cursor="Hand" Click="BtnChiTiet_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#6C757D" BorderBrush="#868E96" BorderThickness="1.5" CornerRadius="18">
+                                <Border Background="#6C757D" BorderBrush="#868E96" BorderThickness="2" CornerRadius="24">
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </ControlTemplate>
@@ -401,10 +425,10 @@
                     </Button>
 
                     <!-- XUẤT EXCEL -->
-                    <Button Content="XUẤT EXCEL" Width="110" Height="36" Margin="0,0,8,0" Cursor="Hand" Click="BtnExportExcel_Click">
+                    <Button Content="XUẤT EXCEL" Width="150" Height="48" FontSize="15" Margin="0,0,12,0" Cursor="Hand" Click="BtnExportExcel_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#1E7333" BorderBrush="#2E8B46" BorderThickness="1.5" CornerRadius="18">
+                                <Border Background="#1E7333" BorderBrush="#2E8B46" BorderThickness="2" CornerRadius="24">
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </ControlTemplate>
@@ -414,10 +438,10 @@
                     </Button>
 
                     <!-- TÌM -->
-                    <Button Content="TÌM" Width="90" Height="36" Cursor="Hand" Click="BtnTim_Click">
+                    <Button Content="TÌM" Width="120" Height="48" FontSize="15" Cursor="Hand" Click="BtnTim_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#1E7333" BorderBrush="#2E8B46" BorderThickness="1.5" CornerRadius="18">
+                                <Border Background="#1E7333" BorderBrush="#2E8B46" BorderThickness="2" CornerRadius="24">
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </ControlTemplate>
@@ -428,10 +452,10 @@
                 </StackPanel>
 
                 <!-- THOÁT BUTTON -->
-                <Button DockPanel.Dock="Right" Content="THOÁT" Width="100" Height="36" VerticalAlignment="Center" Cursor="Hand" Click="BtnExit_Click">
+                <Button DockPanel.Dock="Right" Content="THOÁT" Width="130" Height="48" FontSize="15" VerticalAlignment="Center" Cursor="Hand" Click="BtnExit_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="#8B0000" BorderBrush="#ef4444" BorderThickness="1.5" CornerRadius="18">
+                            <Border Background="#8B0000" BorderBrush="#ef4444" BorderThickness="2" CornerRadius="24">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </ControlTemplate>

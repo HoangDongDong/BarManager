@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using QuanLyBar.Client.Services;
 
 namespace QuanLyBar.Client.Views.TouchPOS
@@ -114,6 +115,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
     }
 
+    public class ChiTietTonKhoDisplayLine
+    {
+        public string TextToDisplay { get; set; } = "";
+        public double FontSize { get; set; } = 14;
+        public FontWeight FontWeight { get; set; } = FontWeights.Bold;
+        public FontStyle FontStyle { get; set; } = FontStyles.Normal;
+        public Brush ForegroundBrush { get; set; } = Brushes.White;
+        public HorizontalAlignment Alignment { get; set; } = HorizontalAlignment.Center;
+    }
+
     public class ChiTietTonKhoEntry
     {
         public decimal DonGia { get; set; }
@@ -127,14 +138,32 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public decimal GiamGiaPt { get; set; }
         public string DienGiai { get; set; } = "";
 
-        public List<string> BuildLines(List<string> usedColumns)
+        public List<ChiTietTonKhoDisplayLine> BuildLines(List<string> usedColumns)
         {
-            var lines = new List<string>();
+            var lines = new List<ChiTietTonKhoDisplayLine>();
 
-            foreach (var col in usedColumns)
+            if (usedColumns == null || usedColumns.Count == 0)
             {
-                string upper = col.Trim().ToUpperInvariant();
-                string val = upper switch
+                usedColumns = new List<string>
+                {
+                    "ĐƠN GIÁ", "THÀNH TIỀN", "ĐVT", "SỐ LƯỢNG XUẤT", "SỐ LƯỢNG NHẬP",
+                    "SỐ PHIẾU", "ĐỐI TƯỢNG", "NGÀY", "GIẢM GIÁ %", "DIỄN GIẢI"
+                };
+            }
+
+            foreach (var rawCol in usedColumns)
+            {
+                if (string.IsNullOrWhiteSpace(rawCol)) continue;
+                string[] parts = rawCol.Split(';');
+                string colName = parts[0].Trim().ToUpperInvariant();
+                bool isRight = parts.Length > 1 && parts[1].Trim().ToUpperInvariant() == "R";
+                bool isBold = parts.Length <= 2 || parts[2].Trim() == "1";
+                bool isItalic = parts.Length > 3 && parts[3].Trim() == "1";
+                double fontSize = parts.Length > 4 && double.TryParse(parts[4].Trim(), out double fs) && fs > 0 ? fs : 14;
+                string colorHex = parts.Length > 5 && !string.IsNullOrWhiteSpace(parts[5]) ? parts[5].Trim() : "#FFFFFF";
+                string shortTitle = parts.Length > 6 ? parts[6].Trim() : "";
+
+                string val = colName switch
                 {
                     "ĐƠN GIÁ" => DonGia != 0 ? DonGia.ToString("N0") : "",
                     "THÀNH TIỀN" => ThanhTien != 0 ? ThanhTien.ToString("N0") : "",
@@ -151,7 +180,24 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
                 if (!string.IsNullOrWhiteSpace(val))
                 {
-                    lines.Add(val);
+                    string lineText = !string.IsNullOrWhiteSpace(shortTitle) ? $"{shortTitle}: {val}" : val;
+
+                    Brush brush = Brushes.White;
+                    try
+                    {
+                        brush = (Brush)new BrushConverter().ConvertFromString(colorHex)!;
+                    }
+                    catch { }
+
+                    lines.Add(new ChiTietTonKhoDisplayLine
+                    {
+                        TextToDisplay = lineText,
+                        FontSize = fontSize,
+                        FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
+                        FontStyle = isItalic ? FontStyles.Italic : FontStyles.Normal,
+                        ForegroundBrush = brush,
+                        Alignment = isRight ? HorizontalAlignment.Right : HorizontalAlignment.Center
+                    });
                 }
             }
 

@@ -7,7 +7,7 @@
         <Style x:Key="DarkButton" TargetType="Button">
             <Setter Property="Height" Value="42"/>
             <Setter Property="Margin" Value="4"/>
-            <Setter Property="Padding" Value="16,4"/>
+            <Setter Property="Padding" Value="6,2"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="#777777"/>
@@ -408,23 +408,14 @@
             <!-- MIDDLE FORMAT BUTTONS -->
             <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                    <Button x:Name="BtnAlignLeft" Content="CĂN TRÁI" Click="BtnAlignLeft_Click" Style="{StaticResource DarkButton}" Height="34" Width="90" Background="#6C757D"/>
-                    <Button x:Name="BtnAlignRight" Content="CĂN PHẢI" Click="BtnAlignRight_Click" Style="{StaticResource DarkButton}" Height="34" Width="90" Background="#6C757D"/>
+                    <Button x:Name="BtnAlignLeft" Content="CĂN TRÁI" Click="BtnAlignLeft_Click" Style="{StaticResource DarkButton}" Height="36" Width="110" Padding="4,2" Background="#6C757D"/>
+                    <Button x:Name="BtnAlignRight" Content="CĂN PHẢI" Click="BtnAlignRight_Click" Style="{StaticResource DarkButton}" Height="36" Width="110" Padding="4,2" Background="#6C757D"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="BtnBold" Content="ĐẬM" Click="BtnBold_Click" Style="{StaticResource DarkButton}" Height="34" Width="60" Background="#6C757D"/>
-                    <Button x:Name="BtnItalic" Content="NGHIÊNG" Click="BtnItalic_Click" Style="{StaticResource DarkButton}" Height="34" Width="75" Background="#6C757D"/>
-                    <Button x:Name="BtnFontSize" Content="CỠ CHỮ: 14" Click="BtnFontSize_Click" Style="{StaticResource DarkButton}" Height="34" Width="100" Background="#6C757D"/>
-                    <Button x:Name="BtnTextColor" Content="MÀU CHỮ" Click="BtnTextColor_Click" Style="{StaticResource DarkButton}" Height="34" Width="85" Background="#6C757D"/>
-                </StackPanel>
-            </StackPanel>
-
-            <!-- RIGHT SHORT TITLE INPUT -->
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
-                <TextBlock Text="Tiêu đề viết tắt" Foreground="White" FontWeight="Bold" FontSize="12" Margin="0,0,0,4" HorizontalAlignment="Center"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="TxtShortTitle" TextChanged="TxtShortTitle_TextChanged" Width="100" Height="36" FontSize="14" FontWeight="Bold" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                    <Button Content="⌨" Style="{StaticResource DarkButton}" Width="38" Height="36" Margin="4,0,0,0" Background="#18566A" FontSize="16"/>
+                    <Button x:Name="BtnBold" Content="ĐẬM" Click="BtnBold_Click" Style="{StaticResource DarkButton}" Height="36" Width="80" Padding="4,2" Background="#6C757D"/>
+                    <Button x:Name="BtnItalic" Content="NGHIÊNG" Click="BtnItalic_Click" Style="{StaticResource DarkButton}" Height="36" Width="110" Padding="4,2" Background="#6C757D"/>
+                    <Button x:Name="BtnFontSize" Content="CỠ CHỮ: 14" Click="BtnFontSize_Click" Style="{StaticResource DarkButton}" Height="36" Width="130" Padding="4,2" Background="#6C757D"/>
+                    <Button x:Name="BtnTextColor" Content="MÀU CHỮ" Click="BtnTextColor_Click" Style="{StaticResource DarkButton}" Height="36" Width="110" Padding="4,2" Background="#6C757D"/>
                 </StackPanel>
             </StackPanel>
         </Grid>
@@ -438,13 +429,13 @@
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" x:Name="BtnFormatToggle" Content="ĐỊNH DẠNG" Click="BtnFormat_Click" Style="{StaticResource DarkButton}" Background="#C95B16"/>
             <StackPanel x:Name="PanelFormatOptions" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,0,0,0" Visibility="Collapsed">
-                <Button x:Name="BtnColumnCount" Content="SỐ CỘT: 3" Click="BtnColumnCount_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="130"/>
-                <Button x:Name="BtnRowCount" Content="SỐ DÒNG: 8" Click="BtnRowCount_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="140"/>
-                <Button x:Name="BtnCellColor" Content="MÀU Ô" Click="BtnCellColor_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="120"/>
-                <Button x:Name="BtnShowTitle" Content="HIỆN TIÊU ĐỀ" Click="BtnShowTitle_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="150"/>
+                <Button x:Name="BtnColumnCount" Content="SỐ CỘT: 3" Click="BtnColumnCount_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="140" Padding="6,2"/>
+                <Button x:Name="BtnRowCount" Content="SỐ DÒNG: 8" Click="BtnRowCount_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="140" Padding="6,2"/>
+                <Button x:Name="BtnCellColor" Content="MÀU Ô" Click="BtnCellColor_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="120" Padding="6,2"/>
+                <Button x:Name="BtnShowTitle" Content="HIỆN TIÊU ĐỀ: ON" Click="BtnShowTitle_Click" Style="{StaticResource DarkButton}" Background="#5C5C00" Width="175" Padding="6,2"/>
             </StackPanel>
-            <Button Grid.Column="2" Content="CẬP NHẬT" Click="BtnApply_Click" Style="{StaticResource DarkButton}" Background="#126B1A" Width="120"/>
-            <Button Grid.Column="3" Content="THOÁT" Click="BtnCancel_Click" Style="{StaticResource DarkButton}" Background="#A91515" Width="110"/>
+            <Button Grid.Column="2" Content="CẬP NHẬT" Click="BtnApply_Click" Style="{StaticResource DarkButton}" Background="#126B1A" Width="125" Padding="6,2"/>
+            <Button Grid.Column="3" Content="THOÁT" Click="BtnCancel_Click" Style="{StaticResource DarkButton}" Background="#A91515" Width="115" Padding="6,2"/>
         </Grid>
 
         <Border x:Name="NumericPadOverlay" Grid.RowSpan="4" Width="420" Height="530"

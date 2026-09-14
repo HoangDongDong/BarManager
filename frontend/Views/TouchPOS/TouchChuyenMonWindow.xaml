@@ -1,0 +1,156 @@
+<Window x:Class="QuanLyBar.Client.Views.TouchPOS.TouchChuyenMonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CHUYỂN MẶT HÀNG SANG HÓA ĐƠN KHÁC"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#0C3D4B"
+        Loaded="Window_Loaded">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <!-- 1. HEADER BANNER -->
+            <RowDefinition Height="64"/>
+            <!-- 2. CHUYỂN TẤT CẢ BUTTON -->
+            <RowDefinition Height="120"/>
+            <!-- 3. CHUYỂN MỘT PHẦN SỐ LƯỢNG PANEL -->
+            <RowDefinition Height="*"/>
+            <!-- 4. HỦY BỎ BUTTON -->
+            <RowDefinition Height="110"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. HEADER BANNER (Dark Red) -->
+        <Border Grid.Row="0" Background="#800000" CornerRadius="8" Margin="0,0,0,14">
+            <TextBlock x:Name="TxtTitle" Text="CHUYỂN MẶT HÀNG SANG HÓA ĐƠN KHÁC" 
+                       Foreground="White" FontSize="26" FontWeight="Bold" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- 2. CHUYỂN TẤT CẢ BUTTON (Purple/Magenta) -->
+        <Button Grid.Row="1" x:Name="BtnChuyenTatCa" Content="CHUYỂN TẤT CẢ (0)" Margin="0,0,0,14" Cursor="Hand" Click="BtnChuyenTatCa_Click">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="#8E24AA" BorderBrush="#AB47BC" BorderThickness="2" CornerRadius="12">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+            <Button.Foreground>White</Button.Foreground>
+            <Button.FontWeight>Bold</Button.FontWeight>
+            <Button.FontSize>30</Button.FontSize>
+        </Button>
+
+        <!-- 3. CHUYỂN MỘT PHẦN SỐ LƯỢNG PANEL -->
+        <Border Grid.Row="2" Background="#062B34" BorderBrush="#1C5E73" BorderThickness="2" CornerRadius="12" Padding="16" Margin="0,0,0,14">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="CHUYỂN MỘT PHẦN SỐ LƯỢNG" Foreground="White" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+
+                <UniformGrid Grid.Row="1" Columns="2" Rows="3">
+                    <!-- BUTTON 1 -->
+                    <Button x:Name="BtnQty1" Tag="1" Content="1" Margin="8,6" Cursor="Hand" Click="BtnQtyNumber_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Foreground>White</Button.Foreground>
+                        <Button.FontWeight>Bold</Button.FontWeight>
+                        <Button.FontSize>36</Button.FontSize>
+                    </Button>
+
+                    <!-- BUTTON 2 -->
+                    <Button x:Name="BtnQty2" Tag="2" Content="2" Margin="8,6" Cursor="Hand" Click="BtnQtyNumber_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Foreground>White</Button.Foreground>
+                        <Button.FontWeight>Bold</Button.FontWeight>
+                        <Button.FontSize>36</Button.FontSize>
+                    </Button>
+
+                    <!-- BUTTON 3 -->
+                    <Button x:Name="BtnQty3" Tag="3" Content="3" Margin="8,6" Cursor="Hand" Click="BtnQtyNumber_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Foreground>White</Button.Foreground>
+                        <Button.FontWeight>Bold</Button.FontWeight>
+                        <Button.FontSize>36</Button.FontSize>
+                    </Button>
+
+                    <!-- BUTTON 4 -->
+                    <Button x:Name="BtnQty4" Tag="4" Content="4" Margin="8,6" Cursor="Hand" Click="BtnQtyNumber_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Foreground>White</Button.Foreground>
+                        <Button.FontWeight>Bold</Button.FontWeight>
+                        <Button.FontSize>36</Button.FontSize>
+                    </Button>
+
+                    <!-- BUTTON 5 -->
+                    <Button x:Name="BtnQty5" Tag="5" Content="5" Margin="8,6" Cursor="Hand" Click="BtnQtyNumber_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Foreground>White</Button.Foreground>
+                        <Button.FontWeight>Bold</Button.FontWeight>
+                        <Button.FontSize>36</Button.FontSize>
+                    </Button>
+
+                    <!-- BUTTON SỐ LƯỢNG KHÁC -->
+                    <Button x:Name="BtnQtyKhac" Content="SỐ LƯỢNG KHÁC" Margin="8,6" Cursor="Hand" Click="BtnQtyKhac_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Foreground>White</Button.Foreground>
+                        <Button.FontWeight>Bold</Button.FontWeight>
+                        <Button.FontSize>26</Button.FontSize>
+                    </Button>
+                </UniformGrid>
+            </Grid>
+        </Border>
+
+        <!-- 4. HỦY BỎ BUTTON (Red) -->
+        <Button Grid.Row="3" Content="HỦY BỎ" Cursor="Hand" Click="BtnHuyBo_Click">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="#CC0000" BorderBrush="#FF1A1A" BorderThickness="2" CornerRadius="12">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+            <Button.Foreground>White</Button.Foreground>
+            <Button.FontWeight>Bold</Button.FontWeight>
+            <Button.FontSize>28</Button.FontSize>
+        </Button>
+    </Grid>
+</Window>

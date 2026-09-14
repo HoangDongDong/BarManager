@@ -61,20 +61,36 @@
                         <DataTemplate>
                             <Border Height="{Binding MatHangTileHeight, RelativeSource={RelativeSource AncestorType=Window}}" 
                                     Margin="3" Padding="8,4" CornerRadius="6" 
-                                    Background="#0D4B5B" BorderBrush="#26A69A" BorderThickness="1" 
+                                    Background="{Binding TileColorBrush, FallbackValue='#0D4B5B'}" BorderBrush="#26A69A" BorderThickness="1" 
                                     Cursor="Hand" MouseLeftButtonDown="MatHangTile_MouseLeftButtonDown">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- ITEM NAME -->
-                                    <TextBlock Grid.Column="0" Text="{Binding TenMatHang}" Foreground="White" FontSize="13" FontWeight="Bold" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,6,0"/>
-
-                                    <!-- PRICE -->
-                                    <TextBlock Grid.Column="1" Text="{Binding GiaBanFormatted}" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                                </Grid>
+                                <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                     <ItemsControl.ItemTemplate>
+                                         <DataTemplate>
+                                             <Grid HorizontalAlignment="Stretch">
+                                                 <Grid.ColumnDefinitions>
+                                                     <ColumnDefinition Width="*"/>
+                                                     <ColumnDefinition Width="Auto"/>
+                                                 </Grid.ColumnDefinitions>
+                                                 <TextBlock Grid.Column="0" Text="{Binding Text}" 
+                                                            HorizontalAlignment="{Binding Alignment}" 
+                                                            FontSize="{Binding FontSize}" 
+                                                            FontWeight="{Binding FontWeight}" 
+                                                            FontStyle="{Binding FontStyle}" 
+                                                            Foreground="{Binding ForegroundBrush}" 
+                                                            TextWrapping="Wrap"/>
+                                                 <TextBlock Grid.Column="1" Text="{Binding RightText}" 
+                                                            HorizontalAlignment="Right" 
+                                                            FontSize="{Binding RightFontSize}" 
+                                                            FontWeight="{Binding RightFontWeight}" 
+                                                            FontStyle="{Binding RightFontStyle}" 
+                                                            Foreground="{Binding RightForegroundBrush}" 
+                                                            Visibility="{Binding RightVisibility}" 
+                                                            Margin="4,0,0,0" 
+                                                            TextWrapping="Wrap"/>
+                                             </Grid>
+                                         </DataTemplate>
+                                     </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

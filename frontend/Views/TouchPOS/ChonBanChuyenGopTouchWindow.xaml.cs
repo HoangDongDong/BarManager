@@ -18,6 +18,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public bool IsOccupied => Data.IsOpened || !string.IsNullOrEmpty(Data.ActiveOrderId);
         public string MABAN => Data.MABAN;
         public string MAKHUVUC => Data.MAKHUVUC;
+        public bool IsMoveItemMode { get; set; }
 
         private bool _isSelected;
         public bool IsSelected
@@ -32,7 +33,18 @@ namespace QuanLyBar.Client.Views.TouchPOS
         }
 
         public string BorderColor => IsSelected ? "#FFEB3B" : "#1976D2";
-        public string CardBackground => IsOccupied ? "#D32F2F" : "#757575";
+        public string CardBackground
+        {
+            get
+            {
+                if (IsMoveItemMode)
+                {
+                    // Màu xanh lá (#1E7333) khi bàn đang có hóa đơn (khả dụng), màu xám (#757575) khi chưa có hóa đơn
+                    return IsOccupied ? "#1E7333" : "#757575";
+                }
+                return IsOccupied ? "#D32F2F" : "#1B5E20";
+            }
+        }
 
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged(string propName) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propName));
@@ -43,18 +55,20 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public DBAN? SelectedTargetBan { get; private set; }
         private readonly DBAN _sourceBan;
         private readonly bool _isMergeMode;
+        private readonly bool _isMoveItemMode;
 
         private List<TouchBanItemVM> _allBanVM = new();
         private List<DKHUVUC> _khuVucList = new();
         private string? _selectedKhuVucId = null;
 
-        public ChonBanChuyenGopTouchWindow(DBAN sourceBan, bool isMergeMode = false)
+        public ChonBanChuyenGopTouchWindow(DBAN sourceBan, bool isMergeMode = false, bool isMoveItemMode = false)
         {
             InitializeComponent();
             _sourceBan = sourceBan;
             _isMergeMode = isMergeMode;
+            _isMoveItemMode = isMoveItemMode;
 
-            string actionName = _isMergeMode ? "GỘP BÀN" : "CHUYỂN BÀN";
+            string actionName = _isMoveItemMode ? "CHUYỂN MÓN" : (_isMergeMode ? "GỘP BÀN" : "CHUYỂN BÀN");
             TxtHeaderTitle.Text = $"{actionName} từ [{_sourceBan.Name}]";
         }
 
@@ -187,9 +201,14 @@ namespace QuanLyBar.Client.Views.TouchPOS
                             IsOpened = b.IsOccupied
                         };
 
-                        // For Move mode: destination must be EMPTY
-                        // For Merge mode: destination must be OCCUPIED/OPENED
-                        if (_isMergeMode)
+                        // For Move Item mode: destination can be ANY table except source
+                        // For Move Table mode: destination must be EMPTY
+                        // For Merge Table mode: destination must be OCCUPIED/OPENED
+                        if (_isMoveItemMode)
+                        {
+                            // Include all tables
+                        }
+                        else if (_isMergeMode)
                         {
                             if (!model.IsOpened) continue;
                         }
@@ -198,7 +217,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
                             if (model.IsOpened) continue;
                         }
 
-                        _allBanVM.Add(new TouchBanItemVM { Data = model });
+                        _allBanVM.Add(new TouchBanItemVM { Data = model, IsMoveItemMode = _isMoveItemMode });
                     }
                 }
 
@@ -255,7 +274,15 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 return;
             }
 
-            string actionText = _isMergeMode ? "GỘP" : "CHUYỂN";
+            if (_isMoveItemMode && (!SelectedTargetBan.IsOpened || string.IsNullOrEmpty(SelectedTargetBan.ActiveOrderId)))
+            {
+                QuanLyBar.Views.TouchPOS.TouchConfirmWindow.ShowAlert(this, "MỜI BẠN CHỌN BÀN ĐANG CÓ HÓA ĐƠN ĐỂ CHUYỂN", "CẢNH BÁO");
+                SelectedTargetBan = null;
+                foreach (var vm in _allBanVM) vm.IsSelected = false;
+                return;
+            }
+
+            string actionText = _isMoveItemMode ? "CHUYỂN MÓN TỪ" : (_isMergeMode ? "GỘP" : "CHUYỂN");
             string msg = $"BẠN CÓ CHẮC CHẮN MUỐN {actionText} BÀN '{_sourceBan.Name.ToUpper()}' SANG BÀN '{SelectedTargetBan.Name.ToUpper()}' KHÔNG?";
             if (QuanLyBar.Views.TouchPOS.TouchConfirmWindow.Show(this, msg, "XÁC NHẬN"))
             {

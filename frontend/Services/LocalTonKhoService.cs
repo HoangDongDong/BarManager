@@ -47,6 +47,7 @@ namespace QuanLyBar.Client.Services
         public string DnhommathangId { get; set; } = "";
         public string DdonvitinhId { get; set; } = "";
         public string TenDonViTinh { get; set; } = "";
+        public byte[]? Anh { get; set; }
 
         private decimal _ton;
         public decimal Ton
@@ -208,7 +209,8 @@ namespace QuanLyBar.Client.Services
                             COALESCE(m.GIABAN, 0) as GiaBan,
                             COALESCE(m.GIAVON, m.GIANHAP, 0) as GiaVon,
                             COALESCE(m.QUYDOI, 1) as QuyDoi,
-                            m.NOTE as GhiChu
+                            m.NOTE as GhiChu,
+                            m.ANH as Anh
                         FROM DMATHANG m
                         LEFT JOIN DDONVITINH d ON CAST(m.DDONVITINHID AS VARCHAR(50)) = CAST(d.ID AS VARCHAR(50))
                         WHERE (m.STATUS IS NULL OR m.STATUS <> 0)

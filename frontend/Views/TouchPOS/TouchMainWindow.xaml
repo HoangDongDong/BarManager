@@ -435,40 +435,40 @@
         <!-- MAIN MENU SCREEN (GIAO DIỆN CHÍNH MÁY POS THEO 5 ẢNH MẪU THAM KHẢO) -->
         <Grid x:Name="GridTouchMenu" Visibility="Collapsed" Background="#002533">
             <Grid.RowDefinitions>
-                <RowDefinition Height="38"/>
+                <RowDefinition Height="46"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="28"/>
+                <RowDefinition Height="36"/>
             </Grid.RowDefinitions>
             <!-- 1. HEADER THANH TIÊU ĐỀ TRÊN CÙNG -->
             <Border Grid.Row="0" Background="#1B4D5C" BorderBrush="#2C6B7C" BorderThickness="0,0,0,1.5">
                 <TextBlock x:Name="TxtMenuHeaderTitle" Text="PHẦN MỀM QUẢN LÝ BAR, NHÀ HÀNG V6.0 TÂN AN PHÁT - HOTLINE: 0967041111" 
-                           Foreground="White" FontWeight="Bold" FontSize="13"
+                           Foreground="White" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <!-- 2. NỘI DUNG CHÍNH (3 CỘT NÚT THAO TÁC) -->
-            <Grid Grid.Row="1" Margin="4">
+            <Grid Grid.Row="1" Margin="8">
                 <Grid.ColumnDefinitions>
                     <!-- Cột 1: Danh mục chính (HỆ THỐNG, QUẢN TRỊ, BÁO CÁO, TRỢ GIÚP) -->
-                    <ColumnDefinition Width="220"/>
-                    <ColumnDefinition Width="4"/>
+                    <ColumnDefinition Width="360"/>
+                    <ColumnDefinition Width="8"/>
                     <!-- Cột 2: Các nút tính năng con của danh mục đang chọn -->
-                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="450"/>
                     <ColumnDefinition Width="*"/>
                     <!-- Cột 3: Nút chức năng trực tiếp bên phải (SỬ DỤNG DỊCH VỤ, TỒN KHO, GHI CHÚ, ĐĂNG XUẤT) -->
-                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="360"/>
                 </Grid.ColumnDefinitions>
                 <!-- STYLE NÚT CHỨC NĂNG CHUẨN MẪU -->
                 <Grid.Resources>
                     <Style x:Key="PosMainCategoryBtn" TargetType="Button">
-                        <Setter Property="Margin" Value="4,3"/>
+                        <Setter Property="Margin" Value="6,8"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="FontSize" Value="24"/>
                         <Setter Property="Cursor" Value="Hand"/>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="10">
                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                 </ControlTemplate>
@@ -476,15 +476,15 @@
                         </Setter>
                     </Style>
                     <Style x:Key="PosSubFunctionBtn" TargetType="Button">
-                        <Setter Property="Margin" Value="4,3"/>
+                        <Setter Property="Margin" Value="6,6"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="FontSize" Value="12"/>
+                        <Setter Property="FontSize" Value="18"/>
                         <Setter Property="Cursor" Value="Hand"/>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="Button">
-                                    <Border Background="#009688" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6">
+                                    <Border Background="#009688" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="10">
                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                 </ControlTemplate>
@@ -492,15 +492,16 @@
                         </Setter>
                     </Style>
                     <Style x:Key="PosRightDirectBtn" TargetType="Button">
-                        <Setter Property="Margin" Value="4,3"/>
+                        <Setter Property="Margin" Value="6,8"/>
+                        <Setter Property="Background" Value="#009688"/>
                         <Setter Property="Foreground" Value="White"/>
                         <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="FontSize" Value="24"/>
                         <Setter Property="Cursor" Value="Hand"/>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="Button">
-                                    <Border Background="#009688" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="6">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="10">
                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                 </ControlTemplate>
@@ -508,14 +509,10 @@
                         </Setter>
                     </Style>
                 </Grid.Resources>
-                <!-- CỘT 1: CONTAINER XÁM XANH BÊN TRÁI PHỦ 100% CHIỀU CAO, 4 NÚT CHIẾM 50% CHIỀU CAO (4 HÀNG TRÊN 8 HÀNG) -->
-                <Border Grid.Column="0" Background="#7293A9" CornerRadius="4" Padding="2">
+                <!-- CỘT 1: CONTAINER XÁM XANH BÊN TRÁI PHỦ 100% CHIỀU CAO (4 HÀNG PHỦ 100%) -->
+                <Border Grid.Column="0" Background="#7293A9" CornerRadius="8" Padding="6">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
@@ -529,13 +526,9 @@
                 </Border>
                 <!-- CỘT 2: CÁC NÚT CON TƯƠNG ỨNG KHI CHỌN DANH MỤC -->
                 <!-- 2.1 HỆ THỐNG -->
-                <Border x:Name="PanelCenterHeThong" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelCenterHeThong" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
@@ -548,13 +541,9 @@
                     </Grid>
                 </Border>
                 <!-- 2.1.1 SUB-MENU CƠ SỞ DỮ LIỆU -->
-                <Border x:Name="PanelCenterCoSoDuLieu" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelCenterCoSoDuLieu" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
@@ -567,13 +556,9 @@
                     </Grid>
                 </Border>
                 <!-- 2.2 QUẢN TRỊ -->
-                <Border x:Name="PanelCenterQuanTri" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelCenterQuanTri" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
@@ -586,7 +571,7 @@
                     </Grid>
                 </Border>
                 <!-- 2.3 BÁO CÁO MAIN MENU -->
-                <Border x:Name="PanelCenterBaoCao" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelCenterBaoCao" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
@@ -609,280 +594,276 @@
                     </Grid>
                 </Border>
                 <!-- 2.3.1 SUB BÁO CÁO QUỸ -->
-                <Border x:Name="PanelSubBaoCaoQuy" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoQuy" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="DANH SÁCH PHIẾU THU THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU THU THEO NGÀY"/>
-                            <Button Content="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI"/>
-                            <Button Content="DANH SÁCH PHIẾU CHI THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHI THEO NGÀY"/>
-                            <Button Content="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI"/>
-                            <Button Content="TỔNG HỢP THU CHI THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP THU CHI THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP THU CHI THEO LÝ DO" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP THU CHI THEO LÝ DO"/>
-                            <Button Content="BÁO CÁO TỒN QUỸ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỒN QUỸ"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="DANH SÁCH PHIẾU THU THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU THU THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU THU THEO LÝ DO THU CHI"/>
+                            <Button Content="DANH SÁCH PHIẾU CHI THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHI THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHI THEO LÝ DO THU CHI"/>
+                            <Button Content="TỔNG HỢP THU CHI THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP THU CHI THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP THU CHI THEO LÝ DO" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP THU CHI THEO LÝ DO"/>
+                            <Button Content="BÁO CÁO TỒN QUỸ" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỒN QUỸ"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.2 SUB BÁO CÁO DANH MỤC -->
-                <Border x:Name="PanelSubBaoCaoDanhMuc" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoDanhMuc" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="DANH SÁCH KHÁCH HÀNG THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH KHÁCH HÀNG THEO NHÓM"/>
-                            <Button Content="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN"/>
-                            <Button Content="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM"/>
-                            <Button Content="DANH SÁCH ĐỢT KHUYẾN MẠI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐỢT KHUYẾN MẠI"/>
-                            <Button Content="DANH SÁCH MẶT HÀNG THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH MẶT HÀNG THEO NHÓM"/>
-                            <Button Content="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT"/>
-                            <Button Content="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT"/>
-                            <Button Content="BÁO CÁO CẤU HÌNH BÀN KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CẤU HÌNH BÀN KHU VỰC"/>
-                            <Button Content="CÔNG THỨC ĐỊNH LƯỢNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="CÔNG THỨC ĐỊNH LƯỢNG"/>
-                            <Button Content="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="DANH SÁCH KHÁCH HÀNG THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH KHÁCH HÀNG THEO NHÓM"/>
+                            <Button Content="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH KHÁCH HÀNG THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH NHÀ CUNG CẤP THEO NHÓM"/>
+                            <Button Content="DANH SÁCH ĐỢT KHUYẾN MẠI" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐỢT KHUYẾN MẠI"/>
+                            <Button Content="DANH SÁCH MẶT HÀNG THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH MẶT HÀNG THEO NHÓM"/>
+                            <Button Content="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH MẶT HÀNG THEO HÃNG SẢN XUẤT"/>
+                            <Button Content="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="KHÁCH HÀNG ĐẾN NGÀY SINH NHẬT"/>
+                            <Button Content="BÁO CÁO CẤU HÌNH BÀN KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO CẤU HÌNH BÀN KHU VỰC"/>
+                            <Button Content="CÔNG THỨC ĐỊNH LƯỢNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="CÔNG THỨC ĐỊNH LƯỢNG"/>
+                            <Button Content="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT PHÂN QUYỀN HỆ THỐNG"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.3 SUB BÁO CÁO BÁN HÀNG (CẤP 2) -->
-                <Border x:Name="PanelSubBaoCaoBanHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoBanHang" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="TỔNG HỢP BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY"/>
-                            <Button Content="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP DOANH THU THEO LOẠI ĐỒ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP DOANH THU THEO LOẠI ĐỒ"/>
-                            <Button Content="TỔNG HỢP DOANH THU CHƯA THANH TOÁN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP DOANH THU CHƯA THANH TOÁN"/>
-                            <Button Content="BÁO CÁO BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO NGÀY"/>
-                            <Button Content="THEO NHÂN VIÊN PHỤC VỤ..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoNhanVienPhucVu"/>
-                            <Button Content="THEO KHU VỰC..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoKhuVuc"/>
-                            <Button Content="THEO THU NGÂN..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoThuNgan"/>
-                            <Button Content="THEO KHÁCH HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoKhachHang"/>
-                            <Button Content="BÁO CÁO BÁN HÀNG KHÁC..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoBanHangKhac"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO NGÀY"/>
+                            <Button Content="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT BÁN HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP DOANH THU THEO LOẠI ĐỒ" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP DOANH THU THEO LOẠI ĐỒ"/>
+                            <Button Content="TỔNG HỢP DOANH THU CHƯA THANH TOÁN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP DOANH THU CHƯA THANH TOÁN"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO NGÀY"/>
+                            <Button Content="THEO NHÂN VIÊN PHỤC VỤ..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoNhanVienPhucVu"/>
+                            <Button Content="THEO KHU VỰC..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoKhuVuc"/>
+                            <Button Content="THEO THU NGÂN..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoThuNgan"/>
+                            <Button Content="THEO KHÁCH HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoKhachHang"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG KHÁC..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoBanHangKhac"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.3.1 CẤP 3: THEO NHÂN VIÊN PHỤC VỤ -->
-                <Border x:Name="PanelSubBaoCaoTheoNhanVienPhucVu" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoTheoNhanVienPhucVu" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
-                            <Button Content="TỔNG HỢP BÁN THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO NHÂN VIÊN"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN"/>
-                            <Button Content="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP BÁN THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO NHÂN VIÊN"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO NHÂN VIÊN"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.3.2 CẤP 3: THEO KHU VỰC -->
-                <Border x:Name="PanelSubBaoCaoTheoKhuVuc" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoTheoKhuVuc" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
-                            <Button Content="TỔNG HỢP BÁN HÀNG THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO KHU VỰC"/>
-                            <Button Content="TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG"/>
-                            <Button Content="DANH SÁCH HÓA ĐƠN THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO KHU VỰC"/>
-                            <Button Content="DANH SÁCH HÓA ĐƠN THEO BÀN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO BÀN"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO BÀN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO BÀN"/>
-                            <Button Content="TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ"/>
-                            <Button Content="DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO KHU VỰC"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO BÀN PHÒNG"/>
+                            <Button Content="DANH SÁCH HÓA ĐƠN THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO KHU VỰC"/>
+                            <Button Content="DANH SÁCH HÓA ĐƠN THEO BÀN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO BÀN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO KHU VỰC"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO BÀN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO BÀN"/>
+                            <Button Content="TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN HÀNG THEO NHÓM HIỂN THỊ"/>
+                            <Button Content="DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH HÓA ĐƠN THEO NHÓM HIỂN THỊ"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG THEO NHÓM HIỂN THỊ"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.3.3 CẤP 3: THEO THU NGÂN -->
-                <Border x:Name="PanelSubBaoCaoTheoThuNgan" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoTheoThuNgan" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
-                            <Button Content="TỔNG HỢP BÁN THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO THU NGÂN"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN"/>
-                            <Button Content="BÁO CÁO BÁN HÀNG THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO THU NGÂN"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP BÁN THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO THU NGÂN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO THU NGÂN"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO THU NGÂN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO THU NGÂN"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.3.4 CẤP 3: THEO KHÁCH HÀNG -->
-                <Border x:Name="PanelSubBaoCaoTheoKhachHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoTheoKhachHang" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG"/>
-                            <Button Content="TỔNG HỢP BÁN THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO KHÁCH HÀNG"/>
-                            <Button Content="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG BÁN THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP BÁN THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP BÁN THEO KHÁCH HÀNG"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO KHÁCH HÀNG"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.3.5 CẤP 3: BÁO CÁO BÁN HÀNG KHÁC -->
-                <Border x:Name="PanelSubBaoCaoBanHangKhac" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoBanHangKhac" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoBanHang_Click"/>
-                            <Button Content="TỔNG HỢP HOA HỒNG THEO NVKD" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP HOA HỒNG THEO NVKD"/>
-                            <Button Content="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN"/>
-                            <Button Content="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI"/>
-                            <Button Content="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG"/>
-                            <Button Content="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoBanHang_Click"/>
+                            <Button Content="TỔNG HỢP HOA HỒNG THEO NVKD" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP HOA HỒNG THEO NVKD"/>
+                            <Button Content="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="CHI TIẾT BÁN HÀNG THEO HÓA ĐƠN"/>
+                            <Button Content="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO CHI TIẾT HÀNG KHUYẾN MẠI"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP GIÁ TRỊ BÁN THEO THÁNG"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP SỐ LƯỢNG BÁN THEO THÁNG"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.4 SUB BÁO CÁO ĐẶT HÀNG -->
-                <Border x:Name="PanelSubBaoCaoDatHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoDatHang" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="DANH SÁCH ĐẶT HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐẶT HÀNG THEO NGÀY"/>
-                            <Button Content="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG"/>
-                            <Button Content="TỔNG HỢP ĐẶT HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP ĐẶT HÀNG THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="DANH SÁCH ĐẶT HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐẶT HÀNG THEO NGÀY"/>
+                            <Button Content="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH ĐẶT HÀNG THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP ĐẶT HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP ĐẶT HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP ĐẶT HÀNG THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG ĐẶT THEO KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG ĐẶT THEO NGÀY"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.5 SUB BÁO CÁO KHO HÀNG (CẤP 2) -->
-                <Border x:Name="PanelSubBaoCaoKhoHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoKhoHang" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="BÁO CÁO XUẤT BÁN HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoXuatBanHang"/>
-                            <Button Content="BÁO CÁO KIỂM KÊ..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoKiemKe"/>
-                            <Button Content="BÁO CÁO XUẤT KHÁC..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoXuatKhac"/>
-                            <Button Content="BÁO CÁO NHẬP HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoNhapHang"/>
-                            <Button Content="BÁO CÁO CHUYỂN KHO..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoChuyenKho"/>
-                            <Button Content="BÁO CÁO THEO HSD..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoHSD"/>
-                            <Button Content="BÁO CÁO HÀNG TỒN KHO" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG TỒN KHO"/>
-                            <Button Content="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN"/>
-                            <Button Content="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT"/>
-                            <Button Content="THẺ KHO" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="THẺ KHO"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BÁO CÁO XUẤT BÁN HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoXuatBanHang"/>
+                            <Button Content="BÁO CÁO KIỂM KÊ..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoKiemKe"/>
+                            <Button Content="BÁO CÁO XUẤT KHÁC..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoXuatKhac"/>
+                            <Button Content="BÁO CÁO NHẬP HÀNG..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoNhapHang"/>
+                            <Button Content="BÁO CÁO CHUYỂN KHO..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoChuyenKho"/>
+                            <Button Content="BÁO CÁO THEO HSD..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnSubReportGroup_Click" Tag="BaoCaoTheoHSD"/>
+                            <Button Content="BÁO CÁO HÀNG TỒN KHO" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG TỒN KHO"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN"/>
+                            <Button Content="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO TỔNG HỢP XUẤT NHẬP TỒN CHI TIẾT"/>
+                            <Button Content="THẺ KHO" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="THẺ KHO"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.5.1 CẤP 3: BÁO CÁO XUẤT BÁN HÀNG -->
-                <Border x:Name="PanelSubBaoCaoXuatBanHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoXuatBanHang" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY"/>
-                            <Button Content="BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG"/>
-                            <Button Content="BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT BÁN THEO NGÀY"/>
+                            <Button Content="BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO MẶT HÀNG BÁN THEO ĐƠN HÀNG"/>
+                            <Button Content="BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO XUẤT ĐỊNH LƯỢNG MẶT HÀNG THEO ĐƠN HÀNG"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.5.2 CẤP 3: BÁO CÁO KIỂM KÊ -->
-                <Border x:Name="PanelSubBaoCaoKiemKe" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoKiemKe" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
-                            <Button Content="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN"/>
-                            <Button Content="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU KIỂM KÊ THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG KIỂM KÊ THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU KIỂM KÊ THEO NHÂN VIÊN"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.5.3 CẤP 3: BÁO CÁO XUẤT KHÁC -->
-                <Border x:Name="PanelSubBaoCaoXuatKhac" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoXuatKhac" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN"/>
-                            <Button Content="DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN"/>
-                            <Button Content="TỔNG HỢP XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP XUẤT KHÁC THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN"/>
-                            <Button Content="DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG XUẤT KHÁC THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU XUẤT KHÁC THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP XUẤT KHÁC THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP XUẤT KHÁC THEO NHÂN VIÊN"/>
+                            <Button Content="DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU XUẤT KHÁC THEO NGÀY"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.5.4 CẤP 3: BÁO CÁO NHẬP HÀNG -->
-                <Border x:Name="PanelSubBaoCaoNhapHang" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoNhapHang" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
-                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY"/>
-                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP"/>
-                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN"/>
-                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NGÀY"/>
-                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP"/>
-                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÀ CUNG CẤP"/>
+                            <Button Content="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU NHẬP HÀNG THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÀ CUNG CẤP"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NGÀY"/>
+                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NHÀ CUNG CẤP"/>
+                            <Button Content="TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP NHẬP HÀNG THEO NHÂN VIÊN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG NHẬP THEO NGÀY"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.5.5 CẤP 3: BÁO CÁO CHUYỂN KHO -->
-                <Border x:Name="PanelSubBaoCaoChuyenKho" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoChuyenKho" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN"/>
-                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY"/>
-                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT"/>
-                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP"/>
-                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN NHẬN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NHÂN VIÊN CHUYỂN"/>
+                            <Button Content="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP MẶT HÀNG CHUYỂN KHO THEO NGÀY"/>
+                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN XUẤT"/>
+                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NHÂN VIÊN NHẬP"/>
+                            <Button Content="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH PHIẾU CHUYỂN KHO THEO NGÀY"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.5.6 CẤP 3: BÁO CÁO THEO HSD -->
-                <Border x:Name="PanelSubBaoCaoTheoHSD" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoTheoHSD" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoKhoHang_Click"/>
-                            <Button Content="BÁO CÁO HÀNG HÓA THEO HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG HÓA THEO HẠN DÙNG"/>
-                            <Button Content="BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG"/>
-                            <Button Content="BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoKhoHang_Click"/>
+                            <Button Content="BÁO CÁO HÀNG HÓA THEO HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG HÓA THEO HẠN DÙNG"/>
+                            <Button Content="BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG HÓA ĐÃ HẾT HẠN DÙNG"/>
+                            <Button Content="BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO HÀNG TỒN KHO CÓ HẠN DÙNG"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.6 SUB BÁO CÁO CÔNG NỢ -->
-                <Border x:Name="PanelSubBaoCaoCongNo" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoCongNo" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="BÁO CÁO CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CÔNG NỢ KHÁCH HÀNG"/>
-                            <Button Content="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG"/>
-                            <Button Content="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG"/>
-                            <Button Content="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP"/>
-                            <Button Content="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP"/>
-                            <Button Content="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BÁO CÁO CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO CÔNG NỢ KHÁCH HÀNG"/>
+                            <Button Content="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP CÔNG NỢ KHÁCH HÀNG"/>
+                            <Button Content="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="ĐỐI CHIẾU CÔNG NỢ KHÁCH HÀNG"/>
+                            <Button Content="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO CÔNG NỢ NHÀ CUNG CẤP"/>
+                            <Button Content="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP CÔNG NỢ NHÀ CUNG CẤP"/>
+                            <Button Content="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="ĐỐI CHIẾU CÔNG NỢ NHÀ CUNG CẤP"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.7 SUB BÁO CÁO QUẢN TRỊ -->
-                <Border x:Name="PanelSubBaoCaoQuanTri" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoQuanTri" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="BÁO CÁO KẾT QUẢ KINH DOANH" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO KẾT QUẢ KINH DOANH"/>
-                            <Button Content="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)"/>
-                            <Button Content="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)"/>
-                            <Button Content="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)"/>
-                            <Button Content="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT"/>
-                            <Button Content="BÁO CÁO BÁN HÀNG THEO GIỜ" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO GIỜ"/>
-                            <Button Content="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BÁO CÁO KẾT QUẢ KINH DOANH" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO KẾT QUẢ KINH DOANH"/>
+                            <Button Content="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ VỐN)"/>
+                            <Button Content="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="TỔNG HỢP LÃI GỘP THEO MẶT HÀNG (GIÁ NHẬP)"/>
+                            <Button Content="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="CHI TIẾT LÃI THEO HÓA ĐƠN (GIÁ VỐN)"/>
+                            <Button Content="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO 20 MẶT HÀNG BÁN CHẠY NHẤT"/>
+                            <Button Content="BÁO CÁO BÁN HÀNG THEO GIỜ" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BÁO CÁO BÁN HÀNG THEO GIỜ"/>
+                            <Button Content="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="DANH SÁCH MÓN XÓA, GIẢM, TRẢ LẠI"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.3.8 SUB BÁO CÁO BIỂU ĐỒ -->
-                <Border x:Name="PanelSubBaoCaoBieuDo" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelSubBaoCaoBieuDo" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnBackBaoCaoMain_Click"/>
-                            <Button Content="BIỂU ĐỒ DOANH SỐ THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH SỐ THEO NHÓM"/>
-                            <Button Content="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG"/>
-                            <Button Content="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM"/>
-                            <Button Content="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH" Style="{StaticResource PosSubFunctionBtn}" Height="36" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH"/>
+                            <Button Content="..." Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnBackBaoCaoMain_Click"/>
+                            <Button Content="BIỂU ĐỒ DOANH SỐ THEO NHÓM" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH SỐ THEO NHÓM"/>
+                            <Button Content="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH THU NGÀY TRONG THÁNG"/>
+                            <Button Content="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ DOANH THU THÁNG TRONG NĂM"/>
+                            <Button Content="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH" Style="{StaticResource PosSubFunctionBtn}" Height="48" Click="BtnOpenReport_Click" Tag="BIỂU ĐỒ THEO NHÂN VIÊN KINH DOANH"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <!-- 2.4 TRỢ GIÚP -->
-                <Border x:Name="PanelCenterTroGiup" Grid.Column="2" Background="#7293A9" CornerRadius="4" Padding="2" Visibility="Collapsed">
+                <Border x:Name="PanelCenterTroGiup" Grid.Column="2" Background="#7293A9" CornerRadius="8" Padding="6" Visibility="Collapsed">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
@@ -891,26 +872,21 @@
                         <Button Grid.Row="0" Content="HƯỚNG DẪN SỬ DỤNG" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuHuongDanSuDung_Click"/>
                         <Button Grid.Row="1" Content="HỖ TRỢ TỪ XA TEAMVIEWER" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuHoTroTeamViewer_Click"/>
                         <Button Grid.Row="2" Content="ĐĂNG KÝ BẢN QUYỀN..." Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuDangKyBanQuyen_Click"/>
-                        <Button Grid.Row="3" Content="THÔNG TIN PHẦN MỀM" Style="{StaticResource PosSubFunctionBtn}" Click="BtnMenuThongTinPhanMem_Click"/>
                     </Grid>
                 </Border>
-                <!-- CỘT 3: CONTAINER XÁM XANH BÊN PHẢI PHỦ 100% CHIỀU CAO, 4 NÚT CHIẾM 50% CHIỀU CAO -->
-                <Border Grid.Column="4" Background="#7293A9" CornerRadius="4" Padding="2">
+                <!-- CỘT 3: CONTAINER XÁM XANH BÊN PHẢI PHỦ 100% CHIỀU CAO (4 HÀNG PHỦ 100%) -->
+                <Border Grid.Column="4" Background="#7293A9" CornerRadius="8" Padding="6">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Button Grid.Row="0" x:Name="BtnMenuSuDungDichVu" Content="SỬ DỤNG DỊCH VỤ" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuSuDungDichVu_Click"/>
-                        <Button Grid.Row="1" x:Name="BtnMenuTonKho" Content="TỒN KHO" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuTonKho_Click"/>
-                        <Button Grid.Row="2" x:Name="BtnMenuGhiChu" Content="GHI CHÚ" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuGhiChu_Click"/>
-                        <Button Grid.Row="3" x:Name="BtnMenuDangXuat" Content="ĐĂNG XUẤT" Style="{StaticResource PosRightDirectBtn}" Click="BtnMenuDangXuat_Click"/>
+                        <Button Grid.Row="0" x:Name="BtnMenuSuDungDichVu" Content="SỬ DỤNG DỊCH VỤ" Style="{StaticResource PosRightDirectBtn}" Background="#009688" Click="BtnMenuSuDungDichVu_Click"/>
+                        <Button Grid.Row="1" x:Name="BtnMenuTonKho" Content="TỒN KHO" Style="{StaticResource PosRightDirectBtn}" Background="#009688" Click="BtnMenuTonKho_Click"/>
+                        <Button Grid.Row="2" x:Name="BtnMenuGhiChu" Content="GHI CHÚ" Style="{StaticResource PosRightDirectBtn}" Background="#009688" Click="BtnMenuGhiChu_Click"/>
+                        <Button Grid.Row="3" x:Name="BtnMenuDangXuat" Content="ĐĂNG XUẤT" Style="{StaticResource PosRightDirectBtn}" Background="#009688" Click="BtnMenuDangXuat_Click"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -969,33 +945,44 @@
                                         </Style>
                                     </Border.Style>
                                     <Grid>
-                                        <!-- LAYOUT KHI BÀN CÓ ẢNH -->
-                                        <Grid Visibility="{Binding HasImageVisibility}">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-                                            <!-- ẢNH BÀN BÊN TRÊN (TỰ ĐỘNG PHỦ RỘNG & THÍCH ỨNG TỶ LỆ) -->
-                                            <Border Grid.Row="0" Margin="0" CornerRadius="4,4,0,0" ClipToBounds="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                                <Image Source="{Binding AnhSource}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <!-- THUỘC TÍNH BÀN Ở DƯỚI -->
-                                            <Border Grid.Row="1" Background="#90000000" CornerRadius="0,0,4,4" Padding="4,2">
-                                                <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock Text="{Binding Text}" 
-                                                                       HorizontalAlignment="{Binding Alignment}" 
-                                                                       FontSize="{Binding FontSize}" 
-                                                                       FontWeight="{Binding FontWeight}" 
-                                                                       FontStyle="{Binding FontStyle}" 
-                                                                       Foreground="{Binding ForegroundBrush}" 
-                                                                       TextWrapping="Wrap"/>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </Border>
-                                        </Grid>
+                                         <!-- LAYOUT KHI BÀN CÓ ẢNH -->
+                                         <Grid Visibility="{Binding HasImageVisibility}">
+                                             <!-- ẢNH BÀN PHỦ RỘNG TOÀN BỘ Ô -->
+                                             <Border Margin="0" CornerRadius="4" ClipToBounds="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                 <Image Source="{Binding AnhSource}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                             </Border>
+                                             <!-- THUỘC TÍNH BÀN NẰM ĐÈ LÊN PHÍA DƯỚI ẢNH -->
+                                             <Border VerticalAlignment="Bottom" Background="#70000000" CornerRadius="0,0,4,4" Padding="4,2">
+                                                 <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                                     <ItemsControl.ItemTemplate>
+                                                         <DataTemplate>
+                                                             <Grid HorizontalAlignment="Stretch">
+                                                                 <Grid.ColumnDefinitions>
+                                                                     <ColumnDefinition Width="*"/>
+                                                                     <ColumnDefinition Width="Auto"/>
+                                                                 </Grid.ColumnDefinitions>
+                                                                 <TextBlock Grid.Column="0" Text="{Binding Text}" 
+                                                                            HorizontalAlignment="{Binding Alignment}" 
+                                                                            FontSize="{Binding FontSize}" 
+                                                                            FontWeight="{Binding FontWeight}" 
+                                                                            FontStyle="{Binding FontStyle}" 
+                                                                            Foreground="{Binding ForegroundBrush}" 
+                                                                            TextWrapping="Wrap"/>
+                                                                 <TextBlock Grid.Column="1" Text="{Binding RightText}" 
+                                                                            HorizontalAlignment="Right" 
+                                                                            FontSize="{Binding RightFontSize}" 
+                                                                            FontWeight="{Binding RightFontWeight}" 
+                                                                            FontStyle="{Binding RightFontStyle}" 
+                                                                            Foreground="{Binding RightForegroundBrush}" 
+                                                                            Visibility="{Binding RightVisibility}" 
+                                                                            Margin="4,0,0,0" 
+                                                                            TextWrapping="Wrap"/>
+                                                             </Grid>
+                                                         </DataTemplate>
+                                                     </ItemsControl.ItemTemplate>
+                                                 </ItemsControl>
+                                             </Border>
+                                         </Grid>
 
                                         <!-- LAYOUT KHI BÀN KHÔNG CÓ ẢNH -->
                                         <Grid Visibility="{Binding NoImageVisibility}">
@@ -1075,6 +1062,62 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
+
+                        <!-- PANEL TỔNG QUAN (MATCHING IMAGE 1 & 2) -->
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="12" Padding="12" Margin="0,10,0,6">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="3" Opacity="0.15"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <!-- HEADER TỔNG QUAN -->
+                                <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                                    <TextBlock Text="◵ " Foreground="#1E293B" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock Text="TỔNG QUAN" Foreground="#1E293B" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- TỔNG SỐ BÀN (Xanh dương nhạt) -->
+                                <Border Background="#EBF3FB" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="⊞ " Foreground="#1E3A8A" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="Tổng số bàn" Foreground="#1E3A8A" FontSize="14.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtOverviewTotalTables" Text="0" Foreground="#1E3A8A" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- ĐANG PHỤC VỤ (Đỏ nhạt) -->
+                                <Border Background="#FCE8E8" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="👥 " Foreground="#B91C1C" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="Đang phục vụ" Foreground="#B91C1C" FontSize="14.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtOverviewOccupiedTables" Text="0" Foreground="#B91C1C" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- BÀN TRỐNG (Xanh lá nhạt) -->
+                                <Border Background="#E8FCE8" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="🪑 " Foreground="#15803D" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="Bàn trống" Foreground="#15803D" FontSize="14.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtOverviewEmptyTables" Text="0" Foreground="#15803D" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
                 <!-- 3. BOTTOM RIGHT ACTION BUTTONS -->
@@ -1138,7 +1181,7 @@
         <Grid x:Name="GridTouchOrder" Visibility="Collapsed" Background="#367588">
             <Grid.ColumnDefinitions>
                 <!-- LEFT: INVOICE HEADER, ORDER ITEMS DATAGRID, ACTIONS & TOTALS -->
-                <ColumnDefinition Width="385"/>
+                <ColumnDefinition Width="545"/>
                 <!-- MIDDLE: CATEGORIES COLUMN + SEARCH -->
                 <ColumnDefinition Width="180"/>
                 <!-- RIGHT: ITEMS GRID + GEAR -->
@@ -1146,33 +1189,142 @@
             </Grid.ColumnDefinitions>
             <!-- ================= CỘT TRÁI: HÓA ĐƠN & GIỎ HÀNG ================= -->
             <Grid Grid.Column="0" Margin="3,4,2,4" Background="#2B5F6F">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="95"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="185"/>
-                </Grid.RowDefinitions>
-                <!-- TOP WHITE HEADER INFO CARD -->
-                <Border Grid.Row="0" Background="White" Padding="4" CornerRadius="2">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="75"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <!-- BIG RED CANCEL / DELETE ORDER BUTTON -->
-                        <Button Grid.Column="0" x:Name="BtnCancelOrder" Cursor="Hand" Click="BtnCancelOrder_Click" Margin="0,0,4,0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="#CC0000" BorderBrush="#990000" BorderThickness="1" CornerRadius="4">
-                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="✖" Foreground="White" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,-2,0,-2"/>
-                                            <TextBlock Text="Hủy hóa đơn" Foreground="White" FontSize="10.5" FontWeight="Bold" TextAlignment="Center"/>
-                                        </StackPanel>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                        <!-- INVOICE DETAILS GRID -->
-                        <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <!-- CỘT CON 0: DẢI THAO TÁC DỌC BÊN TRÁI (LEFT ACTION BAR) -->
+                    <ColumnDefinition Width="128"/>
+                    <!-- CỘT CON 1: THÔNG TIN HÓA ĐƠN, GIỎ HÀNG & TỔNG TIỀN -->
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 1. DẢI CỘT THAO TÁC DỌC SÁT MÉP TRÁI (Kéo dãn phồng to full chiều cao màn hình) -->
+                <Grid Grid.Column="0" Margin="2,2,3,2">
+                    <Grid.RowDefinitions>
+                        <!-- 0. Hủy hóa đơn -->
+                        <RowDefinition Height="1.1*"/>
+                        <!-- 1. Giảm giá -->
+                        <RowDefinition Height="*"/>
+                        <!-- 2. Chuyển bàn -->
+                        <RowDefinition Height="*"/>
+                        <!-- 3. Gộp bàn -->
+                        <RowDefinition Height="*"/>
+                        <!-- 4. Chế biến -->
+                        <RowDefinition Height="*"/>
+                        <!-- 5. Thanh toán (Nổi bật nhất) -->
+                        <RowDefinition Height="1.25*"/>
+                        <!-- 6. Đóng cửa sổ -->
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- NÚT 0: HỦY HÓA ĐƠN TRÊN CÙNG -->
+                    <Button Grid.Row="0" x:Name="BtnCancelOrder" Cursor="Hand" Click="BtnCancelOrder_Click" Margin="0,0,0,4">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#CC0000" BorderBrush="#990000" BorderThickness="1.5" CornerRadius="6">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="✖" Foreground="White" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,-2,0,2"/>
+                                        <TextBlock Text="Hủy hóa đơn" Foreground="White" FontSize="13" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- NÚT 1: GIẢM GIÁ -->
+                    <Button Grid.Row="1" x:Name="BtnOrderDiscount" Click="BtnOrderDiscount_Click" Margin="0,0,0,4" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#541416" BorderBrush="#8A2326" BorderThickness="1.5" CornerRadius="6" Padding="2">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="⛔" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Giảm giá" Foreground="White" FontSize="13.5" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- NÚT 2: CHUYỂN BÀN -->
+                    <Button Grid.Row="2" x:Name="BtnOrderMoveTable" Click="BtnOrderMoveTable_Click" Margin="0,0,0,4" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#113C17" BorderBrush="#1B5E24" BorderThickness="1.5" CornerRadius="6" Padding="2">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="🔄" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Chuyển bàn" Foreground="White" FontSize="13.5" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- NÚT 3: GỘP BÀN -->
+                    <Button Grid.Row="3" x:Name="BtnOrderMergeTable" Click="BtnOrderMergeTable_Click" Margin="0,0,0,4" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#0C3D42" BorderBrush="#145A61" BorderThickness="1.5" CornerRadius="6" Padding="2">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="🔀" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Gộp bàn" Foreground="White" FontSize="13.5" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- NÚT 4: CHẾ BIẾN -->
+                    <Button Grid.Row="4" x:Name="BtnOrderPrintKitchen" Click="BtnOrderPrintKitchen_Click" Margin="0,0,0,4" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#3B0C52" BorderBrush="#5C177F" BorderThickness="1.5" CornerRadius="6" Padding="2">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="🖨" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Chế biến" Foreground="White" FontSize="13.5" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- NÚT 5: THANH TOÁN (NỔI BẬT NHẤT) -->
+                    <Button Grid.Row="5" x:Name="BtnOrderPayment" Click="BtnOrderPayment_Click" Margin="0,0,0,4" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#1E8638" BorderBrush="#2BB54D" BorderThickness="1.5" CornerRadius="6" Padding="2">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="💵" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Thanh toán" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- NÚT 6: ĐÓNG CỬA SỔ -->
+                    <Button Grid.Row="6" x:Name="BtnOrderBack" Click="BtnOrderBack_Click" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#D85517" BorderBrush="#F96C28" BorderThickness="1.5" CornerRadius="6" Padding="2">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="🚪" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Đóng cửa sổ" Foreground="White" FontSize="13.5" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+
+                <!-- 2. KHUNG THÔNG TIN HÓA ĐƠN, GIỎ HÀNG & TỔNG TIỀN BÊN PHẢI -->
+                <Grid Grid.Column="1" Margin="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="90"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- TOP WHITE HEADER INFO CARD -->
+                    <Border Grid.Row="0" Background="White" Padding="8,5" CornerRadius="4">
+                        <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -1184,126 +1336,165 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="NGÀY " Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="TxtOrderDate" Text="31/08/2026" Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text=" SỐ " Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="0" Grid.Column="3" x:Name="TxtOrderNo" Text="082600010" Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="BÀN " Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="TxtOrderTableName" Text="Bàn 02" Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" Text=" SỐ KHÁCH " Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <Border Grid.Row="1" Grid.Column="3" Background="#2E6C99" CornerRadius="10" Padding="8,1" Margin="2,1">
-                                <TextBlock x:Name="TxtOrderGuestCount" Text="1" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="NGÀY " Foreground="#1E293B" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="TxtOrderDate" Text="31/08/2026" Foreground="#0F172A" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text=" SỐ " Foreground="#1E293B" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Grid.Column="3" x:Name="TxtOrderNo" Text="082600010" Foreground="#0F172A" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="BÀN " Foreground="#1E293B" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="TxtOrderTableName" Text="Bàn 02" Foreground="#0F172A" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text=" SỐ KHÁCH " Foreground="#1E293B" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                            <Border Grid.Row="1" Grid.Column="3" Background="#2E6C99" CornerRadius="10" Padding="10,2" Margin="2,4,0,0">
+                                <TextBlock x:Name="TxtOrderGuestCount" Text="1" Foreground="White" FontSize="12.5" FontWeight="Bold" HorizontalAlignment="Center"/>
                             </Border>
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="KHÁCH HÀNG" Foreground="Black" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <Border Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Background="#2E6C99" CornerRadius="10" Padding="8,2" Margin="2,1" Cursor="Hand" PreviewMouseDown="BtnSelectCustomer_Click">
-                                <TextBlock x:Name="TxtOrderCustomer" Text="KHÁCH LẺ" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="KHÁCH HÀNG" Foreground="#1E293B" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                            <Border Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Background="#2E6C99" CornerRadius="10" Padding="10,3" Margin="2,4,0,0" Cursor="Hand" PreviewMouseDown="BtnSelectCustomer_Click">
+                                <TextBlock x:Name="TxtOrderCustomer" Text="KHÁCH LẺ" Foreground="White" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                             </Border>
                         </Grid>
+                    </Border>
+
+                    <!-- CENTER CART LIST DATAGRID & ACTION TOOLBAR -->
+                    <Grid Grid.Row="1" Margin="0,4">
+                        <Grid.RowDefinitions>
+                            <!-- 4 ACTION BUTTONS (+, -, Xóa, Khác) MATCHING IMAGE 1 -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- DATAGRID CART LIST -->
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- TOP TOOLBAR: NÚT THAO TÁC MẶT HÀNG (+, -, Xóa, Khác) CHỈ HIỆN KHI CHỌN MÓN -->
+                        <Grid x:Name="GridCartItemActions" Grid.Row="0" Margin="0,0,0,5" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- NÚT + (Tím) -->
+                            <Button Grid.Column="0" x:Name="BtnCartPlus" Height="46" Cursor="Hand" Click="BtnCartPlus_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#581845" BorderBrush="#7D2363" BorderThickness="1.5" CornerRadius="6">
+                                            <TextBlock Text="+" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- NÚT - (Vàng ô liu / Nâu đất) -->
+                            <Button Grid.Column="2" x:Name="BtnCartMinus" Height="46" Cursor="Hand" Click="BtnCartMinus_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#4B4E1B" BorderBrush="#6A6E27" BorderThickness="1.5" CornerRadius="6">
+                                            <TextBlock Text="-" Foreground="White" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- NÚT XÓA (Đỏ) -->
+                            <Button Grid.Column="4" x:Name="BtnCartRemove" Height="46" Cursor="Hand" Click="BtnCartRemove_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#8B0000" BorderBrush="#B30000" BorderThickness="1.5" CornerRadius="6">
+                                            <TextBlock Text="Xóa" Foreground="White" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- NÚT KHÁC (Xanh ngọc/Teal) -->
+                            <Button Grid.Column="6" x:Name="BtnCartKhac" Height="46" Cursor="Hand" Click="BtnCartKhac_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="#005C53" BorderBrush="#008073" BorderThickness="1.5" CornerRadius="6">
+                                            <TextBlock Text="Khác" Foreground="White" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
+                        <!-- DATAGRID SẢN PHẨM ĐÃ ORDER -->
+                        <DataGrid x:Name="DgOrderItems" Grid.Row="1" 
+                                  Background="White" Foreground="#1E293B"
+                                  RowBackground="White" AlternatingRowBackground="#F8FAFC"
+                                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E2E8F0"
+                                  AutoGenerateColumns="False" IsReadOnly="True" Margin="0"
+                                  HeadersVisibility="Column" ColumnHeaderHeight="40"
+                                  RowHeight="52" SelectionMode="Single"
+                                  BorderBrush="#CBD5E1" BorderThickness="1"
+                                  SelectionChanged="DgOrderItems_SelectionChanged"
+                                  PreviewMouseLeftButtonDown="DgOrderItems_PreviewMouseLeftButtonDown"
+                                  MouseDoubleClick="DgOrderItems_MouseDoubleClick">
+                        <DataGrid.Resources>
+                            <!-- Column Header Style -->
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#1C4B6B"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontSize" Value="13.5"/>
+                                <Setter Property="Padding" Value="4,0"/>
+                                <Setter Property="Height" Value="40"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="BorderBrush" Value="#0F3460"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,0"/>
+                            </Style>
+                            <!-- Selected Row Style -->
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Margin" Value="0,1"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#E0F2FE"/>
+                                        <Setter Property="Foreground" Value="#0369A1"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <!-- 1. SỐ LƯỢNG -->
+                            <DataGridTemplateColumn Header="SL" Width="50">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#1E40AF" CornerRadius="16" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding SoLuong, StringFormat={}{0:0.#}}" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <!-- 2. TÊN MÓN -->
+                            <DataGridTemplateColumn Header="TÊN MÓN" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding TenMatHang}" Foreground="#0F172A" FontSize="14.5" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <!-- 3. THÀNH TIỀN -->
+                            <DataGridTemplateColumn Header="THÀNH TIỀN" Width="115">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ThanhTien, StringFormat={}{0:N0}}" Foreground="#B91C1C" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
                     </Grid>
-                </Border>
-                <!-- CENTER CART LIST DATAGRID -->
-                <DataGrid x:Name="DgOrderItems" Grid.Row="1" 
-                          Background="White" Foreground="#1E293B"
-                          RowBackground="White" AlternatingRowBackground="#F8FAFC"
-                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E2E8F0"
-                          AutoGenerateColumns="False" IsReadOnly="True" Margin="0,2"
-                          HeadersVisibility="Column" ColumnHeaderHeight="34"
-                          RowHeight="44" SelectionMode="Single"
-                          BorderBrush="#CBD5E1" BorderThickness="1"
-                          PreviewMouseLeftButtonDown="DgOrderItems_PreviewMouseLeftButtonDown">
-                    <DataGrid.Resources>
-                        <!-- Column Header Style -->
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background" Value="#1C4B6B"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter Property="FontWeight" Value="Bold"/>
-                            <Setter Property="FontSize" Value="12"/>
-                            <Setter Property="Padding" Value="4,0"/>
-                            <Setter Property="Height" Value="34"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            <Setter Property="BorderBrush" Value="#0F3460"/>
-                            <Setter Property="BorderThickness" Value="0,0,1,0"/>
-                        </Style>
-                        <!-- Selected Row Style -->
-                        <Style TargetType="DataGridRow">
-                            <Setter Property="Margin" Value="0,1"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="#E0F2FE"/>
-                                    <Setter Property="Foreground" Value="#0369A1"/>
-                                    <Setter Property="FontWeight" Value="Bold"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.Resources>
-                    <DataGrid.Columns>
-                        <!-- 1. SỐ LƯỢNG -->
-                        <DataGridTemplateColumn Header="SL" Width="42">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="#1E40AF" CornerRadius="12" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding SoLuong, StringFormat={}{0:0.#}}" Foreground="White" FontSize="12.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <!-- 2. TÊN MÓN -->
-                        <DataGridTemplateColumn Header="TÊN MÓN" Width="*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding TenMatHang}" Foreground="#0F172A" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <!-- 3. THÀNH TIỀN -->
-                        <DataGridTemplateColumn Header="THÀNH TIỀN" Width="82">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding ThanhTien, StringFormat={}{0:N0}}" Foreground="#B91C1C" FontSize="12.5" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <!-- 4. THAO TÁC (+ / - / XÓA) -->
-                        <DataGridTemplateColumn Header="TÁC VỤ" Width="78">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Button Content="-" Width="21" Height="24" Margin="0,0,2,0" Background="#DC2626" Foreground="White" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" Click="BtnDecreaseQty_Click">
-                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
-                                        </Button>
-                                        <Button Content="+" Width="21" Height="24" Margin="0,0,2,0" Background="#16A34A" Foreground="White" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" Click="BtnIncreaseQty_Click">
-                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
-                                        </Button>
-                                        <Button Content="🗑" Width="21" Height="24" Background="#475569" Foreground="White" FontSize="10.5" BorderThickness="0" Cursor="Hand" Click="BtnRemoveCartItem_Click">
-                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="3"/></Style></Button.Resources>
-                                        </Button>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-                <!-- BOTTOM ACTIONS & TOTALS -->
-                <Grid Grid.Row="2" Margin="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="90"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <!-- LEFT STACK OF ACTION BUTTONS -->
-                    <StackPanel Grid.Column="0">
-                        <Button x:Name="BtnOrderDiscount" Content="⛔ Giảm giá" Click="BtnOrderDiscount_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#541416" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
-                        <Button x:Name="BtnOrderMoveTable" Content="🔄 Chuyển bàn" Click="BtnOrderMoveTable_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#113C17" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
-                        <Button x:Name="BtnOrderMergeTable" Content="🔀 Gộp bàn" Click="BtnOrderMergeTable_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#0C3D42" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
-                        <Button x:Name="BtnOrderPrintKitchen" Content="🖨 Chế biến" Click="BtnOrderPrintKitchen_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#3B0C52" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
-                        <Button x:Name="BtnOrderPayment" Content="💵 Thanh toán" Click="BtnOrderPayment_Click" Height="27" Margin="0,0,0,2" Cursor="Hand" Background="#1E8638" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
-                        <Button x:Name="BtnOrderBack" Content="🚪 Đóng cửa sổ" Click="BtnOrderBack_Click" Height="27" Cursor="Hand" Background="#D85517" Foreground="White" FontSize="10.5" FontWeight="Bold"/>
-                    </StackPanel>
+
                     <!-- RIGHT TOTALS SUMMARY PANEL -->
-                    <Grid Grid.Column="1" Margin="6,0,0,0">
+                    <Grid Grid.Row="2" Margin="0,3,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -1311,11 +1502,11 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <!-- GEAR BUTTON AT TOP RIGHT ABOVE TIỀN HÀNG -->
-                        <Button Grid.Row="0" x:Name="BtnConfigCart" Width="26" Height="24" HorizontalAlignment="Right" Margin="0,0,0,4" Cursor="Hand" Click="BtnConfigCart_Click">
+                        <Button Grid.Row="0" x:Name="BtnConfigCart" Width="52" Height="44" HorizontalAlignment="Right" Margin="0,0,0,4" Cursor="Hand" Click="BtnConfigCart_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="3">
-                                        <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1.5" CornerRadius="6">
+                                        <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                 </ControlTemplate>
                             </Button.Template>
@@ -1323,50 +1514,50 @@
                         <!-- TIỀN HÀNG -->
                         <Grid Grid.Row="2" Margin="0,2">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="TIỀN HÀNG" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <Border Grid.Column="1" Background="#808080" CornerRadius="10" Padding="8,3" Margin="6,0,0,0">
-                                <TextBlock x:Name="TxtTotalSub" Text="0" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="0" Text="TIỀN HÀNG" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" Background="#808080" CornerRadius="10" Padding="12,5" Margin="6,0,0,0">
+                                <TextBlock x:Name="TxtTotalSub" Text="0" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Border>
                         </Grid>
                         <!-- GIẢM GIÁ -->
                         <Grid Grid.Row="3" Margin="0,2">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="GIẢM GIÁ" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="GIẢM GIÁ" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
                             <Border Grid.Column="1" Background="#2E6C99" CornerRadius="10" Padding="4,2" Margin="4,0,2,0">
-                                <TextBlock x:Name="TxtTotalDiscountPt" Text="0" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtTotalDiscountPt" Text="0" Foreground="White" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center"/>
                             </Border>
-                            <Border Grid.Column="2" Background="#2E6C99" CornerRadius="10" Padding="8,3" Margin="2,0,0,0">
-                                <TextBlock x:Name="TxtTotalDiscount" Text="0" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            <Border Grid.Column="2" Background="#2E6C99" CornerRadius="10" Padding="12,5" Margin="2,0,0,0">
+                                <TextBlock x:Name="TxtTotalDiscount" Text="0" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Border>
                         </Grid>
                         <!-- PHÍ DỊCH VỤ -->
                         <Grid x:Name="RowTotalServiceFee" Grid.Row="4" Margin="0,2" Visibility="Collapsed">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="PHÍ DỊCH VỤ" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="PHÍ DỊCH VỤ" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
                             <Border Grid.Column="1" Background="#1B4D5C" CornerRadius="10" Padding="4,2" Margin="4,0,2,0">
-                                <TextBlock x:Name="TxtTotalServiceFeePt" Text="0%" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtTotalServiceFeePt" Text="0%" Foreground="White" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center"/>
                             </Border>
-                            <Border Grid.Column="2" Background="#1B4D5C" CornerRadius="10" Padding="8,3" Margin="2,0,0,0">
-                                <TextBlock x:Name="TxtTotalServiceFee" Text="0" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            <Border Grid.Column="2" Background="#1B4D5C" CornerRadius="10" Padding="12,5" Margin="2,0,0,0">
+                                <TextBlock x:Name="TxtTotalServiceFee" Text="0" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Border>
                         </Grid>
                         <!-- THUẾ VAT -->
                         <Grid x:Name="RowTotalVAT" Grid.Row="5" Margin="0,2" Visibility="Collapsed">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="THUẾ VAT" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="THUẾ VAT" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
                             <Border Grid.Column="1" Background="#1B4D5C" CornerRadius="10" Padding="4,2" Margin="4,0,2,0">
-                                <TextBlock x:Name="TxtTotalVatPt" Text="0%" Foreground="White" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtTotalVatPt" Text="0%" Foreground="White" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center"/>
                             </Border>
-                            <Border Grid.Column="2" Background="#1B4D5C" CornerRadius="10" Padding="8,3" Margin="2,0,0,0">
-                                <TextBlock x:Name="TxtTotalVat" Text="0" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            <Border Grid.Column="2" Background="#1B4D5C" CornerRadius="10" Padding="12,5" Margin="2,0,0,0">
+                                <TextBlock x:Name="TxtTotalVat" Text="0" Foreground="White" FontSize="15" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Border>
                         </Grid>
                         <!-- TỔNG CỘNG -->
                         <Grid Grid.Row="6" Margin="0,2">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="TỔNG CỘNG" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <Border Grid.Column="1" Background="#8B0000" CornerRadius="10" Padding="8,4" Margin="6,0,0,0">
-                                <TextBlock x:Name="TxtTotalFinal" Text="0" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="0" Text="TỔNG CỘNG" Foreground="White" FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Border Grid.Column="1" Background="#8B0000" CornerRadius="10" Padding="12,6" Margin="6,0,0,0">
+                                <TextBlock x:Name="TxtTotalFinal" Text="0" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Border>
                         </Grid>
                     </Grid>
@@ -1442,40 +1633,60 @@
                             <DataTemplate>
                                 <Border Height="{Binding MatHangTileHeight, RelativeSource={RelativeSource AncestorType=Window}}" Margin="3" CornerRadius="8" Background="{Binding TileColorBrush, FallbackValue='#0D4B5B'}" BorderBrush="#26A69A" BorderThickness="1" Cursor="Hand" MouseLeftButtonDown="MatHangTile_MouseLeftButtonDown">
                                     <Grid Margin="0">
-                                        <!-- LAYOUT WHEN ITEM HAS IMAGE -->
-                                        <Grid Visibility="{Binding HasImageVisibility}">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                                         <!-- LAYOUT WHEN ITEM HAS IMAGE -->
+                                         <Grid Visibility="{Binding HasImageVisibility}">
+                                             <!-- PRODUCT IMAGE FILLING ENTIRE TILE -->
+                                             <Border Margin="0" CornerRadius="7" ClipToBounds="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                 <Image Source="{Binding ImageSource}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                             </Border>
 
-                                            <!-- PRODUCT IMAGE AT TOP (ẢNH BÊN TRÊN AUTORESIZE THEO DÒNG CỘT) -->
-                                            <Border Grid.Row="0" Margin="0" CornerRadius="7,7,0,0" ClipToBounds="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                                <Image Source="{Binding ImageSource}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-
-                                            <!-- ITEM NAME & PRICE AT BOTTOM IN DARK OVERLAY CONTAINER -->
-                                            <Border Grid.Row="1" Background="#90000000" CornerRadius="0,0,7,7" Padding="4,3">
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding TenMatHang}" Foreground="White" FontSize="12.5" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" MaxHeight="34"/>
-                                                    <Border Background="#20000000" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,2,0,1">
-                                                        <TextBlock Text="{Binding GiaBanFormatted, FallbackValue='0'}" Foreground="#FFFF66" FontSize="12.5" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                                    </Border>
-                                                </StackPanel>
-                                            </Border>
-                                        </Grid>
-                                        <!-- LAYOUT WHEN ITEM HAS NO IMAGE (NAME CENTERED LIKE BEFORE) -->
-                                        <Grid Visibility="{Binding NoImageVisibility}" Margin="4">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-                                            <!-- ITEM NAME CENTERED IN TILE -->
-                                            <TextBlock Grid.Row="0" Text="{Binding TenMatHang}" Foreground="White" FontSize="13.5" FontWeight="Bold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <!-- PRICE AT BOTTOM -->
-                                            <Border Grid.Row="1" Background="#20000000" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Bottom">
-                                                <TextBlock Text="{Binding GiaBanFormatted, FallbackValue='0'}" Foreground="White" FontSize="12.5" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                            </Border>
+                                             <!-- ITEM NAME & PRICE OVERLAID AT BOTTOM OF IMAGE -->
+                                             <Border VerticalAlignment="Bottom" Background="#A0000000" CornerRadius="0,0,7,7" Padding="4,3">
+                                                 <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                                     <ItemsControl.ItemTemplate>
+                                                         <DataTemplate>
+                                                             <Grid HorizontalAlignment="Stretch">
+                                                                 <Grid.ColumnDefinitions>
+                                                                     <ColumnDefinition Width="*"/>
+                                                                     <ColumnDefinition Width="Auto"/>
+                                                                 </Grid.ColumnDefinitions>
+                                                                 <TextBlock Grid.Column="0" Text="{Binding Text}" 
+                                                                            HorizontalAlignment="{Binding Alignment}" 
+                                                                            FontSize="{Binding FontSize}" 
+                                                                            FontWeight="{Binding FontWeight}" 
+                                                                            FontStyle="{Binding FontStyle}" 
+                                                                            Foreground="{Binding ForegroundBrush}" 
+                                                                            TextWrapping="Wrap"/>
+                                                                 <TextBlock Grid.Column="1" Text="{Binding RightText}" 
+                                                                            HorizontalAlignment="Right" 
+                                                                            FontSize="{Binding RightFontSize}" 
+                                                                            FontWeight="{Binding RightFontWeight}" 
+                                                                            FontStyle="{Binding RightFontStyle}" 
+                                                                            Foreground="{Binding RightForegroundBrush}" 
+                                                                            Visibility="{Binding RightVisibility}" 
+                                                                            Margin="4,0,0,0" 
+                                                                            TextWrapping="Wrap"/>
+                                                             </Grid>
+                                                         </DataTemplate>
+                                                     </ItemsControl.ItemTemplate>
+                                                 </ItemsControl>
+                                             </Border>
+                                         </Grid>
+                                        <!-- LAYOUT WHEN ITEM HAS NO IMAGE -->
+                                        <Grid Visibility="{Binding NoImageVisibility}" Margin="4" VerticalAlignment="Center">
+                                            <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Text}" 
+                                                                   HorizontalAlignment="{Binding Alignment}" 
+                                                                   FontSize="{Binding FontSize}" 
+                                                                   FontWeight="{Binding FontWeight}" 
+                                                                   FontStyle="{Binding FontStyle}" 
+                                                                   Foreground="{Binding ForegroundBrush}" 
+                                                                   TextWrapping="Wrap"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </Grid>
                                     </Grid>
                                 </Border>
@@ -1484,11 +1695,11 @@
                     </ItemsControl>
                 </ScrollViewer>
                 <!-- GEAR BUTTON AT BOTTOM RIGHT OF MENU ITEMS -->
-                <Button Grid.Row="1" x:Name="BtnConfigMatHang" Width="26" Height="24" HorizontalAlignment="Right" Margin="0,4,0,0" Cursor="Hand" Click="BtnConfigMatHang_Click">
+                <Button Grid.Row="1" x:Name="BtnConfigMatHang" Width="52" Height="44" HorizontalAlignment="Right" Margin="0,4,0,0" Cursor="Hand" Click="BtnConfigMatHang_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="3">
-                                <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1.5" CornerRadius="6">
+                                <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </ControlTemplate>
                     </Button.Template>
