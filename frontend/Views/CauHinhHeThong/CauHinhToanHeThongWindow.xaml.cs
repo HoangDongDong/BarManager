@@ -1216,30 +1216,27 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     }
                 }
 
-                // 2. ONLY Query SREPORTTEMPLATE if no STEMPLATE match was found (for custom SREPORT nodes)
-                if (list.Count == 0)
-                {
-                    var repStems = allRepTemplates.Where(rt => {
-                        string sRepId = (rt.SREPORTID ?? "").ToString().Trim();
-                        string rName = ((string)(rt.REPORTNAME ?? "")).Trim().ToUpperInvariant();
-                        return (sRepId.Length > 0 && sRepId == cat.Id) || rName == catClean;
-                    }).ToList();
+                // 2. Query SREPORTTEMPLATE for custom template nodes
+                var repStems = allRepTemplates.Where(rt => {
+                    string sRepId = (rt.SREPORTID ?? "").ToString().Trim();
+                    string rName = ((string)(rt.REPORTNAME ?? "")).Trim().ToUpperInvariant();
+                    return (sRepId.Length > 0 && sRepId == cat.Id) || rName == catClean;
+                }).ToList();
 
-                    foreach (var rt in repStems)
+                foreach (var rt in repStems)
+                {
+                    string nameStr = ((string)rt.NAME)?.Trim() ?? "";
+                    if (!string.IsNullOrEmpty(nameStr) && !list.Any(x => x.Name.Equals(nameStr, StringComparison.OrdinalIgnoreCase)))
                     {
-                        string nameStr = ((string)rt.NAME)?.Trim() ?? "";
-                        if (!string.IsNullOrEmpty(nameStr) && !list.Any(x => x.Name.Equals(nameStr, StringComparison.OrdinalIgnoreCase)))
+                        string icon = DetermineTemplateIcon(nameStr, catName);
+                        list.Add(new DevReportTemplateNode
                         {
-                            string icon = DetermineTemplateIcon(nameStr, catName);
-                            list.Add(new DevReportTemplateNode
-                            {
-                                Id = (string)rt.ID,
-                                Name = nameStr,
-                                Icon = icon,
-                                StemplateId = rt.STEMPLATEID?.ToString() ?? "",
-                                SreportId = cat.Id
-                            });
-                        }
+                            Id = (string)rt.ID,
+                            Name = nameStr,
+                            Icon = icon,
+                            StemplateId = rt.STEMPLATEID?.ToString() ?? "",
+                            SreportId = cat.Id
+                        });
                     }
                 }
 
@@ -1426,6 +1423,10 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 // Register sample Data Sources for Report Designer Data Tree
                 RegisterSampleDataSources(report);
 
+                // Set Classic UI Designer Style matching screenshot (Office2007Blue / Classic Menu & Toolbar)
+                FastReport.Utils.Config.UseRibbon = false;
+                FastReport.Utils.Config.UIStyle = FastReport.Utils.UIStyle.Office2007Blue;
+
                 // Open Native FastReport Designer directly!
                 report.Design();
 
@@ -1562,113 +1563,39 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             report.FileName = $"{reportName}.frx";
             report.ReportInfo.Name = reportName;
 
+            string templateFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mau.frx");
+            if (!File.Exists(templateFilePath))
+            {
+                templateFilePath = @"d:\QuanLyBar\mau.frx";
+            }
+
+            if (File.Exists(templateFilePath))
+            {
+                try
+                {
+                    report.Load(templateFilePath);
+                    report.FileName = $"{reportName}.frx";
+                    report.ReportInfo.Name = reportName;
+                    return;
+                }
+                catch { }
+            }
+
             var page = new FastReport.ReportPage { Name = "Page1" };
             report.Pages.Add(page);
 
             // 1. Report Title Band
-            var titleBand = new FastReport.ReportTitleBand { Name = "ReportTitle1", Height = 110 };
-            page.ReportTitle = titleBand;
-
-            var txtCompany = new FastReport.TextObject
-            {
-                Name = "TextCompanyName",
-                Text = "[CompanyName]",
-                Bounds = new System.Drawing.RectangleF(20, 10, 350, 26),
-                Font = new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Bold),
-                HorzAlign = FastReport.HorzAlign.Left
-            };
-            titleBand.Objects.Add(txtCompany);
-
-            var txtAddress = new FastReport.TextObject
-            {
-                Name = "TextCompanyAddress",
-                Text = "Địa chỉ: [CompanyAddress]\nĐiện thoại: [CompanyPhone]",
-                Bounds = new System.Drawing.RectangleF(20, 38, 450, 35),
-                Font = new System.Drawing.Font("Segoe UI", 10),
-                HorzAlign = FastReport.HorzAlign.Left
-            };
-            titleBand.Objects.Add(txtAddress);
-
-            var txtParam = new FastReport.TextObject
-            {
-                Name = "TextParam",
-                Text = "[Tham số báo cáo]",
-                Bounds = new System.Drawing.RectangleF(20, 80, 200, 22),
-                Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Italic),
-                HorzAlign = FastReport.HorzAlign.Left
-            };
-            titleBand.Objects.Add(txtParam);
-
-            var txtTitle = new FastReport.TextObject
-            {
-                Name = "TextReportTitle",
-                Text = $"[{reportName.ToUpper()}]",
-                Bounds = new System.Drawing.RectangleF(240, 75, 420, 35),
-                Font = new System.Drawing.Font("Segoe UI", 16, System.Drawing.FontStyle.Bold),
-                HorzAlign = FastReport.HorzAlign.Right
-            };
-            titleBand.Objects.Add(txtTitle);
+            page.ReportTitle = new FastReport.ReportTitleBand { Name = "ReportTitle1", Height = 37.8f };
 
             // 2. Page Header Band
-            var headerBand = new FastReport.PageHeaderBand { Name = "PageHeader1", Height = 28 };
-            page.PageHeader = headerBand;
-
-            var txtH1 = new FastReport.TextObject { Name = "HeaderMatHang", Text = "Tên mặt hàng", Bounds = new System.Drawing.RectangleF(20, 4, 250, 22), Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), Border = new FastReport.Border { Lines = FastReport.BorderLines.All } };
-            var txtH2 = new FastReport.TextObject { Name = "HeaderDVT", Text = "ĐVT", Bounds = new System.Drawing.RectangleF(270, 4, 80, 22), Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Center };
-            var txtH3 = new FastReport.TextObject { Name = "HeaderSL", Text = "SL", Bounds = new System.Drawing.RectangleF(350, 4, 70, 22), Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Right };
-            var txtH4 = new FastReport.TextObject { Name = "HeaderDonGia", Text = "Đơn giá", Bounds = new System.Drawing.RectangleF(420, 4, 110, 22), Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Right };
-            var txtH5 = new FastReport.TextObject { Name = "HeaderThanhTien", Text = "Thành tiền", Bounds = new System.Drawing.RectangleF(530, 4, 130, 22), Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Right };
-
-            headerBand.Objects.Add(txtH1);
-            headerBand.Objects.Add(txtH2);
-            headerBand.Objects.Add(txtH3);
-            headerBand.Objects.Add(txtH4);
-            headerBand.Objects.Add(txtH5);
+            page.PageHeader = new FastReport.PageHeaderBand { Name = "PageHeader1", Height = 28.35f };
 
             // 3. Data Band
-            var dataBand = new FastReport.DataBand { Name = "Data1", Height = 24 };
+            var dataBand = new FastReport.DataBand { Name = "Data1", Height = 75.6f };
             page.Bands.Add(dataBand);
 
-            var txtD1 = new FastReport.TextObject { Name = "TextMatHang", Text = "[Table1.TenMatHang]", Bounds = new System.Drawing.RectangleF(20, 2, 250, 20), Font = new System.Drawing.Font("Segoe UI", 10), Border = new FastReport.Border { Lines = FastReport.BorderLines.All } };
-            var txtD2 = new FastReport.TextObject { Name = "TextDVT", Text = "[Table1.DonViTinh]", Bounds = new System.Drawing.RectangleF(270, 2, 80, 20), Font = new System.Drawing.Font("Segoe UI", 10), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Center };
-            var txtD3 = new FastReport.TextObject { Name = "TextSL", Text = "[Table1.SoLuong]", Bounds = new System.Drawing.RectangleF(350, 2, 70, 20), Font = new System.Drawing.Font("Segoe UI", 10), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Right };
-            var txtD4 = new FastReport.TextObject { Name = "TextDonGia", Text = "[Table1.DonGia]", Bounds = new System.Drawing.RectangleF(420, 2, 110, 20), Font = new System.Drawing.Font("Segoe UI", 10), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Right };
-            var txtD5 = new FastReport.TextObject { Name = "TextThanhTien", Text = "[Table1.ThanhTien]", Bounds = new System.Drawing.RectangleF(530, 2, 130, 20), Font = new System.Drawing.Font("Segoe UI", 10), Border = new FastReport.Border { Lines = FastReport.BorderLines.All }, HorzAlign = FastReport.HorzAlign.Right };
-
-            dataBand.Objects.Add(txtD1);
-            dataBand.Objects.Add(txtD2);
-            dataBand.Objects.Add(txtD3);
-            dataBand.Objects.Add(txtD4);
-            dataBand.Objects.Add(txtD5);
-
-            // 4. Report Summary Band
-            var summaryBand = new FastReport.ReportSummaryBand { Name = "ReportSummary1", Height = 100 };
-            page.ReportSummary = summaryBand;
-
-            var txtSign1Title = new FastReport.TextObject { Name = "TextSign1Title", Text = "Trưởng phòng", Bounds = new System.Drawing.RectangleF(50, 20, 200, 22), Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold), HorzAlign = FastReport.HorzAlign.Center };
-            var txtSign1Sub = new FastReport.TextObject { Name = "TextSign1Sub", Text = "(Ký, họ tên)", Bounds = new System.Drawing.RectangleF(50, 42, 200, 18), Font = new System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Italic), HorzAlign = FastReport.HorzAlign.Center };
-
-            var txtSign2Title = new FastReport.TextObject { Name = "TextSign2Title", Text = "Người lập", Bounds = new System.Drawing.RectangleF(450, 20, 200, 22), Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold), HorzAlign = FastReport.HorzAlign.Center };
-            var txtSign2Sub = new FastReport.TextObject { Name = "TextSign2Sub", Text = "(Ký, họ tên)", Bounds = new System.Drawing.RectangleF(450, 42, 200, 18), Font = new System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Italic), HorzAlign = FastReport.HorzAlign.Center };
-
-            summaryBand.Objects.Add(txtSign1Title);
-            summaryBand.Objects.Add(txtSign1Sub);
-            summaryBand.Objects.Add(txtSign2Title);
-            summaryBand.Objects.Add(txtSign2Sub);
-
-            // 5. Page Footer Band
-            var footerBand = new FastReport.PageFooterBand { Name = "PageFooter1", Height = 24 };
-            page.PageFooter = footerBand;
-
-            var txtPageNum = new FastReport.TextObject
-            {
-                Name = "TextPageNum",
-                Text = "Trang [Page#]/[TotalPages]",
-                Bounds = new System.Drawing.RectangleF(480, 4, 180, 18),
-                Font = new System.Drawing.Font("Segoe UI", 9),
-                HorzAlign = FastReport.HorzAlign.Right
-            };
-            footerBand.Objects.Add(txtPageNum);
+            // 4. Page Footer Band
+            page.PageFooter = new FastReport.PageFooterBand { Name = "PageFooter1", Height = 18.9f };
         }
         #endregion
 
@@ -1713,6 +1640,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 string defaultUserId = "4f1466a0-0756-4ba9-afa8-053b96ca7569";
                 string newId = Guid.NewGuid().ToString();
 
+                // Build default template using mau.frx base structure
                 using var report = new FastReport.Report();
                 BuildDefaultFastReportTemplate(report, inputName.Trim());
                 byte[] xmlBytes;
@@ -1722,18 +1650,31 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     xmlBytes = ms.ToArray();
                 }
 
+                string sreportId = _selectedDevCategory?.Id ?? "";
+
+                // 1. Insert into STEMPLATE
                 await conn.ExecuteAsync(
-                    @"INSERT INTO SREPORTTEMPLATE (ID, NAME, STATUS, CONFIG, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
+                    @"INSERT INTO STEMPLATE (ID, NAME, STATUS, TEMPLATE, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
                       VALUES (@Id, @Name, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
                     new { Id = newId, Name = inputName.Trim(), Config = xmlBytes, UserId = defaultUserId });
+
+                // 2. Insert into SREPORTTEMPLATE
+                await conn.ExecuteAsync(
+                    @"INSERT INTO SREPORTTEMPLATE (ID, NAME, SREPORTID, STEMPLATEID, STATUS, CONFIG, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
+                      VALUES (@Id, @Name, @SreportId, @Id, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                    new { Id = newId, Name = inputName.Trim(), SreportId = sreportId, Config = xmlBytes, UserId = defaultUserId });
 
                 if (_selectedDevCategory != null)
                 {
                     await LoadDevTemplatesForCategoryAsync(_selectedDevCategory);
                 }
 
-                MessageBox.Show($"Đã tạo mới mẫu in [{inputName.Trim()}]. Mở FastReport Designer để thiết kế...", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-                OpenFastReportDesigner();
+                var newNode = _devTemplateNodes.FirstOrDefault(x => x.Name.Equals(inputName.Trim(), StringComparison.OrdinalIgnoreCase));
+                if (newNode != null)
+                {
+                    var container = TvReportTemplates.ItemContainerGenerator.ContainerFromItem(newNode) as TreeViewItem;
+                    if (container != null) container.IsSelected = true;
+                }
             }
             catch (Exception ex)
             {

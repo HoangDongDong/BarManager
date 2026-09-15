@@ -33,6 +33,9 @@
     <None Update="CSDL\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="mau.frx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="img\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
