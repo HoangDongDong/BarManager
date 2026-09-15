@@ -4,30 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="700" d:DesignWidth="1100"
+             d:DesignHeight="720" d:DesignWidth="1150"
              Background="#8da4c4">
-
-    <UserControl.Resources>
-        <Style x:Key="ToolBtnStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="4,2"/>
-            <Setter Property="Margin" Value="2,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Top Bar with "Cập nhật vào cơ sở dữ liệu" -->
-            <RowDefinition Height="Auto"/> <!-- Designer Sub-Toolbar 1 (Báo cáo, Bảng biểu, Format...) -->
-            <RowDefinition Height="Auto"/> <!-- Designer Sub-Toolbar 2 (FastReport Standard Menus & Action Icons) -->
-            <RowDefinition Height="*"/>    <!-- Main Designer Workspace (Left Dock + Center Canvas + Right Data/Props) -->
-            <RowDefinition Height="Auto"/> <!-- Bottom Status Bar -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 1. Top Action Bar with "Cập nhật vào cơ sở dữ liệu" -->
-        <Border Grid.Row="0" Background="#b0c4de" BorderBrush="#5b7b9c" BorderThickness="0,0,0,1" Padding="8,4">
+        <!-- Top Action Bar -->
+        <Border Grid.Row="0" Background="#b0c4de" BorderBrush="#5b7b9c" BorderThickness="0,0,0,1" Padding="12,8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -35,326 +22,52 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="TxtTabReportName" Text="Mẫu A4 nằm ngang" FontWeight="Bold" FontSize="14" Foreground="#1e293b" VerticalAlignment="Center"/>
-                    <TextBlock Text=" (FastReport Designer)" FontSize="12" FontStyle="Italic" Foreground="#475569" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                    <TextBlock x:Name="TxtTabReportName" Text="Mẫu 80" FontWeight="Bold" FontSize="15" Foreground="#1e293b" VerticalAlignment="Center"/>
+                    <TextBlock Text=" (FastReport.NET Official Designer)" FontSize="12" FontStyle="Italic" Foreground="#475569" VerticalAlignment="Center" Margin="8,0,0,0"/>
                 </StackPanel>
-
-                <!-- "Cập nhật vào cơ sở dữ liệu" Button on Top Right -->
-                <Button x:Name="BtnCapNhatVaoCSDL" Grid.Column="1" Click="BtnCapNhatVaoCSDL_Click" 
-                        Background="#1e3f66" Foreground="White" FontWeight="Bold" FontSize="12" Padding="12,4" 
-                        BorderBrush="#0f172a" BorderThickness="1" Cursor="Hand">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="💾 " FontSize="13"/>
-                        <TextBlock Text="Cập nhật vào cơ sở dữ liệu"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
-
-        <!-- 2. FastReport Sub-Toolbar 1 -->
-        <Border Grid.Row="1" Background="#dbe5f2" BorderBrush="#a4bce3" BorderThickness="0,0,0,1" Padding="6,3">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Báo cáo" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a" FontWeight="SemiBold"/>
-                <TextBlock Text="Bảng biểu" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a"/>
-                <TextBlock Text="Format" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a"/>
-                <TextBlock Text="n0" FontSize="12" Margin="0,0,8,0" Foreground="#0f172a"/>
-                <TextBlock Text="n2" FontSize="12" Margin="0,0,8,0" Foreground="#0f172a"/>
-                <TextBlock Text="dd/MM/yyyy" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a"/>
-                <TextBlock Text="Sinh total" FontSize="12" Margin="0,0,16,0" Foreground="#0f172a"/>
-                <Button Content="🔍 Preview" Click="BtnPreview_Click" Padding="10,2" Background="#0284c7" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
-            </StackPanel>
-        </Border>
-
-        <!-- 3. FastReport Menus & Formatting Toolbars -->
-        <Border Grid.Row="2" Background="#e2ebf6" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="4,2">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Menu Grid.Column="0" Background="Transparent" FontSize="11" Margin="0,0,12,0">
-                    <MenuItem Header="File"/>
-                    <MenuItem Header="Edit"/>
-                    <MenuItem Header="View"/>
-                    <MenuItem Header="Insert"/>
-                    <MenuItem Header="Report"/>
-                    <MenuItem Header="Data"/>
-                    <MenuItem Header="Help"/>
-                </Menu>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="💾" ToolTip="Lưu" Style="{StaticResource ToolBtnStyle}" Click="BtnCapNhatVaoCSDL_Click"/>
-                    <Button Content="📄" ToolTip="Mới" Style="{StaticResource ToolBtnStyle}"/>
-                    <Button Content="📁" ToolTip="Mở" Style="{StaticResource ToolBtnStyle}"/>
-                    <Separator Width="1" Margin="4,2" Background="#a4bce3"/>
-                    <Button Content="✂️" ToolTip="Cắt" Style="{StaticResource ToolBtnStyle}"/>
-                    <Button Content="📋" ToolTip="Dán" Style="{StaticResource ToolBtnStyle}"/>
-                    <Separator Width="1" Margin="4,2" Background="#a4bce3"/>
-                    <ComboBox Width="95" Height="20" SelectedIndex="0" FontSize="11" Margin="2,0">
-                        <ComboBoxItem Content="Tahoma"/>
-                        <ComboBoxItem Content="Arial"/>
-                        <ComboBoxItem Content="Times New Roman"/>
-                    </ComboBox>
-                    <ComboBox Width="45" Height="20" SelectedIndex="2" FontSize="11" Margin="2,0">
-                        <ComboBoxItem Content="8"/>
-                        <ComboBoxItem Content="9"/>
-                        <ComboBoxItem Content="10"/>
-                        <ComboBoxItem Content="11"/>
-                    </ComboBox>
-                    <ToggleButton Content="B" FontWeight="Bold" Width="22" Height="20" Margin="1,0"/>
-                    <ToggleButton Content="I" FontStyle="Italic" Width="22" Height="20" Margin="1,0"/>
-                    <ToggleButton Width="22" Height="20" Margin="1,0">
-                        <TextBlock Text="U" TextDecorations="Underline"/>
-                    </ToggleButton>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- 4. Main FastReport Designer Workspace -->
-        <Grid Grid.Row="3" Background="#5c7899">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="140"/> <!-- Left Dock: Bands -->
-                <ColumnDefinition Width="*"/>   <!-- Center: Canvas Sheet -->
-                <ColumnDefinition Width="220"/> <!-- Right Dock: Data & Properties -->
-            </Grid.ColumnDefinitions>
-
-            <!-- Left Dock: Band Hierarchy -->
-            <Border Grid.Column="0" Background="#dbe5f2" BorderBrush="#94b0d0" BorderThickness="0,0,1,0">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="0">
-                        <Button Content="Configure bands..." Background="#e2ebf6" BorderBrush="#94b0d0" BorderThickness="0,0,0,1" Padding="4,6" HorizontalContentAlignment="Left" FontWeight="SemiBold" FontSize="11" Foreground="#1e293b"/>
-
-                        <Border Background="#f97316" Padding="6,4" Margin="0,1,0,0">
-                            <TextBlock Text="Report Title" Foreground="White" FontWeight="Bold" FontSize="11"/>
-                        </Border>
-
-                        <Border Background="#f59e0b" Padding="6,4" Margin="0,120,0,0">
-                            <TextBlock Text="Report Summary" Foreground="White" FontWeight="Bold" FontSize="11"/>
-                        </Border>
-
-                        <Border Background="#eab308" Padding="6,4" Margin="0,140,0,0">
-                            <TextBlock Text="Page Footer" Foreground="White" FontWeight="Bold" FontSize="11"/>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
-            </Border>
-
-            <!-- Center Canvas: Paper Sheet with Rulers -->
-            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Grid HorizontalAlignment="Left" Margin="20,10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/> <!-- Ruler -->
-                        <RowDefinition Height="Auto"/> <!-- Sheet -->
-                    </Grid.RowDefinitions>
-
-                    <!-- Top Ruler (0 to 27 cm) -->
-                    <Border Grid.Row="0" Width="680" Height="20" Background="#e2ebf6" BorderBrush="#94b0d0" BorderThickness="1,1,1,0" HorizontalAlignment="Left">
-                        <Canvas x:Name="RulerCanvas">
-                            <TextBlock Text="1" Canvas.Left="25" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="3" Canvas.Left="75" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="5" Canvas.Left="125" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="7" Canvas.Left="175" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="9" Canvas.Left="225" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="11" Canvas.Left="275" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="13" Canvas.Left="325" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="15" Canvas.Left="375" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="17" Canvas.Left="425" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="19" Canvas.Left="475" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="21" Canvas.Left="525" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="23" Canvas.Left="575" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                            <TextBlock Text="25" Canvas.Left="625" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
-                        </Canvas>
-                    </Border>
-
-                    <!-- Main Sheet Content -->
-                    <Border Grid.Row="1" Width="680" MinHeight="450" Background="White" BorderBrush="#334155" BorderThickness="1" Padding="16" HorizontalAlignment="Left">
-                        <StackPanel x:Name="PnlSheetContent">
-                            <!-- Header Info -->
-                            <Grid Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Width="70" Height="70" BorderBrush="#cbd5e1" BorderThickness="1" HorizontalAlignment="Left">
-                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock Text="🍽️" FontSize="28" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="[CompanyName]" FontWeight="Bold" FontSize="16" Foreground="#0f172a"/>
-                                    <TextBlock Text="Địa chỉ: [CompanyAddress]" FontSize="11" Foreground="#334155" Margin="0,2,0,0"/>
-                                    <TextBlock Text="Điện thoại: [CompanyPhone], Email: [CompanyEmail]" FontSize="11" Foreground="#334155" Margin="0,2,0,0"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <Separator Background="#f97316" Height="2" Margin="0,0,0,16"/>
-
-                            <!-- Report Body Title & Parameters -->
-                            <Grid Margin="0,10,0,40">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <TextBlock Grid.Column="0" Text="[Tham số báo cáo]" FontSize="11" Foreground="#475569" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="TxtCanvasTitle" Grid.Column="1" Text="[TIÊU ĐỀ BÁO CÁO]" FontWeight="Bold" FontSize="20" Foreground="#0f172a" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            </Grid>
-
-                            <!-- Signatures Section -->
-                            <Grid Margin="0,40,0,20">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" HorizontalAlignment="Left" Margin="40,0,0,0">
-                                    <TextBlock Text="Trưởng phòng" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="(Ký, họ tên)" FontStyle="Italic" FontSize="10" Foreground="#64748b" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0">
-                                    <TextBlock Text="Người lập" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="(Ký, họ tên)" FontStyle="Italic" FontSize="10" Foreground="#64748b" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <!-- Footer Page Number -->
-                            <TextBlock Text="Trang [Page#]/" FontSize="10" Foreground="#64748b" HorizontalAlignment="Right" Margin="0,60,0,0"/>
+                    <Button x:Name="BtnOpenFastReportDesigner" Click="BtnOpenFastReportDesigner_Click" 
+                            Background="#0284c7" Foreground="White" FontWeight="Bold" FontSize="13" Padding="14,6" 
+                            BorderBrush="#0284c7" BorderThickness="1" Cursor="Hand" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🎨 " FontSize="14"/>
+                            <TextBlock Text="Mở FastReport Designer Native Window"/>
                         </StackPanel>
-                    </Border>
-                </Grid>
-            </ScrollViewer>
+                    </Button>
 
-            <!-- Right Dock: Data Sources & Properties Inspector -->
-            <Border Grid.Column="2" Background="#dbe5f2" BorderBrush="#94b0d0" BorderThickness="1,0,0,0">
-                <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>   <!-- Data Sources Tree -->
-                    <RowDefinition Height="Auto"/> <!-- Splitter -->
-                    <RowDefinition Height="*"/>   <!-- Properties Grid -->
-                </Grid.RowDefinitions>
+                    <Button x:Name="BtnPreview" Click="BtnPreview_Click" 
+                            Background="#047857" Foreground="White" FontWeight="Bold" FontSize="13" Padding="14,6" 
+                            BorderBrush="#047857" BorderThickness="1" Cursor="Hand" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔍 " FontSize="14"/>
+                            <TextBlock Text="Xem trước (Preview)"/>
+                        </StackPanel>
+                    </Button>
 
-                <!-- Data Sources Panel -->
-                <Border Grid.Row="0" Background="White">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Background="#e2ebf6" Padding="4,4" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Data" FontWeight="Bold" FontSize="11" Margin="0,0,12,0"/>
-                                <TextBlock Text="Report Tree" FontSize="11" Foreground="#64748b"/>
-                            </StackPanel>
-                        </Border>
-
-                        <TreeView Grid.Row="1" BorderThickness="0" Padding="2">
-                            <TreeViewItem Header="Data Sources" IsExpanded="True">
-                                <TreeViewItem Header="Table0 (Thông tin đơn)"/>
-                                <TreeViewItem Header="Table1 (Chi tiết mặt hàng)"/>
-                                <TreeViewItem Header="Table2 (Phiếu thu chi)"/>
-                            </TreeViewItem>
-                            <TreeViewItem Header="System Variables" IsExpanded="True">
-                                <TreeViewItem Header="Date"/>
-                                <TreeViewItem Header="Page#"/>
-                                <TreeViewItem Header="TotalPages"/>
-                            </TreeViewItem>
-                            <TreeViewItem Header="Totals"/>
-                            <TreeViewItem Header="Parameters"/>
-                            <TreeViewItem Header="Functions"/>
-                        </TreeView>
-                    </Grid>
-                </Border>
-
-                <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" Background="#94b0d0"/>
-
-                <!-- Properties Grid Panel -->
-                <Border Grid.Row="2" Background="White">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Background="#e2ebf6" Padding="4,4" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1">
-                            <TextBlock Text="Properties: Text35 TextObject" FontWeight="Bold" FontSize="11" Foreground="#1e293b"/>
-                        </Border>
-
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="4">
-                                <Grid Margin="0,2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="(Name)" FontSize="11" Foreground="#475569"/>
-                                    <TextBox Grid.Column="1" Text="Text35" FontSize="11" Height="20" Padding="2,0"/>
-                                </Grid>
-
-                                <Grid Margin="0,2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="AllowExpressions" FontSize="11" Foreground="#475569"/>
-                                    <ComboBox Grid.Column="1" SelectedIndex="0" Height="20" FontSize="11">
-                                        <ComboBoxItem Content="True"/>
-                                        <ComboBoxItem Content="False"/>
-                                    </ComboBox>
-                                </Grid>
-
-                                <Grid Margin="0,2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Anchor" FontSize="11" Foreground="#475569"/>
-                                    <TextBox Grid.Column="1" Text="Top, Left" FontSize="11" Height="20" Padding="2,0"/>
-                                </Grid>
-
-                                <Grid Margin="0,2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="AutoWidth" FontSize="11" Foreground="#475569"/>
-                                    <ComboBox Grid.Column="1" SelectedIndex="1" Height="20" FontSize="11">
-                                        <ComboBoxItem Content="True"/>
-                                        <ComboBoxItem Content="False"/>
-                                    </ComboBox>
-                                </Grid>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
+                    <Button x:Name="BtnCapNhatVaoCSDL" Click="BtnCapNhatVaoCSDL_Click" 
+                            Background="#1e3f66" Foreground="White" FontWeight="Bold" FontSize="13" Padding="16,6" 
+                            BorderBrush="#0f172a" BorderThickness="1" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾 " FontSize="14"/>
+                            <TextBlock Text="Cập nhật vào cơ sở dữ liệu"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
-        </Grid>
 
-        <!-- 5. Bottom Status Bar -->
-        <Border Grid.Row="4" Background="#e2ebf6" BorderBrush="#94b0d0" BorderThickness="0,1,0,0" Padding="6,3">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <!-- Main Info Panel -->
+        <Border Grid.Row="1" Background="#F1F5F9" Margin="20" CornerRadius="8" BorderBrush="#CBD5E1" BorderThickness="1" Padding="24">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="📊 FastReport.NET Designer Engine" FontSize="22" FontWeight="Bold" Foreground="#1E293B" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBlock x:Name="TxtInfoTemplate" Text="Mẫu báo cáo: Mẫu 80" FontSize="15" Foreground="#475569" HorizontalAlignment="Center" Margin="0,0,0,20"/>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <TextBlock Text="📏 1 cm; 0.25 cm" FontSize="11" Margin="0,0,16,0" Foreground="#334155"/>
-                    <TextBlock Text="📐 3 cm; 0.5 cm" FontSize="11" Margin="0,0,16,0" Foreground="#334155"/>
-                    <TextBlock Text="Text35: Trưởng phòng" FontSize="11" Foreground="#0f172a" FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                    <Button Content="🚀 MỞ NATIVE FASTREPORT DESIGNER" Click="BtnOpenFastReportDesigner_Click" Height="42" Padding="20,0" FontSize="14" FontWeight="Bold" Background="#0284c7" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,12,0"/>
+                    <Button Content="💾 CẬP NHẬT CSDL FIREBIRD" Click="BtnCapNhatVaoCSDL_Click" Height="42" Padding="20,0" FontSize="14" FontWeight="Bold" Background="#1e3f66" Foreground="White" BorderThickness="0" Cursor="Hand"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <TextBlock Text="100% (- +)" FontSize="11" Margin="0,0,16,0" Foreground="#334155"/>
-                    <TextBlock Text="🗄️ CSDL: DEMO.FDB" FontSize="11" Margin="0,0,16,0" Foreground="#0284c7" FontWeight="SemiBold"/>
-                    <TextBlock Text="👤 Tài khoản: Admin" FontSize="11" Margin="0,0,16,0" Foreground="#334155"/>
-                    <TextBlock Text="⌨️ Gõ tiếng Việt Telex" FontSize="11" Foreground="#047857" FontWeight="SemiBold"/>
-                </StackPanel>
-            </Grid>
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>
