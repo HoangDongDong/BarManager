@@ -121,10 +121,21 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
                 // 2. KhuVuc Layout Config: cols|rows|color|showTitle
                 string kvVal = await LocalCauHinhService.GetConfigValueAsync("TOUCH_LAYOUT_KhuVuc", "1|5|#1976D2|1");
+                DKHUVUC.SavedLayoutConfig = kvVal;
                 string[] kvParts = kvVal.Split('|');
                 int kvRows = 5;
                 if (kvParts.Length > 1 && int.TryParse(kvParts[1], out int kr) && kr >= 1) kvRows = kr;
                 _areaRowsConfig = kvRows;
+
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLUMNS_KhuVuc", "KHU VỰC");
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    DKHUVUC.SavedDisplayColumns = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    DKHUVUC.SavedDisplayColumns = new List<string> { "KHU VỰC" };
+                }
 
                 UpdateCalculatedHeights();
             }
@@ -141,7 +152,7 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
                 double areaContainerHeight = SvAreaGrid != null && SvAreaGrid.ActualHeight > 50 ? SvAreaGrid.ActualHeight : 500;
                 int aRows = _areaRowsConfig > 0 ? _areaRowsConfig : 5;
-                AreaButtonHeight = Math.Max(36, (areaContainerHeight - (aRows * 6)) / aRows);
+                AreaButtonHeight = Math.Min(54.0, Math.Max(36.0, (areaContainerHeight - (aRows * 6)) / aRows));
             }
             catch { }
         }
@@ -163,10 +174,9 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 var service = new LocalSuDungDichVuService();
                 var kvBanList = await service.GetKhuVucBanListAsync();
 
-                _khuVucList = new List<DKHUVUC>
-                {
-                    new DKHUVUC { Id = "", Name = "TẤT CẢ", MAKHUVUC = "", ColorHex = "#1976D2" }
-                };
+                var allKv = new DKHUVUC { Id = "", Name = "TẤT CẢ", MAKHUVUC = "", ColorHex = "#1976D2", IsSelected = string.IsNullOrEmpty(_selectedKhuVucId) };
+                allKv.RefreshFormatting();
+                _khuVucList = new List<DKHUVUC> { allKv };
 
                 string[] colors = { "#E65100", "#00ACC1", "#7CB342", "#5E35B1", "#00E676", "#D81B60", "#F57C00" };
                 int ci = 0;
@@ -181,8 +191,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         MAKHUVUC = kv.Id,
                         Name = kv.Name,
                         TenKhuVuc = kv.Name,
-                        ColorHex = colors[ci % colors.Length]
+                        ColorHex = colors[ci % colors.Length],
+                        IsSelected = (_selectedKhuVucId == kv.Id)
                     };
+                    dkhuVuc.RefreshFormatting();
                     ci++;
                     _khuVucList.Add(dkhuVuc);
 

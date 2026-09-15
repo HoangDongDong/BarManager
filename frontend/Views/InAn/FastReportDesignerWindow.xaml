@@ -1,0 +1,472 @@
+<Window x:Class="QuanLyBar.Client.Views.InAn.FastReportDesignerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PHẦN MỀM QUẢN LÝ BAR, NHÀ HÀNG v6.0 TÂN AN PHÁT - HOTLINE: 0967041111" 
+        Width="1100" Height="720"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="#8da4c4">
+
+    <Window.Resources>
+        <Style x:Key="TopTabStyle" TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border" BorderBrush="#5b7b9c" BorderThickness="1,1,1,0" CornerRadius="3,3,0,0" Margin="1,0,1,0" Padding="8,4" Background="#b0c4de">
+                            <ContentPresenter ContentSource="Header" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#fffbaf"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="#c5d7ed"/>
+                                <Setter Property="FontWeight" Value="Normal"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ToolBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Top Menu bar -->
+            <RowDefinition Height="Auto"/> <!-- Top Toolbar icons -->
+            <RowDefinition Height="Auto"/> <!-- Template Tabs Bar -->
+            <RowDefinition Height="Auto"/> <!-- Designer Sub-Toolbar 1 -->
+            <RowDefinition Height="Auto"/> <!-- Designer Sub-Toolbar 2 (FastReport Menus) -->
+            <RowDefinition Height="*"/>    <!-- Main Designer Workspace -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Top System Menu -->
+        <Border Grid.Row="0" Background="#1b3c65" Padding="4,2">
+            <StackPanel Orientation="Horizontal">
+                <Menu Background="Transparent" Foreground="White" FontSize="12" FontWeight="SemiBold">
+                    <MenuItem Header="HỆ THỐNG" Foreground="White"/>
+                    <MenuItem Header="HOẠT ĐỘNG" Foreground="White"/>
+                    <MenuItem Header="KHÁCH HÀNG" Foreground="White"/>
+                    <MenuItem Header="KHO HÀNG" Foreground="White"/>
+                    <MenuItem Header="CÔNG NỢ" Foreground="White"/>
+                    <MenuItem Header="QUỸ" Foreground="White"/>
+                    <MenuItem Header="NHÂN SỰ" Foreground="White"/>
+                    <MenuItem Header="QUẢN TRỊ" Foreground="White"/>
+                    <MenuItem Header="BÁO CÁO" Foreground="White"/>
+                    <MenuItem Header="TRỢ GIÚP" Foreground="White"/>
+                </Menu>
+            </StackPanel>
+        </Border>
+
+        <!-- 2. Action Toolbar -->
+        <Border Grid.Row="1" Background="#e2ebf6" BorderBrush="#94b0d0" BorderThickness="0,0,0,1" Padding="4,3">
+            <WrapPanel VerticalAlignment="Center">
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="👨‍🍳 " FontSize="13"/>
+                        <TextBlock Text="Sử dụng dịch vụ" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🛒 " FontSize="13"/>
+                        <TextBlock Text="Quản lý bán hàng" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📈 " FontSize="13"/>
+                        <TextBlock Text="Thống kê doanh thu" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📊 " FontSize="13"/>
+                        <TextBlock Text="Thống kê mặt hàng bán" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📑 " FontSize="13"/>
+                        <TextBlock Text="Chi tiết hoạt động" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📉 " FontSize="13"/>
+                        <TextBlock Text="Tổng hợp KQKD" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📦 " FontSize="13"/>
+                        <TextBlock Text="Tồn kho" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📋 " FontSize="13"/>
+                        <TextBlock Text="Ghi chú" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📊 " FontSize="13"/>
+                        <TextBlock Text="Báo cáo" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ToolBtnStyle}" Click="BtnThoat_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❌ " FontSize="13" Foreground="Red"/>
+                        <TextBlock Text="Thoát" FontSize="12" Foreground="#990000" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+        </Border>
+
+        <!-- 3. Template Tabs Bar -->
+        <Border Grid.Row="2" Background="#b0c4de" Padding="4,4,4,0">
+            <TabControl x:Name="TcReportTemplates" Background="Transparent" BorderThickness="0" SelectionChanged="TcReportTemplates_SelectionChanged">
+                <TabItem Header="Mẫu A4 thẳng đứng" Style="{StaticResource TopTabStyle}"/>
+                <TabItem Header="5" Style="{StaticResource TopTabStyle}"/>
+                <TabItem Header="Sử dụng dịch vụ" Style="{StaticResource TopTabStyle}"/>
+                <TabItem Header="Mẫu 58mm" Style="{StaticResource TopTabStyle}"/>
+                <TabItem Header="80mm" Style="{StaticResource TopTabStyle}"/>
+                <TabItem x:Name="TabKetCa80mm" Header="Báo cáo kết ca 80mm" IsSelected="True" Style="{StaticResource TopTabStyle}"/>
+            </TabControl>
+        </Border>
+
+        <!-- 4. FastReport Sub-Toolbar 1 (Actions & Formats) -->
+        <Border Grid.Row="3" Background="#dbe5f2" BorderBrush="#a4bce3" BorderThickness="0,1,0,1" Padding="6,3">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Báo cáo" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a" FontWeight="SemiBold"/>
+                <TextBlock Text="Bảng biểu" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a"/>
+                <TextBlock Text="Format" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a"/>
+                <TextBlock Text="n0" FontSize="12" Margin="0,0,8,0" Foreground="#0f172a"/>
+                <TextBlock Text="n2" FontSize="12" Margin="0,0,8,0" Foreground="#0f172a"/>
+                <TextBlock Text="dd/MM/yyyy" FontSize="12" Margin="0,0,12,0" Foreground="#0f172a"/>
+                <TextBlock Text="Sinh total" FontSize="12" Margin="0,0,16,0" Foreground="#0f172a"/>
+                <Button Content="🔍 Preview" Click="BtnPreview_Click" Padding="10,2" Background="#0284c7" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 5. FastReport Designer Standard Menus & Toolbars -->
+        <Border Grid.Row="4" Background="#e2ebf6" BorderBrush="#cbd5e1" BorderThickness="0,0,0,1" Padding="4,2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Menu Grid.Column="0" Background="Transparent" FontSize="11" Margin="0,0,12,0">
+                    <MenuItem Header="File"/>
+                    <MenuItem Header="Edit"/>
+                    <MenuItem Header="View"/>
+                    <MenuItem Header="Insert"/>
+                    <MenuItem Header="Report"/>
+                    <MenuItem Header="Data"/>
+                    <MenuItem Header="Help"/>
+                </Menu>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Standard FastReport Action Icons -->
+                    <Button Content="💾" ToolTip="Lưu" Style="{StaticResource ToolBtnStyle}" Click="BtnLuu_Click"/>
+                    <Button Content="📄" ToolTip="Mới" Style="{StaticResource ToolBtnStyle}"/>
+                    <Button Content="📁" ToolTip="Mở" Style="{StaticResource ToolBtnStyle}"/>
+                    <Separator Width="1" Margin="4,2" Background="#a4bce3"/>
+                    <Button Content="✂️" ToolTip="Cắt" Style="{StaticResource ToolBtnStyle}"/>
+                    <Button Content="📋" ToolTip="Dán" Style="{StaticResource ToolBtnStyle}"/>
+                    <Separator Width="1" Margin="4,2" Background="#a4bce3"/>
+                    <ComboBox Width="90" Height="20" SelectedIndex="0" FontSize="11" Margin="2,0">
+                        <ComboBoxItem Content="Arial"/>
+                        <ComboBoxItem Content="Times New Roman"/>
+                        <ComboBoxItem Content="Segoe UI"/>
+                    </ComboBox>
+                    <ComboBox Width="45" Height="20" SelectedIndex="1" FontSize="11" Margin="2,0">
+                        <ComboBoxItem Content="8"/>
+                        <ComboBoxItem Content="9"/>
+                        <ComboBoxItem Content="10"/>
+                        <ComboBoxItem Content="11"/>
+                    </ComboBox>
+                    <ToggleButton Content="B" FontWeight="Bold" Width="22" Height="20" Margin="1,0"/>
+                    <ToggleButton Content="I" FontStyle="Italic" Width="22" Height="20" Margin="1,0"/>
+                    <ToggleButton Width="22" Height="20" Margin="1,0">
+                        <TextBlock Text="U" TextDecorations="Underline"/>
+                    </ToggleButton>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 6. Main FastReport Designer Workspace -->
+        <Grid Grid.Row="5" Background="#5c7899">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/> <!-- Left Band Structure Panel -->
+                <ColumnDefinition Width="*"/>   <!-- Main 80mm Designer Canvas -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Bands Hierarchy -->
+            <Border Grid.Column="0" Background="#dbe5f2" BorderBrush="#94b0d0" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0">
+                        <Button Content="Configure bands..." Background="#e2ebf6" BorderBrush="#94b0d0" BorderThickness="0,0,0,1" Padding="4,6" HorizontalContentAlignment="Left" FontWeight="SemiBold" FontSize="11" Foreground="#1e293b"/>
+
+                        <Border Background="#f97316" Padding="6,4" Margin="0,1,0,0">
+                            <TextBlock Text="Data: Table0" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+
+                        <Border Background="#f59e0b" Padding="6,4" Margin="0,1,0,0">
+                            <TextBlock Text="Footer" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+
+                        <Border Background="#f97316" Padding="6,4" Margin="0,1,0,0">
+                            <TextBlock Text="Header" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+
+                        <Border Background="#f97316" Padding="6,4" Margin="0,1,0,0">
+                            <TextBlock Text="Data: Table1" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+
+                        <Border Background="#f97316" Padding="6,4" Margin="0,1,0,0">
+                            <TextBlock Text="Header" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+
+                        <Border Background="#f97316" Padding="6,4" Margin="0,1,0,0">
+                            <TextBlock Text="Data: Table2" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+
+                        <Border Background="#eab308" Padding="6,4" Margin="0,120,0,0">
+                            <TextBlock Text="Report Summary" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Right Canvas: 80mm Paper Designer Grid -->
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Grid HorizontalAlignment="Left" Margin="20,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Ruler Top -->
+                        <RowDefinition Height="Auto"/> <!-- Paper Sheet -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Ruler bar (0 to 8cm) -->
+                    <Border Grid.Row="0" Width="360" Height="20" Background="#e2ebf6" BorderBrush="#94b0d0" BorderThickness="1,1,1,0" HorizontalAlignment="Left">
+                        <Canvas x:Name="RulerCanvas">
+                            <TextBlock Text="1" Canvas.Left="45" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
+                            <TextBlock Text="2" Canvas.Left="90" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
+                            <TextBlock Text="3" Canvas.Left="135" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
+                            <TextBlock Text="4" Canvas.Left="180" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
+                            <TextBlock Text="5" Canvas.Left="225" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
+                            <TextBlock Text="6" Canvas.Left="270" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
+                            <TextBlock Text="7" Canvas.Left="315" Canvas.Top="2" FontSize="10" Foreground="#475569"/>
+                        </Canvas>
+                    </Border>
+
+                    <!-- 80mm Report Design Sheet -->
+                    <Border Grid.Row="1" Width="360" Background="White" BorderBrush="#334155" BorderThickness="1" Padding="12" HorizontalAlignment="Left">
+                        <StackPanel x:Name="PnlReportCanvasContent">
+                            <!-- Report Title Header -->
+                            <TextBlock x:Name="TxtDesignerReportTitle" Text="BÁO CÁO KẾT CA (80mm)" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6" Foreground="#0f172a"/>
+
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Ngày: [Ngày]" FontSize="11" Foreground="#1e293b"/>
+                                <TextBlock Grid.Column="1" Text="Giờ in: [Date]" FontSize="11" HorizontalAlignment="Right" Foreground="#1e293b"/>
+                            </Grid>
+
+                            <!-- Table0 Band: Order / Table Summary -->
+                            <Border BorderBrush="#94a3b8" BorderThickness="0,1,0,1" Padding="0,4" Margin="0,2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="60"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Số" FontWeight="Bold" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="Bàn" FontWeight="Bold" FontSize="11"/>
+                                    <TextBlock Grid.Column="2" Text="T.hàng" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="G.giá" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="4" Text="Tổng cộng" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Border>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="[Table0.STT]" FontSize="11" Foreground="#334155"/>
+                                <TextBlock Grid.Column="1" Text="[DBAN_NAME]" FontSize="11" Foreground="#334155"/>
+                                <TextBlock Grid.Column="2" Text="[NHANG]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                                <TextBlock Grid.Column="3" Text="[GIAM]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                                <TextBlock Grid.Column="4" Text="[NGCONG]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                            </Grid>
+
+                            <Border BorderBrush="#94a3b8" BorderThickness="0,1,0,1" Padding="0,3" Margin="0,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="TỔNG CỘNG" FontWeight="Bold" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="[total Ban]" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="2" Text="[total mGia]" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="[total Long Cong]" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Table1 Band: Item Sales Summary -->
+                            <TextBlock Text="CHI TIẾT MẶT HÀNG BÁN" FontSize="11" FontWeight="Bold" Margin="0,8,0,2" Foreground="#0f172a"/>
+                            <Border BorderBrush="#94a3b8" BorderThickness="0,1,0,1" Padding="0,4" Margin="0,2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="35"/>
+                                        <ColumnDefinition Width="65"/>
+                                        <ColumnDefinition Width="45"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Mặt hàng" FontWeight="Bold" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="SL" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="2" Text="Đơn giá" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="CK %" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="4" Text="Thành tiền" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Border>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="35"/>
+                                    <ColumnDefinition Width="65"/>
+                                    <ColumnDefinition Width="45"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="[Table1.TENHANG]" FontSize="11" Foreground="#334155"/>
+                                <TextBlock Grid.Column="1" Text="[Table1.SLXU]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                                <TextBlock Grid.Column="2" Text="[Table1.DONGIA]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                                <TextBlock Grid.Column="3" Text="[Table1.TILEGIAMGI]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                                <TextBlock Grid.Column="4" Text="[Table1.THANHTIEN]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                            </Grid>
+
+                            <!-- Table2 Band: Cash Receipts & Vouchers -->
+                            <TextBlock Text="PHIẾU THU / PHIẾU CHI CA" FontSize="11" FontWeight="Bold" Margin="0,8,0,2" Foreground="#0f172a"/>
+                            <Border BorderBrush="#94a3b8" BorderThickness="0,1,0,1" Padding="0,4" Margin="0,2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Số phiếu" FontWeight="Bold" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="Diễn giải" FontWeight="Bold" FontSize="11"/>
+                                    <TextBlock Grid.Column="2" Text="Thu" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="Chi" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Border>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="[Table2.NAME]" FontSize="11" Foreground="#334155"/>
+                                <TextBlock Grid.Column="1" Text="[Table2.TENDOITUONG]" FontSize="11" Foreground="#334155"/>
+                                <TextBlock Grid.Column="2" Text="[Table2.THU]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                                <TextBlock Grid.Column="3" Text="[Table2.CHI]" FontSize="11" HorizontalAlignment="Right" Foreground="#334155"/>
+                            </Grid>
+
+                            <!-- Payment Breakdown & Final Cash Summary -->
+                            <Border BorderBrush="#94a3b8" BorderThickness="0,1,0,1" Padding="0,6" Margin="0,10,0,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="180"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Table Header -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Phương thức thanh toán" FontWeight="Bold" FontSize="11"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Số tiền" FontWeight="Bold" FontSize="11" HorizontalAlignment="Right"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Tiền mặt" FontSize="11" Margin="0,2"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="[Tiền mặt]" FontSize="11" HorizontalAlignment="Right" Margin="0,2"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Thẻ" FontSize="11" Margin="0,2"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="[Tiền thẻ]" FontSize="11" HorizontalAlignment="Right" Margin="0,2"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Chuyển khoản" FontSize="11" Margin="0,2"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="[Chuyển khoản]" FontSize="11" HorizontalAlignment="Right" Margin="0,2"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Trừ tích lũy" FontSize="11" Margin="0,2"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="[Trừ tích lũy]" FontSize="11" HorizontalAlignment="Right" Margin="0,2"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Thẻ trả trước" FontSize="11" Margin="0,2"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="[Thẻ trả trước]" FontSize="11" HorizontalAlignment="Right" Margin="0,2"/>
+
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Công nợ" FontSize="11" Margin="0,2"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="1" Text="[Tiền nợ]" FontSize="11" HorizontalAlignment="Right" Margin="0,2"/>
+
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Thu chi" FontSize="11" Margin="0,2"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="1" Text="[[Tổng thu]-[Tổng chi]]" FontSize="11" HorizontalAlignment="Right" Margin="0,2"/>
+
+                                    <!-- Highlighted Final Amount -->
+                                    <Border Grid.Row="8" Grid.ColumnSpan="2" Background="#fef9c3" BorderBrush="#eab308" BorderThickness="1" Padding="4,4" Margin="0,4,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="170"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="TIỀN MẶT PHẢI NỘP" FontWeight="Bold" FontSize="12" Foreground="#0f172a"/>
+                                            <TextBlock Grid.Column="1" Text="[Tộng thu]" FontWeight="Bold" FontSize="12" HorizontalAlignment="Right" Foreground="#0f172a"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <!-- Signatures Footer -->
+                            <StackPanel Margin="0,12,0,0">
+                                <TextBlock Text="Ngày [Day([Date])] tháng [Month([Date])] năm [Year([Date])]" FontSize="11" HorizontalAlignment="Center" FontStyle="Italic"/>
+                                <TextBlock Text="Người lập" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                <TextBlock Text="(Ký, họ tên)" FontSize="10" FontStyle="Italic" HorizontalAlignment="Center" Foreground="#64748b"/>
+                                <TextBlock Text="[In bởi]" FontSize="10" HorizontalAlignment="Center" Margin="0,30,0,0" Foreground="#475569"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>

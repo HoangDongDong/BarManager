@@ -76,13 +76,22 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Content="{Binding Name}" Height="{Binding AreaButtonHeight, RelativeSource={RelativeSource AncestorType=Window}}" Margin="0,2" Cursor="Hand"
-                                            Background="{Binding ColorBrush}" Foreground="White" FontSize="14" FontWeight="Bold"
+                                    <Button Height="{Binding AreaButtonHeight, RelativeSource={RelativeSource AncestorType=Window}}" Margin="0,2" Cursor="Hand"
                                             Click="BtnKhuVuc_Click" Tag="{Binding}">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" BorderBrush="White" BorderThickness="1">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border Background="{Binding TileColorBrush}" CornerRadius="6" BorderBrush="{Binding BorderColorBrush}" BorderThickness="{Binding BorderThickness}">
+                                                    <TextBlock Text="{Binding AreaText}" 
+                                                               FontSize="{Binding AreaFontSize}" 
+                                                               FontWeight="{Binding AreaFontWeight}" 
+                                                               FontStyle="{Binding AreaFontStyle}" 
+                                                               Foreground="{Binding AreaForegroundBrush}" 
+                                                               HorizontalAlignment="{Binding AreaHorizontalAlignment}" 
+                                                               TextAlignment="{Binding AreaTextAlignment}"
+                                                               Visibility="{Binding TitleVisibility}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="4,1"
+                                                               TextWrapping="Wrap"/>
                                                 </Border>
                                             </ControlTemplate>
                                         </Button.Template>

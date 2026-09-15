@@ -77,8 +77,34 @@ namespace QuanLyBar.Client.Views.TouchPOS
                         {
                             item.TileColorHex = mColor;
                         }
+                        if (!item.HasImage)
+                        {
+                            CheckLocalImage(item);
+                        }
                         item.RefreshDisplayLines();
                     }
+                }
+            }
+            catch { }
+        }
+
+        private void CheckLocalImage(TouchMatHangVM vm)
+        {
+            if (vm.HasImage) return;
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string[] exts = new[] { ".png", ".jpg", ".jpeg", ".webp" };
+                foreach (var ext in exts)
+                {
+                    string p1 = System.IO.Path.Combine(baseDir, "Images", vm.MAMATHANG + ext);
+                    string p2 = System.IO.Path.Combine(baseDir, "Images", vm.TenMatHang + ext);
+                    string p3 = System.IO.Path.Combine(baseDir, "images", vm.MAMATHANG + ext);
+                    string p4 = System.IO.Path.Combine(baseDir, "images", vm.TenMatHang + ext);
+                    if (System.IO.File.Exists(p1)) { vm.ImageUrl = p1; return; }
+                    if (System.IO.File.Exists(p2)) { vm.ImageUrl = p2; return; }
+                    if (System.IO.File.Exists(p3)) { vm.ImageUrl = p3; return; }
+                    if (System.IO.File.Exists(p4)) { vm.ImageUrl = p4; return; }
                 }
             }
             catch { }
@@ -164,10 +190,6 @@ namespace QuanLyBar.Client.Views.TouchPOS
             if (sender is FrameworkElement elem && elem.DataContext is TouchMatHangVM item)
             {
                 SelectedItem = item;
-                if (Owner is TouchMainWindow mainWin)
-                {
-                    mainWin.AddItemToCart(item);
-                }
                 DialogResult = true;
                 Close();
             }

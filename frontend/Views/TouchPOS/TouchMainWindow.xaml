@@ -51,7 +51,7 @@
         </Style>
         <!-- Custom Metallic ScrollBar & ScrollViewer Style -->
         <Style TargetType="ScrollBar">
-            <Setter Property="Width" Value="26"/>
+            <Setter Property="Width" Value="42"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -63,7 +63,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <!-- SCROLL UP BUTTON -->
-                            <RepeatButton Grid.Row="0" Command="{x:Static ScrollBar.LineUpCommand}" Height="30" Margin="0,0,0,3" Cursor="Hand">
+                            <RepeatButton Grid.Row="0" Command="{x:Static ScrollBar.LineUpCommand}" Height="38" Margin="0,0,0,3" Cursor="Hand">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
                                         <Border BorderBrush="#D0D0D0" BorderThickness="1.5" CornerRadius="8">
@@ -73,13 +73,13 @@
                                                     <GradientStop Color="#686868" Offset="1"/>
                                                 </LinearGradientBrush>
                                             </Border.Background>
-                                            <TextBlock Text="▲" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="▲" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                     </ControlTemplate>
                                 </RepeatButton.Template>
                             </RepeatButton>
                             <!-- SCROLL TRACK & THUMB -->
-                            <Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="true" HorizontalAlignment="Center">
+                            <Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="true" HorizontalAlignment="Stretch">
                                 <Track.DecreaseRepeatButton>
                                     <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{x:Null}">
                                         <RepeatButton.Template>
@@ -93,7 +93,7 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border BorderBrush="#659BB0" BorderThickness="1.5" CornerRadius="12" Width="22">
+                                                <Border BorderBrush="#659BB0" BorderThickness="1.5" CornerRadius="12" Width="36">
                                                     <Border.Background>
                                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                                             <GradientStop Color="#1C5E73" Offset="0"/>
@@ -117,7 +117,7 @@
                                 </Track.IncreaseRepeatButton>
                             </Track>
                             <!-- SCROLL DOWN BUTTON -->
-                            <RepeatButton Grid.Row="2" Command="{x:Static ScrollBar.LineDownCommand}" Height="30" Margin="0,3,0,0" Cursor="Hand">
+                            <RepeatButton Grid.Row="2" Command="{x:Static ScrollBar.LineDownCommand}" Height="38" Margin="0,3,0,0" Cursor="Hand">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
                                         <Border BorderBrush="#D0D0D0" BorderThickness="1.5" CornerRadius="8">
@@ -127,7 +127,7 @@
                                                     <GradientStop Color="#686868" Offset="1"/>
                                                 </LinearGradientBrush>
                                             </Border.Background>
-                                            <TextBlock Text="▼" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="▼" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                     </ControlTemplate>
                                 </RepeatButton.Template>
@@ -1032,22 +1032,34 @@
                     <TextBlock x:Name="TxtCurrentPOSUser" Text="Administrator" Foreground="White" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!-- 2. AREA BUTTONS LIST -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer x:Name="SvAreaButtons" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvAreaButtons_SizeChanged">
                     <StackPanel>
                         <ItemsControl x:Name="IcAreaButtons">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="{Binding AreaColumns, RelativeSource={RelativeSource AncestorType=Window}}" Rows="0"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Content="{Binding TenKhuVuc}" Height="52" Margin="0,4" Cursor="Hand" Tag="{Binding}" Click="BtnAreaSelect_Click">
+                                    <Button Height="{Binding AreaTileHeight, RelativeSource={RelativeSource AncestorType=Window}}" Margin="2,3" Cursor="Hand" Tag="{Binding}" Click="BtnAreaSelect_Click">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
-                                                <Border Background="{Binding ColorBrush, FallbackValue='#D96414'}" BorderBrush="#36B5B0" BorderThickness="1.5" CornerRadius="8">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border Background="{Binding TileColorBrush}" BorderBrush="{Binding BorderColorBrush}" BorderThickness="{Binding BorderThickness}" CornerRadius="8">
+                                                    <TextBlock Text="{Binding AreaText}" 
+                                                               FontSize="{Binding AreaFontSize}" 
+                                                               FontWeight="{Binding AreaFontWeight}" 
+                                                               FontStyle="{Binding AreaFontStyle}" 
+                                                               Foreground="{Binding AreaForegroundBrush}" 
+                                                               HorizontalAlignment="{Binding AreaHorizontalAlignment}" 
+                                                               TextAlignment="{Binding AreaTextAlignment}"
+                                                               Visibility="{Binding TitleVisibility}"
+                                                               VerticalAlignment="Center" 
+                                                               Margin="6,2" 
+                                                               TextWrapping="Wrap"/>
                                                 </Border>
                                             </ControlTemplate>
                                         </Button.Template>
-                                        <Button.Foreground>White</Button.Foreground>
-                                        <Button.FontWeight>Bold</Button.FontWeight>
-                                        <Button.FontSize>16</Button.FontSize>
                                     </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -1568,7 +1580,6 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <ScrollViewer Grid.Row="0" x:Name="SvTouchNhomHang" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="SvTouchNhomHang_SizeChanged">
                     <ItemsControl x:Name="IcTouchNhomHang" VerticalAlignment="Top">
@@ -1592,29 +1603,38 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <!-- GEAR BUTTON BELOW CATEGORIES -->
-                <Button Grid.Row="1" x:Name="BtnConfigNhomHang" Width="26" Height="24" HorizontalAlignment="Right" Margin="0,4,0,4" Cursor="Hand" Click="BtnConfigNhomHang_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="3">
-                                <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-                <!-- TÌM KIẾM BUTTON AT BOTTOM -->
-                <Button Grid.Row="2" x:Name="BtnSearchItem" Click="BtnSearchItem_Click" Height="40" Margin="0,2" Cursor="Hand">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="#0B4B57" BorderBrush="#17A2B8" BorderThickness="1" CornerRadius="6">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock Text="🔍 " Foreground="White" FontSize="13" FontWeight="Bold"/>
-                                    <TextBlock Text="TÌM KIẾM" Foreground="White" FontSize="11" FontWeight="Bold"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                <!-- BOTTOM TOOLBAR BELOW CATEGORIES: SEARCH BUTTON & GEAR BUTTON -->
+                <Grid Grid.Row="1" Margin="0,4,0,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- TÌM KIẾM BUTTON AT BOTTOM -->
+                    <Button Grid.Column="0" x:Name="BtnSearchItem" Click="BtnSearchItem_Click" Height="50" Margin="0,0,4,0" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#0B4B57" BorderBrush="#17A2B8" BorderThickness="1.5" CornerRadius="8">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="🔍 " Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="TÌM KIẾM" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- GEAR BUTTON BELOW CATEGORIES -->
+                    <Button Grid.Column="1" x:Name="BtnConfigNhomHang" Width="50" Height="50" HorizontalAlignment="Right" Cursor="Hand" Click="BtnConfigNhomHang_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1.5" CornerRadius="8">
+                                    <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
             </Grid>
             <!-- ================= CỘT PHẢI: DANH SÁCH MẶT HÀNG ================= -->
             <Grid Grid.Column="2" Margin="2,4,4,4">

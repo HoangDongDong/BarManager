@@ -83,6 +83,12 @@ namespace QuanLyBar.Client.Views.TouchPOS
         public static readonly DependencyProperty NhomTileMinHeightProperty =
             DependencyProperty.Register(nameof(NhomTileMinHeight), typeof(double), typeof(TouchMainWindow), new PropertyMetadata(140.0));
 
+        public static readonly DependencyProperty AreaColumnsProperty =
+            DependencyProperty.Register(nameof(AreaColumns), typeof(int), typeof(TouchMainWindow), new PropertyMetadata(1));
+
+        public static readonly DependencyProperty AreaTileHeightProperty =
+            DependencyProperty.Register(nameof(AreaTileHeight), typeof(double), typeof(TouchMainWindow), new PropertyMetadata(52.0));
+
         public int ColumnCount
         {
             get => (int)GetValue(ColumnCountProperty);
@@ -117,6 +123,18 @@ namespace QuanLyBar.Client.Views.TouchPOS
         {
             get => (double)GetValue(NhomTileMinHeightProperty);
             set => SetValue(NhomTileMinHeightProperty, value);
+        }
+
+        public int AreaColumns
+        {
+            get => (int)GetValue(AreaColumnsProperty);
+            set => SetValue(AreaColumnsProperty, value);
+        }
+
+        public double AreaTileHeight
+        {
+            get => (double)GetValue(AreaTileHeightProperty);
+            set => SetValue(AreaTileHeightProperty, value);
         }
 
         private int _tableRowsConfig = 5;
@@ -193,6 +211,66 @@ namespace QuanLyBar.Client.Views.TouchPOS
             catch { }
         }
 
+        private int _areaRowsConfig = 5;
+
+        private async Task LoadAreaLayoutConfigAsync()
+        {
+            try
+            {
+                string value = await LocalCauHinhService.GetConfigValueAsync("TOUCH_LAYOUT_KhuVuc", "1|5|#E65100|1");
+                DKHUVUC.SavedLayoutConfig = value;
+                string[] parts = value.Split('|');
+                int cols = 1;
+                int rows = 5;
+                if (parts.Length > 0 && int.TryParse(parts[0], out int c) && c >= 1) cols = c;
+                if (parts.Length > 1 && int.TryParse(parts[1], out int r) && r >= 1) rows = r;
+
+                AreaColumns = cols;
+                _areaRowsConfig = rows;
+                UpdateAreaTileHeight();
+
+                string savedColsStr = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLUMNS_KhuVuc", "KHU VỰC");
+                if (!string.IsNullOrWhiteSpace(savedColsStr))
+                {
+                    DKHUVUC.SavedDisplayColumns = savedColsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+                else
+                {
+                    DKHUVUC.SavedDisplayColumns = new List<string> { "KHU VỰC" };
+                }
+
+                if (_allKhuVucList != null)
+                {
+                    foreach (var kv in _allKhuVucList)
+                    {
+                        kv.RefreshFormatting();
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void UpdateAreaTileHeight()
+        {
+            try
+            {
+                int rows = _areaRowsConfig > 0 ? _areaRowsConfig : 5;
+                double calculated = 52.0;
+                if (SvAreaButtons != null && SvAreaButtons.ActualHeight > 100)
+                {
+                    calculated = (SvAreaButtons.ActualHeight - (rows * 8)) / rows;
+                }
+                // Cap area tile height to compact range (42px to 54px) so buttons don't stretch into massive towers
+                AreaTileHeight = Math.Min(54.0, Math.Max(42.0, calculated));
+            }
+            catch { }
+        }
+
+        private void SvAreaButtons_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateAreaTileHeight();
+        }
+
         private async Task LoadOrderLayoutConfigAsync()
         {
             try
@@ -259,9 +337,12 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 {
                     foreach (var cat in _nhomList)
                     {
-                        cat.ColorBrushHex = _nhomTileColorHex;
-                        cat.TextColorHex = QuanLyBar.Client.Services.ColorUtils.GetContrastTextColor(_nhomTileColorHex);
+                        if (string.IsNullOrWhiteSpace(cat.OriginalColorBrushHex) || cat.OriginalColorBrushHex == "#FFFF33" || cat.OriginalColorBrushHex == "0")
+                        {
+                            cat.OriginalColorBrushHex = _nhomTileColorHex;
+                        }
                     }
+                    SelectCategory(_selectedNhom ?? _nhomList.FirstOrDefault());
                 }
             }
             catch { }
@@ -350,8 +431,8 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
             await RefreshSystemConfigsAsync();
             LoadOrderItems();
-            await LoadMenuItems();
             await LoadOrderLayoutConfigAsync();
+            await LoadMenuItems();
         }
 
         private List<DBAN> _allBanList = new();
@@ -364,6 +445,8 @@ namespace QuanLyBar.Client.Views.TouchPOS
             try
             {
                 TxtCurrentPOSUser.Text = SessionContext.CurrentUser?.TenHienThi ?? "Administrator";
+
+                await LoadAreaLayoutConfigAsync();
 
                 var service = new LocalSuDungDichVuService();
                 var kvBanList = await service.GetKhuVucBanListAsync();
@@ -380,15 +463,18 @@ namespace QuanLyBar.Client.Views.TouchPOS
                     string kvColor = !string.IsNullOrWhiteSpace(kv.MauSac) ? QuanLyBar.Client.Services.ColorUtils.ColorIntToHex(kv.MauSac, defaultKvColor) :
                                      (!string.IsNullOrWhiteSpace(defaultKvColor) ? defaultKvColor : presetColors[colorIndex % presetColors.Length]);
 
-                    _allKhuVucList.Add(new DKHUVUC
+                    var itemKv = new DKHUVUC
                     {
                         Id = kv.Id,
                         MAKHUVUC = kv.Id,
                         Name = kv.Name,
                         TenKhuVuc = kv.Name,
                         ColorHex = kvColor,
-                        MAUSAC = kvColor
-                    });
+                        MAUSAC = kvColor,
+                        IsSelected = _selectedAreaId == kv.Id
+                    };
+                    itemKv.RefreshFormatting();
+                    _allKhuVucList.Add(itemKv);
                     colorIndex++;
 
                     foreach (var b in kv.BanList)
@@ -461,6 +547,11 @@ namespace QuanLyBar.Client.Views.TouchPOS
                     _selectedAreaId = null;
                 else
                     _selectedAreaId = kv.MAKHUVUC;
+
+                foreach (var item in _allKhuVucList)
+                {
+                    item.IsSelected = (item.MAKHUVUC == _selectedAreaId);
+                }
 
                 ApplyTableFilters();
             }
@@ -621,8 +712,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
             bool hasDbCategories = false;
             try
             {
-                string defaultNhomColor = await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_NhomHang", 
-                    await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_Nhom", "#D96414"));
+                string defaultNhomColor = !string.IsNullOrWhiteSpace(_nhomTileColorHex)
+                    ? _nhomTileColorHex
+                    : await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_NhomHang", 
+                        await LocalCauHinhService.GetConfigValueAsync("TOUCH_COLOR_Nhom", "#D96414"));
 
                 var dbNhom = LocalDatabaseService.GetAll<DNHOMMATHANG>("SELECT ID, NAME as TenNhom, MAUSAC FROM DNHOMMATHANG WHERE (STATUS <> 0 OR STATUS IS NULL) ORDER BY SORTORDER, NAME");
                 if (dbNhom != null && dbNhom.Any())
@@ -801,7 +894,8 @@ namespace QuanLyBar.Client.Views.TouchPOS
                 }
                 else
                 {
-                    n.ColorBrushHex = !string.IsNullOrWhiteSpace(n.OriginalColorBrushHex) ? n.OriginalColorBrushHex : "#FFFF33";
+                    string defaultColor = !string.IsNullOrWhiteSpace(_nhomTileColorHex) ? _nhomTileColorHex : "#D96414";
+                    n.ColorBrushHex = !string.IsNullOrWhiteSpace(n.OriginalColorBrushHex) ? n.OriginalColorBrushHex : defaultColor;
                     n.TextColorHex = QuanLyBar.Client.Services.ColorUtils.GetContrastTextColor(n.ColorBrushHex);
                 }
             }
@@ -1607,13 +1701,16 @@ namespace QuanLyBar.Client.Views.TouchPOS
             catch { }
         }
 
-        private void BtnConfigAreas_Click(object sender, RoutedEventArgs e)
+        private async void BtnConfigAreas_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 var win = new CauHinhHeThong.ThietLapDinhDangThanhPhanWindow("KhuVuc");
                 win.Owner = this;
-                win.ShowDialog();
+                if (win.ShowDialog() == true)
+                {
+                    await LoadAreaLayoutConfigAsync();
+                }
             }
             catch { }
         }
@@ -2045,15 +2142,18 @@ namespace QuanLyBar.Client.Views.TouchPOS
             return string.Empty;
         }
 
+        private readonly System.Threading.SemaphoreSlim _saveOrderSemaphore = new(1, 1);
+
         private async Task AutoSaveOrderAsync()
         {
             if (_currentBan == null) return;
 
-            string orderId = await EnsureActiveOrderAsync();
-            if (string.IsNullOrEmpty(orderId)) return;
-
+            await _saveOrderSemaphore.WaitAsync();
             try
             {
+                string orderId = await EnsureActiveOrderAsync();
+                if (string.IsNullOrEmpty(orderId)) return;
+
                 var service = new LocalSuDungDichVuService();
                 var itemsToSave = new List<PosDonHangChiTietViewModel>();
 
@@ -2104,6 +2204,10 @@ namespace QuanLyBar.Client.Views.TouchPOS
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Lỗi AutoSaveOrderAsync: {ex.Message}");
+            }
+            finally
+            {
+                _saveOrderSemaphore.Release();
             }
         }
 
@@ -3262,32 +3366,179 @@ namespace QuanLyBar.Client.Views.TouchPOS
 
         public string DisplayText => string.Join("\n", DisplayLines.Select(x => x.Text));
     }
-    public class DKHUVUC 
-    { 
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string MAKHUVUC { get; set; } = ""; 
-        public string TenKhuVuc { get; set; } = ""; 
-        public string ColorHex { get; set; } = "#E65100";
-        public string MAUSAC { get; set; } = "";
-        public SolidColorBrush ColorBrush
+    public class DKHUVUC : System.ComponentModel.INotifyPropertyChanged
+    {
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propName = null)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propName));
+        }
+
+        public static string SavedLayoutConfig { get; set; } = "1|5|#E65100|1";
+        public static List<string> SavedDisplayColumns { get; set; } = new List<string> { "KHU VỰC" };
+
+        private string _id = "";
+        private string _name = "";
+        private string _makhuvuc = "";
+        private string _tenKhuVuc = "";
+        private string _colorHex = "#E65100";
+        private string _mausac = "";
+        private bool _isSelected = false;
+
+        public string Id { get => _id; set { _id = value; OnPropertyChanged(); } }
+        public string Name { get => _name; set { _name = value; OnPropertyChanged(); RefreshFormatting(); } }
+        public string MAKHUVUC { get => _makhuvuc; set { _makhuvuc = value; OnPropertyChanged(); } }
+        public string TenKhuVuc { get => _tenKhuVuc; set { _tenKhuVuc = value; OnPropertyChanged(); RefreshFormatting(); } }
+        public string ColorHex { get => _colorHex; set { _colorHex = value; OnPropertyChanged(); OnPropertyChanged(nameof(TileColorBrush)); OnPropertyChanged(nameof(ColorBrush)); } }
+        public string MAUSAC { get => _mausac; set { _mausac = value; OnPropertyChanged(); } }
+        public int THUTU { get; set; }
+
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(BorderColorBrush));
+                    OnPropertyChanged(nameof(BorderThickness));
+                }
+            }
+        }
+
+        public System.Windows.Media.Brush BorderColorBrush => IsSelected
+            ? (System.Windows.Media.SolidColorBrush)new System.Windows.Media.BrushConverter().ConvertFromString("#FFD700")!
+            : (System.Windows.Media.SolidColorBrush)new System.Windows.Media.BrushConverter().ConvertFromString("#36B5B0")!;
+
+        public System.Windows.Thickness BorderThickness => IsSelected ? new System.Windows.Thickness(3) : new System.Windows.Thickness(1.5);
+
+        public string AreaText { get; private set; } = "";
+        public double AreaFontSize { get; private set; } = 16;
+        public System.Windows.FontWeight AreaFontWeight { get; private set; } = System.Windows.FontWeights.Bold;
+        public System.Windows.FontStyle AreaFontStyle { get; private set; } = System.Windows.FontStyles.Normal;
+        public System.Windows.Media.Brush AreaForegroundBrush { get; private set; } = System.Windows.Media.Brushes.White;
+        public System.Windows.HorizontalAlignment AreaHorizontalAlignment { get; private set; } = System.Windows.HorizontalAlignment.Center;
+        public System.Windows.TextAlignment AreaTextAlignment { get; private set; } = System.Windows.TextAlignment.Center;
+        public System.Windows.Visibility TitleVisibility { get; private set; } = System.Windows.Visibility.Visible;
+
+        public System.Windows.Media.SolidColorBrush ColorBrush => TileColorBrush;
+
+        public System.Windows.Media.SolidColorBrush TileColorBrush
         {
             get
             {
                 try
                 {
-                    string hex = ColorHex?.Trim() ?? "#E65100";
+                    string hex = ColorHex?.Trim() ?? "";
+                    if (string.IsNullOrWhiteSpace(hex) || hex == "0")
+                    {
+                        string[] layoutParts = (SavedLayoutConfig ?? "").Split('|');
+                        if (layoutParts.Length > 2 && !string.IsNullOrWhiteSpace(layoutParts[2]))
+                        {
+                            hex = layoutParts[2].Trim();
+                        }
+                    }
+                    if (string.IsNullOrWhiteSpace(hex)) hex = "#E65100";
                     if (!hex.StartsWith("#")) hex = "#" + hex;
                     if (hex.Length == 7) hex = "#FF" + hex.Substring(1);
-                    return (SolidColorBrush)new BrushConverter().ConvertFromString(hex)!;
+                    return (System.Windows.Media.SolidColorBrush)new System.Windows.Media.BrushConverter().ConvertFromString(hex)!;
                 }
                 catch
                 {
-                    return new SolidColorBrush(Color.FromRgb(230, 81, 0));
+                    return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(230, 81, 0));
                 }
             }
         }
-        public int THUTU { get; set; } 
+
+        public void RefreshFormatting()
+        {
+            string nameToUse = !string.IsNullOrWhiteSpace(TenKhuVuc) ? TenKhuVuc : Name;
+
+            string[] layoutParts = (SavedLayoutConfig ?? "").Split('|');
+            bool showTitle = true;
+            if (layoutParts.Length > 3 && int.TryParse(layoutParts[3], out int st))
+            {
+                showTitle = st == 1;
+            }
+            TitleVisibility = showTitle ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
+            if (SavedDisplayColumns == null || SavedDisplayColumns.Count == 0)
+            {
+                AreaText = nameToUse;
+                AreaFontSize = 16;
+                AreaFontWeight = System.Windows.FontWeights.Bold;
+                AreaFontStyle = System.Windows.FontStyles.Normal;
+                AreaForegroundBrush = System.Windows.Media.Brushes.White;
+                AreaHorizontalAlignment = System.Windows.HorizontalAlignment.Center;
+                AreaTextAlignment = System.Windows.TextAlignment.Center;
+            }
+            else
+            {
+                string rawCol = SavedDisplayColumns[0];
+                if (!string.IsNullOrWhiteSpace(rawCol))
+                {
+                    string[] parts = rawCol.Split(';');
+                    string alignStr = parts.Length > 1 ? parts[1].Trim().ToUpperInvariant() : "C";
+                    bool isBold = parts.Length <= 2 || parts[2].Trim() == "1";
+                    bool isItalic = parts.Length > 3 && parts[3].Trim() == "1";
+                    double fontSize = parts.Length > 4 && double.TryParse(parts[4].Trim(), out double fs) && fs > 0 ? fs : 16;
+                    string colorHex = parts.Length > 5 && !string.IsNullOrWhiteSpace(parts[5]) ? parts[5].Trim() : "#FFFFFF";
+                    string shortTitle = parts.Length > 6 ? parts[6].Trim() : "";
+
+                    AreaText = !string.IsNullOrWhiteSpace(shortTitle) ? shortTitle : nameToUse;
+                    AreaFontSize = fontSize;
+                    AreaFontWeight = isBold ? System.Windows.FontWeights.Bold : System.Windows.FontWeights.Normal;
+                    AreaFontStyle = isItalic ? System.Windows.FontStyles.Italic : System.Windows.FontStyles.Normal;
+
+                    if (alignStr == "R")
+                    {
+                        AreaHorizontalAlignment = System.Windows.HorizontalAlignment.Right;
+                        AreaTextAlignment = System.Windows.TextAlignment.Right;
+                    }
+                    else if (alignStr == "L")
+                    {
+                        AreaHorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+                        AreaTextAlignment = System.Windows.TextAlignment.Left;
+                    }
+                    else
+                    {
+                        AreaHorizontalAlignment = System.Windows.HorizontalAlignment.Center;
+                        AreaTextAlignment = System.Windows.TextAlignment.Center;
+                    }
+
+                    try
+                    {
+                        AreaForegroundBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(colorHex)!;
+                    }
+                    catch
+                    {
+                        AreaForegroundBrush = System.Windows.Media.Brushes.White;
+                    }
+                }
+                else
+                {
+                    AreaText = nameToUse;
+                    AreaFontSize = 16;
+                    AreaFontWeight = System.Windows.FontWeights.Bold;
+                    AreaFontStyle = System.Windows.FontStyles.Normal;
+                    AreaForegroundBrush = System.Windows.Media.Brushes.White;
+                    AreaHorizontalAlignment = System.Windows.HorizontalAlignment.Center;
+                    AreaTextAlignment = System.Windows.TextAlignment.Center;
+                }
+            }
+
+            OnPropertyChanged(nameof(AreaText));
+            OnPropertyChanged(nameof(AreaFontSize));
+            OnPropertyChanged(nameof(AreaFontWeight));
+            OnPropertyChanged(nameof(AreaFontStyle));
+            OnPropertyChanged(nameof(AreaForegroundBrush));
+            OnPropertyChanged(nameof(AreaHorizontalAlignment));
+            OnPropertyChanged(nameof(AreaTextAlignment));
+            OnPropertyChanged(nameof(TitleVisibility));
+            OnPropertyChanged(nameof(TileColorBrush));
+        }
     }
     public class DNHOMMATHANG { public string ID { get; set; } = ""; public string MANHOMMATHANG { get; set; } = ""; public string TenNhom { get; set; } = ""; public string MAUSAC { get; set; } = ""; public int THUTU { get; set; } }
     public class DMATHANG { public string ID { get; set; } = ""; public string MAMATHANG { get; set; } = ""; public string DNHOMMATHANGID { get; set; } = ""; public string DLOAIMATHANGID { get; set; } = ""; public string NhomId { get; set; } = ""; public string NhomName { get; set; } = ""; public string TenMatHang { get; set; } = ""; public decimal GiaBan { get; set; } public decimal GIABAN { get; set; } public string MauNen { get; set; } = "#1976D2"; public string MAUSAC { get; set; } = ""; public byte[]? ANH { get; set; } }

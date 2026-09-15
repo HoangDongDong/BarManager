@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using Dapper;
 using Microsoft.Win32;
 using QuanLyBar.Client.Services;
 
@@ -27,8 +31,10 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private void InitializePanelsList()
         {
+            _tabPanels.Clear();
             _tabPanels.Add(TabThongTinChung);
             _tabPanels.Add(TabInHoaDon);
+            _tabPanels.Add(TabMauHoaDon);
             _tabPanels.Add(TabSoPhieu);
             _tabPanels.Add(TabBanHang);
             _tabPanels.Add(TabThanhToan);
@@ -45,7 +51,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         private void InitializeComboBoxes()
         {
             // Mẫu hóa đơn
-            CboMauHoaDon.ItemsSource = new string[]
+            string[] mauHoaDonList = new string[]
             {
                 "Mẫu 54 mm x 2 dòng",
                 "Mẫu 80mm 2 ngôn ngữ",
@@ -57,6 +63,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 "Mẫu in bill A4",
                 "Mẫu in bill A5"
             };
+            CboMauHoaDon.ItemsSource = mauHoaDonList;
             CboMauHoaDon.SelectedIndex = 5; // "Mẫu in bill 80mm"
 
             // Mẫu in chế biến
@@ -472,20 +479,6 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             }
         }
 
-        private void BtnUnlockDev_Click(object sender, RoutedEventArgs e)
-        {
-            if (TxtDevPassword.Password == "123456" || TxtDevPassword.Password.Equals("admin", StringComparison.OrdinalIgnoreCase))
-            {
-                PnlDevUnlocked.Visibility = Visibility.Visible;
-                MessageBox.Show("Mở khóa chế độ Nhà phát triển thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                MessageBox.Show("Mật khẩu không đúng. Vui lòng thử lại!", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                TxtDevPassword.Focus();
-                TxtDevPassword.SelectAll();
-            }
-        }
 
         private void TxtSearchConfig_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -928,5 +921,455 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
         {
             Close();
         }
+
+        #region Developer Password & Report Template Tree (SREPORT, SREPORTROLE, SREPORTTEMPLATE)
+        private ObservableCollection<DevReportCategoryNode> _devCategoryNodes = new ObservableCollection<DevReportCategoryNode>();
+        private ObservableCollection<DevReportTemplateNode> _devTemplateNodes = new ObservableCollection<DevReportTemplateNode>();
+        private DevReportCategoryNode? _selectedDevCategory;
+
+        private async void BtnUnlockDev_Click(object sender, RoutedEventArgs e)
+        {
+            await UnlockDevModeAsync();
+        }
+
+        private async void TxtDevPassword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                await UnlockDevModeAsync();
+            }
+        }
+
+        private async System.Threading.Tasks.Task UnlockDevModeAsync()
+        {
+            string pass = TxtDevPassword.Password.Trim();
+            if (string.IsNullOrEmpty(pass))
+            {
+                MessageBox.Show("Vui lòng nhập mật khẩu nhà phát triển!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtDevPassword.Focus();
+                return;
+            }
+
+            PnlMauHoaDonDevContainer.Visibility = Visibility.Visible;
+            if (BtnSuaMauFastReport != null)
+            {
+                BtnSuaMauFastReport.Visibility = Visibility.Visible;
+            }
+
+            await LoadDevReportTreeAsync();
+        }
+
+        private static readonly List<string> InvoiceCategoryOrder = new List<string>
+        {
+            "Mẫu cơ bản",
+            "Chuyển bàn",
+            "Phiếu xuất kho",
+            "Thống kê",
+            "Phiếu nhập kho",
+            "Hóa đơn bán hàng",
+            "Thống kê mặt hàng bán",
+            "Phiếu thu",
+            "Phiếu kiểm kê",
+            "Phiếu chi",
+            "In chế biến",
+            "Phiếu chuyển kho",
+            "Thống kê doanh thu",
+            "Đặt hàng",
+            "Mặt hàng",
+            "Báo giá",
+            "Bảng lương"
+        };
+
+        private async System.Threading.Tasks.Task LoadDevReportTreeAsync()
+        {
+            try
+            {
+                _devCategoryNodes.Clear();
+
+                using var conn = DbConnectionManager.GetConnection();
+                if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+
+                // Nạp tất cả danh mục từ bảng CSDL SREPORT
+                var dbReports = (await conn.QueryAsync<dynamic>(
+                    "SELECT CAST(ID AS VARCHAR(50)) AS ID, NAME, PARENTID, COALESCE(ITEMTYPE, 0) AS ITEMTYPE FROM SREPORT WHERE (STATUS IS NULL OR STATUS <> 0) ORDER BY SORTORDER, NAME"
+                )).ToList();
+
+                // Map tên SREPORT trong CSDL để lấy ID thực tế
+                var dbReportMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var rep in dbReports)
+                {
+                    string rName = ((string)rep.NAME)?.Trim() ?? "";
+                    if (!string.IsNullOrEmpty(rName) && !dbReportMap.ContainsKey(rName))
+                    {
+                        dbReportMap[rName] = (string)rep.ID;
+                    }
+                }
+
+                var addedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                // 1. Luôn hiển thị 17 danh mục Mẫu Hóa Đơn theo đúng thứ tự chuẩn trong hình
+                foreach (var catName in InvoiceCategoryOrder)
+                {
+                    string id = catName.Equals("Mẫu cơ bản", StringComparison.OrdinalIgnoreCase) ? "STEMPLATE_BASE" : "";
+                    if (string.IsNullOrEmpty(id) && dbReportMap.TryGetValue(catName, out string? foundId))
+                    {
+                        id = foundId;
+                    }
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        // Fuzzy search SREPORT by name
+                        var matchRep = dbReports.FirstOrDefault(r => 
+                            r.NAME != null && 
+                            (((string)r.NAME).Trim().Equals(catName, StringComparison.OrdinalIgnoreCase) ||
+                             ((string)r.NAME).Trim().ToUpper().Contains(catName.ToUpper()) ||
+                             catName.ToUpper().Contains(((string)r.NAME).Trim().ToUpper())));
+
+                        if (matchRep != null)
+                        {
+                            id = (string)matchRep.ID;
+                        }
+                        else
+                        {
+                            id = "SREPORT_" + catName;
+                        }
+                    }
+
+                    _devCategoryNodes.Add(new DevReportCategoryNode
+                    {
+                        Id = id,
+                        Name = catName,
+                        Icon = "📁"
+                    });
+                    addedNames.Add(catName);
+                }
+
+                // 2. Thêm các mẫu hóa đơn/phiếu in khác từ CSDL (loại trừ các báo cáo tổng hợp hệ thống bắt đầu bằng "BÁO CÁO", "TỔNG HỢP", "ĐỐI CHIẾU")
+                foreach (var rep in dbReports)
+                {
+                    string rName = ((string)rep.NAME)?.Trim() ?? "";
+                    if (string.IsNullOrWhiteSpace(rName) || addedNames.Contains(rName)) continue;
+
+                    string upperName = rName.ToUpper();
+                    if (upperName.StartsWith("BÁO CÁO") || upperName.StartsWith("TỔNG HỢP") || upperName.StartsWith("ĐỐI CHIẾU"))
+                    {
+                        continue; // Bỏ qua tất cả các báo cáo hệ thống trong phần Mẫu hóa đơn
+                    }
+
+                    _devCategoryNodes.Add(new DevReportCategoryNode
+                    {
+                        Id = (string)rep.ID,
+                        Name = rName,
+                        Icon = "📁"
+                    });
+                    addedNames.Add(rName);
+                }
+
+                TvReportCategories.ItemsSource = _devCategoryNodes;
+
+                if (_devCategoryNodes.Count > 0)
+                {
+                    _selectedDevCategory = _devCategoryNodes[0];
+                    await LoadDevTemplatesForCategoryAsync(_devCategoryNodes[0]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("LoadDevReportTreeAsync error: " + ex.Message);
+            }
+        }
+
+        private async void TvReportCategories_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is DevReportCategoryNode cat)
+            {
+                _selectedDevCategory = cat;
+                await LoadDevTemplatesForCategoryAsync(cat);
+            }
+        }
+
+        private static readonly Dictionary<string, string> CategoryTableCodeMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Bảng lương"] = "TBANGLUONG",
+            ["Báo giá"] = "TBAOGIA",
+            ["Đặt hàng"] = "TDATHANG",
+            ["Mặt hàng"] = "DMATHANG",
+            ["Hóa đơn bán hàng"] = "TSOHOADON",
+            ["Phiếu nhập kho"] = "TPHIEUNHAPKHO",
+            ["Phiếu xuất kho"] = "TPHIEUXUATKHO",
+            ["Phiếu chuyển kho"] = "TPHIEUCHUYENKHO",
+            ["Phiếu kiểm kê"] = "TPHIEUKIEMKE",
+            ["Phiếu thu"] = "TPHIEUTHU",
+            ["Phiếu chi"] = "TPHIEUCHI",
+            ["In chế biến"] = "TSOINCHEBIEN"
+        };
+
+        private static string DetermineTemplateIcon(string templateName, string categoryName)
+        {
+            if (string.IsNullOrWhiteSpace(templateName)) return "📄";
+            string catLower = (categoryName ?? "").Trim().ToLower();
+            string nLower = templateName.Trim().ToLower();
+
+            if (catLower == "bảng lương" || nLower.StartsWith("bảng lương")) return "🔮";
+
+            if (nLower.Contains("cộng gộp")) return "📷";
+            if (nLower.Contains("2 ngôn ngữ") || nLower.Contains("ck tổng") || nLower.EndsWith("a5") || nLower.Contains(" bill a5")) return "🟢";
+            if (nLower.Equals("mẫu in bill 80mm") || nLower.Equals("bill 80mm") || nLower.Equals("54mm") || (nLower.Equals("a4") && !nLower.Contains("mẫu in bill"))) return "🌸";
+            if (nLower.Contains("80mm") && !nLower.Contains("in bill") && !nLower.Contains("2 ngôn ngữ") && !nLower.Contains("cộng gộp")) return "⭐️";
+            if (nLower.Contains("54mm x 2") || nLower.Contains("54 mm x 2") || nLower.Contains("80 (có ck)") || nLower.Contains("bill a4") || nLower.Contains("bill 54mm")) return "📄";
+
+            if (nLower.Contains("54") || nLower.Contains("58")) return "📊";
+            if (nLower.Contains("80")) return "⭐️";
+
+            return "📄";
+        }
+
+        private async System.Threading.Tasks.Task LoadDevTemplatesForCategoryAsync(DevReportCategoryNode cat)
+        {
+            try
+            {
+                _devTemplateNodes.Clear();
+
+                using var conn = DbConnectionManager.GetConnection();
+                if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+
+                List<DevReportTemplateNode> list = new List<DevReportTemplateNode>();
+                string catName = cat.Name.Trim();
+                string catClean = catName.ToUpperInvariant();
+
+                // Query all STEMPLATE records with SFORM and STABLEDESC joins
+                var allStemplates = (await conn.QueryAsync<dynamic>(
+                    @"SELECT CAST(st.ID AS VARCHAR(50)) AS ID, 
+                             st.NAME, 
+                             st.STABLEDESCID, 
+                             sd.NAME AS TABLENAME, 
+                             st.SFORMID,
+                             sf.NAME AS FORMNAME,
+                             st.REPORTBASE
+                      FROM STEMPLATE st
+                      LEFT JOIN STABLEDESC sd ON st.STABLEDESCID = sd.ID
+                      LEFT JOIN SFORM sf ON st.SFORMID = sf.ID
+                      WHERE (st.STATUS IS NULL OR st.STATUS <> 0)
+                      ORDER BY st.SORTORDER, st.NAME"
+                )).ToList();
+
+                // Query all SREPORTTEMPLATE records
+                var allRepTemplates = (await conn.QueryAsync<dynamic>(
+                    @"SELECT CAST(t.ID AS VARCHAR(50)) AS ID, 
+                             t.NAME, 
+                             r.NAME AS REPORTNAME, 
+                             CAST(t.SREPORTID AS VARCHAR(50)) AS SREPORTID, 
+                             CAST(t.STEMPLATEID AS VARCHAR(50)) AS STEMPLATEID
+                      FROM SREPORTTEMPLATE t
+                      LEFT JOIN SREPORT r ON t.SREPORTID = r.ID
+                      WHERE (t.STATUS IS NULL OR t.STATUS <> 0)
+                      ORDER BY t.SORTORDER, t.NAME"
+                )).ToList();
+
+                // 1. Direct match STEMPLATE by SFORMID (Form Name) OR STABLEDESCID (Table Name)
+                var matchedStemplates = allStemplates.Where(st => {
+                    string fName = ((string)(st.FORMNAME ?? "")).Trim().ToUpperInvariant();
+                    string tName = ((string)(st.TABLENAME ?? "")).Trim().ToUpperInvariant();
+
+                    if (catClean == "MẪU CƠ BẢN")
+                    {
+                        return (st.STABLEDESCID == null || string.IsNullOrWhiteSpace((string)(st.STABLEDESCID ?? ""))) &&
+                               (st.SFORMID == null || string.IsNullOrWhiteSpace((string)(st.SFORMID ?? "")));
+                    }
+
+                    if (fName.Length > 0 && fName == catClean) return true;
+
+                    string targetTableCode = catClean switch
+                    {
+                        "BẢNG LƯƠNG" => "TBANGLUONG",
+                        "BÁO GIÁ" => "TBAOGIA",
+                        "ĐẶT HÀNG" => "TDATHANG",
+                        "MẶT HÀNG" => "DMATHANG",
+                        "HÓA ĐƠN BÁN HÀNG" => "TSOHOADON",
+                        "PHIẾU NHẬP KHO" => "TPHIEUNHAPKHO",
+                        "PHIẾU XUẤT KHO" => "TPHIEUXUATKHO",
+                        "PHIẾU CHUYỂN KHO" => "TPHIEUCHUYENKHO",
+                        "PHIẾU THU" => "TPHIEUTHU",
+                        "PHIẾU CHI" => "TPHIEUCHI",
+                        "PHIẾU KIỂM KÊ" => "TPHIEUKIEMKE",
+                        "IN CHẾ BIẾN" => "TSOINCHEBIEN",
+                        _ => ""
+                    };
+
+                    return targetTableCode.Length > 0 && tName == targetTableCode;
+                }).ToList();
+
+                foreach (var st in matchedStemplates)
+                {
+                    string nameStr = ((string)st.NAME)?.Trim() ?? "";
+                    if (!string.IsNullOrEmpty(nameStr) && !list.Any(x => x.Name.Equals(nameStr, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        string icon = DetermineTemplateIcon(nameStr, catName);
+                        list.Add(new DevReportTemplateNode
+                        {
+                            Id = (string)st.ID,
+                            Name = nameStr,
+                            Icon = icon,
+                            StemplateId = (string)st.ID,
+                            SreportId = cat.Id
+                        });
+                    }
+                }
+
+                // 2. ONLY Query SREPORTTEMPLATE if no STEMPLATE match was found (for custom SREPORT nodes)
+                if (list.Count == 0)
+                {
+                    var repStems = allRepTemplates.Where(rt => {
+                        string sRepId = (rt.SREPORTID ?? "").ToString().Trim();
+                        string rName = ((string)(rt.REPORTNAME ?? "")).Trim().ToUpperInvariant();
+                        return (sRepId.Length > 0 && sRepId == cat.Id) || rName == catClean;
+                    }).ToList();
+
+                    foreach (var rt in repStems)
+                    {
+                        string nameStr = ((string)rt.NAME)?.Trim() ?? "";
+                        if (!string.IsNullOrEmpty(nameStr) && !list.Any(x => x.Name.Equals(nameStr, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            string icon = DetermineTemplateIcon(nameStr, catName);
+                            list.Add(new DevReportTemplateNode
+                            {
+                                Id = (string)rt.ID,
+                                Name = nameStr,
+                                Icon = icon,
+                                StemplateId = rt.STEMPLATEID?.ToString() ?? "",
+                                SreportId = cat.Id
+                            });
+                        }
+                    }
+                }
+
+                // 3. Fallbacks for standard categories if still no templates found
+                if (list.Count == 0)
+                {
+                    if (catClean == "CHUYỂN BÀN" || catClean == "IN CHẾ BIẾN")
+                    {
+                        list.Add(new DevReportTemplateNode { Id = "DEF_58", Name = "Mẫu 58mm", Icon = "📊", SreportId = cat.Id });
+                        list.Add(new DevReportTemplateNode { Id = "DEF_80", Name = "Mẫu 80mm", Icon = "⭐️", SreportId = cat.Id });
+                    }
+                    else if (catClean == "THỐNG KÊ")
+                    {
+                        list.Add(new DevReportTemplateNode { Id = "TK_58", Name = "Báo cáo kết ca 58mm", Icon = "📄", SreportId = cat.Id });
+                        list.Add(new DevReportTemplateNode { Id = "TK_80", Name = "Báo cáo kết ca 80mm", Icon = "⭐️", SreportId = cat.Id });
+                        list.Add(new DevReportTemplateNode { Id = "TK_A4", Name = "Báo cáo kết ca A4", Icon = "📊", SreportId = cat.Id });
+                        list.Add(new DevReportTemplateNode { Id = "TK_A5", Name = "Báo cáo kết ca A5", Icon = "📊", SreportId = cat.Id });
+                    }
+                    else
+                    {
+                        list.Add(new DevReportTemplateNode { Id = cat.Id + "_54MM", Name = "54mm", Icon = "🌸", SreportId = cat.Id });
+                        list.Add(new DevReportTemplateNode { Id = cat.Id + "_80MM", Name = "80mm", Icon = "⭐️", SreportId = cat.Id });
+                        list.Add(new DevReportTemplateNode { Id = cat.Id + "_A4", Name = "A4", Icon = "🌸", SreportId = cat.Id });
+                    }
+                }
+
+                var distinctList = list.GroupBy(x => x.Name.Trim().ToUpperInvariant()).Select(g => g.First()).ToList();
+
+                foreach (var item in distinctList)
+                {
+                    _devTemplateNodes.Add(item);
+                }
+
+                TvReportTemplates.ItemsSource = _devTemplateNodes;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("LoadDevTemplatesForCategoryAsync error: " + ex.Message);
+            }
+        }
+
+        private void BtnSuaMauFastReport_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFastReportDesigner();
+        }
+
+        private void TvReportTemplates_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            OpenFastReportDesigner();
+        }
+
+        private void OpenFastReportDesigner()
+        {
+            string reportName = "";
+            string stemplateId = "";
+
+            if (TvReportTemplates.SelectedItem is DevReportTemplateNode templateNode && !string.IsNullOrWhiteSpace(templateNode.Name))
+            {
+                reportName = templateNode.Name;
+                stemplateId = templateNode.StemplateId;
+            }
+            else if (_selectedDevCategory != null && !string.IsNullOrWhiteSpace(_selectedDevCategory.Name))
+            {
+                reportName = _selectedDevCategory.Name;
+            }
+
+            if (string.IsNullOrWhiteSpace(reportName))
+            {
+                reportName = "Mẫu A4 nằm ngang";
+            }
+
+            try
+            {
+                var designerCtrl = new QuanLyBar.Client.Views.InAn.FastReportDesignerControl(reportName, stemplateId);
+
+                if (Application.Current.MainWindow is MainAppWindow mainWin)
+                {
+                    mainWin.AddTab(reportName, designerCtrl);
+                    this.Close();
+                }
+                else
+                {
+                    var win = new Window
+                    {
+                        Title = $"FastReport Designer - {reportName}",
+                        Content = designerCtrl,
+                        Width = 1100,
+                        Height = 720,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen
+                    };
+                    win.Owner = this;
+                    win.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi mở thiết kế mẫu FastReport: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        #endregion
+    }
+
+    public class InvoiceTemplateDisplayItem
+    {
+        public string Name { get; set; } = "";
+        public string PaperSize { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Status { get; set; } = "Đang sử dụng";
+    }
+
+    public class DevReportCategoryNode : INotifyPropertyChanged
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "📁";
+        public ObservableCollection<DevReportCategoryNode> Children { get; set; } = new ObservableCollection<DevReportCategoryNode>();
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class DevReportTemplateNode : INotifyPropertyChanged
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "📊";
+        public string StemplateId { get; set; } = "";
+        public string SreportId { get; set; } = "";
+        public ObservableCollection<DevReportTemplateNode> Children { get; set; } = new ObservableCollection<DevReportTemplateNode>();
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

@@ -5,7 +5,7 @@
     <Application.Resources>
         <!-- Custom Metallic ScrollBar & ScrollViewer Style for all Touch POS screens -->
         <Style TargetType="ScrollBar">
-            <Setter Property="Width" Value="26"/>
+            <Setter Property="Width" Value="42"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -18,7 +18,7 @@
                             </Grid.RowDefinitions>
 
                             <!-- SCROLL UP BUTTON -->
-                            <RepeatButton Grid.Row="0" Command="{x:Static ScrollBar.LineUpCommand}" Height="30" Margin="0,0,0,3" Cursor="Hand">
+                            <RepeatButton Grid.Row="0" Command="{x:Static ScrollBar.LineUpCommand}" Height="38" Margin="0,0,0,3" Cursor="Hand">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
                                         <Border BorderBrush="#D0D0D0" BorderThickness="1.5" CornerRadius="8">
@@ -28,14 +28,14 @@
                                                     <GradientStop Color="#686868" Offset="1"/>
                                                 </LinearGradientBrush>
                                             </Border.Background>
-                                            <TextBlock Text="▲" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="▲" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                     </ControlTemplate>
                                 </RepeatButton.Template>
                             </RepeatButton>
 
                             <!-- SCROLL TRACK & THUMB -->
-                            <Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="true" HorizontalAlignment="Center">
+                            <Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="true" HorizontalAlignment="Stretch">
                                 <Track.DecreaseRepeatButton>
                                     <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{x:Null}">
                                         <RepeatButton.Template>
@@ -49,7 +49,7 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border BorderBrush="#659BB0" BorderThickness="1.5" CornerRadius="12" Width="22">
+                                                <Border BorderBrush="#659BB0" BorderThickness="1.5" CornerRadius="12" Width="36">
                                                     <Border.Background>
                                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                                             <GradientStop Color="#1C5E73" Offset="0"/>
@@ -74,7 +74,7 @@
                             </Track>
 
                             <!-- SCROLL DOWN BUTTON -->
-                            <RepeatButton Grid.Row="2" Command="{x:Static ScrollBar.LineDownCommand}" Height="30" Margin="0,3,0,0" Cursor="Hand">
+                            <RepeatButton Grid.Row="2" Command="{x:Static ScrollBar.LineDownCommand}" Height="38" Margin="0,3,0,0" Cursor="Hand">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType="RepeatButton">
                                         <Border BorderBrush="#D0D0D0" BorderThickness="1.5" CornerRadius="8">
@@ -84,7 +84,7 @@
                                                     <GradientStop Color="#686868" Offset="1"/>
                                                 </LinearGradientBrush>
                                             </Border.Background>
-                                            <TextBlock Text="▼" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="▼" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                     </ControlTemplate>
                                 </RepeatButton.Template>

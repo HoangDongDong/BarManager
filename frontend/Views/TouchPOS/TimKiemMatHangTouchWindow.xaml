@@ -59,38 +59,64 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Height="{Binding MatHangTileHeight, RelativeSource={RelativeSource AncestorType=Window}}" 
-                                    Margin="3" Padding="8,4" CornerRadius="6" 
-                                    Background="{Binding TileColorBrush, FallbackValue='#0D4B5B'}" BorderBrush="#26A69A" BorderThickness="1" 
-                                    Cursor="Hand" MouseLeftButtonDown="MatHangTile_MouseLeftButtonDown">
-                                <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                                     <ItemsControl.ItemTemplate>
-                                         <DataTemplate>
-                                             <Grid HorizontalAlignment="Stretch">
-                                                 <Grid.ColumnDefinitions>
-                                                     <ColumnDefinition Width="*"/>
-                                                     <ColumnDefinition Width="Auto"/>
-                                                 </Grid.ColumnDefinitions>
-                                                 <TextBlock Grid.Column="0" Text="{Binding Text}" 
-                                                            HorizontalAlignment="{Binding Alignment}" 
-                                                            FontSize="{Binding FontSize}" 
-                                                            FontWeight="{Binding FontWeight}" 
-                                                            FontStyle="{Binding FontStyle}" 
-                                                            Foreground="{Binding ForegroundBrush}" 
-                                                            TextWrapping="Wrap"/>
-                                                 <TextBlock Grid.Column="1" Text="{Binding RightText}" 
-                                                            HorizontalAlignment="Right" 
-                                                            FontSize="{Binding RightFontSize}" 
-                                                            FontWeight="{Binding RightFontWeight}" 
-                                                            FontStyle="{Binding RightFontStyle}" 
-                                                            Foreground="{Binding RightForegroundBrush}" 
-                                                            Visibility="{Binding RightVisibility}" 
-                                                            Margin="4,0,0,0" 
-                                                            TextWrapping="Wrap"/>
-                                             </Grid>
-                                         </DataTemplate>
-                                     </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                            <Border Height="{Binding MatHangTileHeight, RelativeSource={RelativeSource AncestorType=Window}}" Margin="3" CornerRadius="8" Background="{Binding TileColorBrush, FallbackValue='#0D4B5B'}" BorderBrush="#26A69A" BorderThickness="1" Cursor="Hand" MouseLeftButtonDown="MatHangTile_MouseLeftButtonDown">
+                                <Grid Margin="0">
+                                     <!-- LAYOUT WHEN ITEM HAS IMAGE -->
+                                     <Grid Visibility="{Binding HasImageVisibility}">
+                                         <!-- PRODUCT IMAGE FILLING ENTIRE TILE -->
+                                         <Border Margin="0" CornerRadius="7" ClipToBounds="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                             <Image Source="{Binding ImageSource}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                         </Border>
+
+                                         <!-- ITEM NAME & PRICE OVERLAID AT BOTTOM OF IMAGE -->
+                                         <Border VerticalAlignment="Bottom" Background="#A0000000" CornerRadius="0,0,7,7" Padding="4,3">
+                                             <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                                 <ItemsControl.ItemTemplate>
+                                                     <DataTemplate>
+                                                         <Grid HorizontalAlignment="Stretch">
+                                                             <Grid.ColumnDefinitions>
+                                                                 <ColumnDefinition Width="*"/>
+                                                                 <ColumnDefinition Width="Auto"/>
+                                                             </Grid.ColumnDefinitions>
+                                                             <TextBlock Grid.Column="0" Text="{Binding Text}" 
+                                                                        HorizontalAlignment="{Binding Alignment}" 
+                                                                        FontSize="{Binding FontSize}" 
+                                                                        FontWeight="{Binding FontWeight}" 
+                                                                        FontStyle="{Binding FontStyle}" 
+                                                                        Foreground="{Binding ForegroundBrush}" 
+                                                                        TextWrapping="Wrap"/>
+                                                             <TextBlock Grid.Column="1" Text="{Binding RightText}" 
+                                                                        HorizontalAlignment="Right" 
+                                                                        FontSize="{Binding RightFontSize}" 
+                                                                        FontWeight="{Binding RightFontWeight}" 
+                                                                        FontStyle="{Binding RightFontStyle}" 
+                                                                        Foreground="{Binding RightForegroundBrush}" 
+                                                                        Visibility="{Binding RightVisibility}" 
+                                                                        Margin="4,0,0,0" 
+                                                                        TextWrapping="Wrap"/>
+                                                         </Grid>
+                                                     </DataTemplate>
+                                                 </ItemsControl.ItemTemplate>
+                                             </ItemsControl>
+                                         </Border>
+                                     </Grid>
+                                    <!-- LAYOUT WHEN ITEM HAS NO IMAGE -->
+                                    <Grid Visibility="{Binding NoImageVisibility}" Margin="4" VerticalAlignment="Center">
+                                        <ItemsControl ItemsSource="{Binding DisplayLines}" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Text}" 
+                                                               HorizontalAlignment="{Binding Alignment}" 
+                                                               FontSize="{Binding FontSize}" 
+                                                               FontWeight="{Binding FontWeight}" 
+                                                               FontStyle="{Binding FontStyle}" 
+                                                               Foreground="{Binding ForegroundBrush}" 
+                                                               TextWrapping="Wrap"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Grid>
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -98,11 +124,11 @@
             </ScrollViewer>
 
             <!-- GEAR BUTTON AT BOTTOM RIGHT OF ITEMS PANEL (CÀI ĐẶT CẤU HÌNH TÌM KIẾM) -->
-            <Button x:Name="BtnConfigSearchMatHang" Width="28" Height="26" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4" Cursor="Hand" Click="BtnConfigSearchMatHang_Click">
+            <Button x:Name="BtnConfigSearchMatHang" Width="50" Height="48" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4" Cursor="Hand" Click="BtnConfigSearchMatHang_Click">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1" CornerRadius="3">
-                            <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="#E0E0E0" BorderBrush="#B0B0B0" BorderThickness="1.5" CornerRadius="8">
+                            <TextBlock Text="⚙" Foreground="#1B4D5C" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Button.Template>
