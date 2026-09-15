@@ -378,7 +378,123 @@
 
                                 <!-- Right Tree: Templates from SREPORTTEMPLATE / STEMPLATE -->
                                 <Border Grid.Column="2" BorderBrush="#94A3B8" BorderThickness="1" Background="White">
-                                    <TreeView x:Name="TvReportTemplates" BorderThickness="0" Padding="4" MouseDoubleClick="TvReportTemplates_MouseDoubleClick">
+                                    <TreeView x:Name="TvReportTemplates" BorderThickness="0" Padding="4" 
+                                              MouseDoubleClick="TvReportTemplates_MouseDoubleClick"
+                                              PreviewMouseRightButtonDown="TvReportTemplates_PreviewMouseRightButtonDown">
+                                        <TreeView.ContextMenu>
+                                            <ContextMenu x:Name="CmReportTemplates">
+                                                <MenuItem Header="Thêm mới">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="➕" FontSize="12" VerticalAlignment="Center" Foreground="#16A34A"/>
+                                                    </MenuItem.Icon>
+                                                    <MenuItem Header="Thêm mẫu in" Click="CtxThemMauIn_Click">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Text="📄" Foreground="#0284C7" FontSize="12" VerticalAlignment="Center"/>
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <MenuItem Header="Thêm nhanh" Click="CtxThemNhanh_Click">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Text="⚡" Foreground="#EAB308" FontSize="12" VerticalAlignment="Center"/>
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <Separator/>
+                                                    <MenuItem Header="Thêm phân cách" Click="CtxThemPhanCach_Click"/>
+                                                    <MenuItem Header="Thêm thư mục" Click="CtxThemThuMuc_Click">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Text="📁" Foreground="#D97706" FontSize="12" VerticalAlignment="Center"/>
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                </MenuItem>
+                                                
+                                                <MenuItem Header="Thêm con">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="🌿" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                    <MenuItem Header="Thêm mẫu in" Click="CtxThemMauIn_Click">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Text="➕" Foreground="#16A34A" FontSize="12" VerticalAlignment="Center"/>
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <MenuItem Header="Thêm nhanh" Click="CtxThemNhanh_Click"/>
+                                                    <MenuItem Header="Thêm thư mục" Click="CtxThemThuMuc_Click">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Text="📁" Foreground="#D97706" FontSize="12" VerticalAlignment="Center"/>
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Chỉnh sửa" Click="CtxChinhSua_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="✏️" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <Separator/>
+
+                                                <MenuItem Header="Sắp xếp theo">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="🔀" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                    <MenuItem Header="Tên" IsCheckable="True" x:Name="MnuSortByName" IsChecked="True" Click="CtxSapXepTen_Click"/>
+                                                    <MenuItem Header="Thứ tự tùy chọn" IsCheckable="True" x:Name="MnuSortByOrder" Click="CtxSapXepThuTu_Click"/>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Refresh" Click="CtxRefresh_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="🔄" Foreground="#0284C7" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <Separator/>
+
+                                                <MenuItem Header="Sao chép" Click="CtxSaoChep_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="📋" Foreground="#2563EB" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Mở rộng" Click="CtxMoRong_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="📂" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Thu gọn" Click="CtxThuGon_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="📁" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <Separator/>
+
+                                                <MenuItem Header="Xóa" Click="CtxXoa_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="❌" Foreground="#DC2626" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Đổi tên" Click="CtxDoiTen_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="✏️" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <MenuItem Header="Thùng rác" Click="CtxThungRac_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="🗑️" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+
+                                                <Separator/>
+
+                                                <MenuItem Header="Biểu tượng" Click="CtxBieuTuong_Click"/>
+                                                <MenuItem Header="Thuộc tính" Click="CtxThuocTinh_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="⚙️" FontSize="12" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                            </ContextMenu>
+                                        </TreeView.ContextMenu>
                                         <TreeView.ItemTemplate>
                                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                                 <StackPanel Orientation="Horizontal" Margin="2,2,4,2">

@@ -1671,6 +1671,343 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             footerBand.Objects.Add(txtPageNum);
         }
         #endregion
+
+        #region Context Menu Handlers for Report Templates
+        private void TvReportTemplates_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var treeViewItem = FindVisualParent<TreeViewItem>(e.OriginalSource as DependencyObject);
+            if (treeViewItem != null)
+            {
+                treeViewItem.Focus();
+                treeViewItem.IsSelected = true;
+            }
+        }
+
+        private static T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
+        {
+            while (child != null && !(child is T))
+            {
+                child = System.Windows.Media.VisualTreeHelper.GetParent(child);
+            }
+            return child as T;
+        }
+
+        private void CtxChinhSua_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFastReportDesigner();
+        }
+
+        private async void CtxThemMauIn_Click(object sender, RoutedEventArgs e)
+        {
+            string catName = _selectedDevCategory?.Name ?? "Mẫu hóa đơn";
+            string defaultName = $"{catName} mới {DateTime.Now:ss}";
+            string inputName = PromptInputDialog("Thêm mẫu in mới", "Nhập tên mẫu in mới:", defaultName);
+
+            if (string.IsNullOrWhiteSpace(inputName)) return;
+
+            try
+            {
+                using var conn = DbConnectionManager.GetConnection();
+                if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+
+                string defaultUserId = "4f1466a0-0756-4ba9-afa8-053b96ca7569";
+                string newId = Guid.NewGuid().ToString();
+
+                using var report = new FastReport.Report();
+                BuildDefaultFastReportTemplate(report, inputName.Trim());
+                byte[] xmlBytes;
+                using (var ms = new MemoryStream())
+                {
+                    report.Save(ms);
+                    xmlBytes = ms.ToArray();
+                }
+
+                await conn.ExecuteAsync(
+                    @"INSERT INTO SREPORTTEMPLATE (ID, NAME, STATUS, CONFIG, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
+                      VALUES (@Id, @Name, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                    new { Id = newId, Name = inputName.Trim(), Config = xmlBytes, UserId = defaultUserId });
+
+                if (_selectedDevCategory != null)
+                {
+                    await LoadDevTemplatesForCategoryAsync(_selectedDevCategory);
+                }
+
+                MessageBox.Show($"Đã tạo mới mẫu in [{inputName.Trim()}]. Mở FastReport Designer để thiết kế...", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                OpenFastReportDesigner();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi thêm mẫu in mới: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CtxThemNhanh_Click(object sender, RoutedEventArgs e)
+        {
+            CtxThemMauIn_Click(sender, e);
+        }
+
+        private void CtxThemPhanCach_Click(object sender, RoutedEventArgs e)
+        {
+            _devTemplateNodes.Add(new DevReportTemplateNode
+            {
+                Id = "SEP_" + Guid.NewGuid().ToString("N"),
+                Name = "──────────────",
+                Icon = "➖"
+            });
+        }
+
+        private void CtxThemThuMuc_Click(object sender, RoutedEventArgs e)
+        {
+            string folderName = PromptInputDialog("Thêm thư mục mẫu", "Nhập tên thư mục mới:", "Thư mục mới");
+            if (!string.IsNullOrWhiteSpace(folderName))
+            {
+                _devTemplateNodes.Add(new DevReportTemplateNode
+                {
+                    Id = "DIR_" + Guid.NewGuid().ToString("N"),
+                    Name = folderName.Trim(),
+                    Icon = "📁"
+                });
+            }
+        }
+
+        private async void CtxRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedDevCategory != null)
+            {
+                await LoadDevTemplatesForCategoryAsync(_selectedDevCategory);
+            }
+        }
+
+        private async void CtxSaoChep_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvReportTemplates.SelectedItem is DevReportTemplateNode selectedNode && !string.IsNullOrWhiteSpace(selectedNode.Name))
+            {
+                string newName = PromptInputDialog("Sao chép mẫu in", "Nhập tên cho bản sao:", $"{selectedNode.Name} (Bản sao)");
+                if (string.IsNullOrWhiteSpace(newName)) return;
+
+                try
+                {
+                    using var conn = DbConnectionManager.GetConnection();
+                    if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+
+                    byte[]? sourceXml = null;
+                    if (!string.IsNullOrEmpty(selectedNode.StemplateId))
+                    {
+                        sourceXml = await conn.QueryFirstOrDefaultAsync<byte[]>(
+                            "SELECT TEMPLATE FROM STEMPLATE WHERE ID = @Id", new { Id = selectedNode.StemplateId });
+                    }
+
+                    if (sourceXml == null)
+                    {
+                        sourceXml = await conn.QueryFirstOrDefaultAsync<byte[]>(
+                            "SELECT CONFIG FROM SREPORTTEMPLATE WHERE ID = @Id OR UPPER(TRIM(NAME)) = @Name",
+                            new { Id = selectedNode.Id, Name = selectedNode.Name.Trim().ToUpper() });
+                    }
+
+                    if (sourceXml == null)
+                    {
+                        using var report = new FastReport.Report();
+                        BuildDefaultFastReportTemplate(report, newName.Trim());
+                        using var ms = new MemoryStream();
+                        report.Save(ms);
+                        sourceXml = ms.ToArray();
+                    }
+
+                    string defaultUserId = "4f1466a0-0756-4ba9-afa8-053b96ca7569";
+                    string newId = Guid.NewGuid().ToString();
+                    await conn.ExecuteAsync(
+                        @"INSERT INTO SREPORTTEMPLATE (ID, NAME, STATUS, CONFIG, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
+                          VALUES (@Id, @Name, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                        new { Id = newId, Name = newName.Trim(), Config = sourceXml, UserId = defaultUserId });
+
+                    if (_selectedDevCategory != null)
+                    {
+                        await LoadDevTemplatesForCategoryAsync(_selectedDevCategory);
+                    }
+
+                    MessageBox.Show($"Đã sao chép mẫu [{selectedNode.Name}] thành [{newName.Trim()}] thành công!", "Sao chép thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi khi sao chép mẫu in: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn mẫu in cần sao chép.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private async void CtxXoa_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvReportTemplates.SelectedItem is DevReportTemplateNode selectedNode && !string.IsNullOrWhiteSpace(selectedNode.Name))
+            {
+                var res = MessageBox.Show($"Bạn có chắc chắn muốn xóa mẫu in [{selectedNode.Name}] không?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (res != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    using var conn = DbConnectionManager.GetConnection();
+                    if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+
+                    if (!string.IsNullOrEmpty(selectedNode.StemplateId))
+                    {
+                        await conn.ExecuteAsync("UPDATE STEMPLATE SET STATUS = 0 WHERE ID = @Id", new { Id = selectedNode.StemplateId });
+                    }
+                    await conn.ExecuteAsync("UPDATE SREPORTTEMPLATE SET STATUS = 0 WHERE ID = @Id OR UPPER(TRIM(NAME)) = @Name",
+                        new { Id = selectedNode.Id, Name = selectedNode.Name.Trim().ToUpper() });
+
+                    if (_selectedDevCategory != null)
+                    {
+                        await LoadDevTemplatesForCategoryAsync(_selectedDevCategory);
+                    }
+                    else
+                    {
+                        _devTemplateNodes.Remove(selectedNode);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi khi xóa mẫu in: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private async void CtxDoiTen_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvReportTemplates.SelectedItem is DevReportTemplateNode selectedNode && !string.IsNullOrWhiteSpace(selectedNode.Name))
+            {
+                string newName = PromptInputDialog("Đổi tên mẫu in", "Nhập tên mới:", selectedNode.Name);
+                if (string.IsNullOrWhiteSpace(newName) || newName.Equals(selectedNode.Name, StringComparison.OrdinalIgnoreCase)) return;
+
+                try
+                {
+                    using var conn = DbConnectionManager.GetConnection();
+                    if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+
+                    if (!string.IsNullOrEmpty(selectedNode.StemplateId))
+                    {
+                        await conn.ExecuteAsync("UPDATE STEMPLATE SET NAME = @NewName WHERE ID = @Id",
+                            new { NewName = newName.Trim(), Id = selectedNode.StemplateId });
+                    }
+                    await conn.ExecuteAsync("UPDATE SREPORTTEMPLATE SET NAME = @NewName WHERE ID = @Id OR UPPER(TRIM(NAME)) = @OldName",
+                        new { NewName = newName.Trim(), Id = selectedNode.Id, OldName = selectedNode.Name.Trim().ToUpper() });
+
+                    selectedNode.Name = newName.Trim();
+                    if (_selectedDevCategory != null)
+                    {
+                        await LoadDevTemplatesForCategoryAsync(_selectedDevCategory);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi khi đổi tên mẫu in: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void CtxSapXepTen_Click(object sender, RoutedEventArgs e)
+        {
+            if (MnuSortByName != null) MnuSortByName.IsChecked = true;
+            if (MnuSortByOrder != null) MnuSortByOrder.IsChecked = false;
+
+            var sorted = _devTemplateNodes.OrderBy(x => x.Name).ToList();
+            _devTemplateNodes.Clear();
+            foreach (var item in sorted) _devTemplateNodes.Add(item);
+        }
+
+        private void CtxSapXepThuTu_Click(object sender, RoutedEventArgs e)
+        {
+            if (MnuSortByName != null) MnuSortByName.IsChecked = false;
+            if (MnuSortByOrder != null) MnuSortByOrder.IsChecked = true;
+        }
+
+        private void CtxMoRong_Click(object sender, RoutedEventArgs e)
+        {
+            SetTreeViewItemsExpandState(TvReportTemplates, true);
+        }
+
+        private void CtxThuGon_Click(object sender, RoutedEventArgs e)
+        {
+            SetTreeViewItemsExpandState(TvReportTemplates, false);
+        }
+
+        private void SetTreeViewItemsExpandState(ItemsControl parent, bool isExpanded)
+        {
+            foreach (var item in parent.Items)
+            {
+                if (parent.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem tvi)
+                {
+                    tvi.IsExpanded = isExpanded;
+                    SetTreeViewItemsExpandState(tvi, isExpanded);
+                }
+            }
+        }
+
+        private void CtxThungRac_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Đã mở danh sách mẫu in trong thùng rác.", "Thùng rác mẫu in", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void CtxBieuTuong_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvReportTemplates.SelectedItem is DevReportTemplateNode selectedNode)
+            {
+                string newIcon = PromptInputDialog("Thay đổi biểu tượng", "Nhập biểu tượng Emoji (ví dụ: ⭐️, 🌸, 📊, 📄):", selectedNode.Icon);
+                if (!string.IsNullOrWhiteSpace(newIcon))
+                {
+                    selectedNode.Icon = newIcon.Trim();
+                }
+            }
+        }
+
+        private void CtxThuocTinh_Click(object sender, RoutedEventArgs e)
+        {
+            if (TvReportTemplates.SelectedItem is DevReportTemplateNode selectedNode)
+            {
+                string info = $"Tên mẫu: {selectedNode.Name}\nID mẫu: {selectedNode.Id}\nID STEMPLATE: {selectedNode.StemplateId}\nNhóm báo cáo ID: {selectedNode.SreportId}";
+                MessageBox.Show(info, "Thuộc tính mẫu in", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Chưa chọn mẫu in nào.", "Thuộc tính", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private static string PromptInputDialog(string title, string promptText, string defaultVal = "")
+        {
+            var win = new Window
+            {
+                Title = title,
+                Width = 420,
+                Height = 180,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ResizeMode = ResizeMode.NoResize,
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(248, 250, 252))
+            };
+
+            var sp = new StackPanel { Margin = new Thickness(16) };
+            sp.Children.Add(new TextBlock { Text = promptText, FontWeight = FontWeights.Medium, Margin = new Thickness(0, 0, 0, 8) });
+
+            var txt = new TextBox { Text = defaultVal, Height = 32, Padding = new Thickness(6, 4, 6, 4), VerticalContentAlignment = VerticalAlignment.Center };
+            txt.SelectAll();
+            sp.Children.Add(txt);
+
+            var spBtn = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
+            var btnOk = new Button { Content = "Đồng ý", Width = 90, Height = 32, IsDefault = true, Margin = new Thickness(0, 0, 8, 0), Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(2, 132, 199)), Foreground = System.Windows.Media.Brushes.White, BorderThickness = new Thickness(0) };
+            var btnCancel = new Button { Content = "Hủy bỏ", Width = 90, Height = 32, IsCancel = true };
+
+            btnOk.Click += (s, e) => { win.DialogResult = true; win.Close(); };
+            btnCancel.Click += (s, e) => { win.DialogResult = false; win.Close(); };
+
+            spBtn.Children.Add(btnOk);
+            spBtn.Children.Add(btnCancel);
+            sp.Children.Add(spBtn);
+
+            win.Content = sp;
+            return win.ShowDialog() == true ? txt.Text : "";
+        }
+        #endregion
     }
 
     public class InvoiceTemplateDisplayItem
