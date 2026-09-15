@@ -335,17 +335,17 @@
                             <Grid Grid.Row="0" Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0" Text="Phần này dành cho nhà phát triển, mời bạn nhập mật khẩu:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="13" Foreground="#1E293B"/>
                                 <PasswordBox x:Name="TxtDevPassword" Grid.Column="1" Height="26" Margin="0,0,8,0" VerticalContentAlignment="Center" KeyDown="TxtDevPassword_KeyDown"/>
-                                <Button x:Name="BtnUnlockDev" Grid.Column="2" Content="Mở khóa" Width="80" Height="26" Click="BtnUnlockDev_Click" Padding="6,2"/>
+                                <Button x:Name="BtnUnlockDev" Grid.Column="2" Content="Mở khóa" Width="80" Height="26" Click="BtnUnlockDev_Click" Padding="6,2" Margin="0,0,12,0"/>
 
-                                <Button x:Name="BtnSuaMauFastReport" Grid.Column="4" Content="Sửa mẫu" Foreground="#0055CC" Background="Transparent" BorderThickness="0" Cursor="Hand" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Click="BtnSuaMauFastReport_Click">
+                                <Button x:Name="BtnSuaMauFastReport" Grid.Column="3" Content="Sửa mẫu" Foreground="#0055CC" Background="Transparent" BorderThickness="0" Cursor="Hand" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" Click="BtnSuaMauFastReport_Click">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <TextBlock Text="{TemplateBinding Content}" TextDecorations="Underline" Foreground="{TemplateBinding Foreground}"/>
