@@ -30,6 +30,134 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
             Loaded += async (s, e) => await LoadDataAsync();
         }
 
+        /// <summary>
+        /// Query danh sách tên mẫu từ CSDL theo danh mục (categories).
+        /// Nếu không tìm thấy gì thì trả về danh sách fallback mặc định.
+        /// </summary>
+        private static async Task<string[]> LoadTemplateNamesFromDbAsync(string[] categoryNames, string[] fallback)
+        {
+            try
+            {
+                using var conn = DbConnectionManager.GetConnection();
+                if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+
+                var catUpper = categoryNames.Select(c => c.Trim().ToUpperInvariant()).ToList();
+                var names = new List<string>();
+
+                // Query tất cả SREPORT, so sánh tên trong C# (tránh UPPER() Firebird không xử lý đúng tiếng Việt)
+                var sreports = (await conn.QueryAsync<dynamic>(
+                    "SELECT CAST(ID AS VARCHAR(50)) AS ID, NAME FROM SREPORT WHERE (STATUS IS NULL OR STATUS <> 0)"
+                )).ToList();
+
+                var sreportIds = sreports
+                    .Where(r => catUpper.Contains(((string)(r.NAME ?? "")).Trim().ToUpperInvariant()))
+                    .Select(r => (string)r.ID)
+                    .ToList();
+
+                if (sreportIds.Count > 0)
+                {
+                    // Lấy tên mẫu từ SREPORTTEMPLATE theo sreportIds
+                    var paramList = string.Join(",", sreportIds.Select((_, i) => $"@p{i}"));
+                    var paramDict = new Dapper.DynamicParameters();
+                    for (int i = 0; i < sreportIds.Count; i++)
+                        paramDict.Add($"p{i}", sreportIds[i]);
+
+                    var rtems = (await conn.QueryAsync<dynamic>(
+                        $"SELECT NAME FROM SREPORTTEMPLATE WHERE (STATUS IS NULL OR STATUS <> 0) AND SREPORTID IN ({paramList}) ORDER BY SORTORDER, NAME",
+                        paramDict
+                    )).ToList();
+
+                    foreach (var r in rtems)
+                    {
+                        string n = ((string)(r.NAME ?? "")).Trim();
+                        if (!string.IsNullOrEmpty(n) && !names.Contains(n, StringComparer.OrdinalIgnoreCase))
+                            names.Add(n);
+                    }
+                }
+
+                // Fallback thêm: query STEMPLATE theo STABLEDESCID (dùng CategoryTableCodeMap)
+                // để bắt các mẫu được insert trực tiếp với STABLEDESCID thay vì qua SREPORTTEMPLATE
+                foreach (var catName in categoryNames)
+                {
+                    if (CategoryTableCodeMap.TryGetValue(catName, out string? tableCode) && !string.IsNullOrEmpty(tableCode))
+                    {
+                        // Tìm STABLEDESC ID theo code
+                        var stableDescRows = (await conn.QueryAsync<dynamic>(
+                            "SELECT CAST(sd.ID AS VARCHAR(50)) AS ID FROM STABLEDESC sd WHERE CAST(sd.ID AS VARCHAR(50)) = @Code OR NAME = @Code",
+                            new { Code = tableCode }
+                        )).ToList();
+
+                        if (stableDescRows.Count > 0)
+                        {
+                            var sdId = (string)stableDescRows[0].ID;
+                            var stems = (await conn.QueryAsync<dynamic>(
+                                "SELECT NAME FROM STEMPLATE WHERE (STATUS IS NULL OR STATUS <> 0) AND CAST(STABLEDESCID AS VARCHAR(50)) = @SdId ORDER BY SORTORDER, NAME",
+                                new { SdId = sdId }
+                            )).ToList();
+                            foreach (var r in stems)
+                            {
+                                string n = ((string)(r.NAME ?? "")).Trim();
+                                if (!string.IsNullOrEmpty(n) && !names.Contains(n, StringComparer.OrdinalIgnoreCase))
+                                    names.Add(n);
+                            }
+                        }
+                    }
+                }
+
+                // Với danh mục "Mẫu cơ bản": lấy STEMPLATE không có SFORMID và STABLEDESCID
+                if (categoryNames.Any(c => c.Trim().Equals("Mẫu cơ bản", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var baseTems = (await conn.QueryAsync<dynamic>(
+                        @"SELECT NAME FROM STEMPLATE 
+                          WHERE (STATUS IS NULL OR STATUS <> 0) 
+                            AND (STABLEDESCID IS NULL OR TRIM(CAST(STABLEDESCID AS VARCHAR(50))) = '') 
+                            AND (SFORMID IS NULL OR TRIM(CAST(SFORMID AS VARCHAR(50))) = '')
+                          ORDER BY SORTORDER, NAME"
+                    )).ToList();
+                    foreach (var r in baseTems)
+                    {
+                        string n = ((string)(r.NAME ?? "")).Trim();
+                        if (!string.IsNullOrEmpty(n) && !names.Contains(n, StringComparer.OrdinalIgnoreCase))
+                            names.Add(n);
+                    }
+                }
+
+                return names.Count > 0 ? names.ToArray() : fallback;
+            }
+            catch
+            {
+                return fallback;
+            }
+        }
+
+        /// <summary>
+        /// Reload lại danh sách 3 combobox mẫu in (hóa đơn, chế biến, chuyển bàn) từ CSDL.
+        /// Giữ nguyên giá trị đang chọn nếu vẫn còn trong danh sách mới.
+        /// </summary>
+        private async Task RefreshInvoiceTemplateComboboxesAsync()
+        {
+            string curMauHoaDon = CboMauHoaDon.Text;
+            string curMauCheBien = CboMauInCheBien.Text;
+            string curMauChuyenBan = CboMauInChuyenBan.Text;
+
+            var mauHoaDonNames = await LoadTemplateNamesFromDbAsync(new[] { "Mẫu cơ bản", "Hóa đơn bán hàng" },
+                new[] { "Mẫu 54 mm x 2 dòng", "Mẫu 80mm 2 ngôn ngữ", "Mẫu in 80mm (cộng gộp)",
+                        "Mẫu in bill 54mm", "Mẫu in bill 80 (Có CK)", "Mẫu in bill 80mm",
+                        "Mẫu in bill 80mm (CK tổng)", "Mẫu in bill A4", "Mẫu in bill A5" });
+            CboMauHoaDon.ItemsSource = mauHoaDonNames;
+            SetComboValue(CboMauHoaDon, curMauHoaDon);
+
+            var mauCheBienNames = await LoadTemplateNamesFromDbAsync(new[] { "In chế biến" },
+                new[] { "Mẫu 58mm", "Mẫu 80mm" });
+            CboMauInCheBien.ItemsSource = mauCheBienNames;
+            SetComboValue(CboMauInCheBien, curMauCheBien);
+
+            var mauChuyenBanNames = await LoadTemplateNamesFromDbAsync(new[] { "Chuyển bàn" },
+                new[] { "Mẫu 58mm", "Mẫu 80mm" });
+            CboMauInChuyenBan.ItemsSource = mauChuyenBanNames;
+            SetComboValue(CboMauInChuyenBan, curMauChuyenBan);
+        }
+
         private void InitializePanelsList()
         {
             _tabPanels.Clear();
@@ -51,27 +179,15 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
 
         private void InitializeComboBoxes()
         {
-            // Mẫu hóa đơn
-            string[] mauHoaDonList = new string[]
-            {
-                "Mẫu 54 mm x 2 dòng",
-                "Mẫu 80mm 2 ngôn ngữ",
-                "Mẫu in 80mm (cộng gộp)",
-                "Mẫu in bill 54mm",
-                "Mẫu in bill 80 (Có CK)",
-                "Mẫu in bill 80mm",
-                "Mẫu in bill 80mm (CK tổng)",
-                "Mẫu in bill A4",
-                "Mẫu in bill A5"
-            };
-            CboMauHoaDon.ItemsSource = mauHoaDonList;
-            CboMauHoaDon.SelectedIndex = 5; // "Mẫu in bill 80mm"
+            // Mẫu hóa đơn - danh sách sẽ được load từ CSDL trong LoadDataAsync
+            CboMauHoaDon.ItemsSource = new string[] { "Mẫu in bill 80mm" };
+            CboMauHoaDon.SelectedIndex = 0;
 
-            // Mẫu in chế biến
+            // Mẫu in chế biến - danh sách sẽ được load từ CSDL trong LoadDataAsync
             CboMauInCheBien.ItemsSource = new string[] { "Mẫu 58mm", "Mẫu 80mm" };
             CboMauInCheBien.SelectedIndex = 1; // "Mẫu 80mm"
 
-            // Mẫu in chuyển bàn
+            // Mẫu in chuyển bàn - danh sách sẽ được load từ CSDL trong LoadDataAsync
             CboMauInChuyenBan.ItemsSource = new string[] { "Mẫu 58mm", "Mẫu 80mm" };
             CboMauInChuyenBan.SelectedIndex = 1; // "Mẫu 80mm"
 
@@ -168,6 +284,22 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 // 2. In HĐ và in chế biến
                 ChkLuaChonMauKhiIn.IsChecked = GetBool(configs, "LuaChonMauKhiIn", false);
                 ChkHienThiTruocKhiIn.IsChecked = GetBool(configs, "HienThiTruocKhiIn", false);
+
+                // Load danh sách mẫu từ CSDL (theo thiết kế hóa đơn)
+                var mauHoaDonNames = await LoadTemplateNamesFromDbAsync(new[] { "Mẫu cơ bản", "Hóa đơn bán hàng" },
+                    new[] { "Mẫu 54 mm x 2 dòng", "Mẫu 80mm 2 ngôn ngữ", "Mẫu in 80mm (cộng gộp)",
+                            "Mẫu in bill 54mm", "Mẫu in bill 80 (Có CK)", "Mẫu in bill 80mm",
+                            "Mẫu in bill 80mm (CK tổng)", "Mẫu in bill A4", "Mẫu in bill A5" });
+                CboMauHoaDon.ItemsSource = mauHoaDonNames;
+
+                var mauCheBienNames = await LoadTemplateNamesFromDbAsync(new[] { "In chế biến" },
+                    new[] { "Mẫu 58mm", "Mẫu 80mm" });
+                CboMauInCheBien.ItemsSource = mauCheBienNames;
+
+                var mauChuyenBanNames = await LoadTemplateNamesFromDbAsync(new[] { "Chuyển bàn" },
+                    new[] { "Mẫu 58mm", "Mẫu 80mm" });
+                CboMauInChuyenBan.ItemsSource = mauChuyenBanNames;
+
                 SetComboValue(CboMauHoaDon, GetStr(configs, "MauHoaDon", "Mẫu in bill 80mm"));
                 TxtSoLanIn.Text = GetStr(configs, "SoLanIn", "1");
                 ChkSuDungChucNangInXuongBep.IsChecked = GetBool(configs, "SuDungChucNangInXuongBep", true);
@@ -1650,24 +1782,70 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                     xmlBytes = ms.ToArray();
                 }
 
+                // Resolve SREPORTID thực từ DB theo tên danh mục (so sánh trong C# tránh UPPER() Firebird)
                 string sreportId = _selectedDevCategory?.Id ?? "";
+                if (!string.IsNullOrEmpty(catName))
+                {
+                    var allSreports = (await conn.QueryAsync<dynamic>(
+                        "SELECT CAST(ID AS VARCHAR(50)) AS ID, NAME FROM SREPORT WHERE (STATUS IS NULL OR STATUS <> 0)"
+                    )).ToList();
+                    var matched = allSreports.FirstOrDefault(r =>
+                        ((string)(r.NAME ?? "")).Trim().Equals(catName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (matched != null)
+                        sreportId = (string)matched.ID;
+                }
+
+                // Lấy STABLEDESCID từ mẫu đã có trong cùng danh mục (chỉ với danh mục có trong CategoryTableCodeMap)
+                // Không set SFORMID vì có thể lấy nhầm từ SFORM không liên quan
+                string? stableDescId = null;
+
+                if (CategoryTableCodeMap.TryGetValue(catName, out string? tableCode) && !string.IsNullOrEmpty(tableCode))
+                {
+                    // Lấy STABLEDESCID từ một STEMPLATE đã có, có STABLEDESCID trỏ đến STABLEDESC với NAME = tableCode
+                    stableDescId = await conn.QueryFirstOrDefaultAsync<string>(
+                        @"SELECT FIRST 1 CAST(st.STABLEDESCID AS VARCHAR(50))
+                          FROM STEMPLATE st
+                          INNER JOIN STABLEDESC sd ON st.STABLEDESCID = sd.ID
+                          WHERE (st.STATUS IS NULL OR st.STATUS <> 0)
+                            AND sd.NAME = @TableCode",
+                        new { TableCode = tableCode });
+                }
 
                 // 1. Insert into STEMPLATE
-                await conn.ExecuteAsync(
-                    @"INSERT INTO STEMPLATE (ID, NAME, STATUS, TEMPLATE, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
-                      VALUES (@Id, @Name, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                    new { Id = newId, Name = inputName.Trim(), Config = xmlBytes, UserId = defaultUserId });
+                // - Nếu có STABLEDESCID (danh mục có mapping bảng) thì set vào để đúng nhóm
+                // - Nếu không (như Chuyển bàn) thì insert không có STABLEDESCID, chỉ dùng SREPORTTEMPLATE để mapping
+                if (!string.IsNullOrEmpty(stableDescId))
+                {
+                    await conn.ExecuteAsync(
+                        @"INSERT INTO STEMPLATE (ID, NAME, STATUS, TEMPLATE, STABLEDESCID, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
+                          VALUES (@Id, @Name, 30, @Config, @StableDescId, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                        new { Id = newId, Name = inputName.Trim(), Config = xmlBytes, StableDescId = stableDescId, UserId = defaultUserId });
+                }
+                else
+                {
+                    await conn.ExecuteAsync(
+                        @"INSERT INTO STEMPLATE (ID, NAME, STATUS, TEMPLATE, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
+                          VALUES (@Id, @Name, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                        new { Id = newId, Name = inputName.Trim(), Config = xmlBytes, UserId = defaultUserId });
+                }
 
-                // 2. Insert into SREPORTTEMPLATE
-                await conn.ExecuteAsync(
-                    @"INSERT INTO SREPORTTEMPLATE (ID, NAME, SREPORTID, STEMPLATEID, STATUS, CONFIG, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
-                      VALUES (@Id, @Name, @SreportId, @Id, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                    new { Id = newId, Name = inputName.Trim(), SreportId = sreportId, Config = xmlBytes, UserId = defaultUserId });
+
+                // 2. Insert into SREPORTTEMPLATE (link mẫu với danh mục qua SREPORTID)
+                if (!string.IsNullOrEmpty(sreportId))
+                {
+                    await conn.ExecuteAsync(
+                        @"INSERT INTO SREPORTTEMPLATE (ID, NAME, SREPORTID, STEMPLATEID, STATUS, CONFIG, USERCREATEDID, USERMODIFIEDID, TIMEMODIFIED, TIMECREATED) 
+                          VALUES (@Id, @Name, @SreportId, @StemplateId, 30, @Config, @UserId, @UserId, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                        new { Id = Guid.NewGuid().ToString(), Name = inputName.Trim(), SreportId = sreportId, StemplateId = newId, Config = xmlBytes, UserId = defaultUserId });
+                }
 
                 if (_selectedDevCategory != null)
                 {
                     await LoadDevTemplatesForCategoryAsync(_selectedDevCategory);
                 }
+
+                // Reload lại các combobox dropdown để hiện mẫu vừa thêm
+                await RefreshInvoiceTemplateComboboxesAsync();
 
                 var newNode = _devTemplateNodes.FirstOrDefault(x => x.Name.Equals(inputName.Trim(), StringComparison.OrdinalIgnoreCase));
                 if (newNode != null)
@@ -1681,6 +1859,7 @@ namespace QuanLyBar.Client.Views.CauHinhHeThong
                 MessageBox.Show("Lỗi khi thêm mẫu in mới: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void CtxThemNhanh_Click(object sender, RoutedEventArgs e)
         {
